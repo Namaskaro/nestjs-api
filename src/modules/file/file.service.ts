@@ -1,0 +1,28 @@
+import { Injectable } from '@nestjs/common';
+import { path } from 'app-root-path';
+import { ensureDir, writeFile } from 'fs-extra';
+import { FileResponse } from './file.interface';
+
+@Injectable()
+export class FileService {
+  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+  async saveFiles(files: Express.Multer.File[], folder: string = 'products') {
+    const uploadedFolder = `${path}/uploads/${folder}`;
+
+    await ensureDir(uploadedFolder);
+
+    const response: FileResponse[] = await Promise.all(
+      files.map(async (file) => {
+        const originalName = `${crypto.randomUUID()}-${file.originalname}`;
+
+        await writeFile(`${uploadedFolder}/${originalName}`, file.buffer);
+
+        return {
+          url: `/uploads/${folder}/${originalName}`,
+          name: originalName,
+        };
+      }),
+    );
+    return response;
+  }
+}

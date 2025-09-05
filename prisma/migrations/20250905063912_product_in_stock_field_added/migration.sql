@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "product" ADD COLUMN     "inStock" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "stock" INTEGER NOT NULL DEFAULT 10;

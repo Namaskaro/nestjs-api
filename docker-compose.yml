@@ -1,0 +1,35 @@
+version: '3.7'
+
+services:
+  db:
+    container_name: brandshop_pg
+    image: postgres:15.2
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - 5439:5432
+    volumes:
+      - postgres_data_v2:/var/lib/postgresql/data
+    networks:
+      - server-side
+
+  redis:
+    container_name: brandshop_redis
+    image: redis:5.0
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - server-side
+
+volumes:
+  postgres_data_v2:
+  redis_data:
+
+networks:
+  server-side:

@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URI")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String?   @default("Не указано")
+  email     String?   @unique
+  password  String?
+  avatar    String    @default("/uploads/no-user-image.png")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  role      Role      @default(Client)
+  bio       Json?
+  isGuest   Boolean   @default(false) @map("is_guest")
+  lastSeen  DateTime  @default(now()) @map("last_seen")
+  orders    Order[]
+  reviews   Review[]
+  cart      Cart?
+  favorites Product[]
+
+  @@index([isGuest, lastSeen], map: "idx_user_is_guest_last_seen")
+  @@map("user")
+}
+
+model Product {
+  id            String       @id @default(uuid())
+  title         String
+  description   String
+  price         String
+  images        String[]
+  subcategoryId String?      @map("subcategory_id")
+  brandId       String?      @map("brand_id")
+  userId        String?      @map("user_id")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  gender        UserGender
+  type          ProductType
+  stock         Int          @default(10)
+  inStock       Boolean      @default(true)
+  blurURL       String[]     @default([])
+  sizes         String[]     @default([])
+  discount      String?      @default("0")
+  isNew         Boolean?
+  reviews       Review[]
+  cartItems     CartItem[]
+  brand         Brand?       @relation(fields: [brandId], references: [id])
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([id])
+  @@map("product")
+}
+
+model Category {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  slug          String?       @unique
+  subcategories Subcategory[]
+
+  @@map("category")
+}
+
+model Subcategory {
+  id         String     @id @default(uuid())
+  name       String     @unique
+  categoryId String     @map("category_id")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  imageUrl   String
+  gender     UserGender
+  slug       String?
+  products   Product[]
+  category   Category   @relation(fields: [categoryId], references: [id])
+
+  @@map("subcategory")
+}
+
+model Brand {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  coverImg  String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  products  Product[]
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  text      String
+  rating    Int
+  userId    String?  @map("user_id")
+  productId String?  @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  product   Product? @relation(fields: [productId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      String
+  token       String
+  totalAmount Int
+  status      OrderStatus @default(PENDING)
+  paymentId   String?
+  items       Json
+  fullName    String
+  address     String
+  email       String
+  phone       String
+  comment     String?
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String   @map("cart_id")
+  productId String   @map("product_id")
+  quantity  Int      @default(1)
+  size      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId, size])
+  @@map("cart_item")
+}
+
+model Cart {
+  id          String     @id @default(uuid())
+  userId      String?    @unique
+  cartToken   String?    @unique
+  totalAmount Int        @default(0)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       CartItem[]
+
+  @@map("cart")
+}
+
+enum UserGender {
+  MAN   @map("MAN")
+  WOMAN @map("WOMAN")
+}
+
+enum ProductType {
+  SHOES       @map("SHOES")
+  CLOTHES     @map("CLOTHES")
+  ACCESSORIES @map("ACCESSORIES")
+}
+
+enum OrderStatus {
+  PENDING
+  SUCCESS
+  CANCELLED
+}
+
+enum Role {
+  Client  @map("role_client")
+  Admin   @map("role_admin")
+  Manager @map("role_manager")
+  Guest   @map("role_guest")
+
+  @@map("roles_enum")
+}
