@@ -30,7 +30,17 @@ export class FilterQueryDto {
   @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   @IsArray()
   @IsString({ each: true })
-  brands?: string[];
+  @Transform(({ value, obj }) => {
+    const raw = obj.brand ?? obj.brands ?? value;
+    if (Array.isArray(raw)) return raw.filter(Boolean);
+    if (typeof raw === 'string')
+      return raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    return [];
+  })
+  brand?: string[];
 
   @IsOptional()
   @IsIn(['price', 'name', 'createdAt'])

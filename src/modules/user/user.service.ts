@@ -101,8 +101,8 @@ export class UserService {
   }
 
   public async changeAvatar(user: User, file: Express.Multer.File) {
-    if (user.avatar) {
-      await this.storageService.remove(user.avatar); // удалить старый файл
+    if (user.image) {
+      await this.storageService.remove(user.image); // удалить старый файл
     }
 
     const webpBuffer = await sharp(file.buffer)
@@ -118,7 +118,7 @@ export class UserService {
     const imgUrl = `${S3UserId}.${S3Url}${fileName}`;
     await this.prismaService.user.update({
       where: { id: user.id },
-      data: { avatar: imgUrl },
+      data: { image: imgUrl },
     });
   }
 }

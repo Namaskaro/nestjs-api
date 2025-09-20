@@ -49,144 +49,165 @@ export class ProductsService {
     return products;
   }
 
-  // async getPaginatedProducts({
-  //   page = 1,
-  //   take = 20,
-  //   searchTerm,
-  //   cursor,
-  //   category,
-  //   brands,
-  //   sort = 'createdAt',
-  //   order = 'desc',
-  // }: {
-  //   page?: number;
-  //   take?: number;
-  //   searchTerm?: string;
-  //   cursor?: string;
-  //   category?: string;
-  //   brands?: string[];
-  //   sort?: 'price' | 'name' | 'createdAt';
-  //   order?: 'asc' | 'desc';
-  // }) {
-  //   const isCursorPagination = !!cursor;
-  //   const skip = isCursorPagination ? 0 : (page - 1) * take;
+  // async getPaginatedProducts(filters: FilterQueryDto) {
+  //   const {
+  //     page = 1,
+  //     take = 12,
+  //     cursor,
+  //     searchTerm,
+  //     category,
+  //     subcategory,
+  //     brands,
+  //     sort = 'createdAt',
+  //     order = 'desc',
+  //   } = filters;
 
-  //   const where: any = {};
-
-  //   if (searchTerm) {
-  //     where.title = {
-  //       contains: searchTerm,
-  //       mode: 'insensitive',
-  //     };
-  //   }
-
-  //   if (category && category !== 'all') {
-  //     where.subcategory = {
-  //       name: category,
-  //     };
-  //   }
-
-  //   if (brands && brands.length > 0 && !brands.includes('all')) {
-  //     where.brand = {
-  //       name: {
-  //         in: brands,
+  //   const where: any = {
+  //     ...(searchTerm && {
+  //       title: {
+  //         contains: searchTerm,
+  //         mode: 'insensitive',
   //       },
+  //     }),
+  //     ...(category &&
+  //       category !== 'all' && {
+  //         subcategory: {
+  //           is: {
+  //             category: {
+  //               is: {
+  //                 slug: category,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       }),
+  //     ...(brands?.length &&
+  //       !brands.includes('all') && { brand: { name: { in: brands } } }),
+  //     // ...(brands &&
+  //     //   !brands.includes('all') && { brand: { name: { in: brands } } }),
+  //     ...(subcategory &&
+  //       subcategory !== 'all' && {
+  //         subcategory: { is: { name: subcategory } },
+  //       }),
+  //   };
+
+  //   if (cursor) {
+  //     // Cursor-based pagination
+  //     const items = await this.prismaService.product.findMany({
+  //       where,
+  //       take,
+  //       skip: 1,
+  //       cursor: { id: cursor },
+  //       orderBy: { [sort]: order },
+  //       include: {
+  //         brand: true,
+  //         subcategory: { select: { name: true } },
+  //         reviews: { select: { user: true, rating: true, text: true } },
+  //       },
+  //     });
+
+  //     return {
+  //       items,
+  //       nextCursor: items.length === take ? items[take - 1].id : null,
   //     };
   //   }
+
+  //   // Offset-based pagination
+  //   const skip = (page - 1) * take;
 
   //   const [items, total] = await this.prismaService.$transaction([
   //     this.prismaService.product.findMany({
   //       where,
+  //       skip,
   //       take,
-  //       skip: isCursorPagination ? 1 : skip,
-  //       ...(isCursorPagination && {
-  //         cursor: { id: cursor },
-  //       }),
-  //       orderBy: {
-  //         [sort]: order,
-  //       },
+  //       orderBy: { [sort]: order },
   //       include: {
   //         brand: true,
-  //         subcategory: { select: { name: true } },
+  //         subcategory: { select: { name: true } }, // <-- убрал products
   //         reviews: { select: { user: true, rating: true, text: true } },
   //       },
   //     }),
   //     this.prismaService.product.count({ where }),
   //   ]);
 
-  //   const lastItem = items.length > 0 ? items[items.length - 1] : null;
-
   //   return {
   //     items,
   //     total,
   //     page,
   //     totalPages: Math.ceil(total / take),
-  //     nextCursor: lastItem?.id ?? null,
   //   };
   // }
 
   async getPaginatedProducts(filters: FilterQueryDto) {
     const {
       page = 1,
-      take = 10,
+      take = 12,
       cursor,
       searchTerm,
       category,
       subcategory,
-      brands,
+      brand,
       sort = 'createdAt',
       order = 'desc',
     } = filters;
 
     const where: any = {
       ...(searchTerm && {
-        title: {
-          contains: searchTerm,
-          mode: 'insensitive',
-        },
+        title: { contains: searchTerm, mode: 'insensitive' },
       }),
       ...(category &&
         category !== 'all' && {
-          subcategory: {
-            is: {
-              category: {
-                is: {
-                  slug: category,
-                },
-              },
-            },
-          },
+          subcategory: { is: { category: { is: { slug: category } } } },
         }),
-      ...(brands &&
-        !brands.includes('all') && { brand: { name: { in: brands } } }),
+      ...(brand?.length &&
+        !brand.includes('all') && {
+          OR: brand.map((b) => ({
+            brand: { is: { name: { equals: b, mode: 'insensitive' } } },
+          })),
+        }),
       ...(subcategory &&
         subcategory !== 'all' && {
           subcategory: { is: { name: subcategory } },
         }),
     };
 
+    // общий include
+    const include = {
+      brand: true,
+      subcategory: { select: { name: true } },
+      reviews: { select: { user: true, rating: true, text: true } },
+    } as const;
+
+    // общий стабильный orderBy (по выбранному полю + tie-break по id)
+    const orderBy = [{ [sort]: order } as any, { id: order }];
+
     if (cursor) {
-      // Cursor-based pagination
+      // 1) валидируем анкер курсора (если его нет — отдаём пусто, без 404)
+      const anchor = await this.prismaService.product.findUnique({
+        where: { id: cursor },
+        select: { id: true },
+      });
+      if (!anchor) {
+        return { items: [], nextCursor: null };
+      }
+
+      // 2) курсорная страница
       const items = await this.prismaService.product.findMany({
         where,
         take,
         skip: 1,
-        cursor: { id: cursor },
-        orderBy: { [sort]: order },
-        include: {
-          brand: true,
-          subcategory: { select: { name: true } },
-          reviews: { select: { user: true, rating: true, text: true } },
-        },
+        cursor: { id: anchor.id },
+        orderBy,
+        include,
       });
 
       return {
         items,
-        nextCursor: items.length === take ? items[take - 1].id : null,
+        nextCursor: items.length === take ? items[items.length - 1].id : null,
       };
     }
 
-    // Offset-based pagination
+    // offset-страница
     const skip = (page - 1) * take;
 
     const [items, total] = await this.prismaService.$transaction([
@@ -194,12 +215,8 @@ export class ProductsService {
         where,
         skip,
         take,
-        orderBy: { [sort]: order },
-        include: {
-          brand: true,
-          subcategory: { select: { name: true } }, // <-- убрал products
-          reviews: { select: { user: true, rating: true, text: true } },
-        },
+        orderBy,
+        include,
       }),
       this.prismaService.product.count({ where }),
     ]);
@@ -209,6 +226,11 @@ export class ProductsService {
       total,
       page,
       totalPages: Math.ceil(total / take),
+      // важное: сразу подготовим корректный nextCursor для клиента
+      nextCursor:
+        page < Math.ceil(total / take) && items.length > 0
+          ? items[items.length - 1].id
+          : null,
     };
   }
 

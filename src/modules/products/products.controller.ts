@@ -9,6 +9,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -32,19 +33,23 @@ export class ProductsController {
     return this.productsService.getAllProducts(searchTerm);
   }
 
-  // @Get('/paginated')
-  // getPaginatedProducts(
-  //   @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  //   @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-  //   @Query('search') search?: string,
-  // ) {
-  //   return this.productsService.getPaginatedProducts(page, limit, search);
-  // }
-
-  @Get('/filtered')
-  async getPaginatedProducts(@Query() filters: FilterQueryDto) {
-    return this.productsService.getPaginatedProducts(filters);
+  @Get('filtered-cursor')
+  getCursor(@Query() q: FilterQueryDto) {
+    console.log('[CTRL /filtered-cursor] query =', q);
+    return this.productsService.getPaginatedProducts(q);
   }
+
+  @Get('filtered')
+  getOffset(@Query() dto: FilterQueryDto, @Req() req: any) {
+    console.log('RAW QUERY >>>', req.query); // тут увидите brand: ['Nike','Adidas']
+    console.log('DTO.brands >>>', dto.brand);
+    return this.productsService.getPaginatedProducts(dto);
+  }
+
+  // @Get('/filtered')
+  // async getPaginatedProducts(@Query() filters: FilterQueryDto) {
+  //   return this.productsService.getPaginatedProducts(filters);
+  // }
 
   @Get('/:id')
   async getProductById(@Param('id') id: string) {

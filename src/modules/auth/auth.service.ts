@@ -14,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { CreateGuestDto } from './dto/create-guest.dto';
 import { Role } from '@/prisma/generated';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { UpdateUserDto } from '../user/dto/user-update.dto';
 
 const TTL_MS = 10 * 60 * 1000;
 
@@ -83,6 +84,14 @@ export class AuthService {
     return { id: user.id, name: user.name ?? null };
   }
 
+  issueGuestAccessToken(userId: string) {
+    const secret = this.configService.getOrThrow<string>('JWT_SECRET');
+    return this.jwt.sign(
+      { id: userId, isGuest: true }, // важен флаг
+      { expiresIn: '14d', secret }, // срок гостя
+    );
+  }
+
   async ping(id: string): Promise<void> {
     await this.prismaService.user.updateMany({
       where: { id, isGuest: true }, // <— только для гостей
@@ -98,7 +107,7 @@ export class AuthService {
     return res.count;
   }
 
-  async upgradeGuest(id: string, data: UserUpdateInput) {
+  async upgradeGuest(id: string, data: UpdateUserDto) {
     const user = await this.prismaService.user.findUnique({
       where: { id },
       select: { isGuest: true },
@@ -200,7 +209,7 @@ export class AuthService {
           email: req.user.email,
           role: req.user.role,
           name: req.user.name,
-          avatar: req.user.picture,
+          image: req.user.picture,
         },
         include: {
           favorites: true,

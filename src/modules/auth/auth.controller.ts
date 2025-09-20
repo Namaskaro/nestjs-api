@@ -6,6 +6,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   Post,
   Req,
@@ -14,35 +15,83 @@ import {
   UseGuards,
   UsePipes,
   ValidationPipe,
+  Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from '../user/dto/auth.dto';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { UserService } from '../user/user.service';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly users: UserService,
+    private readonly cfg: ConfigService,
+  ) {}
 
+  // 3) Создание гостя (возвращаем только { id, name })
   @Post('guest')
-  async createGuest() {
-    const guest = await this.authService.createGuest();
-
-    return guest;
+  @HttpCode(HttpStatus.CREATED)
+  create() {
+    return this.authService.createGuest();
   }
 
-  @Post('guest/:id')
-  async getGuest(@Param('id') id: string) {
-    const guest = await this.authService.getGuest(id);
-
-    return guest;
+  // 2) Получить гостя (для самовосстановления на фронте)
+  @Get(':id')
+  get(@Param('id') id: string) {
+    return this.authService.getGuest(id);
   }
 
-  @Post('guest/delete')
-  @HttpCode(204)
-  async deleteGuestByPost(@Param('id') id: string) {
-    console.log('[server] 🔥 Запрос на удаление гостя:', id);
-    return await this.authService.deleteGuest(id);
+  // @HttpCode(200)
+  // @Post('external/mint')
+  // async mintForExternal(
+  //   @Headers('x-internal-secret') secret: string,
+  //   @Body() body: { userId: string },
+  //   @Res({ passthrough: true }) res: Response,
+  // ) {
+  //   if (secret !== this.cfg.get<string>('INTERNAL_SYNC_SECRET')) {
+  //     throw new UnauthorizedException('forbidden');
+  //   }
+  //   const user = await this.users.getById(body.userId);
+  //   if (!user || user.isGuest)
+  //     throw new UnauthorizedException('user not found');
+
+  //   const { accessToken, refreshToken } = this.authService.issueTokens(user.id);
+  //   // опционально кладём refresh cookie (как в login/register)
+  //   this.authService.addRefreshTokenToResponse(res, refreshToken);
+
+  //   return {
+  //     accessToken,
+  //     user: {
+  //       id: user.id,
+  //       email: user.email,
+  //       name: user.name,
+  //       role: user.role,
+  //       image: user.image,
+  //     },
+  //   };
+  // }
+
+  // 5) Пинг для продления TTL
+  @Post('ping')
+  @HttpCode(HttpStatus.NO_CONTENT) // фронту ответ не нужен
+  async ping(@Req() req: Request, @Body('id') id?: string) {
+    // поддержка как urlencoded, так и text/plain (sendBeacon может прислать text/plain)
+    if (!id && typeof req.body === 'string') {
+      try {
+        const params = new URLSearchParams(req.body);
+        id = params.get('id') ?? undefined;
+      } catch {
+        // игнорируем
+      }
+    }
+    if (id) {
+      await this.authService.ping(id);
+    }
+    // 204 без ошибок даже если id некорректный/несуществующий — фронт всё равно не читает
   }
 
   @UsePipes(new ValidationPipe())

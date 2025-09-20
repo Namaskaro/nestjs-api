@@ -7,6 +7,8 @@ import { StorageService } from '../libs/storage/storage.service';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ConfigService } from '@nestjs/config';
+import { AuthService } from '../auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -17,7 +19,14 @@ import { ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [UserController],
-  providers: [UserService, PrismaService, StorageService, ConfigService],
+  providers: [
+    UserService,
+    JwtService,
+    PrismaService,
+    StorageService,
+    ConfigService,
+    AuthService,
+  ],
   exports: [UserService],
 })
 export class UserModule {}

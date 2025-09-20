@@ -8,5 +8,7 @@ export class AddProductToCartDto {
   @Min(1)
   quantity: number;
 
-  userId: string;
+  @IsString()
+  @IsOptional()
+  userId?: string;
 }

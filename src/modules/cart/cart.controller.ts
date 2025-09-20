@@ -115,7 +115,7 @@ export class CartController {
     return { success: true, item };
   }
 
-  @Delete(':id')
+  @Delete('/:id')
   async deleteCartItem(@Param('id') id: string) {
     return this.cartService.deleteCartItem(id);
   }

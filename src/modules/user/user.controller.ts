@@ -15,26 +15,30 @@ import {
 import { UserService } from './user.service';
 import { Role, User } from '@/prisma/generated';
 import { Roles } from '../auth/decorators/role.decorator';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard, OptionalJwtGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { CurrentUser } from './decorators/user.decorator';
 import { Logger } from '@nestjs/common';
 import { UpdateUserBioDto } from './dto/update-bio.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthService } from '../auth/auth.service';
 const logger = new Logger('ProfileController');
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtGuard)
   async getProfile(@CurrentUser('id') id: string) {
     return this.userService.getById(id);
   }
 
-  @Get('/:id')
+  @Get('search/:id')
   @HttpCode(200)
   // @Roles(Role.Admin)
   // @UseGuards(JwtAuthGuard, RolesGuard)
@@ -50,10 +54,28 @@ export class UserController {
   ) {
     return this.userService.toggleFavorite(userId, productId);
   }
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
+  // @Get('me')
+  // getCurrentUser(@CurrentUser() user: User) {
+  //   return user;
+  // }
+
+  @UseGuards(OptionalJwtGuard)
   @Get('me')
-  getCurrentUser(@CurrentUser() user: User) {
-    return user;
+  async getCurrentUser(
+    @CurrentUser() user: User | { id: string; isGuest: true } | null,
+  ) {
+    if (user) {
+      // обычный пользователь (isGuest=false) или гость (isGuest=true) уже в токене
+      return user;
+    }
+
+    // нет токена → создаём гостя + выдаём гостевой access-токен
+    const guest = await this.authService.createGuest(); // у тебя уже есть этот метод
+    const accessToken = this.authService.issueGuestAccessToken(guest.id);
+
+    // Вернём в body — фронт положит в Authorization: Bearer ...
+    return { id: guest.id, isGuest: true, accessToken };
   }
 
   @UseGuards(JwtAuthGuard)
