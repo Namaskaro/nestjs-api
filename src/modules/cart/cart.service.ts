@@ -120,6 +120,7 @@ export class CartService {
           cartId: cart.id,
           productId: dto.productId,
           quantity: dto.quantity,
+          size: dto.size,
         },
       });
     } catch (err) {

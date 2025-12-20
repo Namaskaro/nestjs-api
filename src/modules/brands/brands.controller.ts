@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { BrandsService } from './brands.service';
@@ -24,6 +25,11 @@ export class BrandsController {
   @Get()
   async getAllBrands() {
     return this.brandsService.getAllBrands();
+  }
+
+  @Get()
+  async getBrandsBySearch(@Query('searchTerm') searchTerm?: string) {
+    return this.brandsService.getBrandBySearch(searchTerm);
   }
 
   @Post('/:id')

@@ -24,30 +24,30 @@ export class ProductsService {
     private readonly cloudStorage: CloudStorageService,
   ) {}
 
-  async getAllProducts(searchTerm?: string) {
-    if (searchTerm) return this.getSearchFilter(searchTerm);
-    const products = await this.prismaService.product.findMany({
-      orderBy: {
-        title: 'desc',
-      },
-      include: {
-        subcategory: {
-          select: {
-            name: true,
-          },
-        },
-        brand: true,
-        reviews: {
-          select: {
-            user: true,
-            rating: true,
-            text: true,
-          },
-        },
-      },
-    });
-    return products;
-  }
+  // async getAllProducts(searchTerm?: string) {
+  //   if (searchTerm) return this.getSearchFilter(searchTerm);
+  //   const products = await this.prismaService.product.findMany({
+  //     orderBy: {
+  //       title: 'desc',
+  //     },
+  //     include: {
+  //       subcategory: {
+  //         select: {
+  //           name: true,
+  //         },
+  //       },
+  //       brand: true,
+  //       reviews: {
+  //         select: {
+  //           user: true,
+  //           rating: true,
+  //           text: true,
+  //         },
+  //       },
+  //     },
+  //   });
+  //   return products;
+  // }
 
   // async getPaginatedProducts(filters: FilterQueryDto) {
   //   const {
@@ -137,6 +137,30 @@ export class ProductsService {
   //     totalPages: Math.ceil(total / take),
   //   };
   // }
+
+  async getAllProducts(searchTerm?: string) {
+    return this.prismaService.product.findMany({
+      where: searchTerm ? this.getSearchFilter(searchTerm) : undefined,
+      orderBy: {
+        title: 'desc',
+      },
+      include: {
+        subcategory: {
+          select: {
+            name: true,
+          },
+        },
+        brand: true,
+        reviews: {
+          select: {
+            user: true,
+            rating: true,
+            text: true,
+          },
+        },
+      },
+    });
+  }
 
   async getPaginatedProducts(filters: FilterQueryDto) {
     const {
@@ -267,13 +291,13 @@ export class ProductsService {
         {
           title: {
             contains: searchTerm,
-            mode: 'insensitive',
+            mode: 'insensitive' as const,
           },
         },
         {
           description: {
             contains: searchTerm,
-            mode: 'insensitive',
+            mode: 'insensitive' as const,
           },
         },
       ],

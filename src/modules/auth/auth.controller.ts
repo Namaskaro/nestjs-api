@@ -16,20 +16,22 @@ import {
   UsePipes,
   ValidationPipe,
   Headers,
+  SetMetadata,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { AuthService, REFRESH_TOKEN_NAME } from './auth.service';
 import { AuthDto } from '../user/dto/auth.dto';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from '../user/user.service';
 import { ConfigService } from '@nestjs/config';
 
+export const Public = () => SetMetadata('isPublic', true);
+
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly users: UserService,
-    private readonly cfg: ConfigService,
+    private readonly config: ConfigService,
   ) {}
 
   // 3) Создание гостя (возвращаем только { id, name })
@@ -38,42 +40,6 @@ export class AuthController {
   create() {
     return this.authService.createGuest();
   }
-
-  // 2) Получить гостя (для самовосстановления на фронте)
-  @Get(':id')
-  get(@Param('id') id: string) {
-    return this.authService.getGuest(id);
-  }
-
-  // @HttpCode(200)
-  // @Post('external/mint')
-  // async mintForExternal(
-  //   @Headers('x-internal-secret') secret: string,
-  //   @Body() body: { userId: string },
-  //   @Res({ passthrough: true }) res: Response,
-  // ) {
-  //   if (secret !== this.cfg.get<string>('INTERNAL_SYNC_SECRET')) {
-  //     throw new UnauthorizedException('forbidden');
-  //   }
-  //   const user = await this.users.getById(body.userId);
-  //   if (!user || user.isGuest)
-  //     throw new UnauthorizedException('user not found');
-
-  //   const { accessToken, refreshToken } = this.authService.issueTokens(user.id);
-  //   // опционально кладём refresh cookie (как в login/register)
-  //   this.authService.addRefreshTokenToResponse(res, refreshToken);
-
-  //   return {
-  //     accessToken,
-  //     user: {
-  //       id: user.id,
-  //       email: user.email,
-  //       name: user.name,
-  //       role: user.role,
-  //       image: user.image,
-  //     },
-  //   };
-  // }
 
   // 5) Пинг для продления TTL
   @Post('ping')
@@ -124,10 +90,9 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshTokenFromCookies =
-      req.cookies[this.authService.REFRESH_TOKEN_NAME];
+    const refreshTokenFromCookies = req.cookies[REFRESH_TOKEN_NAME];
     if (!refreshTokenFromCookies) {
-      this.authService.removeRefreshTokenFromResponse(res);
+      this.authService.clearAccessTokens(res);
       throw new UnauthorizedException('Refresh token не прошел');
     }
     const { refreshToken, ...response } = await this.authService.getNewTokens(
@@ -137,52 +102,82 @@ export class AuthController {
     return response;
   }
 
-  @HttpCode(200)
+  // @HttpCode(200)
+  // @Post('logout')
+  // async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  //   this.authService.removeRefreshTokenFromResponse(res);
+  //   return true;
+  // }
+
   @Post('logout')
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    this.authService.removeRefreshTokenFromResponse(res);
+  @HttpCode(200)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    this.authService.clearAccessTokens(res);
     return true;
   }
 
-  @Get('google')
-  // @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req) {}
-
-  @Get('google/callback')
-  // @UseGuards(AuthGuard('google'))
-  async googleAuthCallback(
-    @Req() req,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const { refreshToken, ...response } =
-      await this.authService.validate0AuthLogin(req);
-
-    this.authService.addRefreshTokenToResponse(res, refreshToken);
-    console.log(response);
-    return res.redirect(
-      `${process.env['CLIENT_URL']}/?accessToken=${response.accessToken}`,
-    );
-  }
-
+  @Public()
   @Get('yandex')
   @UseGuards(AuthGuard('yandex'))
   async yandexAuth(@Req() req) {}
 
+  @Public()
   @Get('yandex/callback')
-  // @UseGuards(AuthGuard('yandex'))
-  async yandexAuthCallback(
-    @Req() req,
+  @UseGuards(AuthGuard('yandex'))
+  async yandexCallback(
+    @Req() req: any,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { refreshToken, ...response } =
-      await this.authService.validate0AuthLogin(req);
+    const { accessToken, refreshToken } =
+      await this.authService.validate0AuthLogin(req, {
+        provider: 'yandex',
+        providerAccountId: req?.user?.id,
+      });
+    this.authService.clearAccessTokens(res);
+    this.authService.addAccessTokenToResponse(res, accessToken);
+    this.authService.addRefreshTokenToResponse(res, refreshToken);
+    return res.redirect(process.env['CLIENT_URL']);
+  }
+
+  // ---------- VK ----------
+  @Get('vk')
+  @UseGuards(AuthGuard('vkontakte'))
+  async vkAuth() {
+    // passport сделает redirect
+  }
+
+  @Get('vk/callback')
+  @UseGuards(AuthGuard('vkontakte'))
+  async vkCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // const { refreshToken, ...response } =
+    //   await this.authService.validate0AuthLogin(req, {
+    //     provider: 'vk',
+    //     providerAccountId: (req as any)?.user?.providerAccountId,
+    //   });
+    // this.authService.addRefreshTokenToResponse(res, refreshToken);
+    // this.authService.addAccessTokenToResponse(res, accessToken);
+    // return res.redirect(
+    //   `${process.env['CLIENT_URL']}/?accessToken=${response.accessToken}`,
+    // );
+    const { refreshToken, accessToken } =
+      await this.authService.validate0AuthLogin(req, {
+        provider: 'yandex',
+        providerAccountId: (req as any)?.user?.id ?? undefined,
+      });
 
     this.authService.addRefreshTokenToResponse(res, refreshToken);
+    this.authService.addAccessTokenToResponse(res, accessToken); // 👈 Новый шаг
 
-    console.log(refreshToken);
+    // редиректим без query-парам — токены уже в куках
+    return res.redirect(process.env['CLIENT_URL']);
+  }
 
-    return res.redirect(
-      `${process.env['CLIENT_URL']}/?accessToken=${response.accessToken}`,
-    );
+  // 2) Получить гостя (для самовосстановления на фронте)
+  @Get(':id')
+  get(@Param('id') id: string) {
+    return this.authService.getGuest(id);
   }
 }

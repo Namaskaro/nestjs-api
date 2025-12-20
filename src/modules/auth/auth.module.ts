@@ -6,19 +6,25 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { getJwtConfig } from '@/src/core/config/jwt.config';
 import { PrismaService } from '@/src/core/prisma/prisma.service';
-import { GoogleStrategy } from './strategies/google.strategy';
+
 import { YandexStrategy } from './strategies/yandex.strategy';
-import { UserService } from '../user/user.service';
+
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './guards/roles.guard';
+
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { PassportModule } from '@nestjs/passport';
 import { ScheduleModule } from '@nestjs/schedule';
+import { VkStrategy } from './strategies/vk.strategy';
+import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
+import { EmailConfirmationModule } from './email-confirmation/email-confirmation.module';
+import { MailService } from '@/src/mail/mail.service';
+// import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
+// import { EmailConfirmationModule } from './email-confirmation/email-confirmation.module';
 
 @Module({
   imports: [
     forwardRef(() => UserModule),
+    forwardRef(() => EmailConfirmationModule),
     ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -32,10 +38,12 @@ import { ScheduleModule } from '@nestjs/schedule';
   providers: [
     AuthService,
     PrismaService,
+    MailService,
+    EmailConfirmationService,
     JwtStrategy,
-    GoogleStrategy,
     YandexStrategy,
     JwtAuthGuard,
+    VkStrategy,
   ],
   exports: [JwtAuthGuard],
 })

@@ -129,7 +129,16 @@ exports.Prisma.UserScalarFieldEnum = {
   bio: 'bio',
   isGuest: 'isGuest',
   lastSeen: 'lastSeen',
+  isTwoFactorEnabled: 'isTwoFactorEnabled',
   emailVerified: 'emailVerified'
+};
+
+exports.Prisma.TokenScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  token: 'token',
+  type: 'type',
+  expiresIn: 'expiresIn'
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -290,6 +299,12 @@ exports.Role = exports.$Enums.Role = {
   Guest: 'Guest'
 };
 
+exports.TokenType = exports.$Enums.TokenType = {
+  VERIFICATION: 'VERIFICATION',
+  TWO_FACTOR: 'TWO_FACTOR',
+  PASSWORD_RESET: 'PASSWORD_RESET'
+};
+
 exports.UserGender = exports.$Enums.UserGender = {
   MAN: 'MAN',
   WOMAN: 'WOMAN'
@@ -309,6 +324,7 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  Token: 'Token',
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',

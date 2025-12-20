@@ -9,25 +9,37 @@ import { PrismaService } from '../../core/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { AuthDto } from '../user/dto/auth.dto';
-import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { CreateGuestDto } from './dto/create-guest.dto';
 import { Role } from '@/prisma/generated';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UpdateUserDto } from '../user/dto/user-update.dto';
+import type { Response as ExpressResponse } from 'express';
+import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
 
-const TTL_MS = 10 * 60 * 1000;
+const TTL_MS = 1000 * 60 * 1000;
+const EXPIRE_DAY_REFRESH_TOKEN = 1;
+export const ACCESS_TOKEN_NAME = 'accessToken';
+export const REFRESH_TOKEN_NAME = 'refreshToken';
+export const GUEST_ACCESS_TOKEN_NAME = 'gAccessToken';
 
 @Injectable()
 export class AuthService {
-  EXPIRE_DAY_REFRESH_TOKEN = 1;
-  REFRESH_TOKEN_NAME = 'refreshToken';
+  private readonly accessSecret: string;
+  private readonly refreshSecret: string;
   public constructor(
     private readonly prismaService: PrismaService,
     private readonly jwt: JwtService,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
-  ) {}
+    private readonly emailConfirmationService: EmailConfirmationService,
+  ) {
+    this.accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET');
+    this.refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    if (!this.accessSecret || !this.refreshSecret) {
+      // Жёстко валимся на старте, чтобы не ловить 500 в рантайме
+      throw new Error('JWT_ACCESS_SECRET / JWT_REFRESH_SECRET are not set');
+    }
+  }
 
   // async createGuest() {
   //   const guest = await this.prismaService.user.create({
@@ -84,14 +96,6 @@ export class AuthService {
     return { id: user.id, name: user.name ?? null };
   }
 
-  issueGuestAccessToken(userId: string) {
-    const secret = this.configService.getOrThrow<string>('JWT_SECRET');
-    return this.jwt.sign(
-      { id: userId, isGuest: true }, // важен флаг
-      { expiresIn: '14d', secret }, // срок гостя
-    );
-  }
-
   async ping(id: string): Promise<void> {
     await this.prismaService.user.updateMany({
       where: { id, isGuest: true }, // <— только для гостей
@@ -102,7 +106,7 @@ export class AuthService {
   async purgeExpired(): Promise<number> {
     const cutoff = new Date(Date.now() - TTL_MS);
     const res = await this.prismaService.user.deleteMany({
-      where: { isGuest: true, lastSeen: { lt: cutoff } }, // <—
+      where: { isGuest: true, lastSeen: { lt: cutoff } },
     });
     return res.count;
   }
@@ -158,89 +162,279 @@ export class AuthService {
     const user = await this.userService.create(dto);
     const tokens = this.issueTokens(user.id);
     console.log('Ебучая ошибка!!!');
+    await this.emailConfirmationService.sendVerificationToken(user);
+    // return {
+    //   user,
+    //   ...tokens,
+    // };
+
     return {
-      user,
       ...tokens,
+      message:
+        'Вы успешно зарегистрировались. Пожалуйста подтвердите ваш email.письмо было отправлено на ваш почтовый адрес',
     };
   }
 
-  async getNewTokens(refreshToken: string) {
-    const result = await this.jwt.verifyAsync(refreshToken);
-    if (!result) throw new UnauthorizedException('Невалидный refresh токен');
-    const user = await this.userService.getById(result.id);
-    const tokens = this.issueTokens(user.id);
+  // async getNewTokens(refreshToken: string) {
+  //   const result = await this.jwt.verifyAsync(refreshToken);
+  //   if (!result) throw new UnauthorizedException('Невалидный refresh токен');
+  //   const user = await this.userService.getById(result.id);
+  //   const tokens = this.issueTokens(user.id);
 
-    return {
-      user,
-      ...tokens,
-    };
-  }
+  //   return {
+  //     user,
+  //     ...tokens,
+  //   };
+  // }
 
-  issueTokens(userId: string) {
-    const data = { id: userId };
-    const accessToken = this.jwt.sign(data, {
-      expiresIn: '1h',
-    });
-    const refreshToken = this.jwt.sign(data, {
-      expiresIn: '7d',
-    });
+  // issueTokens(userId: string) {
+  //   const data = { id: userId };
+  //   const accessToken = this.jwt.sign(data, {
+  //     expiresIn: '1h',
+  //   });
+  //   const refreshToken = this.jwt.sign(data, {
+  //     expiresIn: '7d',
+  //   });
 
-    return {
-      accessToken,
-      refreshToken,
-    };
-  }
+  //   return {
+  //     accessToken,
+  //     refreshToken,
+  //   };
+  // }
 
   private async validateUser(dto: AuthDto) {
     const user = await this.userService.getByEmail(dto.email);
-
+    const isUserVerified = user.emailVerified;
     if (!user) {
       throw new NotFoundException('Пользователь с такой почтой не найден');
+    }
+
+    if (!isUserVerified) {
+      await this.emailConfirmationService.sendVerificationToken(user);
+      throw new UnauthorizedException(
+        'Ваш email не подтвержден. Пожалуйста, проверьте вашу почту и подтвердите адрес',
+      );
     }
 
     return user;
   }
 
-  async validate0AuthLogin(req: any) {
-    let user = await this.userService.getByEmail(req.user.email);
+  // async validate0AuthLogin(req: any) {
+  //   let user = await this.userService.getByEmail(req.user.email);
+  //   if (!user) {
+  //     user = await this.prismaService.user.create({
+  //       data: {
+  //         email: req.user.email,
+  //         role: req.user.role,
+  //         name: req.user.name,
+  //         image: req.user.picture,
+  //       },
+  //       include: {
+  //         favorites: true,
+  //       },
+  //     });
+  //   }
+  //   const tokens = this.issueTokens(user.id);
+
+  //   return { user, ...tokens };
+  // }
+
+  // ---------- SIGN HELPERS ----------
+  issueUserAccessToken(userId: string) {
+    return this.jwt.signAsync(
+      { sub: userId },
+      { secret: this.accessSecret, expiresIn: '15m' },
+    );
+  }
+
+  issueGuestAccessToken(guestId: string) {
+    return this.jwt.signAsync(
+      { sub: guestId, isGuest: true },
+      { secret: this.accessSecret, expiresIn: '14d' },
+    );
+  }
+
+  issueRefreshToken(userId: string) {
+    return this.jwt.signAsync(
+      { sub: userId },
+      { secret: this.refreshSecret, expiresIn: '7d' },
+    );
+  }
+
+  // ---------- VERIFY HELPERS ----------
+  verifyAccess<T extends object = any>(token: string) {
+    return this.jwt.verifyAsync<T>(token, { secret: this.accessSecret });
+  }
+
+  verifyRefresh<T extends object = any>(token: string) {
+    return this.jwt.verifyAsync<T>(token, { secret: this.refreshSecret });
+  }
+
+  verifyAny<T extends object = any>(token: string) {
+    return this.verifyAccess<T>(token);
+  }
+
+  // ---------- ВАШИ МЕТОДЫ (исправленные) ----------
+
+  // Было: sign без secret и payload {id}
+  issueTokens(userId: string) {
+    // совместимость: оставляем метод, но внутри зовём корректные хелперы
+    return {
+      // если хочешь 1h — поменяй expiresIn в issueUserAccessToken
+      accessToken: this.jwt.sign(
+        { sub: userId },
+        { secret: this.accessSecret, expiresIn: '1h' },
+      ),
+      refreshToken: this.jwt.sign(
+        { sub: userId },
+        { secret: this.refreshSecret, expiresIn: '7d' },
+      ),
+    };
+  }
+
+  // Было: verifyAsync(refreshToken) без secret + result.id
+  async getNewTokens(refreshToken: string) {
+    const result = await this.verifyRefresh<{ sub?: string; id?: string }>(
+      refreshToken,
+    );
+    const userId = result.sub ?? result.id; // читаем и sub, и id (на случай старых токенов)
+    if (!userId) throw new UnauthorizedException('Невалидный refresh токен');
+
+    const user = await this.userService.getById(userId);
+
+    // Можно использовать issueTokens (теперь он тоже с секретами)
+    const accessToken = await this.issueUserAccessToken(user.id);
+    const newRefresh = await this.issueRefreshToken(user.id);
+
+    return { user, accessToken, refreshToken: newRefresh };
+  }
+
+  async validate0AuthLogin(
+    req: Request | any,
+    opts?: { provider?: string; providerAccountId?: string | number },
+  ) {
+    const u = (req as any).user || {};
+    const provider = (u.provider ?? opts?.provider ?? 'oauth') as string;
+    const providerAccountId = String(
+      u.providerAccountId ?? opts?.providerAccountId ?? '',
+    );
+
+    let user = providerAccountId
+      ? (
+          await this.prismaService.account.findFirst({
+            where: { provider, providerAccountId },
+            include: { user: true },
+          })
+        )?.user || null
+      : null;
+
+    if (!user && u.email) {
+      user = await this.prismaService.user.findFirst({
+        where: { email: u.email },
+      });
+    }
+
     if (!user) {
       user = await this.prismaService.user.create({
         data: {
-          email: req.user.email,
-          role: req.user.role,
-          name: req.user.name,
-          image: req.user.picture,
-        },
-        include: {
-          favorites: true,
+          email: u.email ?? null,
+          name: u.name ?? 'Не указано',
+          image: u.picture ?? u.avatar ?? '/uploads/no-user-image.png',
+          isGuest: false,
+          role: Role.Client,
         },
       });
     }
-    const tokens = this.issueTokens(user.id);
 
-    return { user, ...tokens };
+    if (provider && providerAccountId) {
+      await this.prismaService.account.upsert({
+        where: { provider_providerAccountId: { provider, providerAccountId } },
+        create: { provider, providerAccountId, type: 'oauth', userId: user.id },
+        update: { userId: user.id },
+      });
+    }
+
+    const accessToken = await this.issueUserAccessToken(user.id);
+    const refreshToken = await this.issueRefreshToken(user.id);
+
+    return { user, accessToken, refreshToken };
   }
 
-  addRefreshTokenToResponse(res: Response, refreshToken: string) {
-    const expiresIn = new Date();
-    expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
-
-    res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
+  addAccessTokenToResponse(res: ExpressResponse, token: string) {
+    res.cookie(ACCESS_TOKEN_NAME, token, {
       httpOnly: true,
-      domain: this.configService.get('SERVER_DOMAIN'),
-      expires: expiresIn,
-      secure: true,
-      sameSite: 'none',
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+      maxAge: 15 * 60 * 1000,
     });
   }
-
-  removeRefreshTokenFromResponse(res: Response) {
-    res.cookie(this.REFRESH_TOKEN_NAME, '', {
+  addRefreshTokenToResponse(res: ExpressResponse, token: string) {
+    res.cookie(REFRESH_TOKEN_NAME, token, {
       httpOnly: true,
-      domain: this.configService.get('SERVER_DOMAIN'),
-      expires: new Date(0),
-      secure: true,
-      sameSite: 'none',
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
+  addGuestAccessTokenToResponse(res: ExpressResponse, token: string) {
+    res.cookie(GUEST_ACCESS_TOKEN_NAME, token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      path: '/',
+      maxAge: 14 * 24 * 60 * 60 * 1000,
+    });
+  }
+  clearAccessTokens(res: ExpressResponse) {
+    res.clearCookie(ACCESS_TOKEN_NAME, { path: '/' });
+    res.clearCookie(GUEST_ACCESS_TOKEN_NAME, { path: '/' });
+  }
+
+  // addRefreshTokenToResponse(res: Response, refreshToken: string) {
+  //   const expiresIn = new Date();
+  //   expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
+
+  //   res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
+  //     httpOnly: true,
+  //     domain: this.configService.get('SERVER_DOMAIN'),
+  //     expires: expiresIn,
+  //     secure: true,
+  //     sameSite: 'none',
+  //   });
+  // }
+
+  // addAccessTokenToResponse(res: Response, token: string) {
+  //   res.cookie(this.ACCESS_TOKEN_NAME, token, {
+  //     httpOnly: true,
+  //     sameSite: 'lax',
+  //     secure: false,
+  //     path: '/',
+  //     maxAge: 15 * 60 * 1000,
+  //   });
+  // }
+
+  // addGuestAccessTokenToResponse(res: Response, token: string) {
+  //   res.cookie(this.GUEST_ACCESS_TOKEN_NAME, token, {
+  //     httpOnly: true,
+  //     sameSite: 'lax',
+  //     secure: false,
+  //     path: '/',
+  //     maxAge: 14 * 24 * 60 * 60 * 1000,
+  //   });
+  // }
+  // removeAccessTokenFromResponse(res: Response) {
+  //   res.clearCookie(this.ACCESS_TOKEN_NAME, { path: '/' });
+  // }
+
+  // removeRefreshTokenFromResponse(res: Response) {
+  //   res.cookie(this.REFRESH_TOKEN_NAME, '', {
+  //     httpOnly: true,
+  //     domain: this.configService.get('SERVER_DOMAIN'),
+  //     expires: new Date(0),
+  //     secure: true,
+  //     sameSite: 'none',
+  //   });
+  // }
 }

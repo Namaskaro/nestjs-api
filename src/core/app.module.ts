@@ -15,6 +15,8 @@ import { ProductsModule } from '../modules/products/products.module';
 import { BrandsModule } from '../modules/brands/brands.module';
 import { SubcategoriesModule } from '../modules/subcategories/subcategories.module';
 import { ReviewsModule } from '../modules/reviews/reviews.module';
+import { MailModule } from '../mail/mail.module';
+import { EmailConfirmationModule } from '../modules/auth/email-confirmation/email-confirmation.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { ReviewsModule } from '../modules/reviews/reviews.module';
     BrandsModule,
     SubcategoriesModule,
     ReviewsModule,
+    MailModule,
+    EmailConfirmationModule,
   ],
   controllers: [],
   // providers: [
