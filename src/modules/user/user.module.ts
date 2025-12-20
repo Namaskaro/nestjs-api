@@ -9,6 +9,12 @@ import { memoryStorage } from 'multer';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import {
+  EmailConfirmationService,
+  RESEND_TOKEN,
+} from '../auth/email-confirmation/email-confirmation.service';
+import { Resend } from 'resend';
+import { MailService } from '@/src/mail/mail.service';
 
 @Module({
   imports: [
@@ -26,6 +32,14 @@ import { JwtService } from '@nestjs/jwt';
     StorageService,
     ConfigService,
     AuthService,
+    EmailConfirmationService,
+    {
+      provide: RESEND_TOKEN,
+      useFactory: (configService: ConfigService) =>
+        new Resend(configService.get<string>('RESEND_API_KEY')),
+      inject: [ConfigService],
+    },
+    MailService,
   ],
   exports: [UserService],
 })

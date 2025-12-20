@@ -31,14 +31,26 @@ model User {
   reviews   Review[]
   cart      Cart?
   favorites Product[]
-
+  isTwoFactorEnabled Boolean @default(false) @map("is-two-factor-enabled")
    // отношения для NextAuth
   accounts  Account[]
   sessions  Session[]
-  emailVerified DateTime? @map("email_verified")
+  emailVerified Boolean @default(false) @map("email_verified")
 
   @@index([isGuest, lastSeen], map: "idx_user_is_guest_last_seen")
   @@map("user")
+}
+
+model Token {
+id String     @id @default(uuid())
+
+email String
+token String @unique
+type TokenType
+
+expiresIn DateTime @map("expires_in")
+
+@@map("tokens")
 }
 
 model Account {
@@ -227,4 +239,10 @@ enum Role {
   Guest   @map("role_guest")
 
   @@map("roles_enum")
+}
+
+enum TokenType {
+  VERIFICATION 
+  TWO_FACTOR 
+  PASSWORD_RESET
 }

@@ -22,6 +22,13 @@ async function bootstrap() {
     (str: string) => qs.parse(str, { arrayLimit: 100, comma: true }), // comma=true: поддержка brand=Nike,Adidas
   );
   app.use(cookieParser());
+  app.use((req, _res, next) => {
+    if (req.path === '/user/me') {
+      console.log('Request Cookie header:', req.headers.cookie);
+      console.log('Parsed cookies:', req.cookies); // должен быть accessToken
+    }
+    next();
+  });
   app.useLogger(new Logger());
   app.enableCors({
     origin: [process.env.CLIENT_URL],

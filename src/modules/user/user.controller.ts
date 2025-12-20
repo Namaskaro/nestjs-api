@@ -11,6 +11,7 @@ import {
   UploadedFile,
   UseInterceptors,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Role, User } from '@/prisma/generated';
@@ -22,8 +23,13 @@ import { CurrentUser } from './decorators/user.decorator';
 import { Logger } from '@nestjs/common';
 import { UpdateUserBioDto } from './dto/update-bio.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AuthService } from '../auth/auth.service';
+import {
+  AuthService,
+  GUEST_ACCESS_TOKEN_NAME,
+  REFRESH_TOKEN_NAME,
+} from '../auth/auth.service';
 const logger = new Logger('ProfileController');
+import type { Request, Response } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -47,7 +53,7 @@ export class UserController {
   }
 
   @Patch('/profile/favorites/:productId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtGuard)
   async toggleFavorite(
     @CurrentUser('id') userId: string,
     @Param('productId') productId: string,
@@ -62,20 +68,40 @@ export class UserController {
 
   @UseGuards(OptionalJwtGuard)
   @Get('me')
-  async getCurrentUser(
-    @CurrentUser() user: User | { id: string; isGuest: true } | null,
+  async me(
+    @CurrentUser() user: any,
+    @Req() req: any,
+    @Res({ passthrough: true }) res: any,
   ) {
-    if (user) {
-      // обычный пользователь (isGuest=false) или гость (isGuest=true) уже в токене
-      return user;
+    if (user) return user;
+
+    const rt = req.cookies?.[REFRESH_TOKEN_NAME];
+    if (rt) {
+      try {
+        const {
+          user: u,
+          accessToken,
+          refreshToken,
+        } = await this.authService.getNewTokens(rt);
+        this.authService.addAccessTokenToResponse(res, accessToken);
+        this.authService.addRefreshTokenToResponse(res, refreshToken);
+        return u;
+      } catch {}
     }
 
-    // нет токена → создаём гостя + выдаём гостевой access-токен
-    const guest = await this.authService.createGuest(); // у тебя уже есть этот метод
-    const accessToken = this.authService.issueGuestAccessToken(guest.id);
+    const gAt = req.cookies?.[GUEST_ACCESS_TOKEN_NAME];
+    if (gAt) {
+      try {
+        const payload: any = await this.authService.verifyAny(gAt);
+        if (payload?.sub) return { id: payload.sub, isGuest: true };
+      } catch {}
+    }
 
-    // Вернём в body — фронт положит в Authorization: Bearer ...
-    return { id: guest.id, isGuest: true, accessToken };
+    // нет юзера, нет refresh, нет гостя → создаём РАЗОВО
+    const guest = await this.authService.createGuest();
+    const gToken = await this.authService.issueGuestAccessToken(guest.id);
+    this.authService.addGuestAccessTokenToResponse(res, gToken);
+    return { id: guest.id, isGuest: true };
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,6 +1,7 @@
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBrandDto } from './dto/create-brand.dto';
+import { contains } from 'class-validator';
 
 @Injectable()
 export class BrandsService {
@@ -22,6 +23,18 @@ export class BrandsService {
       },
     });
     return brand;
+  }
+
+  async getBrandBySearch(query: string) {
+    const brands = await this.prismaService.brand.findMany({
+      where: {
+        name: {
+          contains: query,
+          mode: 'insensitive',
+        },
+      },
+    });
+    return brands;
   }
 
   async getBrandsByFirstLetter(letter: string) {

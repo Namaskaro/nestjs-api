@@ -4,6 +4,10 @@ export class AddProductToCartDto {
   @IsUUID()
   productId: string;
 
+  @IsString()
+  @IsOptional()
+  size?: string;
+
   @IsInt()
   @Min(1)
   quantity: number;
