@@ -17,6 +17,7 @@ import { SubcategoriesModule } from '../modules/subcategories/subcategories.modu
 import { ReviewsModule } from '../modules/reviews/reviews.module';
 import { MailModule } from '../mail/mail.module';
 import { EmailConfirmationModule } from '../modules/auth/email-confirmation/email-confirmation.module';
+import { SocketService } from '../modules/socket/socket.service';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { EmailConfirmationModule } from '../modules/auth/email-confirmation/emai
     EmailConfirmationModule,
   ],
   controllers: [],
+  providers: [SocketService],
   // providers: [
   //   {
   //     provide: APP_GUARD,
