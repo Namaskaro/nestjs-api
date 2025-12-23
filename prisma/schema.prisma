@@ -37,8 +37,59 @@ model User {
   sessions  Session[]
   emailVerified Boolean @default(false) @map("email_verified")
 
+  operatorProfile OperatorProfile?
+  chats Chat[]
   @@index([isGuest, lastSeen], map: "idx_user_is_guest_last_seen")
   @@map("user")
+}
+
+model OperatorProfile {
+    id        String   @id @default(uuid())
+  userId    String   @unique
+
+  status    OperatorStatus @default(AVAILABLE)
+  isActive  Boolean        @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id])
+  chats     Chat[]
+}
+
+
+model Chat {
+  id           String     @id @default(uuid())
+  userId       String
+  operatorId   String? 
+  status       ChatStatus @default(BOT_ACTIVE)
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  user        User            @relation(fields: [userId], references: [id])
+  operator    OperatorProfile? @relation(fields: [operatorId], references: [id])
+  messages     Message[]
+}
+
+model Message {
+  id          String     @id @default(uuid())
+  chatId      String
+  senderType  SenderType
+  senderId    String?
+  content     String
+
+  createdAt   DateTime   @default(now())
+
+  chat        Chat       @relation(fields: [chatId], references: [id])
+}
+
+model QuickReply {
+  id          String   @id @default(uuid())
+  title       String
+  payload     String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
 }
 
 model Token {
@@ -245,4 +296,24 @@ enum TokenType {
   VERIFICATION 
   TWO_FACTOR 
   PASSWORD_RESET
+}
+
+enum OperatorStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
+}
+
+enum ChatStatus {
+  BOT_ACTIVE
+  WAITING_OPERATOR
+  OPERATOR_ACTIVE
+  CLOSED
+}
+
+enum SenderType {
+  USER
+  BOT
+  OPERATOR
+  SYSTEM
 }
