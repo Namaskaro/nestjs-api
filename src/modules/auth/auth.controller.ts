@@ -24,6 +24,8 @@ import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from '../user/user.service';
 import { ConfigService } from '@nestjs/config';
+import { ChatService } from '../chat/chat.service';
+import { ActivateOperatotDto } from './dto/activate-operator.dto';
 
 export const Public = () => SetMetadata('isPublic', true);
 
@@ -32,6 +34,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly config: ConfigService,
+    private readonly chatService: ChatService,
   ) {}
 
   // 3) Создание гостя (возвращаем только { id, name })
@@ -64,10 +67,10 @@ export class AuthController {
   @HttpCode(200)
   @Post('login')
   async login(@Body() dto: AuthDto, @Res({ passthrough: true }) res: Response) {
-    const { refreshToken, ...response } = await this.authService.login(dto);
-
-    this.authService.addRefreshTokenToResponse(res, refreshToken);
-    return response;
+    const result = await this.authService.login(dto);
+    this.authService.addAccessTokenToResponse(res, result.accessToken);
+    this.authService.addRefreshTokenToResponse(res, result.refreshToken);
+    return result;
   }
 
   @UsePipes(new ValidationPipe())
@@ -78,7 +81,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { refreshToken, ...response } = await this.authService.register(dto);
-
+    this.authService.addAccessTokenToResponse(res, response.accessToken);
     this.authService.addRefreshTokenToResponse(res, refreshToken);
     return response;
   }
@@ -98,6 +101,7 @@ export class AuthController {
     const { refreshToken, ...response } = await this.authService.getNewTokens(
       refreshTokenFromCookies,
     );
+    this.authService.addAccessTokenToResponse(res, response.accessToken);
     this.authService.addRefreshTokenToResponse(res, refreshToken);
     return response;
   }
@@ -113,6 +117,7 @@ export class AuthController {
   @HttpCode(200)
   async logout(@Res({ passthrough: true }) res: Response) {
     this.authService.clearAccessTokens(res);
+    this.authService.clearRefreshToken(res);
     return true;
   }
 
@@ -179,5 +184,23 @@ export class AuthController {
   @Get(':id')
   get(@Param('id') id: string) {
     return this.authService.getGuest(id);
+  }
+
+  @Post('/operator/invite')
+  async inviteOperator(@Body() email: string) {
+    await this.chatService.inviteOperator(email);
+
+    return {
+      message: `Писььмо с приглашением отправлено на email ${email}`,
+    };
+  }
+
+  @Post('/operator/invite/activate')
+  async activateOperator(@Body() activateDto: ActivateOperatotDto) {
+    return await this.chatService.activateOperator(
+      activateDto.token,
+      activateDto.passwordHashed,
+      activateDto.name,
+    );
   }
 }

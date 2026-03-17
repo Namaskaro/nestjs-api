@@ -1,5 +1,10 @@
 import { PrismaService } from '@/src/core/prisma/prisma.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { hash } from 'argon2';
 import { AuthDto } from './dto/auth.dto';
 import { Role, User } from '@/prisma/generated';
@@ -101,41 +106,84 @@ export class UserService {
   }
 
   public async changeAvatar(user: User, file: Express.Multer.File) {
+    if (!user?.id) throw new BadRequestException('Пользователь не найден');
+    if (!file || !file.buffer)
+      throw new BadRequestException('Файл не загружен');
+
     if (user.image) {
-      await this.storageService.remove(user.image); // удалить старый файл
+      try {
+        await this.storageService.remove(user.image);
+      } catch (e) {
+        console.warn('Не удалось удалить старый аватар', e);
+      }
     }
 
-    const webpBuffer = await sharp(file.buffer)
-      .resize(256, 256, { fit: 'cover' }) // можно изменить размеры по желанию
-      .webp({ quality: 80 }) // качество webp
-      .toBuffer();
+    let webpBuffer: Buffer;
+    try {
+      webpBuffer = await sharp(file.buffer)
+        .resize(256, 256, { fit: 'cover' })
+        .webp({ quality: 80 })
+        .toBuffer();
+    } catch (e) {
+      console.error('Ошибка конвертации в WebP', e);
+      throw new InternalServerErrorException('Ошибка обработки изображения');
+    }
 
     const fileName = `/avatars/${user.id}.webp`;
-
-    await this.storageService.upload(webpBuffer, fileName, 'image/webp'); // сохранить новый файл
     const S3UserId = this.configService.get<string>('S3_USERNAME_ID');
     const S3Url = this.configService.get<string>('S3_URL');
-    const imgUrl = `${S3UserId}.${S3Url}${fileName}`;
-    await this.prismaService.user.update({
+    const imgUrl = `https://${S3UserId}.${S3Url}${fileName}`;
+
+    try {
+      await this.storageService.upload(webpBuffer, fileName, 'image/webp');
+    } catch (e) {
+      console.error('Ошибка загрузки в S3', e);
+      throw new InternalServerErrorException('Ошибка загрузки аватара');
+    }
+
+    return await this.prismaService.user.update({
       where: { id: user.id },
       data: { image: imgUrl },
     });
   }
+
+  //   public async changeAvatar(user: User, file: Express.Multer.File) {
+  //     if (user.image) {
+  //       await this.storageService.remove(user.image); // удалить старый файл
+  //     }
+
+  //     const webpBuffer = await sharp(file.buffer)
+  //       .resize(256, 256, { fit: 'cover' }) // можно изменить размеры по желанию
+  //       .webp({ quality: 80 }) // качество webp
+  //       .toBuffer();
+
+  //     const fileName = `/avatars/${user.id}.webp`;
+
+  //     await this.storageService.upload(webpBuffer, fileName, 'image/webp'); // сохранить новый файл
+  //     const S3UserId = this.configService.get<string>('S3_USERNAME_ID');
+  //     const S3Url = this.configService.get<string>('S3_URL');
+  //     const imgUrl = `${S3UserId}.${S3Url}${fileName}`;
+  //     await this.prismaService.user.update({
+  //       where: { id: user.id },
+  //       data: { image: imgUrl },
+  //     });
+  //   }
+  // }
+
+  //   public async removeAvatar(user: User) {
+  //     if (!user.avatar) {
+  //       return;
+  //     }
+  //     await this.storageService.remove(user.avatar);
+
+  //     await this.prismaService.user.update({
+  //       where: {
+  //         id: user.id,
+  //       },
+  //       data: {
+  //         avatar: null,
+  //       },
+  //     });
+  //   }
+  // }
 }
-
-//   public async removeAvatar(user: User) {
-//     if (!user.avatar) {
-//       return;
-//     }
-//     await this.storageService.remove(user.avatar);
-
-//     await this.prismaService.user.update({
-//       where: {
-//         id: user.id,
-//       },
-//       data: {
-//         avatar: null,
-//       },
-//     });
-//   }
-// }

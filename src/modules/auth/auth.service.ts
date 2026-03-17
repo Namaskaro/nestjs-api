@@ -10,11 +10,12 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { AuthDto } from '../user/dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
-import { Role } from '@/prisma/generated';
+import { Role, User } from '@/prisma/generated';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UpdateUserDto } from '../user/dto/user-update.dto';
 import type { Response as ExpressResponse } from 'express';
 import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
+import * as argon2 from 'argon2';
 
 const TTL_MS = 1000 * 60 * 1000;
 const EXPIRE_DAY_REFRESH_TOKEN = 1;
@@ -40,37 +41,6 @@ export class AuthService {
       throw new Error('JWT_ACCESS_SECRET / JWT_REFRESH_SECRET are not set');
     }
   }
-
-  // async createGuest() {
-  //   const guest = await this.prismaService.user.create({
-  //     data: {
-  //       id: uuid(),
-  //       role: Role.Guest,
-  //     },
-  //   });
-  //   return guest;
-  // }
-
-  // async getGuest(userId: string) {
-  //   const guest = await this.prismaService.user.findUnique({
-  //     where: {
-  //       id: userId,
-  //     },
-  //   });
-  //   if (!guest) {
-  //     throw new NotFoundException('Гость не найден!');
-  //   }
-  //   return guest;
-  // }
-
-  // async deleteGuest(userId: string) {
-  //   await this.getGuest(userId);
-  //   return this.prismaService.user.delete({
-  //     where: {
-  //       id: userId,
-  //     },
-  //   });
-  // }
 
   async createGuest() {
     const guest = await this.prismaService.user.create({
@@ -144,7 +114,7 @@ export class AuthService {
 
   async login(dto: AuthDto) {
     const user = await this.validateUser(dto);
-    const tokens = this.issueTokens(user.id);
+    const tokens = this.issueTokens(user);
 
     return {
       user,
@@ -156,93 +126,82 @@ export class AuthService {
     const isUserExist = await this.userService.getByEmail(dto.email);
 
     if (isUserExist) {
-      throw new BadRequestException('Пользователь уже существует');
+      throw new BadRequestException({
+        message: 'Пользователь с таким email уже существует',
+      });
     }
 
     const user = await this.userService.create(dto);
-    const tokens = this.issueTokens(user.id);
+    const tokens = this.issueTokens(user);
     console.log('Ебучая ошибка!!!');
     await this.emailConfirmationService.sendVerificationToken(user);
-    // return {
-    //   user,
-    //   ...tokens,
-    // };
 
     return {
       ...tokens,
       message:
-        'Вы успешно зарегистрировались. Пожалуйста подтвердите ваш email.письмо было отправлено на ваш почтовый адрес',
+        'Вы успешно зарегистрировались. Пожалуйста подтвердите ваш email. Письмо было отправлено на ваш почтовый адрес',
     };
   }
 
-  // async getNewTokens(refreshToken: string) {
-  //   const result = await this.jwt.verifyAsync(refreshToken);
-  //   if (!result) throw new UnauthorizedException('Невалидный refresh токен');
-  //   const user = await this.userService.getById(result.id);
-  //   const tokens = this.issueTokens(user.id);
+  // private async validateUser(dto: AuthDto) {
+  //   const user = await this.userService.getByEmail(dto.email);
+  //   const isUserVerified = user.emailVerified;
+  //   if (!user) {
+  //     throw new NotFoundException({
+  //       message: 'Пользователь с такой почтой не найден',
+  //     });
+  //   }
 
-  //   return {
-  //     user,
-  //     ...tokens,
-  //   };
+  //   if (user.email !== dto.email || user.password !== dto.password) {
+  //     throw new UnauthorizedException({
+  //       message: 'Неверная почта или пароль',
+  //     });
+  //   }
+
+  //   if (!isUserVerified) {
+  //     await this.emailConfirmationService.sendVerificationToken(user);
+  //     throw new UnauthorizedException({
+  //       message:
+  //         'Ваш email не подтвержден. Пожалуйста, проверьте вашу почту и подтвердите адрес',
+  //     });
+  //   }
+
+  //   return user;
   // }
 
-  // issueTokens(userId: string) {
-  //   const data = { id: userId };
-  //   const accessToken = this.jwt.sign(data, {
-  //     expiresIn: '1h',
-  //   });
-  //   const refreshToken = this.jwt.sign(data, {
-  //     expiresIn: '7d',
-  //   });
-
-  //   return {
-  //     accessToken,
-  //     refreshToken,
-  //   };
-  // }
+  // ---------- SIGN HELPERS ----------
 
   private async validateUser(dto: AuthDto) {
     const user = await this.userService.getByEmail(dto.email);
-    const isUserVerified = user.emailVerified;
+
     if (!user) {
-      throw new NotFoundException('Пользователь с такой почтой не найден');
+      throw new NotFoundException({
+        message: 'Пользователь с такой почтой не найден',
+      });
     }
 
-    if (!isUserVerified) {
+    const isPasswordValid = await argon2.verify(user.password, dto.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException({
+        message: 'Неверная почта или пароль',
+      });
+    }
+
+    if (!user.emailVerified) {
       await this.emailConfirmationService.sendVerificationToken(user);
-      throw new UnauthorizedException(
-        'Ваш email не подтвержден. Пожалуйста, проверьте вашу почту и подтвердите адрес',
-      );
+      throw new UnauthorizedException({
+        message:
+          'Ваш email не подтвержден. Пожалуйста, проверьте вашу почту и подтвердите адрес',
+      });
     }
 
     return user;
   }
 
-  // async validate0AuthLogin(req: any) {
-  //   let user = await this.userService.getByEmail(req.user.email);
-  //   if (!user) {
-  //     user = await this.prismaService.user.create({
-  //       data: {
-  //         email: req.user.email,
-  //         role: req.user.role,
-  //         name: req.user.name,
-  //         image: req.user.picture,
-  //       },
-  //       include: {
-  //         favorites: true,
-  //       },
-  //     });
-  //   }
-  //   const tokens = this.issueTokens(user.id);
-
-  //   return { user, ...tokens };
-  // }
-
-  // ---------- SIGN HELPERS ----------
-  issueUserAccessToken(userId: string) {
+  issueUserAccessToken(user: User) {
     return this.jwt.signAsync(
-      { sub: userId },
+      { sub: user },
       { secret: this.accessSecret, expiresIn: '15m' },
     );
   }
@@ -277,16 +236,16 @@ export class AuthService {
   // ---------- ВАШИ МЕТОДЫ (исправленные) ----------
 
   // Было: sign без secret и payload {id}
-  issueTokens(userId: string) {
+  issueTokens(user: User) {
     // совместимость: оставляем метод, но внутри зовём корректные хелперы
     return {
       // если хочешь 1h — поменяй expiresIn в issueUserAccessToken
       accessToken: this.jwt.sign(
-        { sub: userId },
+        { sub: user.id },
         { secret: this.accessSecret, expiresIn: '1h' },
       ),
       refreshToken: this.jwt.sign(
-        { sub: userId },
+        { sub: user.id },
         { secret: this.refreshSecret, expiresIn: '7d' },
       ),
     };
@@ -303,7 +262,7 @@ export class AuthService {
     const user = await this.userService.getById(userId);
 
     // Можно использовать issueTokens (теперь он тоже с секретами)
-    const accessToken = await this.issueUserAccessToken(user.id);
+    const accessToken = await this.issueUserAccessToken(user);
     const newRefresh = await this.issueRefreshToken(user.id);
 
     return { user, accessToken, refreshToken: newRefresh };
@@ -354,13 +313,14 @@ export class AuthService {
       });
     }
 
-    const accessToken = await this.issueUserAccessToken(user.id);
+    const accessToken = await this.issueUserAccessToken(user);
     const refreshToken = await this.issueRefreshToken(user.id);
 
     return { user, accessToken, refreshToken };
   }
 
   addAccessTokenToResponse(res: ExpressResponse, token: string) {
+    console.log('🍪 БЭК ставит accessToken:', token.substring(0, 20) + '...');
     res.cookie(ACCESS_TOKEN_NAME, token, {
       httpOnly: true,
       sameSite: 'lax',
@@ -392,49 +352,7 @@ export class AuthService {
     res.clearCookie(GUEST_ACCESS_TOKEN_NAME, { path: '/' });
   }
 
-  // addRefreshTokenToResponse(res: Response, refreshToken: string) {
-  //   const expiresIn = new Date();
-  //   expiresIn.setDate(expiresIn.getDate() + this.EXPIRE_DAY_REFRESH_TOKEN);
-
-  //   res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
-  //     httpOnly: true,
-  //     domain: this.configService.get('SERVER_DOMAIN'),
-  //     expires: expiresIn,
-  //     secure: true,
-  //     sameSite: 'none',
-  //   });
-  // }
-
-  // addAccessTokenToResponse(res: Response, token: string) {
-  //   res.cookie(this.ACCESS_TOKEN_NAME, token, {
-  //     httpOnly: true,
-  //     sameSite: 'lax',
-  //     secure: false,
-  //     path: '/',
-  //     maxAge: 15 * 60 * 1000,
-  //   });
-  // }
-
-  // addGuestAccessTokenToResponse(res: Response, token: string) {
-  //   res.cookie(this.GUEST_ACCESS_TOKEN_NAME, token, {
-  //     httpOnly: true,
-  //     sameSite: 'lax',
-  //     secure: false,
-  //     path: '/',
-  //     maxAge: 14 * 24 * 60 * 60 * 1000,
-  //   });
-  // }
-  // removeAccessTokenFromResponse(res: Response) {
-  //   res.clearCookie(this.ACCESS_TOKEN_NAME, { path: '/' });
-  // }
-
-  // removeRefreshTokenFromResponse(res: Response) {
-  //   res.cookie(this.REFRESH_TOKEN_NAME, '', {
-  //     httpOnly: true,
-  //     domain: this.configService.get('SERVER_DOMAIN'),
-  //     expires: new Date(0),
-  //     secure: true,
-  //     sameSite: 'none',
-  //   });
-  // }
+  clearRefreshToken(res: ExpressResponse) {
+    res.clearCookie(REFRESH_TOKEN_NAME, { path: '/' });
+  }
 }

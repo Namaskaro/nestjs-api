@@ -23,5 +23,6 @@ import { Resend } from 'resend';
       inject: [ConfigService],
     },
   ],
+  exports: [MailService],
 })
 export class MailModule {}

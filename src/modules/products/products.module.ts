@@ -10,12 +10,19 @@ import { CloudStorageModule } from '@/src/cloud-storage/cloud-storage.module';
 import { CloudStorageService } from '@/src/cloud-storage/cloud-storage.service';
 import { ReviewsService } from '../reviews/reviews.service';
 import { UserService } from '../user/user.service';
+import { AuthService } from '../auth/auth.service';
+import { PrismaModule } from '@/src/core/prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
+  imports: [
+    PrismaModule, // ← ВОТ ЭТО ОБЯЗАТЕЛЬНО
+    AuthModule, // если используется JwtAuthGuard
+  ],
   controllers: [ProductsController],
   providers: [
     ProductsService,
-    PrismaService,
+    // PrismaService,
     SubcategoriesService,
     BrandsService,
     StorageService,

@@ -175,6 +175,8 @@ export class ProductsService {
       order = 'desc',
     } = filters;
 
+    const brandsArray = Array.isArray(brand) ? brand : brand ? [brand] : [];
+
     const where: any = {
       ...(searchTerm && {
         title: { contains: searchTerm, mode: 'insensitive' },
@@ -183,16 +185,25 @@ export class ProductsService {
         category !== 'all' && {
           subcategory: { is: { category: { is: { slug: category } } } },
         }),
-      ...(brand?.length &&
-        !brand.includes('all') && {
-          OR: brand.map((b) => ({
-            brand: { is: { name: { equals: b, mode: 'insensitive' } } },
-          })),
+      ...(brandsArray.length > 0 &&
+        !brandsArray.includes('all') && {
+          brand: {
+            name: {
+              in: brandsArray,
+              mode: 'insensitive',
+            },
+          },
         }),
       ...(subcategory &&
-        subcategory !== 'all' && {
-          subcategory: { is: { name: subcategory } },
-        }),
+        ((Array.isArray(subcategory) && !subcategory.includes('all')) ||
+          (typeof subcategory === 'string' && subcategory !== 'all')) &&
+        (Array.isArray(subcategory)
+          ? { subcategory: { name: { in: subcategory } } }
+          : { subcategory: { name: subcategory } })),
+      // ...(subcategory &&
+      //   subcategory !== 'all' && {
+      //     subcategory: { is: { name: subcategory } },
+      //   }),
     };
 
     // общий include
@@ -331,21 +342,6 @@ export class ProductsService {
 
     return products;
   }
-
-  // async create(data: CreateProductDto) {
-  //   const blurURL = await Promise.all(
-  //     data.images.map((img) => generateBlurDataURL(img)),
-  //   );
-
-  //   const product = await this.prismaService.product.create({
-  //     data: {
-  //       ...data,
-  //       blurURL,
-  //     },
-  //   });
-
-  //   return product;
-  // }
 
   async create(data: CreateProductDto, files: Express.Multer.File[]) {
     const S3UserId = this.configService.get<string>('S3_USERNAME_ID');

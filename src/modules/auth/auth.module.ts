@@ -18,13 +18,49 @@ import { VkStrategy } from './strategies/vk.strategy';
 import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
 import { EmailConfirmationModule } from './email-confirmation/email-confirmation.module';
 import { MailService } from '@/src/mail/mail.service';
+import { ChatModule } from '../chat/chat.module';
+import { MailModule } from '@/src/mail/mail.module';
+import { PrismaModule } from '@/src/core/prisma/prisma.module';
+import { APP_GUARD } from '@nestjs/core';
 // import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
 // import { EmailConfirmationModule } from './email-confirmation/email-confirmation.module';
 
+// @Module({
+//   imports: [
+//     forwardRef(() => UserModule),
+//     forwardRef(() => EmailConfirmationModule),
+//     forwardRef(() => ChatModule),
+//     forwardRef(() => MailModule),
+//     ConfigModule,
+//     PassportModule.register({ defaultStrategy: 'jwt' }),
+//     JwtModule.registerAsync({
+//       imports: [ConfigModule],
+//       inject: [ConfigService],
+//       useFactory: getJwtConfig,
+//     }),
+//     ScheduleModule.forRoot(),
+//   ],
+//   controllers: [AuthController],
+//   providers: [
+//     AuthService,
+//     PrismaService,
+//     MailService,
+//     EmailConfirmationService,
+//     JwtStrategy,
+//     YandexStrategy,
+//     JwtAuthGuard,
+//     VkStrategy,
+//   ],
+//   exports: [JwtAuthGuard],
+// })
+
 @Module({
   imports: [
-    forwardRef(() => UserModule),
-    forwardRef(() => EmailConfirmationModule),
+    PrismaModule,
+    UserModule,
+    EmailConfirmationModule,
+    forwardRef(() => ChatModule), // если есть цикл
+    MailModule, // обычный импорт
     ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -37,14 +73,16 @@ import { MailService } from '@/src/mail/mail.service';
   controllers: [AuthController],
   providers: [
     AuthService,
-    PrismaService,
-    MailService,
+    // PrismaService,
     EmailConfirmationService,
     JwtStrategy,
     YandexStrategy,
-    JwtAuthGuard,
     VkStrategy,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: JwtAuthGuard,
+    // },
   ],
-  exports: [JwtAuthGuard],
+  exports: [JwtModule, AuthService],
 })
 export class AuthModule {}

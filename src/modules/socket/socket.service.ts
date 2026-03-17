@@ -7,7 +7,7 @@ import { OnGatewayConnection, WebSocketGateway } from '@nestjs/websockets';
 })
 export class SocketService implements OnGatewayConnection {
   handleConnection(client: any, ...args: any[]) {
-    console.log(client);
-    console.log('Connected!@!!@');
+    // console.log(client);
+    // console.log('Connected!@!!@');
   }
 }

@@ -12,11 +12,12 @@ import {
   UseInterceptors,
   HttpStatus,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Role, User } from '@/prisma/generated';
 import { Roles } from '../auth/decorators/role.decorator';
-import { JwtAuthGuard, OptionalJwtGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { CurrentUser } from './decorators/user.decorator';
@@ -39,7 +40,7 @@ export class UserController {
   ) {}
 
   @Get('profile')
-  @UseGuards(OptionalJwtGuard)
+  @UseGuards(JwtAuthGuard)
   async getProfile(@CurrentUser('id') id: string) {
     return this.userService.getById(id);
   }
@@ -53,20 +54,14 @@ export class UserController {
   }
 
   @Patch('/profile/favorites/:productId')
-  @UseGuards(OptionalJwtGuard)
+  @UseGuards(JwtAuthGuard)
   async toggleFavorite(
     @CurrentUser('id') userId: string,
     @Param('productId') productId: string,
   ) {
     return this.userService.toggleFavorite(userId, productId);
   }
-  // @UseGuards(JwtAuthGuard)
-  // @Get('me')
-  // getCurrentUser(@CurrentUser() user: User) {
-  //   return user;
-  // }
 
-  @UseGuards(OptionalJwtGuard)
   @Get('me')
   async me(
     @CurrentUser() user: any,
@@ -105,10 +100,17 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':id/bio')
-  async setUserBio(@Param('id') id: string, @Body() bioData: UpdateUserBioDto) {
+  @Patch('me/bio')
+  async setUserBio(
+    @CurrentUser('id') id: string,
+    @Body() bioData: UpdateUserBioDto,
+  ) {
+    if (!id) {
+      throw new BadRequestException('User ID is missing');
+    }
     const user = await this.userService.setUserBio(id, bioData);
-    return user;
+    const { password, createdAt, updatedAt, ...updatedUser } = user;
+    return updatedUser;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -127,11 +129,11 @@ export class UserController {
       };
     }
 
-    await this.userService.changeAvatar(user, file);
+    const updatedUser = await this.userService.changeAvatar(user, file);
 
     return {
       message: 'Аватар успешно обновлён',
-      avatarUrl: `/avatars/${user.id}.webp`,
+      avatarUrl: updatedUser.image,
     };
   }
 }
