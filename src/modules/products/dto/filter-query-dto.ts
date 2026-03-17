@@ -23,8 +23,14 @@ export class FilterQueryDto {
   category?: string;
 
   @IsOptional()
-  @IsString()
-  subcategory?: string;
+  @Transform(({ value }) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(Boolean);
+    return [value];
+  })
+  @IsArray()
+  @IsString({ each: true })
+  subcategory?: string[];
 
   @IsOptional()
   @Transform(({ value }) => (Array.isArray(value) ? value : [value]))

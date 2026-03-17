@@ -1,34 +1,60 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
+  WebSocketServer,
+  ConnectedSocket,
+} from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { CreateChatDto } from './dto/create-chat.dto';
-import { UpdateChatDto } from './dto/update-chat.dto';
+import { Server, Socket } from 'socket.io';
+import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
+import { JoinChatDto } from './dto/join-chat.dto';
+import { UseGuards } from '@nestjs/common';
+import { SendMessageDto } from './dto/send-message.dto';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: { origin: true } })
 export class ChatGateway {
+  @WebSocketServer()
+  server: Server;
   constructor(private readonly chatService: ChatService) {}
 
-  @SubscribeMessage('createChat')
-  create(@MessageBody() createChatDto: CreateChatDto) {
-    return this.chatService.create(createChatDto);
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('chat:join')
+  async joinChat(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() dto: JoinChatDto,
+  ) {
+    await this.chatService.assertUserCanAccessChat(
+      socket.data.user,
+      dto.chatId,
+    );
+
+    socket.join(`chat:${dto.chatId}`);
   }
 
-  @SubscribeMessage('findAllChat')
-  findAll() {
-    return this.chatService.findAll();
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('chat:send_message')
+  async sendMessage(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() dto: SendMessageDto,
+  ) {
+    const message = await this.chatService.createMessage({
+      chatId: dto.chatId,
+      content: dto.content,
+      user: socket.data.user,
+    });
+
+    this.server.to(`chat:${dto.chatId}`).emit('chat:new_message', message);
   }
 
-  @SubscribeMessage('findOneChat')
-  findOne(@MessageBody() id: number) {
-    return this.chatService.findOne(id);
-  }
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('chat:request_operator')
+  async requestOperator(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() dto: JoinChatDto,
+  ) {
+    const chat = await this.chatService.assignOperator(dto.chatId);
 
-  @SubscribeMessage('updateChat')
-  update(@MessageBody() updateChatDto: UpdateChatDto) {
-    return this.chatService.update(updateChatDto.id, updateChatDto);
-  }
-
-  @SubscribeMessage('removeChat')
-  remove(@MessageBody() id: number) {
-    return this.chatService.remove(id);
+    this.server.to(`chat:${dto.chatId}`).emit('chat:status_changed', chat);
   }
 }

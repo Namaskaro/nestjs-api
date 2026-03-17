@@ -5,6 +5,7 @@ import { render } from '@react-email/render';
 import React from 'react';
 import { Resend } from 'resend';
 import { ConfirmationTemplate } from './emails/confirmation.template';
+import { InviteOperatorTemplate } from './emails/invite-operator.template';
 
 export const RESEND_TOKEN = 'RESEND_TOKEN';
 
@@ -23,6 +24,16 @@ export class MailService {
     return this.sendEmail(
       'german.saratov@gmail.com',
       'Подтверждение почты',
+      html,
+    );
+  }
+
+  public async sendInviteOperatorEmail(email: string, token: string) {
+    const domain = this.configService.getOrThrow<string>('ALLOWED_ORIGIN');
+    const html = await render(InviteOperatorTemplate({ domain, token }));
+    return this.sendEmail(
+      'german.saratov@gmail.com',
+      'Пригласительная ссылка для менеджера',
       html,
     );
   }

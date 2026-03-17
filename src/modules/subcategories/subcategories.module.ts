@@ -7,9 +7,11 @@ import { PrismaService } from '@/src/core/prisma/prisma.service';
 import { BrandsService } from '../brands/brands.service';
 import { CloudStorageModule } from '@/src/cloud-storage/cloud-storage.module';
 import { BrandsModule } from '../brands/brands.module';
+import { PrismaModule } from '@/src/core/prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [BrandsModule, CloudStorageModule],
+  imports: [BrandsModule, CloudStorageModule, PrismaModule, AuthModule],
   controllers: [SubcategoriesController],
   providers: [
     SubcategoriesService,

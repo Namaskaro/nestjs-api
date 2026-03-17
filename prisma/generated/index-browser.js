@@ -122,15 +122,52 @@ exports.Prisma.UserScalarFieldEnum = {
   name: 'name',
   email: 'email',
   password: 'password',
-  image: 'image',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   role: 'role',
   bio: 'bio',
   isGuest: 'isGuest',
   lastSeen: 'lastSeen',
-  isTwoFactorEnabled: 'isTwoFactorEnabled',
-  emailVerified: 'emailVerified'
+  image: 'image',
+  emailVerified: 'emailVerified',
+  isTwoFactorEnabled: 'isTwoFactorEnabled'
+};
+
+exports.Prisma.OperatorProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  status: 'status',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  inviteExpires: 'inviteExpires',
+  inviteToken: 'inviteToken'
+};
+
+exports.Prisma.ChatScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  operatorId: 'operatorId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MessageScalarFieldEnum = {
+  id: 'id',
+  chatId: 'chatId',
+  senderType: 'senderType',
+  senderId: 'senderId',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.QuickReplyScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  payload: 'payload',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.TokenScalarFieldEnum = {
@@ -182,12 +219,12 @@ exports.Prisma.ProductScalarFieldEnum = {
   updatedAt: 'updatedAt',
   gender: 'gender',
   type: 'type',
-  stock: 'stock',
-  inStock: 'inStock',
   blurURL: 'blurURL',
   sizes: 'sizes',
   discount: 'discount',
-  isNew: 'isNew'
+  isNew: 'isNew',
+  inStock: 'inStock',
+  stock: 'stock'
 };
 
 exports.Prisma.CategoryScalarFieldEnum = {
@@ -227,6 +264,15 @@ exports.Prisma.ReviewScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PromoCodeScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  discountType: 'discountType',
+  discountValue: 'discountValue',
+  isActive: 'isActive',
+  expiresAt: 'expiresAt'
+};
+
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
@@ -235,13 +281,31 @@ exports.Prisma.OrderScalarFieldEnum = {
   token: 'token',
   totalAmount: 'totalAmount',
   status: 'status',
-  paymentId: 'paymentId',
+  cartId: 'cartId',
   items: 'items',
   fullName: 'fullName',
   address: 'address',
   email: 'email',
   phone: 'phone',
-  comment: 'comment'
+  comment: 'comment',
+  deliveryDate: 'deliveryDate',
+  deliveryFee: 'deliveryFee',
+  deliveryTime: 'deliveryTime',
+  paymentType: 'paymentType',
+  deliveryProvider: 'deliveryProvider',
+  finalAmount: 'finalAmount'
+};
+
+exports.Prisma.PaymentScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  orderId: 'orderId',
+  providerPaymentId: 'providerPaymentId',
+  amount: 'amount',
+  status: 'status',
+  paidAt: 'paidAt',
+  rawResponse: 'rawResponse'
 };
 
 exports.Prisma.CartItemScalarFieldEnum = {
@@ -299,10 +363,31 @@ exports.Role = exports.$Enums.Role = {
   Guest: 'Guest'
 };
 
+exports.OperatorStatus = exports.$Enums.OperatorStatus = {
+  AVAILABLE: 'AVAILABLE',
+  BUSY: 'BUSY',
+  OFFLINE: 'OFFLINE'
+};
+
+exports.ChatStatus = exports.$Enums.ChatStatus = {
+  BOT_ACTIVE: 'BOT_ACTIVE',
+  WAITING_OPERATOR: 'WAITING_OPERATOR',
+  OPERATOR_ACTIVE: 'OPERATOR_ACTIVE',
+  CLOSED: 'CLOSED'
+};
+
+exports.SenderType = exports.$Enums.SenderType = {
+  USER: 'USER',
+  BOT: 'BOT',
+  OPERATOR: 'OPERATOR',
+  SYSTEM: 'SYSTEM'
+};
+
 exports.TokenType = exports.$Enums.TokenType = {
   VERIFICATION: 'VERIFICATION',
   TWO_FACTOR: 'TWO_FACTOR',
-  PASSWORD_RESET: 'PASSWORD_RESET'
+  PASSWORD_RESET: 'PASSWORD_RESET',
+  INVITE: 'INVITE'
 };
 
 exports.UserGender = exports.$Enums.UserGender = {
@@ -316,14 +401,43 @@ exports.ProductType = exports.$Enums.ProductType = {
   ACCESSORIES: 'ACCESSORIES'
 };
 
+exports.DiscountType = exports.$Enums.DiscountType = {
+  PERCENT: 'PERCENT',
+  FIXED: 'FIXED'
+};
+
 exports.OrderStatus = exports.$Enums.OrderStatus = {
   PENDING: 'PENDING',
   SUCCESS: 'SUCCESS',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  DRAFT: 'DRAFT',
+  DELIVERED: 'DELIVERED'
+};
+
+exports.PaymentType = exports.$Enums.PaymentType = {
+  CARD: 'CARD',
+  CASH: 'CASH'
+};
+
+exports.DeliveryProvider = exports.$Enums.DeliveryProvider = {
+  EMS: 'EMS',
+  POSTAL: 'POSTAL',
+  BOXBERRY: 'BOXBERRY',
+  SDEK: 'SDEK'
+};
+
+exports.PaymentStatus = exports.$Enums.PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED'
 };
 
 exports.Prisma.ModelName = {
   User: 'User',
+  OperatorProfile: 'OperatorProfile',
+  Chat: 'Chat',
+  Message: 'Message',
+  QuickReply: 'QuickReply',
   Token: 'Token',
   Account: 'Account',
   Session: 'Session',
@@ -333,7 +447,9 @@ exports.Prisma.ModelName = {
   Subcategory: 'Subcategory',
   Brand: 'Brand',
   Review: 'Review',
+  PromoCode: 'PromoCode',
   Order: 'Order',
+  Payment: 'Payment',
   CartItem: 'CartItem',
   Cart: 'Cart'
 };

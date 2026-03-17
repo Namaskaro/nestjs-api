@@ -1,10 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-
 generator client {
   provider = "prisma-client-js"
   output   = "./generated"
@@ -16,92 +9,83 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  name      String?   @default("Не указано")
-  email     String?   @unique
-  password  String?
-  image    String    @default("/uploads/no-user-image.png")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  role      Role      @default(Client)
-  bio       Json?
-  isGuest   Boolean   @default(false) @map("is_guest")
-  lastSeen  DateTime  @default(now()) @map("last_seen")
-  orders    Order[]
-  reviews   Review[]
-  cart      Cart?
-  favorites Product[]
-  isTwoFactorEnabled Boolean @default(false) @map("is-two-factor-enabled")
-   // отношения для NextAuth
-  accounts  Account[]
-  sessions  Session[]
-  emailVerified Boolean @default(false) @map("email_verified")
+  id                 String           @id @default(uuid())
+  name               String?          @default("Не указано")
+  email              String?          @unique
+  password           String?
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  role               Role             @default(Client)
+  bio                Json?
+  isGuest            Boolean          @default(false) @map("is_guest")
+  lastSeen           DateTime         @default(now()) @map("last_seen")
+  image              String           @default("/uploads/no-user-image.png")
+  emailVerified      Boolean          @default(false) @map("email_verified")
+  isTwoFactorEnabled Boolean          @default(false) @map("is-two-factor-enabled")
+  chats              Chat[]
+  operatorProfile    OperatorProfile?
+  reviews            Review[]
+  accounts           Account[]
+  cart               Cart?
+  orders             Order[]
+  favorites          Product[]
+  sessions           Session[]
 
-  operatorProfile OperatorProfile?
-  chats Chat[]
   @@index([isGuest, lastSeen], map: "idx_user_is_guest_last_seen")
   @@map("user")
 }
 
 model OperatorProfile {
-    id        String   @id @default(uuid())
-  userId    String   @unique
-
-  status    OperatorStatus @default(AVAILABLE)
-  isActive  Boolean        @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user      User     @relation(fields: [userId], references: [id])
-  chats     Chat[]
+  id            String         @id @default(uuid())
+  userId        String         @unique
+  status        OperatorStatus @default(AVAILABLE)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  inviteExpires DateTime?
+  inviteToken   String?        @unique
+  chats         Chat[]
+  user          User           @relation(fields: [userId], references: [id])
 }
 
-
 model Chat {
-  id           String     @id @default(uuid())
-  userId       String
-  operatorId   String? 
-  status       ChatStatus @default(BOT_ACTIVE)
-
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-
-  user        User            @relation(fields: [userId], references: [id])
-  operator    OperatorProfile? @relation(fields: [operatorId], references: [id])
-  messages     Message[]
+  id         String           @id @default(uuid())
+  userId     String
+  operatorId String?
+  status     ChatStatus       @default(BOT_ACTIVE)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  operator   OperatorProfile? @relation(fields: [operatorId], references: [id])
+  user       User             @relation(fields: [userId], references: [id])
+  messages   Message[]
 }
 
 model Message {
-  id          String     @id @default(uuid())
-  chatId      String
-  senderType  SenderType
-  senderId    String?
-  content     String
-
-  createdAt   DateTime   @default(now())
-
-  chat        Chat       @relation(fields: [chatId], references: [id])
+  id         String     @id @default(uuid())
+  chatId     String
+  senderType SenderType
+  senderId   String?
+  content    String
+  createdAt  DateTime   @default(now())
+  chat       Chat       @relation(fields: [chatId], references: [id])
 }
 
 model QuickReply {
-  id          String   @id @default(uuid())
-  title       String
-  payload     String
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  title     String
+  payload   String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 }
 
 model Token {
-id String     @id @default(uuid())
+  id        String    @id @default(uuid())
+  email     String
+  token     String    @unique
+  type      TokenType
+  expiresIn DateTime  @map("expires_in")
 
-email String
-token String @unique
-type TokenType
-
-expiresIn DateTime @map("expires_in")
-
-@@map("tokens")
+  @@map("tokens")
 }
 
 model Account {
@@ -117,8 +101,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("account")
@@ -129,8 +112,7 @@ model Session {
   sessionToken String   @unique @map("session_token")
   userId       String   @map("user_id")
   expires      DateTime
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("session")
 }
@@ -157,12 +139,12 @@ model Product {
   updatedAt     DateTime     @updatedAt @map("updated_at")
   gender        UserGender
   type          ProductType
-  stock         Int          @default(10)
-  inStock       Boolean      @default(true)
   blurURL       String[]     @default([])
   sizes         String[]     @default([])
   discount      String?      @default("0")
   isNew         Boolean?
+  inStock       Boolean      @default(true)
+  stock         Int          @default(10)
   reviews       Review[]
   cartItems     CartItem[]
   brand         Brand?       @relation(fields: [brandId], references: [id])
@@ -220,22 +202,58 @@ model Review {
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model PromoCode {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  discountType  DiscountType
+  discountValue Int
+  isActive      Boolean      @default(true)
+  expiresAt     DateTime?
+
+  @@map("promocode")
+}
+
 model Order {
-  id          Int         @id @default(autoincrement())
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  userId      String
-  token       String
-  totalAmount Int
-  status      OrderStatus @default(PENDING)
-  paymentId   String?
-  items       Json
-  fullName    String
-  address     String
-  email       String
-  phone       String
-  comment     String?
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String            @id @default(uuid())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  userId           String            
+  token            String?
+  totalAmount      Int
+  status           OrderStatus       @default(DRAFT)
+  cartId           String
+  items            Json
+  fullName         String?
+  address          String?
+  email            String?
+  phone            String?
+  comment          String?
+  deliveryDate     DateTime?
+  deliveryFee      Int?
+  deliveryTime     String?
+  paymentType      PaymentType       @default(CARD)
+  deliveryProvider DeliveryProvider?
+  finalAmount      Int
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment          Payment?
+
+  @@map("order")
+}
+
+model Payment {
+  id                Int           @id @default(autoincrement())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  orderId           String        @unique
+  providerPaymentId String        @unique
+  amount            Int
+  status            PaymentStatus @default(PENDING)
+  paidAt            DateTime?
+  rawResponse       Json?
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, providerPaymentId])
+  @@map("payment")
 }
 
 model CartItem {
@@ -266,6 +284,24 @@ model Cart {
   @@map("cart")
 }
 
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum DeliveryProvider {
+  EMS
+  POSTAL
+  BOXBERRY
+  SDEK
+}
+
 enum UserGender {
   MAN   @map("MAN")
   WOMAN @map("WOMAN")
@@ -281,6 +317,13 @@ enum OrderStatus {
   PENDING
   SUCCESS
   CANCELLED
+  DRAFT
+  DELIVERED
+}
+
+enum PaymentType {
+  CARD
+  CASH
 }
 
 enum Role {
@@ -293,9 +336,10 @@ enum Role {
 }
 
 enum TokenType {
-  VERIFICATION 
-  TWO_FACTOR 
+  VERIFICATION
+  TWO_FACTOR
   PASSWORD_RESET
+  INVITE
 }
 
 enum OperatorStatus {

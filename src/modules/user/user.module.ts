@@ -15,6 +15,7 @@ import {
 } from '../auth/email-confirmation/email-confirmation.service';
 import { Resend } from 'resend';
 import { MailService } from '@/src/mail/mail.service';
+import { ChatService } from '../chat/chat.service';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { MailService } from '@/src/mail/mail.service';
       inject: [ConfigService],
     },
     MailService,
+    ChatService,
   ],
   exports: [UserService],
 })

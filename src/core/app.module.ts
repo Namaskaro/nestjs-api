@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { IS_DEV_ENV } from 'src/shared/utils/is-dev.util';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from '../modules/auth/auth.module';
@@ -18,12 +18,21 @@ import { ReviewsModule } from '../modules/reviews/reviews.module';
 import { MailModule } from '../mail/mail.module';
 import { EmailConfirmationModule } from '../modules/auth/email-confirmation/email-confirmation.module';
 import { SocketService } from '../modules/socket/socket.service';
+import { YookassaModule } from 'nestjs-yookassa';
+import { getYookassaConfig } from './config/getYookassaConfig';
+import { YoomoneyModule } from '../yoomoney/yookassa.module';
+import { OrdersModule } from '../modules/orders/orders.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       ignoreEnvFile: !IS_DEV_ENV,
+    }),
+    YookassaModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: getYookassaConfig,
+      inject: [ConfigService],
     }),
     PrismaModule,
     AuthModule,
@@ -39,14 +48,10 @@ import { SocketService } from '../modules/socket/socket.service';
     ReviewsModule,
     MailModule,
     EmailConfirmationModule,
+    YoomoneyModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [SocketService],
-  // providers: [
-  //   {
-  //     provide: APP_GUARD,
-  //     useClass: RolesGuard,
-  //   },
-  // ],
 })
 export class AppModule {}

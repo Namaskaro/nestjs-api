@@ -1,5 +1,10 @@
 import { PrismaService } from '@/src/core/prisma/prisma.service';
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -9,87 +14,93 @@ import {
   REFRESH_TOKEN_NAME,
 } from '../auth.service';
 import type { Response as ExpressResponse } from 'express';
-@Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
-
-// export class OptionalJwtGuard extends AuthGuard('jwt') {
-//   handleRequest(err: any, user: any) {
-//     if (err) return null;
-//     return user ?? null;
-//   }
-// }
 
 @Injectable()
-export class OptionalJwtGuard implements CanActivate {
+export class JwtAuthGuard implements CanActivate {
   constructor(private prisma: PrismaService, private auth: AuthService) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest<any>();
     const res = ctx.switchToHttp().getResponse<ExpressResponse>();
 
-    let token: string | null = null;
+    let accessToken: string | null = null;
     const h = req.headers['authorization'];
-    if (h?.startsWith('Bearer ')) token = h.slice(7);
-    if (!token) token = req.cookies?.[ACCESS_TOKEN_NAME] ?? null;
-    if (!token) token = req.cookies?.[GUEST_ACCESS_TOKEN_NAME] ?? null;
+    if (h?.startsWith('Bearer ')) accessToken = h.slice(7);
+    if (!accessToken) accessToken = req.cookies?.[ACCESS_TOKEN_NAME] ?? null;
+    if (!accessToken)
+      accessToken = req.cookies?.[GUEST_ACCESS_TOKEN_NAME] ?? null;
 
-    const refresh = req.cookies?.[REFRESH_TOKEN_NAME] ?? null;
+    const refreshToken = req.cookies?.[REFRESH_TOKEN_NAME] ?? null;
 
-    // ⚠️ Диагностика
-    if (token) {
-      try {
-        const payload: any = await this.auth.verifyAccess(token);
-        // guest → попробовать апгрейд по refresh
-        if (payload.isGuest && refresh) {
-          const { user, accessToken, refreshToken } =
-            await this.auth.getNewTokens(refresh);
-          this.auth.clearAccessTokens(res);
-          this.auth.addAccessTokenToResponse(res, accessToken);
-          this.auth.addRefreshTokenToResponse(res, refreshToken);
-          req.user = user;
-          console.log('[guard] upgraded guest to user:', user?.id);
-          return true;
-        }
+    try {
+      // 1️⃣ Проверяем access токен
+      if (accessToken) {
+        const payload: any = await this.auth.verifyAccess(accessToken);
 
+        // Если не гость
         if (!payload.isGuest) {
           const user = await this.prisma.user.findUnique({
             where: { id: payload.sub },
           });
-          if (user) {
-            req.user = user;
-            console.log('[guard] user set:', user.id);
-          } else {
-            console.log('[guard] user not found by id:', payload.sub);
-          }
+          if (!user) return false;
+          req.user = user;
           return true;
         }
 
-        // гость без refresh — не трогаем
-        console.log('[guard] guest token present');
-        return true;
-      } catch (e) {
-        // access битый — пробуем refresh
-        if (refresh) {
-          try {
-            const { user, accessToken, refreshToken } =
-              await this.auth.getNewTokens(refresh);
-            this.auth.clearAccessTokens(res);
-            this.auth.addAccessTokenToResponse(res, accessToken);
-            this.auth.addRefreshTokenToResponse(res, refreshToken);
-            req.user = user;
-            console.log('[guard] recovered from refresh:', user?.id);
-          } catch (e2) {
-            console.log('[guard] refresh failed');
-          }
-        } else {
-          console.log('[guard] verify failed, no refresh');
+        // Guest + есть refresh → апгрейд
+        if (payload.isGuest && refreshToken) {
+          const {
+            user,
+            accessToken: newAccess,
+            refreshToken: newRefresh,
+          } = await this.auth.getNewTokens(refreshToken);
+          this.auth.clearAccessTokens(res);
+          this.auth.addAccessTokenToResponse(res, newAccess);
+          this.auth.addRefreshTokenToResponse(res, newRefresh);
+          req.user = user;
+          return true;
         }
+
+        // Guest без refresh
+        req.user = { isGuest: true };
         return true;
       }
-    }
 
-    // нет токенов
-    console.log('[guard] no tokens');
-    return true;
+      // 2️⃣ Если access токена нет, но есть refresh
+      if (refreshToken) {
+        const {
+          user,
+          accessToken: newAccess,
+          refreshToken: newRefresh,
+        } = await this.auth.getNewTokens(refreshToken);
+        this.auth.clearAccessTokens(res);
+        this.auth.addAccessTokenToResponse(res, newAccess);
+        this.auth.addRefreshTokenToResponse(res, newRefresh);
+        req.user = user;
+        return true;
+      }
+
+      // 3️⃣ Нет токенов
+      return false;
+    } catch (e) {
+      // Любая ошибка — проверяем refresh
+      if (refreshToken) {
+        try {
+          const {
+            user,
+            accessToken: newAccess,
+            refreshToken: newRefresh,
+          } = await this.auth.getNewTokens(refreshToken);
+          this.auth.clearAccessTokens(res);
+          this.auth.addAccessTokenToResponse(res, newAccess);
+          this.auth.addRefreshTokenToResponse(res, newRefresh);
+          req.user = user;
+          return true;
+        } catch (e2) {
+          return false; // refresh тоже невалиден
+        }
+      }
+      return false; // ни access, ни refresh невалидны
+    }
   }
 }
