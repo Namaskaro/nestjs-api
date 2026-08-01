@@ -24,4 +24,8 @@ export class AuthDto {
   @MinLength(6, { message: 'Пароль должен содержать не менее 6 символов' })
   @IsString({ message: 'Пароль обязателен' })
   password: string;
+
+  @IsOptional()
+  @IsString()
+  code: string;
 }

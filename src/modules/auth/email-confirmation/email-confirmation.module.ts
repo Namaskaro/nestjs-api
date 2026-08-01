@@ -8,22 +8,14 @@ import { Resend } from 'resend';
 import { ConfigService } from '@nestjs/config';
 import { MailModule } from '@/src/mail/mail.module';
 import { AuthModule } from '../auth.module';
-import { UserService } from '../../user/user.service';
-import { PrismaService } from '@/src/core/prisma/prisma.service';
-import { MailService } from '@/src/mail/mail.service';
-import { AuthService } from '../auth.service';
-import { JwtService } from '@nestjs/jwt';
+import { PrismaModule } from '@/src/core/prisma/prisma.module';
+import { UserModule } from '../../user/user.module';
 
 @Module({
-  imports: [MailModule, forwardRef(() => AuthModule)],
+  imports: [MailModule, forwardRef(() => AuthModule), PrismaModule, UserModule],
   controllers: [EmailConfirmationController],
   providers: [
     EmailConfirmationService,
-    PrismaService,
-    MailService,
-    AuthService,
-    JwtService,
-    UserService,
     {
       provide: RESEND_TOKEN,
       useFactory: (configService: ConfigService) =>

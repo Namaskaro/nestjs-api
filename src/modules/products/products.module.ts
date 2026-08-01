@@ -1,36 +1,34 @@
 import { Module } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
-import { PrismaService } from '@/src/core/prisma/prisma.service';
-import { SubcategoriesService } from '../subcategories/subcategories.service';
-import { BrandsService } from '../brands/brands.service';
-import { StorageService } from '../libs/storage/storage.service';
-import { ConfigService } from '@nestjs/config';
-import { CloudStorageModule } from '@/src/cloud-storage/cloud-storage.module';
-import { CloudStorageService } from '@/src/cloud-storage/cloud-storage.service';
-import { ReviewsService } from '../reviews/reviews.service';
-import { UserService } from '../user/user.service';
-import { AuthService } from '../auth/auth.service';
+import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '@/src/core/prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
+import { SubcategoriesModule } from '../subcategories/subcategories.module';
+import { BrandsModule } from '../brands/brands.module';
+import { StorageModule } from '../libs/storage/storage.module';
+import { CloudStorageModule } from '@/src/cloud-storage/cloud-storage.module';
+import { ReviewsModule } from '../reviews/reviews.module';
+import { UserModule } from '../user/user.module';
+import { AiModule } from '@/src/ai/ai.module';
+import { QdrantModule } from '@/src/core/qdrant/qdrant.module';
 
 @Module({
   imports: [
     PrismaModule, // ← ВОТ ЭТО ОБЯЗАТЕЛЬНО
-    AuthModule, // если используется JwtAuthGuard
+    AuthModule,
+    AiModule,
+    SubcategoriesModule,
+    BrandsModule,
+    StorageModule,
+    ConfigModule,
+    CloudStorageModule,
+    ReviewsModule,
+    UserModule,
+    QdrantModule,
   ],
   controllers: [ProductsController],
-  providers: [
-    ProductsService,
-    // PrismaService,
-    SubcategoriesService,
-    BrandsService,
-    StorageService,
-    ConfigService,
-    CloudStorageService,
-    ReviewsService,
-    UserService,
-  ],
+  providers: [ProductsService],
   exports: [ProductsService],
 })
 export class ProductsModule {}

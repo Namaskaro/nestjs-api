@@ -22,6 +22,11 @@ import { YookassaModule } from 'nestjs-yookassa';
 import { getYookassaConfig } from './config/getYookassaConfig';
 import { YoomoneyModule } from '../yoomoney/yookassa.module';
 import { OrdersModule } from '../modules/orders/orders.module';
+import { RedisModule } from '../modules/redis/redis.module';
+import { PasswordRecoveryModule } from '../modules/auth/password-recovery/password-recovery.module';
+import { TwoFactorAuthModule } from '../modules/auth/two-factor-auth/two-factor-auth.module';
+import { SpeechModule } from '../speech/speech.module';
+import { QdrantModule } from './qdrant/qdrant.module';
 
 @Module({
   imports: [
@@ -50,6 +55,11 @@ import { OrdersModule } from '../modules/orders/orders.module';
     EmailConfirmationModule,
     YoomoneyModule,
     OrdersModule,
+    RedisModule,
+    PasswordRecoveryModule,
+    TwoFactorAuthModule,
+    SpeechModule,
+    QdrantModule,
   ],
   controllers: [],
   providers: [SocketService],

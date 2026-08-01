@@ -41,7 +41,7 @@ export class CategoriesController {
   @Post('/create')
   @Auth()
   @Roles(Role.Admin)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
   async createProduct(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
@@ -49,7 +49,7 @@ export class CategoriesController {
   @Put('/:id')
   @Auth()
   @Roles(Role.Admin)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
   async updateProduct(@Param('id') id: string, @Body() dto: CreateCategoryDto) {
     return this.categoriesService.update(id, dto);
   }
@@ -57,7 +57,7 @@ export class CategoriesController {
   @Delete('/:id')
   @Auth()
   @Roles(Role.Admin)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
   async deleteProduct(@Param('id') id: string) {
     return this.categoriesService.delete(id);
   }

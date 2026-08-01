@@ -116,7 +116,6 @@ export class ChatService {
         email,
         role: 'Manager',
         password: null,
-        isGuest: false,
         operatorProfile: {
           create: {
             inviteToken: token,
