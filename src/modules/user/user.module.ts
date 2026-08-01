@@ -28,12 +28,10 @@ import { ChatService } from '../chat/chat.service';
   controllers: [UserController],
   providers: [
     UserService,
-    JwtService,
     PrismaService,
     StorageService,
     ConfigService,
-    AuthService,
-    EmailConfirmationService,
+
     {
       provide: RESEND_TOKEN,
       useFactory: (configService: ConfigService) =>

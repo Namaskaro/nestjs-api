@@ -49,11 +49,6 @@ export type Token = $Result.DefaultSelection<Prisma.$TokenPayload>
  */
 export type Account = $Result.DefaultSelection<Prisma.$AccountPayload>
 /**
- * Model Session
- * 
- */
-export type Session = $Result.DefaultSelection<Prisma.$SessionPayload>
-/**
  * Model VerificationToken
  * 
  */
@@ -63,6 +58,11 @@ export type VerificationToken = $Result.DefaultSelection<Prisma.$VerificationTok
  * 
  */
 export type Product = $Result.DefaultSelection<Prisma.$ProductPayload>
+/**
+ * Model ProductEmbedding
+ * 
+ */
+export type ProductEmbedding = $Result.DefaultSelection<Prisma.$ProductEmbeddingPayload>
 /**
  * Model Category
  * 
@@ -108,6 +108,11 @@ export type CartItem = $Result.DefaultSelection<Prisma.$CartItemPayload>
  * 
  */
 export type Cart = $Result.DefaultSelection<Prisma.$CartPayload>
+/**
+ * Model FaqKnowledge
+ * 
+ */
+export type FaqKnowledge = $Result.DefaultSelection<Prisma.$FaqKnowledgePayload>
 
 /**
  * Enums
@@ -142,7 +147,8 @@ export type DeliveryProvider = (typeof DeliveryProvider)[keyof typeof DeliveryPr
 
 export const UserGender: {
   MAN: 'MAN',
-  WOMAN: 'WOMAN'
+  WOMAN: 'WOMAN',
+  UNISEX: 'UNISEX'
 };
 
 export type UserGender = (typeof UserGender)[keyof typeof UserGender]
@@ -470,16 +476,6 @@ export class PrismaClient<
   get account(): Prisma.AccountDelegate<ExtArgs, ClientOptions>;
 
   /**
-   * `prisma.session`: Exposes CRUD operations for the **Session** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more Sessions
-    * const sessions = await prisma.session.findMany()
-    * ```
-    */
-  get session(): Prisma.SessionDelegate<ExtArgs, ClientOptions>;
-
-  /**
    * `prisma.verificationToken`: Exposes CRUD operations for the **VerificationToken** model.
     * Example usage:
     * ```ts
@@ -498,6 +494,16 @@ export class PrismaClient<
     * ```
     */
   get product(): Prisma.ProductDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.productEmbedding`: Exposes CRUD operations for the **ProductEmbedding** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProductEmbeddings
+    * const productEmbeddings = await prisma.productEmbedding.findMany()
+    * ```
+    */
+  get productEmbedding(): Prisma.ProductEmbeddingDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.category`: Exposes CRUD operations for the **Category** model.
@@ -588,6 +594,16 @@ export class PrismaClient<
     * ```
     */
   get cart(): Prisma.CartDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.faqKnowledge`: Exposes CRUD operations for the **FaqKnowledge** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more FaqKnowledges
+    * const faqKnowledges = await prisma.faqKnowledge.findMany()
+    * ```
+    */
+  get faqKnowledge(): Prisma.FaqKnowledgeDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1035,9 +1051,9 @@ export namespace Prisma {
     QuickReply: 'QuickReply',
     Token: 'Token',
     Account: 'Account',
-    Session: 'Session',
     VerificationToken: 'VerificationToken',
     Product: 'Product',
+    ProductEmbedding: 'ProductEmbedding',
     Category: 'Category',
     Subcategory: 'Subcategory',
     Brand: 'Brand',
@@ -1046,7 +1062,8 @@ export namespace Prisma {
     Order: 'Order',
     Payment: 'Payment',
     CartItem: 'CartItem',
-    Cart: 'Cart'
+    Cart: 'Cart',
+    FaqKnowledge: 'FaqKnowledge'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1062,7 +1079,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "operatorProfile" | "chat" | "message" | "quickReply" | "token" | "account" | "session" | "verificationToken" | "product" | "category" | "subcategory" | "brand" | "review" | "promoCode" | "order" | "payment" | "cartItem" | "cart"
+      modelProps: "user" | "operatorProfile" | "chat" | "message" | "quickReply" | "token" | "account" | "verificationToken" | "product" | "productEmbedding" | "category" | "subcategory" | "brand" | "review" | "promoCode" | "order" | "payment" | "cartItem" | "cart" | "faqKnowledge"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1584,80 +1601,6 @@ export namespace Prisma {
           }
         }
       }
-      Session: {
-        payload: Prisma.$SessionPayload<ExtArgs>
-        fields: Prisma.SessionFieldRefs
-        operations: {
-          findUnique: {
-            args: Prisma.SessionFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.SessionFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>
-          }
-          findFirst: {
-            args: Prisma.SessionFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.SessionFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>
-          }
-          findMany: {
-            args: Prisma.SessionFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>[]
-          }
-          create: {
-            args: Prisma.SessionCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>
-          }
-          createMany: {
-            args: Prisma.SessionCreateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          createManyAndReturn: {
-            args: Prisma.SessionCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>[]
-          }
-          delete: {
-            args: Prisma.SessionDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>
-          }
-          update: {
-            args: Prisma.SessionUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>
-          }
-          deleteMany: {
-            args: Prisma.SessionDeleteManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateMany: {
-            args: Prisma.SessionUpdateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateManyAndReturn: {
-            args: Prisma.SessionUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>[]
-          }
-          upsert: {
-            args: Prisma.SessionUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$SessionPayload>
-          }
-          aggregate: {
-            args: Prisma.SessionAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateSession>
-          }
-          groupBy: {
-            args: Prisma.SessionGroupByArgs<ExtArgs>
-            result: $Utils.Optional<SessionGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.SessionCountArgs<ExtArgs>
-            result: $Utils.Optional<SessionCountAggregateOutputType> | number
-          }
-        }
-      }
       VerificationToken: {
         payload: Prisma.$VerificationTokenPayload<ExtArgs>
         fields: Prisma.VerificationTokenFieldRefs
@@ -1803,6 +1746,64 @@ export namespace Prisma {
           count: {
             args: Prisma.ProductCountArgs<ExtArgs>
             result: $Utils.Optional<ProductCountAggregateOutputType> | number
+          }
+        }
+      }
+      ProductEmbedding: {
+        payload: Prisma.$ProductEmbeddingPayload<ExtArgs>
+        fields: Prisma.ProductEmbeddingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProductEmbeddingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductEmbeddingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProductEmbeddingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductEmbeddingPayload>
+          }
+          findFirst: {
+            args: Prisma.ProductEmbeddingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductEmbeddingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProductEmbeddingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductEmbeddingPayload>
+          }
+          findMany: {
+            args: Prisma.ProductEmbeddingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductEmbeddingPayload>[]
+          }
+          delete: {
+            args: Prisma.ProductEmbeddingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductEmbeddingPayload>
+          }
+          update: {
+            args: Prisma.ProductEmbeddingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductEmbeddingPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProductEmbeddingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProductEmbeddingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ProductEmbeddingUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProductEmbeddingPayload>[]
+          }
+          aggregate: {
+            args: Prisma.ProductEmbeddingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProductEmbedding>
+          }
+          groupBy: {
+            args: Prisma.ProductEmbeddingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProductEmbeddingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProductEmbeddingCountArgs<ExtArgs>
+            result: $Utils.Optional<ProductEmbeddingCountAggregateOutputType> | number
           }
         }
       }
@@ -2472,6 +2473,64 @@ export namespace Prisma {
           }
         }
       }
+      FaqKnowledge: {
+        payload: Prisma.$FaqKnowledgePayload<ExtArgs>
+        fields: Prisma.FaqKnowledgeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.FaqKnowledgeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FaqKnowledgePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.FaqKnowledgeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FaqKnowledgePayload>
+          }
+          findFirst: {
+            args: Prisma.FaqKnowledgeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FaqKnowledgePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.FaqKnowledgeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FaqKnowledgePayload>
+          }
+          findMany: {
+            args: Prisma.FaqKnowledgeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FaqKnowledgePayload>[]
+          }
+          delete: {
+            args: Prisma.FaqKnowledgeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FaqKnowledgePayload>
+          }
+          update: {
+            args: Prisma.FaqKnowledgeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FaqKnowledgePayload>
+          }
+          deleteMany: {
+            args: Prisma.FaqKnowledgeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.FaqKnowledgeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.FaqKnowledgeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$FaqKnowledgePayload>[]
+          }
+          aggregate: {
+            args: Prisma.FaqKnowledgeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateFaqKnowledge>
+          }
+          groupBy: {
+            args: Prisma.FaqKnowledgeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<FaqKnowledgeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.FaqKnowledgeCountArgs<ExtArgs>
+            result: $Utils.Optional<FaqKnowledgeCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2563,9 +2622,9 @@ export namespace Prisma {
     quickReply?: QuickReplyOmit
     token?: TokenOmit
     account?: AccountOmit
-    session?: SessionOmit
     verificationToken?: VerificationTokenOmit
     product?: ProductOmit
+    productEmbedding?: ProductEmbeddingOmit
     category?: CategoryOmit
     subcategory?: SubcategoryOmit
     brand?: BrandOmit
@@ -2575,6 +2634,7 @@ export namespace Prisma {
     payment?: PaymentOmit
     cartItem?: CartItemOmit
     cart?: CartOmit
+    faqKnowledge?: FaqKnowledgeOmit
   }
 
   /* Types for Logging */
@@ -2674,7 +2734,6 @@ export namespace Prisma {
     accounts: number
     orders: number
     favorites: number
-    sessions: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2683,7 +2742,6 @@ export namespace Prisma {
     accounts?: boolean | UserCountOutputTypeCountAccountsArgs
     orders?: boolean | UserCountOutputTypeCountOrdersArgs
     favorites?: boolean | UserCountOutputTypeCountFavoritesArgs
-    sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   }
 
   // Custom InputTypes
@@ -2730,13 +2788,6 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountFavoritesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProductWhereInput
-  }
-
-  /**
-   * UserCountOutputType without action
-   */
-  export type UserCountOutputTypeCountSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: SessionWhereInput
   }
 
 
@@ -2988,8 +3039,6 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     role: $Enums.Role | null
-    isGuest: boolean | null
-    lastSeen: Date | null
     image: string | null
     emailVerified: boolean | null
     isTwoFactorEnabled: boolean | null
@@ -3003,8 +3052,6 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     role: $Enums.Role | null
-    isGuest: boolean | null
-    lastSeen: Date | null
     image: string | null
     emailVerified: boolean | null
     isTwoFactorEnabled: boolean | null
@@ -3019,8 +3066,6 @@ export namespace Prisma {
     updatedAt: number
     role: number
     bio: number
-    isGuest: number
-    lastSeen: number
     image: number
     emailVerified: number
     isTwoFactorEnabled: number
@@ -3036,8 +3081,6 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     role?: true
-    isGuest?: true
-    lastSeen?: true
     image?: true
     emailVerified?: true
     isTwoFactorEnabled?: true
@@ -3051,8 +3094,6 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     role?: true
-    isGuest?: true
-    lastSeen?: true
     image?: true
     emailVerified?: true
     isTwoFactorEnabled?: true
@@ -3067,8 +3108,6 @@ export namespace Prisma {
     updatedAt?: true
     role?: true
     bio?: true
-    isGuest?: true
-    lastSeen?: true
     image?: true
     emailVerified?: true
     isTwoFactorEnabled?: true
@@ -3156,8 +3195,6 @@ export namespace Prisma {
     updatedAt: Date
     role: $Enums.Role
     bio: JsonValue | null
-    isGuest: boolean
-    lastSeen: Date
     image: string
     emailVerified: boolean
     isTwoFactorEnabled: boolean
@@ -3189,8 +3226,6 @@ export namespace Prisma {
     updatedAt?: boolean
     role?: boolean
     bio?: boolean
-    isGuest?: boolean
-    lastSeen?: boolean
     image?: boolean
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -3201,7 +3236,6 @@ export namespace Prisma {
     cart?: boolean | User$cartArgs<ExtArgs>
     orders?: boolean | User$ordersArgs<ExtArgs>
     favorites?: boolean | User$favoritesArgs<ExtArgs>
-    sessions?: boolean | User$sessionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -3214,8 +3248,6 @@ export namespace Prisma {
     updatedAt?: boolean
     role?: boolean
     bio?: boolean
-    isGuest?: boolean
-    lastSeen?: boolean
     image?: boolean
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -3230,8 +3262,6 @@ export namespace Prisma {
     updatedAt?: boolean
     role?: boolean
     bio?: boolean
-    isGuest?: boolean
-    lastSeen?: boolean
     image?: boolean
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -3246,14 +3276,12 @@ export namespace Prisma {
     updatedAt?: boolean
     role?: boolean
     bio?: boolean
-    isGuest?: boolean
-    lastSeen?: boolean
     image?: boolean
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password" | "createdAt" | "updatedAt" | "role" | "bio" | "isGuest" | "lastSeen" | "image" | "emailVerified" | "isTwoFactorEnabled", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "password" | "createdAt" | "updatedAt" | "role" | "bio" | "image" | "emailVerified" | "isTwoFactorEnabled", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     chats?: boolean | User$chatsArgs<ExtArgs>
     operatorProfile?: boolean | User$operatorProfileArgs<ExtArgs>
@@ -3262,7 +3290,6 @@ export namespace Prisma {
     cart?: boolean | User$cartArgs<ExtArgs>
     orders?: boolean | User$ordersArgs<ExtArgs>
     favorites?: boolean | User$favoritesArgs<ExtArgs>
-    sessions?: boolean | User$sessionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -3278,7 +3305,6 @@ export namespace Prisma {
       cart: Prisma.$CartPayload<ExtArgs> | null
       orders: Prisma.$OrderPayload<ExtArgs>[]
       favorites: Prisma.$ProductPayload<ExtArgs>[]
-      sessions: Prisma.$SessionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3289,8 +3315,6 @@ export namespace Prisma {
       updatedAt: Date
       role: $Enums.Role
       bio: Prisma.JsonValue | null
-      isGuest: boolean
-      lastSeen: Date
       image: string
       emailVerified: boolean
       isTwoFactorEnabled: boolean
@@ -3695,7 +3719,6 @@ export namespace Prisma {
     cart<T extends User$cartArgs<ExtArgs> = {}>(args?: Subset<T, User$cartArgs<ExtArgs>>): Prisma__CartClient<$Result.GetResult<Prisma.$CartPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     orders<T extends User$ordersArgs<ExtArgs> = {}>(args?: Subset<T, User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
     favorites<T extends User$favoritesArgs<ExtArgs> = {}>(args?: Subset<T, User$favoritesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
-    sessions<T extends User$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3733,8 +3756,6 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<"User", 'DateTime'>
     readonly role: FieldRef<"User", 'Role'>
     readonly bio: FieldRef<"User", 'Json'>
-    readonly isGuest: FieldRef<"User", 'Boolean'>
-    readonly lastSeen: FieldRef<"User", 'DateTime'>
     readonly image: FieldRef<"User", 'String'>
     readonly emailVerified: FieldRef<"User", 'Boolean'>
     readonly isTwoFactorEnabled: FieldRef<"User", 'Boolean'>
@@ -4281,30 +4302,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ProductScalarFieldEnum | ProductScalarFieldEnum[]
-  }
-
-  /**
-   * User.sessions
-   */
-  export type User$sessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    where?: SessionWhereInput
-    orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
-    cursor?: SessionWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
   }
 
   /**
@@ -10826,1051 +10823,6 @@ export namespace Prisma {
 
 
   /**
-   * Model Session
-   */
-
-  export type AggregateSession = {
-    _count: SessionCountAggregateOutputType | null
-    _min: SessionMinAggregateOutputType | null
-    _max: SessionMaxAggregateOutputType | null
-  }
-
-  export type SessionMinAggregateOutputType = {
-    id: string | null
-    sessionToken: string | null
-    userId: string | null
-    expires: Date | null
-  }
-
-  export type SessionMaxAggregateOutputType = {
-    id: string | null
-    sessionToken: string | null
-    userId: string | null
-    expires: Date | null
-  }
-
-  export type SessionCountAggregateOutputType = {
-    id: number
-    sessionToken: number
-    userId: number
-    expires: number
-    _all: number
-  }
-
-
-  export type SessionMinAggregateInputType = {
-    id?: true
-    sessionToken?: true
-    userId?: true
-    expires?: true
-  }
-
-  export type SessionMaxAggregateInputType = {
-    id?: true
-    sessionToken?: true
-    userId?: true
-    expires?: true
-  }
-
-  export type SessionCountAggregateInputType = {
-    id?: true
-    sessionToken?: true
-    userId?: true
-    expires?: true
-    _all?: true
-  }
-
-  export type SessionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which Session to aggregate.
-     */
-    where?: SessionWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Sessions to fetch.
-     */
-    orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: SessionWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Sessions from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Sessions.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned Sessions
-    **/
-    _count?: true | SessionCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: SessionMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: SessionMaxAggregateInputType
-  }
-
-  export type GetSessionAggregateType<T extends SessionAggregateArgs> = {
-        [P in keyof T & keyof AggregateSession]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateSession[P]>
-      : GetScalarType<T[P], AggregateSession[P]>
-  }
-
-
-
-
-  export type SessionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: SessionWhereInput
-    orderBy?: SessionOrderByWithAggregationInput | SessionOrderByWithAggregationInput[]
-    by: SessionScalarFieldEnum[] | SessionScalarFieldEnum
-    having?: SessionScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: SessionCountAggregateInputType | true
-    _min?: SessionMinAggregateInputType
-    _max?: SessionMaxAggregateInputType
-  }
-
-  export type SessionGroupByOutputType = {
-    id: string
-    sessionToken: string
-    userId: string
-    expires: Date
-    _count: SessionCountAggregateOutputType | null
-    _min: SessionMinAggregateOutputType | null
-    _max: SessionMaxAggregateOutputType | null
-  }
-
-  type GetSessionGroupByPayload<T extends SessionGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<SessionGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof SessionGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], SessionGroupByOutputType[P]>
-            : GetScalarType<T[P], SessionGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type SessionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    sessionToken?: boolean
-    userId?: boolean
-    expires?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["session"]>
-
-  export type SessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    sessionToken?: boolean
-    userId?: boolean
-    expires?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["session"]>
-
-  export type SessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    sessionToken?: boolean
-    userId?: boolean
-    expires?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["session"]>
-
-  export type SessionSelectScalar = {
-    id?: boolean
-    sessionToken?: boolean
-    userId?: boolean
-    expires?: boolean
-  }
-
-  export type SessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "sessionToken" | "userId" | "expires", ExtArgs["result"]["session"]>
-  export type SessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }
-  export type SessionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }
-  export type SessionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }
-
-  export type $SessionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "Session"
-    objects: {
-      user: Prisma.$UserPayload<ExtArgs>
-    }
-    scalars: $Extensions.GetPayloadResult<{
-      id: string
-      sessionToken: string
-      userId: string
-      expires: Date
-    }, ExtArgs["result"]["session"]>
-    composites: {}
-  }
-
-  type SessionGetPayload<S extends boolean | null | undefined | SessionDefaultArgs> = $Result.GetResult<Prisma.$SessionPayload, S>
-
-  type SessionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<SessionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: SessionCountAggregateInputType | true
-    }
-
-  export interface SessionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Session'], meta: { name: 'Session' } }
-    /**
-     * Find zero or one Session that matches the filter.
-     * @param {SessionFindUniqueArgs} args - Arguments to find a Session
-     * @example
-     * // Get one Session
-     * const session = await prisma.session.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends SessionFindUniqueArgs>(args: SelectSubset<T, SessionFindUniqueArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
-
-    /**
-     * Find one Session that matches the filter or throw an error with `error.code='P2025'`
-     * if no matches were found.
-     * @param {SessionFindUniqueOrThrowArgs} args - Arguments to find a Session
-     * @example
-     * // Get one Session
-     * const session = await prisma.session.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends SessionFindUniqueOrThrowArgs>(args: SelectSubset<T, SessionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
-
-    /**
-     * Find the first Session that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SessionFindFirstArgs} args - Arguments to find a Session
-     * @example
-     * // Get one Session
-     * const session = await prisma.session.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends SessionFindFirstArgs>(args?: SelectSubset<T, SessionFindFirstArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
-
-    /**
-     * Find the first Session that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SessionFindFirstOrThrowArgs} args - Arguments to find a Session
-     * @example
-     * // Get one Session
-     * const session = await prisma.session.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends SessionFindFirstOrThrowArgs>(args?: SelectSubset<T, SessionFindFirstOrThrowArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
-
-    /**
-     * Find zero or more Sessions that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SessionFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all Sessions
-     * const sessions = await prisma.session.findMany()
-     * 
-     * // Get first 10 Sessions
-     * const sessions = await prisma.session.findMany({ take: 10 })
-     * 
-     * // Only select the `id`
-     * const sessionWithIdOnly = await prisma.session.findMany({ select: { id: true } })
-     * 
-     */
-    findMany<T extends SessionFindManyArgs>(args?: SelectSubset<T, SessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", ClientOptions>>
-
-    /**
-     * Create a Session.
-     * @param {SessionCreateArgs} args - Arguments to create a Session.
-     * @example
-     * // Create one Session
-     * const Session = await prisma.session.create({
-     *   data: {
-     *     // ... data to create a Session
-     *   }
-     * })
-     * 
-     */
-    create<T extends SessionCreateArgs>(args: SelectSubset<T, SessionCreateArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
-
-    /**
-     * Create many Sessions.
-     * @param {SessionCreateManyArgs} args - Arguments to create many Sessions.
-     * @example
-     * // Create many Sessions
-     * const session = await prisma.session.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends SessionCreateManyArgs>(args?: SelectSubset<T, SessionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many Sessions and returns the data saved in the database.
-     * @param {SessionCreateManyAndReturnArgs} args - Arguments to create many Sessions.
-     * @example
-     * // Create many Sessions
-     * const session = await prisma.session.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many Sessions and only return the `id`
-     * const sessionWithIdOnly = await prisma.session.createManyAndReturn({
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends SessionCreateManyAndReturnArgs>(args?: SelectSubset<T, SessionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
-
-    /**
-     * Delete a Session.
-     * @param {SessionDeleteArgs} args - Arguments to delete one Session.
-     * @example
-     * // Delete one Session
-     * const Session = await prisma.session.delete({
-     *   where: {
-     *     // ... filter to delete one Session
-     *   }
-     * })
-     * 
-     */
-    delete<T extends SessionDeleteArgs>(args: SelectSubset<T, SessionDeleteArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
-
-    /**
-     * Update one Session.
-     * @param {SessionUpdateArgs} args - Arguments to update one Session.
-     * @example
-     * // Update one Session
-     * const session = await prisma.session.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends SessionUpdateArgs>(args: SelectSubset<T, SessionUpdateArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
-
-    /**
-     * Delete zero or more Sessions.
-     * @param {SessionDeleteManyArgs} args - Arguments to filter Sessions to delete.
-     * @example
-     * // Delete a few Sessions
-     * const { count } = await prisma.session.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends SessionDeleteManyArgs>(args?: SelectSubset<T, SessionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Sessions.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SessionUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many Sessions
-     * const session = await prisma.session.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends SessionUpdateManyArgs>(args: SelectSubset<T, SessionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Sessions and returns the data updated in the database.
-     * @param {SessionUpdateManyAndReturnArgs} args - Arguments to update many Sessions.
-     * @example
-     * // Update many Sessions
-     * const session = await prisma.session.updateManyAndReturn({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Update zero or more Sessions and only return the `id`
-     * const sessionWithIdOnly = await prisma.session.updateManyAndReturn({
-     *   select: { id: true },
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    updateManyAndReturn<T extends SessionUpdateManyAndReturnArgs>(args: SelectSubset<T, SessionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
-
-    /**
-     * Create or update one Session.
-     * @param {SessionUpsertArgs} args - Arguments to update or create a Session.
-     * @example
-     * // Update or create a Session
-     * const session = await prisma.session.upsert({
-     *   create: {
-     *     // ... data to create a Session
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the Session we want to update
-     *   }
-     * })
-     */
-    upsert<T extends SessionUpsertArgs>(args: SelectSubset<T, SessionUpsertArgs<ExtArgs>>): Prisma__SessionClient<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
-
-
-    /**
-     * Count the number of Sessions.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SessionCountArgs} args - Arguments to filter Sessions to count.
-     * @example
-     * // Count the number of Sessions
-     * const count = await prisma.session.count({
-     *   where: {
-     *     // ... the filter for the Sessions we want to count
-     *   }
-     * })
-    **/
-    count<T extends SessionCountArgs>(
-      args?: Subset<T, SessionCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], SessionCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a Session.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SessionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends SessionAggregateArgs>(args: Subset<T, SessionAggregateArgs>): Prisma.PrismaPromise<GetSessionAggregateType<T>>
-
-    /**
-     * Group by Session.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {SessionGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends SessionGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: SessionGroupByArgs['orderBy'] }
-        : { orderBy?: SessionGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, SessionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSessionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the Session model
-   */
-  readonly fields: SessionFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for Session.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__SessionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the Session model
-   */ 
-  interface SessionFieldRefs {
-    readonly id: FieldRef<"Session", 'String'>
-    readonly sessionToken: FieldRef<"Session", 'String'>
-    readonly userId: FieldRef<"Session", 'String'>
-    readonly expires: FieldRef<"Session", 'DateTime'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * Session findUnique
-   */
-  export type SessionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * Filter, which Session to fetch.
-     */
-    where: SessionWhereUniqueInput
-  }
-
-  /**
-   * Session findUniqueOrThrow
-   */
-  export type SessionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * Filter, which Session to fetch.
-     */
-    where: SessionWhereUniqueInput
-  }
-
-  /**
-   * Session findFirst
-   */
-  export type SessionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * Filter, which Session to fetch.
-     */
-    where?: SessionWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Sessions to fetch.
-     */
-    orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Sessions.
-     */
-    cursor?: SessionWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Sessions from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Sessions.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Sessions.
-     */
-    distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
-  }
-
-  /**
-   * Session findFirstOrThrow
-   */
-  export type SessionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * Filter, which Session to fetch.
-     */
-    where?: SessionWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Sessions to fetch.
-     */
-    orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Sessions.
-     */
-    cursor?: SessionWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Sessions from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Sessions.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Sessions.
-     */
-    distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
-  }
-
-  /**
-   * Session findMany
-   */
-  export type SessionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * Filter, which Sessions to fetch.
-     */
-    where?: SessionWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Sessions to fetch.
-     */
-    orderBy?: SessionOrderByWithRelationInput | SessionOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing Sessions.
-     */
-    cursor?: SessionWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Sessions from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Sessions.
-     */
-    skip?: number
-    distinct?: SessionScalarFieldEnum | SessionScalarFieldEnum[]
-  }
-
-  /**
-   * Session create
-   */
-  export type SessionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * The data needed to create a Session.
-     */
-    data: XOR<SessionCreateInput, SessionUncheckedCreateInput>
-  }
-
-  /**
-   * Session createMany
-   */
-  export type SessionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many Sessions.
-     */
-    data: SessionCreateManyInput | SessionCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * Session createManyAndReturn
-   */
-  export type SessionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * The data used to create many Sessions.
-     */
-    data: SessionCreateManyInput | SessionCreateManyInput[]
-    skipDuplicates?: boolean
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionIncludeCreateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * Session update
-   */
-  export type SessionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * The data needed to update a Session.
-     */
-    data: XOR<SessionUpdateInput, SessionUncheckedUpdateInput>
-    /**
-     * Choose, which Session to update.
-     */
-    where: SessionWhereUniqueInput
-  }
-
-  /**
-   * Session updateMany
-   */
-  export type SessionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update Sessions.
-     */
-    data: XOR<SessionUpdateManyMutationInput, SessionUncheckedUpdateManyInput>
-    /**
-     * Filter which Sessions to update
-     */
-    where?: SessionWhereInput
-    /**
-     * Limit how many Sessions to update.
-     */
-    limit?: number
-  }
-
-  /**
-   * Session updateManyAndReturn
-   */
-  export type SessionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelectUpdateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * The data used to update Sessions.
-     */
-    data: XOR<SessionUpdateManyMutationInput, SessionUncheckedUpdateManyInput>
-    /**
-     * Filter which Sessions to update
-     */
-    where?: SessionWhereInput
-    /**
-     * Limit how many Sessions to update.
-     */
-    limit?: number
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionIncludeUpdateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * Session upsert
-   */
-  export type SessionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * The filter to search for the Session to update in case it exists.
-     */
-    where: SessionWhereUniqueInput
-    /**
-     * In case the Session found by the `where` argument doesn't exist, create a new Session with this data.
-     */
-    create: XOR<SessionCreateInput, SessionUncheckedCreateInput>
-    /**
-     * In case the Session was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<SessionUpdateInput, SessionUncheckedUpdateInput>
-  }
-
-  /**
-   * Session delete
-   */
-  export type SessionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-    /**
-     * Filter which Session to delete.
-     */
-    where: SessionWhereUniqueInput
-  }
-
-  /**
-   * Session deleteMany
-   */
-  export type SessionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which Sessions to delete
-     */
-    where?: SessionWhereInput
-    /**
-     * Limit how many Sessions to delete.
-     */
-    limit?: number
-  }
-
-  /**
-   * Session without action
-   */
-  export type SessionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Session
-     */
-    select?: SessionSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Session
-     */
-    omit?: SessionOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: SessionInclude<ExtArgs> | null
-  }
-
-
-  /**
    * Model VerificationToken
    */
 
@@ -13134,6 +12086,7 @@ export namespace Prisma {
     brand?: boolean | Product$brandArgs<ExtArgs>
     subcategory?: boolean | Product$subcategoryArgs<ExtArgs>
     user?: boolean | Product$userArgs<ExtArgs>
+    embedding?: boolean | Product$embeddingArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["product"]>
 
@@ -13213,6 +12166,7 @@ export namespace Prisma {
     brand?: boolean | Product$brandArgs<ExtArgs>
     subcategory?: boolean | Product$subcategoryArgs<ExtArgs>
     user?: boolean | Product$userArgs<ExtArgs>
+    embedding?: boolean | Product$embeddingArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProductIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13234,6 +12188,7 @@ export namespace Prisma {
       brand: Prisma.$BrandPayload<ExtArgs> | null
       subcategory: Prisma.$SubcategoryPayload<ExtArgs> | null
       user: Prisma.$UserPayload<ExtArgs> | null
+      embedding: Prisma.$ProductEmbeddingPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -13653,6 +12608,7 @@ export namespace Prisma {
     brand<T extends Product$brandArgs<ExtArgs> = {}>(args?: Subset<T, Product$brandArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     subcategory<T extends Product$subcategoryArgs<ExtArgs> = {}>(args?: Subset<T, Product$subcategoryArgs<ExtArgs>>): Prisma__SubcategoryClient<$Result.GetResult<Prisma.$SubcategoryPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     user<T extends Product$userArgs<ExtArgs> = {}>(args?: Subset<T, Product$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
+    embedding<T extends Product$embeddingArgs<ExtArgs> = {}>(args?: Subset<T, Product$embeddingArgs<ExtArgs>>): Prisma__ProductEmbeddingClient<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14201,6 +13157,25 @@ export namespace Prisma {
   }
 
   /**
+   * Product.embedding
+   */
+  export type Product$embeddingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
+    where?: ProductEmbeddingWhereInput
+  }
+
+  /**
    * Product without action
    */
   export type ProductDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14216,6 +13191,848 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ProductInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ProductEmbedding
+   */
+
+  export type AggregateProductEmbedding = {
+    _count: ProductEmbeddingCountAggregateOutputType | null
+    _min: ProductEmbeddingMinAggregateOutputType | null
+    _max: ProductEmbeddingMaxAggregateOutputType | null
+  }
+
+  export type ProductEmbeddingMinAggregateOutputType = {
+    productId: string | null
+  }
+
+  export type ProductEmbeddingMaxAggregateOutputType = {
+    productId: string | null
+  }
+
+  export type ProductEmbeddingCountAggregateOutputType = {
+    productId: number
+    _all: number
+  }
+
+
+  export type ProductEmbeddingMinAggregateInputType = {
+    productId?: true
+  }
+
+  export type ProductEmbeddingMaxAggregateInputType = {
+    productId?: true
+  }
+
+  export type ProductEmbeddingCountAggregateInputType = {
+    productId?: true
+    _all?: true
+  }
+
+  export type ProductEmbeddingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductEmbedding to aggregate.
+     */
+    where?: ProductEmbeddingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductEmbeddings to fetch.
+     */
+    orderBy?: ProductEmbeddingOrderByWithRelationInput | ProductEmbeddingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProductEmbeddingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductEmbeddings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductEmbeddings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProductEmbeddings
+    **/
+    _count?: true | ProductEmbeddingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProductEmbeddingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProductEmbeddingMaxAggregateInputType
+  }
+
+  export type GetProductEmbeddingAggregateType<T extends ProductEmbeddingAggregateArgs> = {
+        [P in keyof T & keyof AggregateProductEmbedding]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProductEmbedding[P]>
+      : GetScalarType<T[P], AggregateProductEmbedding[P]>
+  }
+
+
+
+
+  export type ProductEmbeddingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProductEmbeddingWhereInput
+    orderBy?: ProductEmbeddingOrderByWithAggregationInput | ProductEmbeddingOrderByWithAggregationInput[]
+    by: ProductEmbeddingScalarFieldEnum[] | ProductEmbeddingScalarFieldEnum
+    having?: ProductEmbeddingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProductEmbeddingCountAggregateInputType | true
+    _min?: ProductEmbeddingMinAggregateInputType
+    _max?: ProductEmbeddingMaxAggregateInputType
+  }
+
+  export type ProductEmbeddingGroupByOutputType = {
+    productId: string
+    _count: ProductEmbeddingCountAggregateOutputType | null
+    _min: ProductEmbeddingMinAggregateOutputType | null
+    _max: ProductEmbeddingMaxAggregateOutputType | null
+  }
+
+  type GetProductEmbeddingGroupByPayload<T extends ProductEmbeddingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProductEmbeddingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProductEmbeddingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProductEmbeddingGroupByOutputType[P]>
+            : GetScalarType<T[P], ProductEmbeddingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProductEmbeddingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    productId?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["productEmbedding"]>
+
+
+  export type ProductEmbeddingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    productId?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["productEmbedding"]>
+
+  export type ProductEmbeddingSelectScalar = {
+    productId?: boolean
+  }
+
+  export type ProductEmbeddingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"productId", ExtArgs["result"]["productEmbedding"]>
+  export type ProductEmbeddingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+  export type ProductEmbeddingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+
+  export type $ProductEmbeddingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProductEmbedding"
+    objects: {
+      product: Prisma.$ProductPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      productId: string
+    }, ExtArgs["result"]["productEmbedding"]>
+    composites: {}
+  }
+
+  type ProductEmbeddingGetPayload<S extends boolean | null | undefined | ProductEmbeddingDefaultArgs> = $Result.GetResult<Prisma.$ProductEmbeddingPayload, S>
+
+  type ProductEmbeddingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProductEmbeddingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ProductEmbeddingCountAggregateInputType | true
+    }
+
+  export interface ProductEmbeddingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProductEmbedding'], meta: { name: 'ProductEmbedding' } }
+    /**
+     * Find zero or one ProductEmbedding that matches the filter.
+     * @param {ProductEmbeddingFindUniqueArgs} args - Arguments to find a ProductEmbedding
+     * @example
+     * // Get one ProductEmbedding
+     * const productEmbedding = await prisma.productEmbedding.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProductEmbeddingFindUniqueArgs>(args: SelectSubset<T, ProductEmbeddingFindUniqueArgs<ExtArgs>>): Prisma__ProductEmbeddingClient<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one ProductEmbedding that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ProductEmbeddingFindUniqueOrThrowArgs} args - Arguments to find a ProductEmbedding
+     * @example
+     * // Get one ProductEmbedding
+     * const productEmbedding = await prisma.productEmbedding.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProductEmbeddingFindUniqueOrThrowArgs>(args: SelectSubset<T, ProductEmbeddingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProductEmbeddingClient<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ProductEmbedding that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductEmbeddingFindFirstArgs} args - Arguments to find a ProductEmbedding
+     * @example
+     * // Get one ProductEmbedding
+     * const productEmbedding = await prisma.productEmbedding.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProductEmbeddingFindFirstArgs>(args?: SelectSubset<T, ProductEmbeddingFindFirstArgs<ExtArgs>>): Prisma__ProductEmbeddingClient<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ProductEmbedding that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductEmbeddingFindFirstOrThrowArgs} args - Arguments to find a ProductEmbedding
+     * @example
+     * // Get one ProductEmbedding
+     * const productEmbedding = await prisma.productEmbedding.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProductEmbeddingFindFirstOrThrowArgs>(args?: SelectSubset<T, ProductEmbeddingFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProductEmbeddingClient<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more ProductEmbeddings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductEmbeddingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProductEmbeddings
+     * const productEmbeddings = await prisma.productEmbedding.findMany()
+     * 
+     * // Get first 10 ProductEmbeddings
+     * const productEmbeddings = await prisma.productEmbedding.findMany({ take: 10 })
+     * 
+     * // Only select the `productId`
+     * const productEmbeddingWithProductIdOnly = await prisma.productEmbedding.findMany({ select: { productId: true } })
+     * 
+     */
+    findMany<T extends ProductEmbeddingFindManyArgs>(args?: SelectSubset<T, ProductEmbeddingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Delete a ProductEmbedding.
+     * @param {ProductEmbeddingDeleteArgs} args - Arguments to delete one ProductEmbedding.
+     * @example
+     * // Delete one ProductEmbedding
+     * const ProductEmbedding = await prisma.productEmbedding.delete({
+     *   where: {
+     *     // ... filter to delete one ProductEmbedding
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProductEmbeddingDeleteArgs>(args: SelectSubset<T, ProductEmbeddingDeleteArgs<ExtArgs>>): Prisma__ProductEmbeddingClient<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one ProductEmbedding.
+     * @param {ProductEmbeddingUpdateArgs} args - Arguments to update one ProductEmbedding.
+     * @example
+     * // Update one ProductEmbedding
+     * const productEmbedding = await prisma.productEmbedding.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProductEmbeddingUpdateArgs>(args: SelectSubset<T, ProductEmbeddingUpdateArgs<ExtArgs>>): Prisma__ProductEmbeddingClient<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more ProductEmbeddings.
+     * @param {ProductEmbeddingDeleteManyArgs} args - Arguments to filter ProductEmbeddings to delete.
+     * @example
+     * // Delete a few ProductEmbeddings
+     * const { count } = await prisma.productEmbedding.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProductEmbeddingDeleteManyArgs>(args?: SelectSubset<T, ProductEmbeddingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProductEmbeddings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductEmbeddingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProductEmbeddings
+     * const productEmbedding = await prisma.productEmbedding.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProductEmbeddingUpdateManyArgs>(args: SelectSubset<T, ProductEmbeddingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProductEmbeddings and returns the data updated in the database.
+     * @param {ProductEmbeddingUpdateManyAndReturnArgs} args - Arguments to update many ProductEmbeddings.
+     * @example
+     * // Update many ProductEmbeddings
+     * const productEmbedding = await prisma.productEmbedding.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ProductEmbeddings and only return the `productId`
+     * const productEmbeddingWithProductIdOnly = await prisma.productEmbedding.updateManyAndReturn({
+     *   select: { productId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProductEmbeddingUpdateManyAndReturnArgs>(args: SelectSubset<T, ProductEmbeddingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductEmbeddingPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+
+    /**
+     * Count the number of ProductEmbeddings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductEmbeddingCountArgs} args - Arguments to filter ProductEmbeddings to count.
+     * @example
+     * // Count the number of ProductEmbeddings
+     * const count = await prisma.productEmbedding.count({
+     *   where: {
+     *     // ... the filter for the ProductEmbeddings we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProductEmbeddingCountArgs>(
+      args?: Subset<T, ProductEmbeddingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProductEmbeddingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProductEmbedding.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductEmbeddingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProductEmbeddingAggregateArgs>(args: Subset<T, ProductEmbeddingAggregateArgs>): Prisma.PrismaPromise<GetProductEmbeddingAggregateType<T>>
+
+    /**
+     * Group by ProductEmbedding.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProductEmbeddingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProductEmbeddingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProductEmbeddingGroupByArgs['orderBy'] }
+        : { orderBy?: ProductEmbeddingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProductEmbeddingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProductEmbeddingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProductEmbedding model
+   */
+  readonly fields: ProductEmbeddingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProductEmbedding.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProductEmbeddingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProductEmbedding model
+   */ 
+  interface ProductEmbeddingFieldRefs {
+    readonly productId: FieldRef<"ProductEmbedding", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProductEmbedding findUnique
+   */
+  export type ProductEmbeddingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductEmbedding to fetch.
+     */
+    where: ProductEmbeddingWhereUniqueInput
+  }
+
+  /**
+   * ProductEmbedding findUniqueOrThrow
+   */
+  export type ProductEmbeddingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductEmbedding to fetch.
+     */
+    where: ProductEmbeddingWhereUniqueInput
+  }
+
+  /**
+   * ProductEmbedding findFirst
+   */
+  export type ProductEmbeddingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductEmbedding to fetch.
+     */
+    where?: ProductEmbeddingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductEmbeddings to fetch.
+     */
+    orderBy?: ProductEmbeddingOrderByWithRelationInput | ProductEmbeddingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductEmbeddings.
+     */
+    cursor?: ProductEmbeddingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductEmbeddings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductEmbeddings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductEmbeddings.
+     */
+    distinct?: ProductEmbeddingScalarFieldEnum | ProductEmbeddingScalarFieldEnum[]
+  }
+
+  /**
+   * ProductEmbedding findFirstOrThrow
+   */
+  export type ProductEmbeddingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductEmbedding to fetch.
+     */
+    where?: ProductEmbeddingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductEmbeddings to fetch.
+     */
+    orderBy?: ProductEmbeddingOrderByWithRelationInput | ProductEmbeddingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProductEmbeddings.
+     */
+    cursor?: ProductEmbeddingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductEmbeddings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductEmbeddings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProductEmbeddings.
+     */
+    distinct?: ProductEmbeddingScalarFieldEnum | ProductEmbeddingScalarFieldEnum[]
+  }
+
+  /**
+   * ProductEmbedding findMany
+   */
+  export type ProductEmbeddingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
+    /**
+     * Filter, which ProductEmbeddings to fetch.
+     */
+    where?: ProductEmbeddingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProductEmbeddings to fetch.
+     */
+    orderBy?: ProductEmbeddingOrderByWithRelationInput | ProductEmbeddingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProductEmbeddings.
+     */
+    cursor?: ProductEmbeddingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProductEmbeddings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProductEmbeddings.
+     */
+    skip?: number
+    distinct?: ProductEmbeddingScalarFieldEnum | ProductEmbeddingScalarFieldEnum[]
+  }
+
+  /**
+   * ProductEmbedding update
+   */
+  export type ProductEmbeddingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProductEmbedding.
+     */
+    data: XOR<ProductEmbeddingUpdateInput, ProductEmbeddingUncheckedUpdateInput>
+    /**
+     * Choose, which ProductEmbedding to update.
+     */
+    where: ProductEmbeddingWhereUniqueInput
+  }
+
+  /**
+   * ProductEmbedding updateMany
+   */
+  export type ProductEmbeddingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProductEmbeddings.
+     */
+    data: XOR<ProductEmbeddingUpdateManyMutationInput, ProductEmbeddingUncheckedUpdateManyInput>
+    /**
+     * Filter which ProductEmbeddings to update
+     */
+    where?: ProductEmbeddingWhereInput
+    /**
+     * Limit how many ProductEmbeddings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProductEmbedding updateManyAndReturn
+   */
+  export type ProductEmbeddingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * The data used to update ProductEmbeddings.
+     */
+    data: XOR<ProductEmbeddingUpdateManyMutationInput, ProductEmbeddingUncheckedUpdateManyInput>
+    /**
+     * Filter which ProductEmbeddings to update
+     */
+    where?: ProductEmbeddingWhereInput
+    /**
+     * Limit how many ProductEmbeddings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProductEmbedding delete
+   */
+  export type ProductEmbeddingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
+    /**
+     * Filter which ProductEmbedding to delete.
+     */
+    where: ProductEmbeddingWhereUniqueInput
+  }
+
+  /**
+   * ProductEmbedding deleteMany
+   */
+  export type ProductEmbeddingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProductEmbeddings to delete
+     */
+    where?: ProductEmbeddingWhereInput
+    /**
+     * Limit how many ProductEmbeddings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProductEmbedding without action
+   */
+  export type ProductEmbeddingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProductEmbedding
+     */
+    select?: ProductEmbeddingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProductEmbedding
+     */
+    omit?: ProductEmbeddingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProductEmbeddingInclude<ExtArgs> | null
   }
 
 
@@ -24431,6 +24248,849 @@ export namespace Prisma {
 
 
   /**
+   * Model FaqKnowledge
+   */
+
+  export type AggregateFaqKnowledge = {
+    _count: FaqKnowledgeCountAggregateOutputType | null
+    _min: FaqKnowledgeMinAggregateOutputType | null
+    _max: FaqKnowledgeMaxAggregateOutputType | null
+  }
+
+  export type FaqKnowledgeMinAggregateOutputType = {
+    id: string | null
+    section: string | null
+    question: string | null
+    answer: string | null
+    content: string | null
+  }
+
+  export type FaqKnowledgeMaxAggregateOutputType = {
+    id: string | null
+    section: string | null
+    question: string | null
+    answer: string | null
+    content: string | null
+  }
+
+  export type FaqKnowledgeCountAggregateOutputType = {
+    id: number
+    section: number
+    question: number
+    answer: number
+    content: number
+    _all: number
+  }
+
+
+  export type FaqKnowledgeMinAggregateInputType = {
+    id?: true
+    section?: true
+    question?: true
+    answer?: true
+    content?: true
+  }
+
+  export type FaqKnowledgeMaxAggregateInputType = {
+    id?: true
+    section?: true
+    question?: true
+    answer?: true
+    content?: true
+  }
+
+  export type FaqKnowledgeCountAggregateInputType = {
+    id?: true
+    section?: true
+    question?: true
+    answer?: true
+    content?: true
+    _all?: true
+  }
+
+  export type FaqKnowledgeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which FaqKnowledge to aggregate.
+     */
+    where?: FaqKnowledgeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FaqKnowledges to fetch.
+     */
+    orderBy?: FaqKnowledgeOrderByWithRelationInput | FaqKnowledgeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: FaqKnowledgeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FaqKnowledges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FaqKnowledges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned FaqKnowledges
+    **/
+    _count?: true | FaqKnowledgeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: FaqKnowledgeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: FaqKnowledgeMaxAggregateInputType
+  }
+
+  export type GetFaqKnowledgeAggregateType<T extends FaqKnowledgeAggregateArgs> = {
+        [P in keyof T & keyof AggregateFaqKnowledge]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateFaqKnowledge[P]>
+      : GetScalarType<T[P], AggregateFaqKnowledge[P]>
+  }
+
+
+
+
+  export type FaqKnowledgeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: FaqKnowledgeWhereInput
+    orderBy?: FaqKnowledgeOrderByWithAggregationInput | FaqKnowledgeOrderByWithAggregationInput[]
+    by: FaqKnowledgeScalarFieldEnum[] | FaqKnowledgeScalarFieldEnum
+    having?: FaqKnowledgeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: FaqKnowledgeCountAggregateInputType | true
+    _min?: FaqKnowledgeMinAggregateInputType
+    _max?: FaqKnowledgeMaxAggregateInputType
+  }
+
+  export type FaqKnowledgeGroupByOutputType = {
+    id: string
+    section: string
+    question: string
+    answer: string
+    content: string
+    _count: FaqKnowledgeCountAggregateOutputType | null
+    _min: FaqKnowledgeMinAggregateOutputType | null
+    _max: FaqKnowledgeMaxAggregateOutputType | null
+  }
+
+  type GetFaqKnowledgeGroupByPayload<T extends FaqKnowledgeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<FaqKnowledgeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof FaqKnowledgeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], FaqKnowledgeGroupByOutputType[P]>
+            : GetScalarType<T[P], FaqKnowledgeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type FaqKnowledgeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    section?: boolean
+    question?: boolean
+    answer?: boolean
+    content?: boolean
+  }, ExtArgs["result"]["faqKnowledge"]>
+
+
+  export type FaqKnowledgeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    section?: boolean
+    question?: boolean
+    answer?: boolean
+    content?: boolean
+  }, ExtArgs["result"]["faqKnowledge"]>
+
+  export type FaqKnowledgeSelectScalar = {
+    id?: boolean
+    section?: boolean
+    question?: boolean
+    answer?: boolean
+    content?: boolean
+  }
+
+  export type FaqKnowledgeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "section" | "question" | "answer" | "content", ExtArgs["result"]["faqKnowledge"]>
+
+  export type $FaqKnowledgePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "FaqKnowledge"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      section: string
+      question: string
+      answer: string
+      content: string
+    }, ExtArgs["result"]["faqKnowledge"]>
+    composites: {}
+  }
+
+  type FaqKnowledgeGetPayload<S extends boolean | null | undefined | FaqKnowledgeDefaultArgs> = $Result.GetResult<Prisma.$FaqKnowledgePayload, S>
+
+  type FaqKnowledgeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<FaqKnowledgeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: FaqKnowledgeCountAggregateInputType | true
+    }
+
+  export interface FaqKnowledgeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['FaqKnowledge'], meta: { name: 'FaqKnowledge' } }
+    /**
+     * Find zero or one FaqKnowledge that matches the filter.
+     * @param {FaqKnowledgeFindUniqueArgs} args - Arguments to find a FaqKnowledge
+     * @example
+     * // Get one FaqKnowledge
+     * const faqKnowledge = await prisma.faqKnowledge.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends FaqKnowledgeFindUniqueArgs>(args: SelectSubset<T, FaqKnowledgeFindUniqueArgs<ExtArgs>>): Prisma__FaqKnowledgeClient<$Result.GetResult<Prisma.$FaqKnowledgePayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one FaqKnowledge that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {FaqKnowledgeFindUniqueOrThrowArgs} args - Arguments to find a FaqKnowledge
+     * @example
+     * // Get one FaqKnowledge
+     * const faqKnowledge = await prisma.faqKnowledge.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends FaqKnowledgeFindUniqueOrThrowArgs>(args: SelectSubset<T, FaqKnowledgeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__FaqKnowledgeClient<$Result.GetResult<Prisma.$FaqKnowledgePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first FaqKnowledge that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FaqKnowledgeFindFirstArgs} args - Arguments to find a FaqKnowledge
+     * @example
+     * // Get one FaqKnowledge
+     * const faqKnowledge = await prisma.faqKnowledge.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends FaqKnowledgeFindFirstArgs>(args?: SelectSubset<T, FaqKnowledgeFindFirstArgs<ExtArgs>>): Prisma__FaqKnowledgeClient<$Result.GetResult<Prisma.$FaqKnowledgePayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first FaqKnowledge that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FaqKnowledgeFindFirstOrThrowArgs} args - Arguments to find a FaqKnowledge
+     * @example
+     * // Get one FaqKnowledge
+     * const faqKnowledge = await prisma.faqKnowledge.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends FaqKnowledgeFindFirstOrThrowArgs>(args?: SelectSubset<T, FaqKnowledgeFindFirstOrThrowArgs<ExtArgs>>): Prisma__FaqKnowledgeClient<$Result.GetResult<Prisma.$FaqKnowledgePayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more FaqKnowledges that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FaqKnowledgeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all FaqKnowledges
+     * const faqKnowledges = await prisma.faqKnowledge.findMany()
+     * 
+     * // Get first 10 FaqKnowledges
+     * const faqKnowledges = await prisma.faqKnowledge.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const faqKnowledgeWithIdOnly = await prisma.faqKnowledge.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends FaqKnowledgeFindManyArgs>(args?: SelectSubset<T, FaqKnowledgeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FaqKnowledgePayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Delete a FaqKnowledge.
+     * @param {FaqKnowledgeDeleteArgs} args - Arguments to delete one FaqKnowledge.
+     * @example
+     * // Delete one FaqKnowledge
+     * const FaqKnowledge = await prisma.faqKnowledge.delete({
+     *   where: {
+     *     // ... filter to delete one FaqKnowledge
+     *   }
+     * })
+     * 
+     */
+    delete<T extends FaqKnowledgeDeleteArgs>(args: SelectSubset<T, FaqKnowledgeDeleteArgs<ExtArgs>>): Prisma__FaqKnowledgeClient<$Result.GetResult<Prisma.$FaqKnowledgePayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one FaqKnowledge.
+     * @param {FaqKnowledgeUpdateArgs} args - Arguments to update one FaqKnowledge.
+     * @example
+     * // Update one FaqKnowledge
+     * const faqKnowledge = await prisma.faqKnowledge.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends FaqKnowledgeUpdateArgs>(args: SelectSubset<T, FaqKnowledgeUpdateArgs<ExtArgs>>): Prisma__FaqKnowledgeClient<$Result.GetResult<Prisma.$FaqKnowledgePayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more FaqKnowledges.
+     * @param {FaqKnowledgeDeleteManyArgs} args - Arguments to filter FaqKnowledges to delete.
+     * @example
+     * // Delete a few FaqKnowledges
+     * const { count } = await prisma.faqKnowledge.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends FaqKnowledgeDeleteManyArgs>(args?: SelectSubset<T, FaqKnowledgeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more FaqKnowledges.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FaqKnowledgeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many FaqKnowledges
+     * const faqKnowledge = await prisma.faqKnowledge.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends FaqKnowledgeUpdateManyArgs>(args: SelectSubset<T, FaqKnowledgeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more FaqKnowledges and returns the data updated in the database.
+     * @param {FaqKnowledgeUpdateManyAndReturnArgs} args - Arguments to update many FaqKnowledges.
+     * @example
+     * // Update many FaqKnowledges
+     * const faqKnowledge = await prisma.faqKnowledge.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more FaqKnowledges and only return the `id`
+     * const faqKnowledgeWithIdOnly = await prisma.faqKnowledge.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends FaqKnowledgeUpdateManyAndReturnArgs>(args: SelectSubset<T, FaqKnowledgeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FaqKnowledgePayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+
+    /**
+     * Count the number of FaqKnowledges.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FaqKnowledgeCountArgs} args - Arguments to filter FaqKnowledges to count.
+     * @example
+     * // Count the number of FaqKnowledges
+     * const count = await prisma.faqKnowledge.count({
+     *   where: {
+     *     // ... the filter for the FaqKnowledges we want to count
+     *   }
+     * })
+    **/
+    count<T extends FaqKnowledgeCountArgs>(
+      args?: Subset<T, FaqKnowledgeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], FaqKnowledgeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a FaqKnowledge.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FaqKnowledgeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends FaqKnowledgeAggregateArgs>(args: Subset<T, FaqKnowledgeAggregateArgs>): Prisma.PrismaPromise<GetFaqKnowledgeAggregateType<T>>
+
+    /**
+     * Group by FaqKnowledge.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {FaqKnowledgeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends FaqKnowledgeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: FaqKnowledgeGroupByArgs['orderBy'] }
+        : { orderBy?: FaqKnowledgeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, FaqKnowledgeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetFaqKnowledgeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the FaqKnowledge model
+   */
+  readonly fields: FaqKnowledgeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for FaqKnowledge.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__FaqKnowledgeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the FaqKnowledge model
+   */ 
+  interface FaqKnowledgeFieldRefs {
+    readonly id: FieldRef<"FaqKnowledge", 'String'>
+    readonly section: FieldRef<"FaqKnowledge", 'String'>
+    readonly question: FieldRef<"FaqKnowledge", 'String'>
+    readonly answer: FieldRef<"FaqKnowledge", 'String'>
+    readonly content: FieldRef<"FaqKnowledge", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * FaqKnowledge findUnique
+   */
+  export type FaqKnowledgeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+    /**
+     * Filter, which FaqKnowledge to fetch.
+     */
+    where: FaqKnowledgeWhereUniqueInput
+  }
+
+  /**
+   * FaqKnowledge findUniqueOrThrow
+   */
+  export type FaqKnowledgeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+    /**
+     * Filter, which FaqKnowledge to fetch.
+     */
+    where: FaqKnowledgeWhereUniqueInput
+  }
+
+  /**
+   * FaqKnowledge findFirst
+   */
+  export type FaqKnowledgeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+    /**
+     * Filter, which FaqKnowledge to fetch.
+     */
+    where?: FaqKnowledgeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FaqKnowledges to fetch.
+     */
+    orderBy?: FaqKnowledgeOrderByWithRelationInput | FaqKnowledgeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for FaqKnowledges.
+     */
+    cursor?: FaqKnowledgeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FaqKnowledges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FaqKnowledges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FaqKnowledges.
+     */
+    distinct?: FaqKnowledgeScalarFieldEnum | FaqKnowledgeScalarFieldEnum[]
+  }
+
+  /**
+   * FaqKnowledge findFirstOrThrow
+   */
+  export type FaqKnowledgeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+    /**
+     * Filter, which FaqKnowledge to fetch.
+     */
+    where?: FaqKnowledgeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FaqKnowledges to fetch.
+     */
+    orderBy?: FaqKnowledgeOrderByWithRelationInput | FaqKnowledgeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for FaqKnowledges.
+     */
+    cursor?: FaqKnowledgeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FaqKnowledges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FaqKnowledges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of FaqKnowledges.
+     */
+    distinct?: FaqKnowledgeScalarFieldEnum | FaqKnowledgeScalarFieldEnum[]
+  }
+
+  /**
+   * FaqKnowledge findMany
+   */
+  export type FaqKnowledgeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+    /**
+     * Filter, which FaqKnowledges to fetch.
+     */
+    where?: FaqKnowledgeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of FaqKnowledges to fetch.
+     */
+    orderBy?: FaqKnowledgeOrderByWithRelationInput | FaqKnowledgeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing FaqKnowledges.
+     */
+    cursor?: FaqKnowledgeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` FaqKnowledges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` FaqKnowledges.
+     */
+    skip?: number
+    distinct?: FaqKnowledgeScalarFieldEnum | FaqKnowledgeScalarFieldEnum[]
+  }
+
+  /**
+   * FaqKnowledge update
+   */
+  export type FaqKnowledgeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+    /**
+     * The data needed to update a FaqKnowledge.
+     */
+    data: XOR<FaqKnowledgeUpdateInput, FaqKnowledgeUncheckedUpdateInput>
+    /**
+     * Choose, which FaqKnowledge to update.
+     */
+    where: FaqKnowledgeWhereUniqueInput
+  }
+
+  /**
+   * FaqKnowledge updateMany
+   */
+  export type FaqKnowledgeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update FaqKnowledges.
+     */
+    data: XOR<FaqKnowledgeUpdateManyMutationInput, FaqKnowledgeUncheckedUpdateManyInput>
+    /**
+     * Filter which FaqKnowledges to update
+     */
+    where?: FaqKnowledgeWhereInput
+    /**
+     * Limit how many FaqKnowledges to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * FaqKnowledge updateManyAndReturn
+   */
+  export type FaqKnowledgeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+    /**
+     * The data used to update FaqKnowledges.
+     */
+    data: XOR<FaqKnowledgeUpdateManyMutationInput, FaqKnowledgeUncheckedUpdateManyInput>
+    /**
+     * Filter which FaqKnowledges to update
+     */
+    where?: FaqKnowledgeWhereInput
+    /**
+     * Limit how many FaqKnowledges to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * FaqKnowledge delete
+   */
+  export type FaqKnowledgeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+    /**
+     * Filter which FaqKnowledge to delete.
+     */
+    where: FaqKnowledgeWhereUniqueInput
+  }
+
+  /**
+   * FaqKnowledge deleteMany
+   */
+  export type FaqKnowledgeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which FaqKnowledges to delete
+     */
+    where?: FaqKnowledgeWhereInput
+    /**
+     * Limit how many FaqKnowledges to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * FaqKnowledge without action
+   */
+  export type FaqKnowledgeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FaqKnowledge
+     */
+    select?: FaqKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FaqKnowledge
+     */
+    omit?: FaqKnowledgeOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -24453,8 +25113,6 @@ export namespace Prisma {
     updatedAt: 'updatedAt',
     role: 'role',
     bio: 'bio',
-    isGuest: 'isGuest',
-    lastSeen: 'lastSeen',
     image: 'image',
     emailVerified: 'emailVerified',
     isTwoFactorEnabled: 'isTwoFactorEnabled'
@@ -24541,16 +25199,6 @@ export namespace Prisma {
   export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
 
 
-  export const SessionScalarFieldEnum: {
-    id: 'id',
-    sessionToken: 'sessionToken',
-    userId: 'userId',
-    expires: 'expires'
-  };
-
-  export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
-
-
   export const VerificationTokenScalarFieldEnum: {
     identifier: 'identifier',
     token: 'token',
@@ -24582,6 +25230,13 @@ export namespace Prisma {
   };
 
   export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
+
+
+  export const ProductEmbeddingScalarFieldEnum: {
+    productId: 'productId'
+  };
+
+  export type ProductEmbeddingScalarFieldEnum = (typeof ProductEmbeddingScalarFieldEnum)[keyof typeof ProductEmbeddingScalarFieldEnum]
 
 
   export const CategoryScalarFieldEnum: {
@@ -24709,6 +25364,17 @@ export namespace Prisma {
   };
 
   export type CartScalarFieldEnum = (typeof CartScalarFieldEnum)[keyof typeof CartScalarFieldEnum]
+
+
+  export const FaqKnowledgeScalarFieldEnum: {
+    id: 'id',
+    section: 'section',
+    question: 'question',
+    answer: 'answer',
+    content: 'content'
+  };
+
+  export type FaqKnowledgeScalarFieldEnum = (typeof FaqKnowledgeScalarFieldEnum)[keyof typeof FaqKnowledgeScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -25017,8 +25683,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     role?: EnumRoleFilter<"User"> | $Enums.Role
     bio?: JsonNullableFilter<"User">
-    isGuest?: BoolFilter<"User"> | boolean
-    lastSeen?: DateTimeFilter<"User"> | Date | string
     image?: StringFilter<"User"> | string
     emailVerified?: BoolFilter<"User"> | boolean
     isTwoFactorEnabled?: BoolFilter<"User"> | boolean
@@ -25029,7 +25693,6 @@ export namespace Prisma {
     cart?: XOR<CartNullableScalarRelationFilter, CartWhereInput> | null
     orders?: OrderListRelationFilter
     favorites?: ProductListRelationFilter
-    sessions?: SessionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -25041,8 +25704,6 @@ export namespace Prisma {
     updatedAt?: SortOrder
     role?: SortOrder
     bio?: SortOrderInput | SortOrder
-    isGuest?: SortOrder
-    lastSeen?: SortOrder
     image?: SortOrder
     emailVerified?: SortOrder
     isTwoFactorEnabled?: SortOrder
@@ -25053,7 +25714,6 @@ export namespace Prisma {
     cart?: CartOrderByWithRelationInput
     orders?: OrderOrderByRelationAggregateInput
     favorites?: ProductOrderByRelationAggregateInput
-    sessions?: SessionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -25068,8 +25728,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     role?: EnumRoleFilter<"User"> | $Enums.Role
     bio?: JsonNullableFilter<"User">
-    isGuest?: BoolFilter<"User"> | boolean
-    lastSeen?: DateTimeFilter<"User"> | Date | string
     image?: StringFilter<"User"> | string
     emailVerified?: BoolFilter<"User"> | boolean
     isTwoFactorEnabled?: BoolFilter<"User"> | boolean
@@ -25080,7 +25738,6 @@ export namespace Prisma {
     cart?: XOR<CartNullableScalarRelationFilter, CartWhereInput> | null
     orders?: OrderListRelationFilter
     favorites?: ProductListRelationFilter
-    sessions?: SessionListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -25092,8 +25749,6 @@ export namespace Prisma {
     updatedAt?: SortOrder
     role?: SortOrder
     bio?: SortOrderInput | SortOrder
-    isGuest?: SortOrder
-    lastSeen?: SortOrder
     image?: SortOrder
     emailVerified?: SortOrder
     isTwoFactorEnabled?: SortOrder
@@ -25114,8 +25769,6 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     role?: EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
     bio?: JsonNullableWithAggregatesFilter<"User">
-    isGuest?: BoolWithAggregatesFilter<"User"> | boolean
-    lastSeen?: DateTimeWithAggregatesFilter<"User"> | Date | string
     image?: StringWithAggregatesFilter<"User"> | string
     emailVerified?: BoolWithAggregatesFilter<"User"> | boolean
     isTwoFactorEnabled?: BoolWithAggregatesFilter<"User"> | boolean
@@ -25517,56 +26170,6 @@ export namespace Prisma {
     session_state?: StringNullableWithAggregatesFilter<"Account"> | string | null
   }
 
-  export type SessionWhereInput = {
-    AND?: SessionWhereInput | SessionWhereInput[]
-    OR?: SessionWhereInput[]
-    NOT?: SessionWhereInput | SessionWhereInput[]
-    id?: StringFilter<"Session"> | string
-    sessionToken?: StringFilter<"Session"> | string
-    userId?: StringFilter<"Session"> | string
-    expires?: DateTimeFilter<"Session"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }
-
-  export type SessionOrderByWithRelationInput = {
-    id?: SortOrder
-    sessionToken?: SortOrder
-    userId?: SortOrder
-    expires?: SortOrder
-    user?: UserOrderByWithRelationInput
-  }
-
-  export type SessionWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
-    sessionToken?: string
-    AND?: SessionWhereInput | SessionWhereInput[]
-    OR?: SessionWhereInput[]
-    NOT?: SessionWhereInput | SessionWhereInput[]
-    userId?: StringFilter<"Session"> | string
-    expires?: DateTimeFilter<"Session"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "id" | "sessionToken">
-
-  export type SessionOrderByWithAggregationInput = {
-    id?: SortOrder
-    sessionToken?: SortOrder
-    userId?: SortOrder
-    expires?: SortOrder
-    _count?: SessionCountOrderByAggregateInput
-    _max?: SessionMaxOrderByAggregateInput
-    _min?: SessionMinOrderByAggregateInput
-  }
-
-  export type SessionScalarWhereWithAggregatesInput = {
-    AND?: SessionScalarWhereWithAggregatesInput | SessionScalarWhereWithAggregatesInput[]
-    OR?: SessionScalarWhereWithAggregatesInput[]
-    NOT?: SessionScalarWhereWithAggregatesInput | SessionScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"Session"> | string
-    sessionToken?: StringWithAggregatesFilter<"Session"> | string
-    userId?: StringWithAggregatesFilter<"Session"> | string
-    expires?: DateTimeWithAggregatesFilter<"Session"> | Date | string
-  }
-
   export type VerificationTokenWhereInput = {
     AND?: VerificationTokenWhereInput | VerificationTokenWhereInput[]
     OR?: VerificationTokenWhereInput[]
@@ -25637,6 +26240,7 @@ export namespace Prisma {
     brand?: XOR<BrandNullableScalarRelationFilter, BrandWhereInput> | null
     subcategory?: XOR<SubcategoryNullableScalarRelationFilter, SubcategoryWhereInput> | null
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    embedding?: XOR<ProductEmbeddingNullableScalarRelationFilter, ProductEmbeddingWhereInput> | null
   }
 
   export type ProductOrderByWithRelationInput = {
@@ -25663,6 +26267,7 @@ export namespace Prisma {
     brand?: BrandOrderByWithRelationInput
     subcategory?: SubcategoryOrderByWithRelationInput
     user?: UserOrderByWithRelationInput
+    embedding?: ProductEmbeddingOrderByWithRelationInput
   }
 
   export type ProductWhereUniqueInput = Prisma.AtLeast<{
@@ -25692,6 +26297,7 @@ export namespace Prisma {
     brand?: XOR<BrandNullableScalarRelationFilter, BrandWhereInput> | null
     subcategory?: XOR<SubcategoryNullableScalarRelationFilter, SubcategoryWhereInput> | null
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    embedding?: XOR<ProductEmbeddingNullableScalarRelationFilter, ProductEmbeddingWhereInput> | null
   }, "id">
 
   export type ProductOrderByWithAggregationInput = {
@@ -25742,6 +26348,41 @@ export namespace Prisma {
     isNew?: BoolNullableWithAggregatesFilter<"Product"> | boolean | null
     inStock?: BoolWithAggregatesFilter<"Product"> | boolean
     stock?: IntWithAggregatesFilter<"Product"> | number
+  }
+
+  export type ProductEmbeddingWhereInput = {
+    AND?: ProductEmbeddingWhereInput | ProductEmbeddingWhereInput[]
+    OR?: ProductEmbeddingWhereInput[]
+    NOT?: ProductEmbeddingWhereInput | ProductEmbeddingWhereInput[]
+    productId?: StringFilter<"ProductEmbedding"> | string
+    product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
+  }
+
+  export type ProductEmbeddingOrderByWithRelationInput = {
+    productId?: SortOrder
+    product?: ProductOrderByWithRelationInput
+  }
+
+  export type ProductEmbeddingWhereUniqueInput = Prisma.AtLeast<{
+    productId?: string
+    AND?: ProductEmbeddingWhereInput | ProductEmbeddingWhereInput[]
+    OR?: ProductEmbeddingWhereInput[]
+    NOT?: ProductEmbeddingWhereInput | ProductEmbeddingWhereInput[]
+    product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
+  }, "productId">
+
+  export type ProductEmbeddingOrderByWithAggregationInput = {
+    productId?: SortOrder
+    _count?: ProductEmbeddingCountOrderByAggregateInput
+    _max?: ProductEmbeddingMaxOrderByAggregateInput
+    _min?: ProductEmbeddingMinOrderByAggregateInput
+  }
+
+  export type ProductEmbeddingScalarWhereWithAggregatesInput = {
+    AND?: ProductEmbeddingScalarWhereWithAggregatesInput | ProductEmbeddingScalarWhereWithAggregatesInput[]
+    OR?: ProductEmbeddingScalarWhereWithAggregatesInput[]
+    NOT?: ProductEmbeddingScalarWhereWithAggregatesInput | ProductEmbeddingScalarWhereWithAggregatesInput[]
+    productId?: StringWithAggregatesFilter<"ProductEmbedding"> | string
   }
 
   export type CategoryWhereInput = {
@@ -26405,6 +27046,58 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Cart"> | Date | string
   }
 
+  export type FaqKnowledgeWhereInput = {
+    AND?: FaqKnowledgeWhereInput | FaqKnowledgeWhereInput[]
+    OR?: FaqKnowledgeWhereInput[]
+    NOT?: FaqKnowledgeWhereInput | FaqKnowledgeWhereInput[]
+    id?: StringFilter<"FaqKnowledge"> | string
+    section?: StringFilter<"FaqKnowledge"> | string
+    question?: StringFilter<"FaqKnowledge"> | string
+    answer?: StringFilter<"FaqKnowledge"> | string
+    content?: StringFilter<"FaqKnowledge"> | string
+  }
+
+  export type FaqKnowledgeOrderByWithRelationInput = {
+    id?: SortOrder
+    section?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    content?: SortOrder
+  }
+
+  export type FaqKnowledgeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: FaqKnowledgeWhereInput | FaqKnowledgeWhereInput[]
+    OR?: FaqKnowledgeWhereInput[]
+    NOT?: FaqKnowledgeWhereInput | FaqKnowledgeWhereInput[]
+    section?: StringFilter<"FaqKnowledge"> | string
+    question?: StringFilter<"FaqKnowledge"> | string
+    answer?: StringFilter<"FaqKnowledge"> | string
+    content?: StringFilter<"FaqKnowledge"> | string
+  }, "id">
+
+  export type FaqKnowledgeOrderByWithAggregationInput = {
+    id?: SortOrder
+    section?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    content?: SortOrder
+    _count?: FaqKnowledgeCountOrderByAggregateInput
+    _max?: FaqKnowledgeMaxOrderByAggregateInput
+    _min?: FaqKnowledgeMinOrderByAggregateInput
+  }
+
+  export type FaqKnowledgeScalarWhereWithAggregatesInput = {
+    AND?: FaqKnowledgeScalarWhereWithAggregatesInput | FaqKnowledgeScalarWhereWithAggregatesInput[]
+    OR?: FaqKnowledgeScalarWhereWithAggregatesInput[]
+    NOT?: FaqKnowledgeScalarWhereWithAggregatesInput | FaqKnowledgeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"FaqKnowledge"> | string
+    section?: StringWithAggregatesFilter<"FaqKnowledge"> | string
+    question?: StringWithAggregatesFilter<"FaqKnowledge"> | string
+    answer?: StringWithAggregatesFilter<"FaqKnowledge"> | string
+    content?: StringWithAggregatesFilter<"FaqKnowledge"> | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -26414,8 +27107,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -26426,7 +27117,6 @@ export namespace Prisma {
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
-    sessions?: SessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -26438,8 +27128,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -26450,7 +27138,6 @@ export namespace Prisma {
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
-    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -26462,8 +27149,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -26474,7 +27159,6 @@ export namespace Prisma {
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
-    sessions?: SessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -26486,8 +27170,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -26498,7 +27180,6 @@ export namespace Prisma {
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -26510,8 +27191,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -26526,8 +27205,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -26542,8 +27219,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -26972,54 +27647,6 @@ export namespace Prisma {
     session_state?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type SessionCreateInput = {
-    id?: string
-    sessionToken: string
-    expires: Date | string
-    user: UserCreateNestedOneWithoutSessionsInput
-  }
-
-  export type SessionUncheckedCreateInput = {
-    id?: string
-    sessionToken: string
-    userId: string
-    expires: Date | string
-  }
-
-  export type SessionUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    sessionToken?: StringFieldUpdateOperationsInput | string
-    expires?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutSessionsNestedInput
-  }
-
-  export type SessionUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    sessionToken?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    expires?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type SessionCreateManyInput = {
-    id?: string
-    sessionToken: string
-    userId: string
-    expires: Date | string
-  }
-
-  export type SessionUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    sessionToken?: StringFieldUpdateOperationsInput | string
-    expires?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type SessionUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    sessionToken?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    expires?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type VerificationTokenCreateInput = {
     identifier: string
     token: string
@@ -27083,6 +27710,7 @@ export namespace Prisma {
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
     user?: UserCreateNestedOneWithoutFavoritesInput
+    embedding?: ProductEmbeddingCreateNestedOneWithoutProductInput
   }
 
   export type ProductUncheckedCreateInput = {
@@ -27106,6 +27734,7 @@ export namespace Prisma {
     stock?: number
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
+    embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
 
   export type ProductUpdateInput = {
@@ -27129,6 +27758,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
     user?: UserUpdateOneWithoutFavoritesNestedInput
+    embedding?: ProductEmbeddingUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateInput = {
@@ -27152,6 +27782,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
+    embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
 
   export type ProductCreateManyInput = {
@@ -27212,6 +27843,22 @@ export namespace Prisma {
     isNew?: NullableBoolFieldUpdateOperationsInput | boolean | null
     inStock?: BoolFieldUpdateOperationsInput | boolean
     stock?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ProductEmbeddingUpdateInput = {
+    product?: ProductUpdateOneRequiredWithoutEmbeddingNestedInput
+  }
+
+  export type ProductEmbeddingUncheckedUpdateInput = {
+    productId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type ProductEmbeddingUpdateManyMutationInput = {
+
+  }
+
+  export type ProductEmbeddingUncheckedUpdateManyInput = {
+    productId?: StringFieldUpdateOperationsInput | string
   }
 
   export type CategoryCreateInput = {
@@ -27923,6 +28570,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type FaqKnowledgeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    answer?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type FaqKnowledgeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    answer?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type FaqKnowledgeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    answer?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type FaqKnowledgeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    section?: StringFieldUpdateOperationsInput | string
+    question?: StringFieldUpdateOperationsInput | string
+    answer?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -28038,12 +28717,6 @@ export namespace Prisma {
     none?: ProductWhereInput
   }
 
-  export type SessionListRelationFilter = {
-    every?: SessionWhereInput
-    some?: SessionWhereInput
-    none?: SessionWhereInput
-  }
-
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -28069,10 +28742,6 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type SessionOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -28082,8 +28751,6 @@ export namespace Prisma {
     updatedAt?: SortOrder
     role?: SortOrder
     bio?: SortOrder
-    isGuest?: SortOrder
-    lastSeen?: SortOrder
     image?: SortOrder
     emailVerified?: SortOrder
     isTwoFactorEnabled?: SortOrder
@@ -28097,8 +28764,6 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     role?: SortOrder
-    isGuest?: SortOrder
-    lastSeen?: SortOrder
     image?: SortOrder
     emailVerified?: SortOrder
     isTwoFactorEnabled?: SortOrder
@@ -28112,8 +28777,6 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     role?: SortOrder
-    isGuest?: SortOrder
-    lastSeen?: SortOrder
     image?: SortOrder
     emailVerified?: SortOrder
     isTwoFactorEnabled?: SortOrder
@@ -28545,27 +29208,6 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
-  export type SessionCountOrderByAggregateInput = {
-    id?: SortOrder
-    sessionToken?: SortOrder
-    userId?: SortOrder
-    expires?: SortOrder
-  }
-
-  export type SessionMaxOrderByAggregateInput = {
-    id?: SortOrder
-    sessionToken?: SortOrder
-    userId?: SortOrder
-    expires?: SortOrder
-  }
-
-  export type SessionMinOrderByAggregateInput = {
-    id?: SortOrder
-    sessionToken?: SortOrder
-    userId?: SortOrder
-    expires?: SortOrder
-  }
-
   export type VerificationTokenIdentifierTokenCompoundUniqueInput = {
     identifier: string
     token: string
@@ -28646,6 +29288,11 @@ export namespace Prisma {
   export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
     isNot?: UserWhereInput | null
+  }
+
+  export type ProductEmbeddingNullableScalarRelationFilter = {
+    is?: ProductEmbeddingWhereInput | null
+    isNot?: ProductEmbeddingWhereInput | null
   }
 
   export type CartItemOrderByRelationAggregateInput = {
@@ -28759,6 +29406,23 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type ProductScalarRelationFilter = {
+    is?: ProductWhereInput
+    isNot?: ProductWhereInput
+  }
+
+  export type ProductEmbeddingCountOrderByAggregateInput = {
+    productId?: SortOrder
+  }
+
+  export type ProductEmbeddingMaxOrderByAggregateInput = {
+    productId?: SortOrder
+  }
+
+  export type ProductEmbeddingMinOrderByAggregateInput = {
+    productId?: SortOrder
   }
 
   export type SubcategoryListRelationFilter = {
@@ -29210,11 +29874,6 @@ export namespace Prisma {
     isNot?: CartWhereInput
   }
 
-  export type ProductScalarRelationFilter = {
-    is?: ProductWhereInput
-    isNot?: ProductWhereInput
-  }
-
   export type CartItemCartIdProductIdSizeCompoundUniqueInput = {
     cartId: string
     productId: string
@@ -29294,6 +29953,30 @@ export namespace Prisma {
     totalAmount?: SortOrder
   }
 
+  export type FaqKnowledgeCountOrderByAggregateInput = {
+    id?: SortOrder
+    section?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    content?: SortOrder
+  }
+
+  export type FaqKnowledgeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    section?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    content?: SortOrder
+  }
+
+  export type FaqKnowledgeMinOrderByAggregateInput = {
+    id?: SortOrder
+    section?: SortOrder
+    question?: SortOrder
+    answer?: SortOrder
+    content?: SortOrder
+  }
+
   export type ChatCreateNestedManyWithoutUserInput = {
     create?: XOR<ChatCreateWithoutUserInput, ChatUncheckedCreateWithoutUserInput> | ChatCreateWithoutUserInput[] | ChatUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ChatCreateOrConnectWithoutUserInput | ChatCreateOrConnectWithoutUserInput[]
@@ -29341,13 +30024,6 @@ export namespace Prisma {
     connect?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
   }
 
-  export type SessionCreateNestedManyWithoutUserInput = {
-    create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
-    createMany?: SessionCreateManyUserInputEnvelope
-    connect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-  }
-
   export type ChatUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<ChatCreateWithoutUserInput, ChatUncheckedCreateWithoutUserInput> | ChatCreateWithoutUserInput[] | ChatUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ChatCreateOrConnectWithoutUserInput | ChatCreateOrConnectWithoutUserInput[]
@@ -29393,13 +30069,6 @@ export namespace Prisma {
     connectOrCreate?: ProductCreateOrConnectWithoutUserInput | ProductCreateOrConnectWithoutUserInput[]
     createMany?: ProductCreateManyUserInputEnvelope
     connect?: ProductWhereUniqueInput | ProductWhereUniqueInput[]
-  }
-
-  export type SessionUncheckedCreateNestedManyWithoutUserInput = {
-    create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
-    createMany?: SessionCreateManyUserInputEnvelope
-    connect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -29512,20 +30181,6 @@ export namespace Prisma {
     deleteMany?: ProductScalarWhereInput | ProductScalarWhereInput[]
   }
 
-  export type SessionUpdateManyWithoutUserNestedInput = {
-    create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
-    upsert?: SessionUpsertWithWhereUniqueWithoutUserInput | SessionUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: SessionCreateManyUserInputEnvelope
-    set?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-    disconnect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-    delete?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-    connect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-    update?: SessionUpdateWithWhereUniqueWithoutUserInput | SessionUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: SessionUpdateManyWithWhereWithoutUserInput | SessionUpdateManyWithWhereWithoutUserInput[]
-    deleteMany?: SessionScalarWhereInput | SessionScalarWhereInput[]
-  }
-
   export type ChatUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<ChatCreateWithoutUserInput, ChatUncheckedCreateWithoutUserInput> | ChatCreateWithoutUserInput[] | ChatUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ChatCreateOrConnectWithoutUserInput | ChatCreateOrConnectWithoutUserInput[]
@@ -29614,20 +30269,6 @@ export namespace Prisma {
     update?: ProductUpdateWithWhereUniqueWithoutUserInput | ProductUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: ProductUpdateManyWithWhereWithoutUserInput | ProductUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: ProductScalarWhereInput | ProductScalarWhereInput[]
-  }
-
-  export type SessionUncheckedUpdateManyWithoutUserNestedInput = {
-    create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
-    upsert?: SessionUpsertWithWhereUniqueWithoutUserInput | SessionUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: SessionCreateManyUserInputEnvelope
-    set?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-    disconnect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-    delete?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-    connect?: SessionWhereUniqueInput | SessionWhereUniqueInput[]
-    update?: SessionUpdateWithWhereUniqueWithoutUserInput | SessionUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: SessionUpdateManyWithWhereWithoutUserInput | SessionUpdateManyWithWhereWithoutUserInput[]
-    deleteMany?: SessionScalarWhereInput | SessionScalarWhereInput[]
   }
 
   export type ChatCreateNestedManyWithoutOperatorInput = {
@@ -29814,20 +30455,6 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAccountsInput, UserUpdateWithoutAccountsInput>, UserUncheckedUpdateWithoutAccountsInput>
   }
 
-  export type UserCreateNestedOneWithoutSessionsInput = {
-    create?: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
-    connectOrCreate?: UserCreateOrConnectWithoutSessionsInput
-    connect?: UserWhereUniqueInput
-  }
-
-  export type UserUpdateOneRequiredWithoutSessionsNestedInput = {
-    create?: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
-    connectOrCreate?: UserCreateOrConnectWithoutSessionsInput
-    upsert?: UserUpsertWithoutSessionsInput
-    connect?: UserWhereUniqueInput
-    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSessionsInput, UserUpdateWithoutSessionsInput>, UserUncheckedUpdateWithoutSessionsInput>
-  }
-
   export type ProductCreateimagesInput = {
     set: string[]
   }
@@ -29872,6 +30499,10 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type ProductEmbeddingCreateNestedOneWithoutProductInput = {
+    connect?: ProductEmbeddingWhereUniqueInput
+  }
+
   export type ReviewUncheckedCreateNestedManyWithoutProductInput = {
     create?: XOR<ReviewCreateWithoutProductInput, ReviewUncheckedCreateWithoutProductInput> | ReviewCreateWithoutProductInput[] | ReviewUncheckedCreateWithoutProductInput[]
     connectOrCreate?: ReviewCreateOrConnectWithoutProductInput | ReviewCreateOrConnectWithoutProductInput[]
@@ -29884,6 +30515,10 @@ export namespace Prisma {
     connectOrCreate?: CartItemCreateOrConnectWithoutProductInput | CartItemCreateOrConnectWithoutProductInput[]
     createMany?: CartItemCreateManyProductInputEnvelope
     connect?: CartItemWhereUniqueInput | CartItemWhereUniqueInput[]
+  }
+
+  export type ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput = {
+    connect?: ProductEmbeddingWhereUniqueInput
   }
 
   export type ProductUpdateimagesInput = {
@@ -29979,6 +30614,13 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutFavoritesInput, UserUpdateWithoutFavoritesInput>, UserUncheckedUpdateWithoutFavoritesInput>
   }
 
+  export type ProductEmbeddingUpdateOneWithoutProductNestedInput = {
+    disconnect?: ProductEmbeddingWhereInput | boolean
+    delete?: ProductEmbeddingWhereInput | boolean
+    connect?: ProductEmbeddingWhereUniqueInput
+    update?: XOR<XOR<ProductEmbeddingUpdateToOneWithWhereWithoutProductInput, ProductEmbeddingUpdateWithoutProductInput>, ProductEmbeddingUncheckedUpdateWithoutProductInput>
+  }
+
   export type ReviewUncheckedUpdateManyWithoutProductNestedInput = {
     create?: XOR<ReviewCreateWithoutProductInput, ReviewUncheckedCreateWithoutProductInput> | ReviewCreateWithoutProductInput[] | ReviewUncheckedCreateWithoutProductInput[]
     connectOrCreate?: ReviewCreateOrConnectWithoutProductInput | ReviewCreateOrConnectWithoutProductInput[]
@@ -30005,6 +30647,21 @@ export namespace Prisma {
     update?: CartItemUpdateWithWhereUniqueWithoutProductInput | CartItemUpdateWithWhereUniqueWithoutProductInput[]
     updateMany?: CartItemUpdateManyWithWhereWithoutProductInput | CartItemUpdateManyWithWhereWithoutProductInput[]
     deleteMany?: CartItemScalarWhereInput | CartItemScalarWhereInput[]
+  }
+
+  export type ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput = {
+    disconnect?: ProductEmbeddingWhereInput | boolean
+    delete?: ProductEmbeddingWhereInput | boolean
+    connect?: ProductEmbeddingWhereUniqueInput
+    update?: XOR<XOR<ProductEmbeddingUpdateToOneWithWhereWithoutProductInput, ProductEmbeddingUpdateWithoutProductInput>, ProductEmbeddingUncheckedUpdateWithoutProductInput>
+  }
+
+  export type ProductUpdateOneRequiredWithoutEmbeddingNestedInput = {
+    create?: XOR<ProductCreateWithoutEmbeddingInput, ProductUncheckedCreateWithoutEmbeddingInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutEmbeddingInput
+    upsert?: ProductUpsertWithoutEmbeddingInput
+    connect?: ProductWhereUniqueInput
+    update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutEmbeddingInput, ProductUpdateWithoutEmbeddingInput>, ProductUncheckedUpdateWithoutEmbeddingInput>
   }
 
   export type SubcategoryCreateNestedManyWithoutCategoryInput = {
@@ -31027,6 +31684,7 @@ export namespace Prisma {
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
+    embedding?: ProductEmbeddingCreateNestedOneWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutUserInput = {
@@ -31049,6 +31707,7 @@ export namespace Prisma {
     stock?: number
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
+    embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutUserInput = {
@@ -31058,28 +31717,6 @@ export namespace Prisma {
 
   export type ProductCreateManyUserInputEnvelope = {
     data: ProductCreateManyUserInput | ProductCreateManyUserInput[]
-    skipDuplicates?: boolean
-  }
-
-  export type SessionCreateWithoutUserInput = {
-    id?: string
-    sessionToken: string
-    expires: Date | string
-  }
-
-  export type SessionUncheckedCreateWithoutUserInput = {
-    id?: string
-    sessionToken: string
-    expires: Date | string
-  }
-
-  export type SessionCreateOrConnectWithoutUserInput = {
-    where: SessionWhereUniqueInput
-    create: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput>
-  }
-
-  export type SessionCreateManyUserInputEnvelope = {
-    data: SessionCreateManyUserInput | SessionCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -31318,32 +31955,6 @@ export namespace Prisma {
     stock?: IntFilter<"Product"> | number
   }
 
-  export type SessionUpsertWithWhereUniqueWithoutUserInput = {
-    where: SessionWhereUniqueInput
-    update: XOR<SessionUpdateWithoutUserInput, SessionUncheckedUpdateWithoutUserInput>
-    create: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput>
-  }
-
-  export type SessionUpdateWithWhereUniqueWithoutUserInput = {
-    where: SessionWhereUniqueInput
-    data: XOR<SessionUpdateWithoutUserInput, SessionUncheckedUpdateWithoutUserInput>
-  }
-
-  export type SessionUpdateManyWithWhereWithoutUserInput = {
-    where: SessionScalarWhereInput
-    data: XOR<SessionUpdateManyMutationInput, SessionUncheckedUpdateManyWithoutUserInput>
-  }
-
-  export type SessionScalarWhereInput = {
-    AND?: SessionScalarWhereInput | SessionScalarWhereInput[]
-    OR?: SessionScalarWhereInput[]
-    NOT?: SessionScalarWhereInput | SessionScalarWhereInput[]
-    id?: StringFilter<"Session"> | string
-    sessionToken?: StringFilter<"Session"> | string
-    userId?: StringFilter<"Session"> | string
-    expires?: DateTimeFilter<"Session"> | Date | string
-  }
-
   export type ChatCreateWithoutOperatorInput = {
     id?: string
     status?: $Enums.ChatStatus
@@ -31381,8 +31992,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -31392,7 +32001,6 @@ export namespace Prisma {
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
-    sessions?: SessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOperatorProfileInput = {
@@ -31404,8 +32012,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -31415,7 +32021,6 @@ export namespace Prisma {
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
-    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOperatorProfileInput = {
@@ -31459,8 +32064,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -31470,7 +32073,6 @@ export namespace Prisma {
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
-    sessions?: SessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOperatorProfileInput = {
@@ -31482,8 +32084,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -31493,7 +32093,6 @@ export namespace Prisma {
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OperatorProfileCreateWithoutChatsInput = {
@@ -31532,8 +32131,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -31543,7 +32140,6 @@ export namespace Prisma {
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
-    sessions?: SessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutChatsInput = {
@@ -31555,8 +32151,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -31566,7 +32160,6 @@ export namespace Prisma {
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
-    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutChatsInput = {
@@ -31653,8 +32246,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -31664,7 +32255,6 @@ export namespace Prisma {
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
-    sessions?: SessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutChatsInput = {
@@ -31676,8 +32266,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -31687,7 +32275,6 @@ export namespace Prisma {
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutChatInput = {
@@ -31779,8 +32366,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -31790,7 +32375,6 @@ export namespace Prisma {
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
-    sessions?: SessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAccountsInput = {
@@ -31802,8 +32386,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -31813,7 +32395,6 @@ export namespace Prisma {
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
-    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAccountsInput = {
@@ -31841,8 +32422,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -31852,7 +32431,6 @@ export namespace Prisma {
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
-    sessions?: SessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -31864,123 +32442,12 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
     chats?: ChatUncheckedUpdateManyWithoutUserNestedInput
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
-    cart?: CartUncheckedUpdateOneWithoutUserNestedInput
-    orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
-    favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
-  }
-
-  export type UserCreateWithoutSessionsInput = {
-    id?: string
-    name?: string | null
-    email?: string | null
-    password?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    role?: $Enums.Role
-    bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
-    image?: string
-    emailVerified?: boolean
-    isTwoFactorEnabled?: boolean
-    chats?: ChatCreateNestedManyWithoutUserInput
-    operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
-    reviews?: ReviewCreateNestedManyWithoutUserInput
-    accounts?: AccountCreateNestedManyWithoutUserInput
-    cart?: CartCreateNestedOneWithoutUserInput
-    orders?: OrderCreateNestedManyWithoutUserInput
-    favorites?: ProductCreateNestedManyWithoutUserInput
-  }
-
-  export type UserUncheckedCreateWithoutSessionsInput = {
-    id?: string
-    name?: string | null
-    email?: string | null
-    password?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    role?: $Enums.Role
-    bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
-    image?: string
-    emailVerified?: boolean
-    isTwoFactorEnabled?: boolean
-    chats?: ChatUncheckedCreateNestedManyWithoutUserInput
-    operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
-    reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
-    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
-    cart?: CartUncheckedCreateNestedOneWithoutUserInput
-    orders?: OrderUncheckedCreateNestedManyWithoutUserInput
-    favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
-  }
-
-  export type UserCreateOrConnectWithoutSessionsInput = {
-    where: UserWhereUniqueInput
-    create: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
-  }
-
-  export type UserUpsertWithoutSessionsInput = {
-    update: XOR<UserUpdateWithoutSessionsInput, UserUncheckedUpdateWithoutSessionsInput>
-    create: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
-    where?: UserWhereInput
-  }
-
-  export type UserUpdateToOneWithWhereWithoutSessionsInput = {
-    where?: UserWhereInput
-    data: XOR<UserUpdateWithoutSessionsInput, UserUncheckedUpdateWithoutSessionsInput>
-  }
-
-  export type UserUpdateWithoutSessionsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: NullableStringFieldUpdateOperationsInput | string | null
-    email?: NullableStringFieldUpdateOperationsInput | string | null
-    password?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
-    bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
-    image?: StringFieldUpdateOperationsInput | string
-    emailVerified?: BoolFieldUpdateOperationsInput | boolean
-    isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
-    chats?: ChatUpdateManyWithoutUserNestedInput
-    operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
-    reviews?: ReviewUpdateManyWithoutUserNestedInput
-    accounts?: AccountUpdateManyWithoutUserNestedInput
-    cart?: CartUpdateOneWithoutUserNestedInput
-    orders?: OrderUpdateManyWithoutUserNestedInput
-    favorites?: ProductUpdateManyWithoutUserNestedInput
-  }
-
-  export type UserUncheckedUpdateWithoutSessionsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: NullableStringFieldUpdateOperationsInput | string | null
-    email?: NullableStringFieldUpdateOperationsInput | string | null
-    password?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
-    bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
-    image?: StringFieldUpdateOperationsInput | string
-    emailVerified?: BoolFieldUpdateOperationsInput | boolean
-    isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
-    chats?: ChatUncheckedUpdateManyWithoutUserNestedInput
-    operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
-    reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
-    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
@@ -32099,8 +32566,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -32110,7 +32575,6 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
-    sessions?: SessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutFavoritesInput = {
@@ -32122,8 +32586,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -32133,7 +32595,6 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
-    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutFavoritesInput = {
@@ -32266,8 +32727,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -32277,7 +32736,6 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
-    sessions?: SessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutFavoritesInput = {
@@ -32289,8 +32747,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -32300,7 +32756,127 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ProductEmbeddingUpdateToOneWithWhereWithoutProductInput = {
+    where?: ProductEmbeddingWhereInput
+    data: XOR<ProductEmbeddingUpdateWithoutProductInput, ProductEmbeddingUncheckedUpdateWithoutProductInput>
+  }
+
+  export type ProductEmbeddingUpdateWithoutProductInput = {
+
+  }
+
+  export type ProductEmbeddingUncheckedUpdateWithoutProductInput = {
+
+  }
+
+  export type ProductCreateWithoutEmbeddingInput = {
+    id?: string
+    title: string
+    description: string
+    price: string
+    images?: ProductCreateimagesInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    gender: $Enums.UserGender
+    type: $Enums.ProductType
+    blurURL?: ProductCreateblurURLInput | string[]
+    sizes?: ProductCreatesizesInput | string[]
+    discount?: string | null
+    isNew?: boolean | null
+    inStock?: boolean
+    stock?: number
+    reviews?: ReviewCreateNestedManyWithoutProductInput
+    cartItems?: CartItemCreateNestedManyWithoutProductInput
+    brand?: BrandCreateNestedOneWithoutProductsInput
+    subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
+    user?: UserCreateNestedOneWithoutFavoritesInput
+  }
+
+  export type ProductUncheckedCreateWithoutEmbeddingInput = {
+    id?: string
+    title: string
+    description: string
+    price: string
+    images?: ProductCreateimagesInput | string[]
+    subcategoryId?: string | null
+    brandId?: string | null
+    userId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    gender: $Enums.UserGender
+    type: $Enums.ProductType
+    blurURL?: ProductCreateblurURLInput | string[]
+    sizes?: ProductCreatesizesInput | string[]
+    discount?: string | null
+    isNew?: boolean | null
+    inStock?: boolean
+    stock?: number
+    reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductCreateOrConnectWithoutEmbeddingInput = {
+    where: ProductWhereUniqueInput
+    create: XOR<ProductCreateWithoutEmbeddingInput, ProductUncheckedCreateWithoutEmbeddingInput>
+  }
+
+  export type ProductUpsertWithoutEmbeddingInput = {
+    update: XOR<ProductUpdateWithoutEmbeddingInput, ProductUncheckedUpdateWithoutEmbeddingInput>
+    create: XOR<ProductCreateWithoutEmbeddingInput, ProductUncheckedCreateWithoutEmbeddingInput>
+    where?: ProductWhereInput
+  }
+
+  export type ProductUpdateToOneWithWhereWithoutEmbeddingInput = {
+    where?: ProductWhereInput
+    data: XOR<ProductUpdateWithoutEmbeddingInput, ProductUncheckedUpdateWithoutEmbeddingInput>
+  }
+
+  export type ProductUpdateWithoutEmbeddingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    price?: StringFieldUpdateOperationsInput | string
+    images?: ProductUpdateimagesInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    gender?: EnumUserGenderFieldUpdateOperationsInput | $Enums.UserGender
+    type?: EnumProductTypeFieldUpdateOperationsInput | $Enums.ProductType
+    blurURL?: ProductUpdateblurURLInput | string[]
+    sizes?: ProductUpdatesizesInput | string[]
+    discount?: NullableStringFieldUpdateOperationsInput | string | null
+    isNew?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    inStock?: BoolFieldUpdateOperationsInput | boolean
+    stock?: IntFieldUpdateOperationsInput | number
+    reviews?: ReviewUpdateManyWithoutProductNestedInput
+    cartItems?: CartItemUpdateManyWithoutProductNestedInput
+    brand?: BrandUpdateOneWithoutProductsNestedInput
+    subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
+    user?: UserUpdateOneWithoutFavoritesNestedInput
+  }
+
+  export type ProductUncheckedUpdateWithoutEmbeddingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    price?: StringFieldUpdateOperationsInput | string
+    images?: ProductUpdateimagesInput | string[]
+    subcategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    gender?: EnumUserGenderFieldUpdateOperationsInput | $Enums.UserGender
+    type?: EnumProductTypeFieldUpdateOperationsInput | $Enums.ProductType
+    blurURL?: ProductUpdateblurURLInput | string[]
+    sizes?: ProductUpdatesizesInput | string[]
+    discount?: NullableStringFieldUpdateOperationsInput | string | null
+    isNew?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    inStock?: BoolFieldUpdateOperationsInput | boolean
+    stock?: IntFieldUpdateOperationsInput | number
+    reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type SubcategoryCreateWithoutCategoryInput = {
@@ -32385,6 +32961,7 @@ export namespace Prisma {
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     brand?: BrandCreateNestedOneWithoutProductsInput
     user?: UserCreateNestedOneWithoutFavoritesInput
+    embedding?: ProductEmbeddingCreateNestedOneWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutSubcategoryInput = {
@@ -32407,6 +32984,7 @@ export namespace Prisma {
     stock?: number
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
+    embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutSubcategoryInput = {
@@ -32503,6 +33081,7 @@ export namespace Prisma {
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
     user?: UserCreateNestedOneWithoutFavoritesInput
+    embedding?: ProductEmbeddingCreateNestedOneWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutBrandInput = {
@@ -32525,6 +33104,7 @@ export namespace Prisma {
     stock?: number
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
+    embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutBrandInput = {
@@ -32573,6 +33153,7 @@ export namespace Prisma {
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
     user?: UserCreateNestedOneWithoutFavoritesInput
+    embedding?: ProductEmbeddingCreateNestedOneWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutReviewsInput = {
@@ -32595,6 +33176,7 @@ export namespace Prisma {
     inStock?: boolean
     stock?: number
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
+    embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutReviewsInput = {
@@ -32611,8 +33193,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -32622,7 +33202,6 @@ export namespace Prisma {
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
-    sessions?: SessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutReviewsInput = {
@@ -32634,8 +33213,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -32645,7 +33222,6 @@ export namespace Prisma {
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
-    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutReviewsInput = {
@@ -32684,6 +33260,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
     user?: UserUpdateOneWithoutFavoritesNestedInput
+    embedding?: ProductEmbeddingUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutReviewsInput = {
@@ -32706,6 +33283,7 @@ export namespace Prisma {
     inStock?: BoolFieldUpdateOperationsInput | boolean
     stock?: IntFieldUpdateOperationsInput | number
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
+    embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
 
   export type UserUpsertWithoutReviewsInput = {
@@ -32728,8 +33306,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -32739,7 +33315,6 @@ export namespace Prisma {
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
-    sessions?: SessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -32751,8 +33326,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -32762,7 +33335,6 @@ export namespace Prisma {
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutOrdersInput = {
@@ -32774,8 +33346,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -32785,7 +33355,6 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
-    sessions?: SessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOrdersInput = {
@@ -32797,8 +33366,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -32808,7 +33375,6 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
-    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOrdersInput = {
@@ -32862,8 +33428,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -32873,7 +33437,6 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
-    sessions?: SessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -32885,8 +33448,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -32896,7 +33457,6 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PaymentUpsertWithoutOrderInput = {
@@ -33082,6 +33642,7 @@ export namespace Prisma {
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
     user?: UserCreateNestedOneWithoutFavoritesInput
+    embedding?: ProductEmbeddingCreateNestedOneWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutCartItemsInput = {
@@ -33104,6 +33665,7 @@ export namespace Prisma {
     inStock?: boolean
     stock?: number
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutCartItemsInput = {
@@ -33171,6 +33733,7 @@ export namespace Prisma {
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
     user?: UserUpdateOneWithoutFavoritesNestedInput
+    embedding?: ProductEmbeddingUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutCartItemsInput = {
@@ -33193,6 +33756,7 @@ export namespace Prisma {
     inStock?: BoolFieldUpdateOperationsInput | boolean
     stock?: IntFieldUpdateOperationsInput | number
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
 
   export type UserCreateWithoutCartInput = {
@@ -33204,8 +33768,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -33215,7 +33777,6 @@ export namespace Prisma {
     accounts?: AccountCreateNestedManyWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
-    sessions?: SessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCartInput = {
@@ -33227,8 +33788,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     role?: $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: boolean
-    lastSeen?: Date | string
     image?: string
     emailVerified?: boolean
     isTwoFactorEnabled?: boolean
@@ -33238,7 +33797,6 @@ export namespace Prisma {
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
-    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCartInput = {
@@ -33294,8 +33852,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -33305,7 +33861,6 @@ export namespace Prisma {
     accounts?: AccountUpdateManyWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
-    sessions?: SessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCartInput = {
@@ -33317,8 +33872,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     bio?: NullableJsonNullValueInput | InputJsonValue
-    isGuest?: BoolFieldUpdateOperationsInput | boolean
-    lastSeen?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
@@ -33328,7 +33881,6 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CartItemUpsertWithWhereUniqueWithoutCartInput = {
@@ -33418,12 +33970,6 @@ export namespace Prisma {
     isNew?: boolean | null
     inStock?: boolean
     stock?: number
-  }
-
-  export type SessionCreateManyUserInput = {
-    id?: string
-    sessionToken: string
-    expires: Date | string
   }
 
   export type ChatUpdateWithoutUserInput = {
@@ -33609,6 +34155,7 @@ export namespace Prisma {
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
+    embedding?: ProductEmbeddingUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutUserInput = {
@@ -33631,6 +34178,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
+    embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateManyWithoutUserInput = {
@@ -33651,24 +34199,6 @@ export namespace Prisma {
     isNew?: NullableBoolFieldUpdateOperationsInput | boolean | null
     inStock?: BoolFieldUpdateOperationsInput | boolean
     stock?: IntFieldUpdateOperationsInput | number
-  }
-
-  export type SessionUpdateWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    sessionToken?: StringFieldUpdateOperationsInput | string
-    expires?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type SessionUncheckedUpdateWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    sessionToken?: StringFieldUpdateOperationsInput | string
-    expires?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type SessionUncheckedUpdateManyWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    sessionToken?: StringFieldUpdateOperationsInput | string
-    expires?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ChatCreateManyOperatorInput = {
@@ -33891,6 +34421,7 @@ export namespace Prisma {
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     brand?: BrandUpdateOneWithoutProductsNestedInput
     user?: UserUpdateOneWithoutFavoritesNestedInput
+    embedding?: ProductEmbeddingUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutSubcategoryInput = {
@@ -33913,6 +34444,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
+    embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateManyWithoutSubcategoryInput = {
@@ -33975,6 +34507,7 @@ export namespace Prisma {
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
     user?: UserUpdateOneWithoutFavoritesNestedInput
+    embedding?: ProductEmbeddingUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutBrandInput = {
@@ -33997,6 +34530,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
+    embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateManyWithoutBrandInput = {

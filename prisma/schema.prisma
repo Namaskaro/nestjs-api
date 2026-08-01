@@ -8,6 +8,64 @@ datasource db {
   url      = env("POSTGRES_URI")
 }
 
+// model User {
+//   id                 String           @id @default(uuid())
+//   name               String?          @default("Не указано")
+//   email              String?          @unique
+//   password           String?
+//   createdAt          DateTime         @default(now()) @map("created_at")
+//   updatedAt          DateTime         @updatedAt @map("updated_at")
+//   role               Role             @default(Client)
+//   bio                Json?
+//   image              String           @default("/uploads/no-user-image.png")
+//   emailVerified      Boolean          @default(false) @map("email_verified")
+//   isTwoFactorEnabled Boolean          @default(false) @map("is_two_factor_enabled")
+//   chats              Chat[]
+//   operatorProfile    OperatorProfile?
+//   reviews            Review[]
+//   accounts           Account[]
+//   cart               Cart?
+//   orders             Order[]
+//   favorites          Product[]
+
+//   @@map("user")
+// }
+
+// model OperatorProfile {
+//   id            String         @id @default(uuid())
+//   userId        String         @unique
+//   status        OperatorStatus @default(AVAILABLE)
+//   isActive      Boolean        @default(true)
+//   createdAt     DateTime       @default(now())
+//   updatedAt     DateTime       @updatedAt
+//   inviteExpires DateTime?
+//   inviteToken   String?        @unique
+//   chats         Chat[]
+//   user          User           @relation(fields: [userId], references: [id])
+// }
+
+// model Chat {
+//   id         String           @id @default(uuid())
+//   userId     String
+//   operatorId String?
+//   status     ChatStatus       @default(BOT_ACTIVE)
+//   createdAt  DateTime         @default(now())
+//   updatedAt  DateTime         @updatedAt
+//   operator   OperatorProfile? @relation(fields: [operatorId], references: [id])
+//   user       User             @relation(fields: [userId], references: [id])
+//   messages   Message[]
+// }
+
+// model Message {
+//   id         String     @id @default(uuid())
+//   chatId     String
+//   senderType SenderType
+//   senderId   String?
+//   content    String
+//   createdAt  DateTime   @default(now())
+//   chat       Chat       @relation(fields: [chatId], references: [id])
+// }
+
 model User {
   id                 String           @id @default(uuid())
   name               String?          @default("Не указано")
@@ -17,21 +75,20 @@ model User {
   updatedAt          DateTime         @updatedAt @map("updated_at")
   role               Role             @default(Client)
   bio                Json?
-  isGuest            Boolean          @default(false) @map("is_guest")
-  lastSeen           DateTime         @default(now()) @map("last_seen")
   image              String           @default("/uploads/no-user-image.png")
   emailVerified      Boolean          @default(false) @map("email_verified")
-  isTwoFactorEnabled Boolean          @default(false) @map("is-two-factor-enabled")
-  chats              Chat[]
-  operatorProfile    OperatorProfile?
-  reviews            Review[]
-  accounts           Account[]
-  cart               Cart?
-  orders             Order[]
-  favorites          Product[]
-  sessions           Session[]
+  isTwoFactorEnabled Boolean          @default(false) @map("is_two_factor_enabled")
 
-  @@index([isGuest, lastSeen], map: "idx_user_is_guest_last_seen")
+  chats           Chat[]
+  sentMessages    Message[]        @relation("MessageAuthor")
+  operatorProfile OperatorProfile?
+
+  reviews   Review[]
+  accounts  Account[]
+  cart      Cart?
+  orders    Order[]
+  favorites Product[]
+
   @@map("user")
 }
 
@@ -44,30 +101,45 @@ model OperatorProfile {
   updatedAt     DateTime       @updatedAt
   inviteExpires DateTime?
   inviteToken   String?        @unique
-  chats         Chat[]
-  user          User           @relation(fields: [userId], references: [id])
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chats Chat[]
+
+  @@index([status, isActive])
 }
 
 model Chat {
-  id         String           @id @default(uuid())
-  userId     String
-  operatorId String?
-  status     ChatStatus       @default(BOT_ACTIVE)
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  operator   OperatorProfile? @relation(fields: [operatorId], references: [id])
-  user       User             @relation(fields: [userId], references: [id])
-  messages   Message[]
+  id            String     @id @default(uuid())
+  userId        String
+  operatorId    String?
+  status        ChatStatus @default(BOT_ACTIVE)
+  lastMessageAt DateTime   @default(now())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operator OperatorProfile? @relation(fields: [operatorId], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@index([userId, lastMessageAt])
+  @@index([operatorId, status])
+  @@index([status, lastMessageAt])
 }
 
 model Message {
-  id         String     @id @default(uuid())
-  chatId     String
-  senderType SenderType
-  senderId   String?
-  content    String
-  createdAt  DateTime   @default(now())
-  chat       Chat       @relation(fields: [chatId], references: [id])
+  id        String                  @id @default(uuid())
+  chatId    String
+  authorId  String?
+  role      ConversationMessageRole
+  content   String                  @db.Text
+  payload   Json?
+  createdAt DateTime                @default(now())
+
+  chat   Chat  @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  author User? @relation("MessageAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([chatId, createdAt])
+  @@index([authorId])
 }
 
 model QuickReply {
@@ -107,15 +179,6 @@ model Account {
   @@map("account")
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("session")
-}
 
 model VerificationToken {
   identifier String
@@ -151,8 +214,17 @@ model Product {
   subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
   user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  embedding   ProductEmbedding?
+
   @@index([id])
   @@map("product")
+}
+
+model ProductEmbedding {
+  productId String @id
+  vector    Unsupported("vector(1536)")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Category {
@@ -284,6 +356,15 @@ model Cart {
   @@map("cart")
 }
 
+model FaqKnowledge {
+  id String @id
+  section String
+  question String
+  answer String
+  content String
+  embedding Unsupported("vector(1536)")
+}
+
 enum DiscountType {
   PERCENT
   FIXED
@@ -302,9 +383,16 @@ enum DeliveryProvider {
   SDEK
 }
 
+enum ConversationMessageRole {
+  USER
+  ASSISTANT
+  OPERATOR
+}
+
 enum UserGender {
   MAN   @map("MAN")
   WOMAN @map("WOMAN")
+  UNISEX @map("UNISEX")
 }
 
 enum ProductType {

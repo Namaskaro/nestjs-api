@@ -28,7 +28,52 @@ export class EmailConfirmationService {
     private readonly authService: AuthService,
   ) {}
 
-  public async newVerification(req: Request, dto: ConfirmationDto) {
+  // public async newVerification(req: Request, dto: ConfirmationDto) {
+  //   const existingToken = await this.prismaService.token.findUnique({
+  //     where: {
+  //       token: dto.token,
+  //       type: TokenType.VERIFICATION,
+  //     },
+  //   });
+
+  //   if (!existingToken) {
+  //     throw new NotFoundException('Токен подтверждения не найден!');
+  //   }
+
+  //   const hasExpired = new Date(existingToken.expiresIn) < new Date();
+
+  //   if (hasExpired) {
+  //     throw new BadRequestException(
+  //       'Токен подтверждения истек. Пожалуйста запросите новый токен для подтверждения!',
+  //     );
+  //   }
+
+  //   const existingUser = await this.userService.getByEmail(existingToken.email);
+
+  //   if (!existingUser) {
+  //     throw new NotFoundException(
+  //       'Пользователь с указанным адресом электронной почты не найден. Пожалуйста убедитесь что вы ввели правильный email.',
+  //     );
+  //   }
+
+  //   await this.prismaService.user.update({
+  //     where: {
+  //       id: existingUser.id,
+  //     },
+  //     data: {
+  //       emailVerified: true,
+  //     },
+  //   });
+
+  //   await this.prismaService.token.delete({
+  //     where: {
+  //       id: existingToken.id,
+  //       type: TokenType.VERIFICATION,
+  //     },
+  //   });
+  // }
+
+  public async newVerification(dto: ConfirmationDto) {
     const existingToken = await this.prismaService.token.findUnique({
       where: {
         token: dto.token,
@@ -40,11 +85,12 @@ export class EmailConfirmationService {
       throw new NotFoundException('Токен подтверждения не найден!');
     }
 
-    const hasExpired = new Date(existingToken.expiresIn) < new Date();
+    const now = new Date();
+    const expiresIn = new Date(existingToken.expiresIn);
 
-    if (hasExpired) {
+    if (expiresIn.getTime() <= now.getTime()) {
       throw new BadRequestException(
-        'Токен подтверждения истек. Пожалуйста запросите новый токен для подтверждения!',
+        'Токен подтверждения истёк. Запросите новый токен.',
       );
     }
 
@@ -52,29 +98,37 @@ export class EmailConfirmationService {
 
     if (!existingUser) {
       throw new NotFoundException(
-        'Пользователь с указанным адресом электронной почты не найден. Пожалуйста убедитесь что вы ввели правильный email.',
+        'Пользователь с указанным адресом электронной почты не найден.',
       );
     }
 
-    await this.prismaService.user.update({
-      where: {
-        id: existingUser.id,
-      },
-      data: {
-        emailVerified: true,
-      },
-    });
+    await this.prismaService.$transaction([
+      this.prismaService.user.update({
+        where: {
+          id: existingUser.id,
+        },
+        data: {
+          emailVerified: true,
+        },
+      }),
 
-    await this.prismaService.token.delete({
-      where: {
-        id: existingToken.id,
-        type: TokenType.VERIFICATION,
-      },
-    });
+      // deleteMany не выбросит Prisma P2025,
+      // если конкурентный запрос уже успел удалить токен
+      this.prismaService.token.deleteMany({
+        where: {
+          id: existingToken.id,
+          type: TokenType.VERIFICATION,
+        },
+      }),
+    ]);
+
+    return {
+      message: 'Почта успешно подтверждена',
+    };
   }
 
-  public async sendVerificationToken(user: User) {
-    const verificationToken = await this.generateVerificationToken(user.email);
+  public async sendVerificationToken(email: string) {
+    const verificationToken = await this.generateVerificationToken(email);
     await this.mailService.sendConfirmationEmail(
       verificationToken.email,
       verificationToken.token,
@@ -113,5 +167,23 @@ export class EmailConfirmationService {
     });
 
     return verificationToken;
+  }
+
+  public async resendVerification(email: string) {
+    const user = await this.userService.getByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('Email уже подтвержден');
+    }
+
+    await this.sendVerificationToken(email);
+
+    return {
+      message: 'Письмо для подтверждения отправлено повторно',
+    };
   }
 }

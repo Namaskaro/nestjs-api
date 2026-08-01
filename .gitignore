@@ -22,3 +22,15 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+
+
+.env*
+!.env.example
+
+authorized_key.json
+*_key.json
+*.pem
+
+*.dump
+*.sql
+backup*

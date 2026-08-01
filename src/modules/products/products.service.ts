@@ -1,17 +1,24 @@
+import { AiService } from './../../ai/ai.service';
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { SubcategoriesService } from '../subcategories/subcategories.service';
 import { BrandsService } from '../brands/brands.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { User, UserGender } from '@/prisma/generated';
+import { UserGender } from '@/prisma/generated';
 import { generateBlurDataURL } from '@/src/shared/utils/generate-blur';
-import { UpdateProductDto } from './dto/update-product.dto';
+
 import { StorageService } from '../libs/storage/storage.service';
 import sharp from 'sharp';
 import { ConfigService } from '@nestjs/config';
 import { CloudStorageService } from '@/src/cloud-storage/cloud-storage.service';
-import { Prisma } from '@prisma/client';
+
 import { FilterQueryDto } from './dto/filter-query-dto';
+
+import { ProductSemanticInputDto } from '@/src/ai/dto/product-semantic-input.dto';
+import { QdrantService } from '@/src/core/qdrant/qdrant.service';
+import { ProductQdrantPayloadSchema } from '@/src/ai/schemas/product-qdrant-payload.schema';
+import { ProductQdrantPointDto } from '@/src/ai/dto/product-qdrant-point.dto';
+import { Schemas } from '@qdrant/js-client-rest';
 
 @Injectable()
 export class ProductsService {
@@ -22,121 +29,9 @@ export class ProductsService {
     private readonly storageService: StorageService,
     private readonly configService: ConfigService,
     private readonly cloudStorage: CloudStorageService,
+    private readonly aiService: AiService,
+    private readonly qdrantService: QdrantService,
   ) {}
-
-  // async getAllProducts(searchTerm?: string) {
-  //   if (searchTerm) return this.getSearchFilter(searchTerm);
-  //   const products = await this.prismaService.product.findMany({
-  //     orderBy: {
-  //       title: 'desc',
-  //     },
-  //     include: {
-  //       subcategory: {
-  //         select: {
-  //           name: true,
-  //         },
-  //       },
-  //       brand: true,
-  //       reviews: {
-  //         select: {
-  //           user: true,
-  //           rating: true,
-  //           text: true,
-  //         },
-  //       },
-  //     },
-  //   });
-  //   return products;
-  // }
-
-  // async getPaginatedProducts(filters: FilterQueryDto) {
-  //   const {
-  //     page = 1,
-  //     take = 12,
-  //     cursor,
-  //     searchTerm,
-  //     category,
-  //     subcategory,
-  //     brands,
-  //     sort = 'createdAt',
-  //     order = 'desc',
-  //   } = filters;
-
-  //   const where: any = {
-  //     ...(searchTerm && {
-  //       title: {
-  //         contains: searchTerm,
-  //         mode: 'insensitive',
-  //       },
-  //     }),
-  //     ...(category &&
-  //       category !== 'all' && {
-  //         subcategory: {
-  //           is: {
-  //             category: {
-  //               is: {
-  //                 slug: category,
-  //               },
-  //             },
-  //           },
-  //         },
-  //       }),
-  //     ...(brands?.length &&
-  //       !brands.includes('all') && { brand: { name: { in: brands } } }),
-  //     // ...(brands &&
-  //     //   !brands.includes('all') && { brand: { name: { in: brands } } }),
-  //     ...(subcategory &&
-  //       subcategory !== 'all' && {
-  //         subcategory: { is: { name: subcategory } },
-  //       }),
-  //   };
-
-  //   if (cursor) {
-  //     // Cursor-based pagination
-  //     const items = await this.prismaService.product.findMany({
-  //       where,
-  //       take,
-  //       skip: 1,
-  //       cursor: { id: cursor },
-  //       orderBy: { [sort]: order },
-  //       include: {
-  //         brand: true,
-  //         subcategory: { select: { name: true } },
-  //         reviews: { select: { user: true, rating: true, text: true } },
-  //       },
-  //     });
-
-  //     return {
-  //       items,
-  //       nextCursor: items.length === take ? items[take - 1].id : null,
-  //     };
-  //   }
-
-  //   // Offset-based pagination
-  //   const skip = (page - 1) * take;
-
-  //   const [items, total] = await this.prismaService.$transaction([
-  //     this.prismaService.product.findMany({
-  //       where,
-  //       skip,
-  //       take,
-  //       orderBy: { [sort]: order },
-  //       include: {
-  //         brand: true,
-  //         subcategory: { select: { name: true } }, // <-- убрал products
-  //         reviews: { select: { user: true, rating: true, text: true } },
-  //       },
-  //     }),
-  //     this.prismaService.product.count({ where }),
-  //   ]);
-
-  //   return {
-  //     items,
-  //     total,
-  //     page,
-  //     totalPages: Math.ceil(total / take),
-  //   };
-  // }
 
   async getAllProducts(searchTerm?: string) {
     return this.prismaService.product.findMany({
@@ -200,10 +95,6 @@ export class ProductsService {
         (Array.isArray(subcategory)
           ? { subcategory: { name: { in: subcategory } } }
           : { subcategory: { name: subcategory } })),
-      // ...(subcategory &&
-      //   subcategory !== 'all' && {
-      //     subcategory: { is: { name: subcategory } },
-      //   }),
     };
 
     // общий include
@@ -378,71 +269,97 @@ export class ProductsService {
         images: uploadedImages,
         blurURL: blurURLs,
       },
+      include: {
+        brand: true,
+        subcategory: {
+          include: {
+            category: true,
+          },
+        },
+      },
     });
+
+    //     const dto: CreateProductEmbeddingText = {
+    //       title: product.title,
+    //       description: product.description,
+    //       brand: product.brand.name,
+    //       subcategory: product.subcategory.name,
+    //       price: product.price,
+    //     };
+
+    //     const textForEmbedding = await this.aiService.buildProductEmbeddingText(
+    //       dto,
+    //     );
+
+    //     const productEmbeddings = await this.aiService.createProductEmbedding(
+    //       textForEmbedding,
+    //     );
+
+    //     await this.prismaService.$executeRaw`
+    //   INSERT INTO "ProductEmbedding" ("productId", "vector")
+    //   VALUES (
+    //     ${product.id},
+    //     ${JSON.stringify(productEmbeddings)}::vector
+    //   )
+    // `;
+
+    const semanticInput: ProductSemanticInputDto = {
+      title: product.title,
+      description: product.description,
+      brand: product.brand.name,
+      category: product.subcategory.name,
+      color: 'gray',
+      price: product.price,
+    };
+
+    const semanticRepresentation =
+      await this.aiService.createProductSemanticRepresentation(semanticInput);
+
+    const searchText = this.aiService.buildProductSearchText(
+      semanticInput,
+      semanticRepresentation,
+    );
+
+    const denseEmbedding = await this.aiService.createEmbedding(searchText);
+
+    const payload = ProductQdrantPayloadSchema.parse({
+      productId: product.id,
+
+      title: product.title,
+      description: product.description,
+
+      brand: product.brand.name,
+      category: product.subcategory.category.name,
+      subcategory: product.subcategory.name,
+
+      color: 'gray',
+      price: product.price,
+
+      image: product.images[0] ?? '',
+      inStock: product.inStock,
+
+      semanticRepresentation,
+    });
+
+    const point: Schemas['PointStruct'] = {
+      id: product.id,
+
+      vector: {
+        dense: denseEmbedding,
+
+        bm25: {
+          text: searchText,
+          model: 'qdrant/bm25',
+        },
+      },
+
+      payload,
+    };
+
+    await this.qdrantService.savePoint('products', point);
 
     return product;
   }
-
-  // async updateProduct(id: string, data: UpdateProductDto) {
-  //   let blurURL: string[] | undefined = undefined;
-
-  //   if (data.images) {
-  //     blurURL = await Promise.all(
-  //       data.images.map((img) => generateBlurDataURL(img)),
-  //     );
-  //   }
-
-  //   const product = await this.prismaService.product.update({
-  //     where: { id },
-  //     data: {
-  //       ...data,
-  //       ...(blurURL && { blurURL }),
-  //     },
-  //   });
-
-  //   return product;
-  // }
-
-  // async updateProduct(id: string, data: UpdateProductDto) {
-  //   const {  subcategoryId, brandId, ...rest } = data;
-
-  //   let imageUrls: string[] | undefined;
-  //   let blurURL: string[] | undefined;
-
-  //   if (images && images.length > 0) {
-  //     imageUrls = await this.cloudStorage.uploadFiles(images);
-  //     blurURL = await Promise.all(
-  //       imageUrls.map((url) => generateBlurDataURL(url)),
-  //     );
-  //   } else {
-  //     const existing = await this.prismaService.product.findUnique({
-  //       where: { id },
-  //       select: { images: true, blurURL: true },
-  //     });
-
-  //     if (!existing) {
-  //       throw new NotFoundException('Товар не найден');
-  //     }
-
-  //     imageUrls = existing.images;
-  //     blurURL = existing.blurURL;
-  //   }
-
-  //   const updatedProduct = await this.prismaService.product.update({
-  //     where: { id },
-  //     data: {
-  //       ...rest,
-  //       images: imageUrls,
-  //       blurURL,
-  //       ...(subcategoryId && {
-  //         subcategory: { connect: { id: subcategoryId } },
-  //       }),
-  //       ...(brandId && { brand: { connect: { id: brandId } } }),
-  //     },
-  //   });
-
-  //   return updatedProduct;
-  // }
 
   async delete(id: string) {
     await this.getProductById(id);

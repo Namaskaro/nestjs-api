@@ -17,11 +17,9 @@ model User {
   updatedAt          DateTime         @updatedAt @map("updated_at")
   role               Role             @default(Client)
   bio                Json?
-  isGuest            Boolean          @default(false) @map("is_guest")
-  lastSeen           DateTime         @default(now()) @map("last_seen")
   image              String           @default("/uploads/no-user-image.png")
   emailVerified      Boolean          @default(false) @map("email_verified")
-  isTwoFactorEnabled Boolean          @default(false) @map("is-two-factor-enabled")
+  isTwoFactorEnabled Boolean          @default(false) @map("is_two_factor_enabled")
   chats              Chat[]
   operatorProfile    OperatorProfile?
   reviews            Review[]
@@ -29,9 +27,7 @@ model User {
   cart               Cart?
   orders             Order[]
   favorites          Product[]
-  sessions           Session[]
 
-  @@index([isGuest, lastSeen], map: "idx_user_is_guest_last_seen")
   @@map("user")
 }
 
@@ -107,16 +103,6 @@ model Account {
   @@map("account")
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("session")
-}
-
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -151,8 +137,17 @@ model Product {
   subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
   user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  embedding ProductEmbedding?
+
   @@index([id])
   @@map("product")
+}
+
+model ProductEmbedding {
+  productId String                      @id
+  vector    Unsupported("vector(1536)")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Category {
@@ -284,6 +279,15 @@ model Cart {
   @@map("cart")
 }
 
+model FaqKnowledge {
+  id        String                      @id
+  section   String
+  question  String
+  answer    String
+  content   String
+  embedding Unsupported("vector(1536)")
+}
+
 enum DiscountType {
   PERCENT
   FIXED
@@ -303,8 +307,9 @@ enum DeliveryProvider {
 }
 
 enum UserGender {
-  MAN   @map("MAN")
-  WOMAN @map("WOMAN")
+  MAN    @map("MAN")
+  WOMAN  @map("WOMAN")
+  UNISEX @map("UNISEX")
 }
 
 enum ProductType {

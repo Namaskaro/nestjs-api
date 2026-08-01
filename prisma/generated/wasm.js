@@ -126,8 +126,6 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt',
   role: 'role',
   bio: 'bio',
-  isGuest: 'isGuest',
-  lastSeen: 'lastSeen',
   image: 'image',
   emailVerified: 'emailVerified',
   isTwoFactorEnabled: 'isTwoFactorEnabled'
@@ -193,13 +191,6 @@ exports.Prisma.AccountScalarFieldEnum = {
   session_state: 'session_state'
 };
 
-exports.Prisma.SessionScalarFieldEnum = {
-  id: 'id',
-  sessionToken: 'sessionToken',
-  userId: 'userId',
-  expires: 'expires'
-};
-
 exports.Prisma.VerificationTokenScalarFieldEnum = {
   identifier: 'identifier',
   token: 'token',
@@ -225,6 +216,10 @@ exports.Prisma.ProductScalarFieldEnum = {
   isNew: 'isNew',
   inStock: 'inStock',
   stock: 'stock'
+};
+
+exports.Prisma.ProductEmbeddingScalarFieldEnum = {
+  productId: 'productId'
 };
 
 exports.Prisma.CategoryScalarFieldEnum = {
@@ -327,6 +322,14 @@ exports.Prisma.CartScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.FaqKnowledgeScalarFieldEnum = {
+  id: 'id',
+  section: 'section',
+  question: 'question',
+  answer: 'answer',
+  content: 'content'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -392,7 +395,8 @@ exports.TokenType = exports.$Enums.TokenType = {
 
 exports.UserGender = exports.$Enums.UserGender = {
   MAN: 'MAN',
-  WOMAN: 'WOMAN'
+  WOMAN: 'WOMAN',
+  UNISEX: 'UNISEX'
 };
 
 exports.ProductType = exports.$Enums.ProductType = {
@@ -440,9 +444,9 @@ exports.Prisma.ModelName = {
   QuickReply: 'QuickReply',
   Token: 'Token',
   Account: 'Account',
-  Session: 'Session',
   VerificationToken: 'VerificationToken',
   Product: 'Product',
+  ProductEmbedding: 'ProductEmbedding',
   Category: 'Category',
   Subcategory: 'Subcategory',
   Brand: 'Brand',
@@ -451,7 +455,8 @@ exports.Prisma.ModelName = {
   Order: 'Order',
   Payment: 'Payment',
   CartItem: 'CartItem',
-  Cart: 'Cart'
+  Cart: 'Cart',
+  FaqKnowledge: 'FaqKnowledge'
 };
 
 /**

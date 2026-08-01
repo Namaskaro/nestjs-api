@@ -15,44 +15,11 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { PassportModule } from '@nestjs/passport';
 import { ScheduleModule } from '@nestjs/schedule';
 import { VkStrategy } from './strategies/vk.strategy';
-import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
 import { EmailConfirmationModule } from './email-confirmation/email-confirmation.module';
-import { MailService } from '@/src/mail/mail.service';
 import { ChatModule } from '../chat/chat.module';
 import { MailModule } from '@/src/mail/mail.module';
 import { PrismaModule } from '@/src/core/prisma/prisma.module';
-import { APP_GUARD } from '@nestjs/core';
-// import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
-// import { EmailConfirmationModule } from './email-confirmation/email-confirmation.module';
-
-// @Module({
-//   imports: [
-//     forwardRef(() => UserModule),
-//     forwardRef(() => EmailConfirmationModule),
-//     forwardRef(() => ChatModule),
-//     forwardRef(() => MailModule),
-//     ConfigModule,
-//     PassportModule.register({ defaultStrategy: 'jwt' }),
-//     JwtModule.registerAsync({
-//       imports: [ConfigModule],
-//       inject: [ConfigService],
-//       useFactory: getJwtConfig,
-//     }),
-//     ScheduleModule.forRoot(),
-//   ],
-//   controllers: [AuthController],
-//   providers: [
-//     AuthService,
-//     PrismaService,
-//     MailService,
-//     EmailConfirmationService,
-//     JwtStrategy,
-//     YandexStrategy,
-//     JwtAuthGuard,
-//     VkStrategy,
-//   ],
-//   exports: [JwtAuthGuard],
-// })
+import { TwoFactorAuthService } from './two-factor-auth/two-factor-auth.service';
 
 @Module({
   imports: [
@@ -73,16 +40,13 @@ import { APP_GUARD } from '@nestjs/core';
   controllers: [AuthController],
   providers: [
     AuthService,
-    // PrismaService,
-    EmailConfirmationService,
+    JwtAuthGuard,
+
     JwtStrategy,
     YandexStrategy,
     VkStrategy,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: JwtAuthGuard,
-    // },
+    TwoFactorAuthService,
   ],
-  exports: [JwtModule, AuthService],
+  exports: [JwtModule, AuthService, JwtAuthGuard],
 })
 export class AuthModule {}

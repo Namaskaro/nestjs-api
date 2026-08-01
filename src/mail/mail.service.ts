@@ -6,6 +6,8 @@ import React from 'react';
 import { Resend } from 'resend';
 import { ConfirmationTemplate } from './emails/confirmation.template';
 import { InviteOperatorTemplate } from './emails/invite-operator.template';
+import { ResetPasswordTemplate } from './emails/reset-password.template';
+import { TwoFactorAuthTemplate } from './emails/two-factor.template';
 
 export const RESEND_TOKEN = 'RESEND_TOKEN';
 
@@ -24,6 +26,23 @@ export class MailService {
     return this.sendEmail(
       'german.saratov@gmail.com',
       'Подтверждение почты',
+      html,
+    );
+  }
+
+  public async sendResetPassword(email: string, token: string) {
+    const domain = this.configService.getOrThrow<string>('ALLOWED_ORIGIN');
+    const html = await render(ResetPasswordTemplate({ domain, token }));
+
+    return this.sendEmail('german.saratov@gmail.com', 'Сброс пароля', html);
+  }
+
+  public async sendTwoFactorTokenEmail(email: string, token: string) {
+    const html = await render(TwoFactorAuthTemplate({ token }));
+
+    return this.sendEmail(
+      'german.saratov@gmail.com',
+      'Подтверждение вашей личности',
       html,
     );
   }
