@@ -72,14 +72,19 @@ import { CohereClientV2 } from 'cohere-ai';
 
 import type { ProductItem } from './schemas/product-agent-result.schema';
 
+import { ConfigService } from '@nestjs/config';
+
 @Injectable()
 export class ProductAgentService {
   private readonly client: CohereClientV2;
 
   private readonly model: string;
 
-  constructor(private readonly aiService: AiService) {
-    const apiKey = process.env.COHERE_API_KEY;
+  constructor(
+    private readonly aiService: AiService,
+    private readonly configService: ConfigService,
+  ) {
+    const apiKey = this.configService.getOrThrow<string>('COHERE_API_KEY');
 
     if (!apiKey) {
       throw new Error(
@@ -87,7 +92,7 @@ export class ProductAgentService {
       );
     }
 
-    this.model = process.env.COHERE_RERANK_MODEL ?? 'rerank-v4.0-pro';
+    this.model = 'rerank-v4.0-pro';
 
     this.client = new CohereClientV2({
       token: apiKey,

@@ -3,7 +3,7 @@ import { ClarificationTopicSchema } from './clarification-topic.schema';
 
 export const IntentRouterSchema = z.object({
   route: z
-    .enum(['orchestrator', 'unsupported', 'clarification'])
+    .enum(['orchestratorNode', 'unsupported', 'clarification'])
     .describe(
       [
         'Выбери orchestrator, если запрос конкретный и относится к интернет-магазину.',

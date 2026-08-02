@@ -25,6 +25,17 @@ export const ProductAnswerGroupSchema = z.object({
   products: z.array(ProductItemSchema),
 });
 
+export const ProductAgentMessageSchema = z.object({
+  message: z.string(),
+
+  groups: z.array(
+    z.object({
+      query: z.string(),
+      message: z.string(),
+    }),
+  ),
+});
+
 export const ProductAgentAnswerSchema = z.object({
   message: z.string(),
   groups: z.array(ProductAnswerGroupSchema),

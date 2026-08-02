@@ -27,6 +27,7 @@ import { PasswordRecoveryModule } from '../modules/auth/password-recovery/passwo
 import { TwoFactorAuthModule } from '../modules/auth/two-factor-auth/two-factor-auth.module';
 import { SpeechModule } from '../speech/speech.module';
 import { QdrantModule } from './qdrant/qdrant.module';
+import { SupportAgentModule } from '../support-agent/support-agent.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { QdrantModule } from './qdrant/qdrant.module';
     TwoFactorAuthModule,
     SpeechModule,
     QdrantModule,
+    SupportAgentModule,
   ],
   controllers: [],
   providers: [SocketService],

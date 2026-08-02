@@ -1,32 +1,31 @@
 import { AIMessage } from '@langchain/core/messages';
+
 import type { GraphNode } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
 
-import { SupportAgentState } from '../support-agent.state';
-
-import { AggregateSupportAnswerSchema } from '../../schemas/aggregate-support-answer.schema';
+import { aggregateSupportAnswerPrompt } from '../../prompts/aggregate-support-answer.prompt';
 
 import {
-  SupportAgentAnswerBlock,
   SupportAgentAnswerSchema,
+  SupportAgentMessageSchema,
+  type SupportAgentAnswerBlock,
 } from '../../schemas/support-agent-answer.schema';
 
-import { aggregateSupportAnswerPrompt } from '../../prompts/aggregate-support-answer.prompt';
+import { SupportAgentState } from '../support-agent.state';
+
+const blockOrder: Record<SupportAgentAnswerBlock['worker'], number> = {
+  faq_worker: 0,
+  product_search: 1,
+};
 
 export function createAggregateFinalAnswerNode(
   aiService: AiService,
 ): GraphNode<typeof SupportAgentState> {
   const model = aiService.getChatModel('yandex');
 
-  /**
-   * Модель формирует только общий текст.
-   *
-   * Точные структурированные блоки
-   * будут добавлены обычным TypeScript-кодом.
-   */
   const structuredAggregator = model.withStructuredOutput(
-    AggregateSupportAnswerSchema,
+    SupportAgentMessageSchema,
     {
       name: 'aggregate_support_answer',
     },
@@ -35,81 +34,56 @@ export function createAggregateFinalAnswerNode(
   const chain = aggregateSupportAnswerPrompt.pipe(structuredAggregator);
 
   return async (state) => {
-    /**
-     * Не отправляем модели служебные FAQ-поля:
-     *
-     * - id;
-     * - code;
-     * - similarity.
-     *
-     * Для ответа нужны только вопрос и содержание ответа.
-     */
-    const faqResults = state.faqResults.map((result) => ({
-      question: result.question,
-      answer: result.answer,
-    }));
+    const blocks = [...state.workerResults].sort(
+      (left, right) => blockOrder[left.worker] - blockOrder[right.worker],
+    );
 
-    /**
-     * Не отправляем в общий LLM-финализатор
-     * полные объекты всех товаров.
-     *
-     * Product-agent уже сформировал свой результат,
-     * а точные карточки будут добавлены в blocks.
-     */
-    const productSearchSummary = state.productSearchResult
-      ? {
-          message: state.productSearchResult.message,
+    const workerResultsForPrompt = blocks.map((block) => {
+      if (block.worker === 'faq_worker') {
+        return {
+          worker: block.worker,
 
-          groups: state.productSearchResult.groups.map((group) => ({
+          data: block.data.map((result) => ({
+            question: result.question,
+            answer: result.answer,
+          })),
+        };
+      }
+
+      return {
+        worker: block.worker,
+
+        data: {
+          message: block.data.message,
+
+          groups: block.data.groups.map((group) => ({
             query: group.query,
             message: group.message,
             productsCount: group.products.length,
           })),
-        }
-      : null;
-
-    const workerResults = {
-      faqResults,
-      productSearch: productSearchSummary,
-    };
+        },
+      };
+    });
 
     const aggregatedResult = await chain.invoke({
       query: state.query,
 
-      workerResults: JSON.stringify(workerResults, null, 2),
+      workerResults: JSON.stringify(workerResultsForPrompt, null, 2),
     });
 
     /**
-     * Сюда постепенно будут добавляться
-     * все типы структурированных ответов.
+     * message создаёт LLM.
+     * blocks берутся непосредственно из воркеров.
      */
-    const blocks: SupportAgentAnswerBlock[] = [];
-
-    if (state.productSearchResult) {
-      blocks.push({
-        type: 'product_search',
-
-        /**
-         * Берём точный результат product-agent.
-         *
-         * LLM его не переписывает.
-         */
-        data: state.productSearchResult,
-      });
-    }
-
     const answer = SupportAgentAnswerSchema.parse({
       message: aggregatedResult.message,
+
       blocks,
     });
 
     return {
       answer,
 
-      /**
-       * В историю записываем видимую
-       * текстовую часть ответа.
-       */
       messages: [new AIMessage(answer.message)],
     };
   };
