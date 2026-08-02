@@ -12,11 +12,6 @@ import {
   ClarificationQuestionResumeSchema,
 } from '../../schemas/clarification-resume.schema';
 
-// import {
-//   ClarificationCustomQuestionResumeSchema,
-//   ClarificationQuestionResumeSchema,
-// } from '../../schemas/clarification-resume.schema';
-
 const PRODUCT_SEARCH_HELP_QUESTION_ID = 'product_search_help';
 
 export const clarificationQuestionNode: GraphNode<typeof SupportAgentState> = (
@@ -36,14 +31,6 @@ export const clarificationQuestionNode: GraphNode<typeof SupportAgentState> = (
     );
   }
 
-  /**
-   * Вариант 1:
-   * пользователь выбрал тему
-   * в clarificationTopicNode.
-   *
-   * Вариант 2:
-   * IntentRouter сам определил тему.
-   */
   const topic = state.clarification ?? decision.clarificationTopic;
 
   if (!topic) {
@@ -62,10 +49,6 @@ export const clarificationQuestionNode: GraphNode<typeof SupportAgentState> = (
     options: topicConfig.questions,
   });
 
-  /**
-   * Граф останавливается и возвращает
-   * список готовых вопросов.
-   */
   const rawResumeValue = interrupt(interruptPayload);
 
   const resumeValue = ClarificationQuestionResumeSchema.parse(rawResumeValue);
@@ -83,13 +66,6 @@ export const clarificationQuestionNode: GraphNode<typeof SupportAgentState> = (
       );
     }
 
-    /**
-     * «Помогите подобрать товар» —
-     * это ещё не поисковый запрос.
-     *
-     * Поэтому требуется дополнительный
-     * свободный ввод пользователя.
-     */
     if (selectedQuestion.id === PRODUCT_SEARCH_HELP_QUESTION_ID) {
       const customInputPayload = ClarificationNodeSchema.parse({
         kind: 'custom_input',
@@ -113,38 +89,21 @@ export const clarificationQuestionNode: GraphNode<typeof SupportAgentState> = (
       concreteQuery = selectedQuestion.label;
     }
   } else {
-    /**
-     * Пользователь сразу ввёл
-     * собственный вопрос.
-     */
     concreteQuery = resumeValue.text;
   }
 
   return {
-    /**
-     * Неопределённый запрос заменяется
-     * конкретным пользовательским запросом.
-     */
     query: concreteQuery,
 
     messages: [new HumanMessage(concreteQuery)],
 
-    /**
-     * Clarification завершён.
-     */
     clarification: null,
 
-    /**
-     * Новый конкретный query должен
-     * пройти маршрутизацию заново.
-     */
     intentRouter: null,
 
     orchestrator: null,
 
-    faqResults: [],
-
-    productSearchResult: null,
+    workerResults: [],
 
     answer: null,
   };

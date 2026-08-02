@@ -23,5 +23,6 @@ import { QdrantClient } from '@qdrant/js-client-rest';
     },
     QdrantService,
   ],
+  exports: [QdrantService],
 })
 export class QdrantModule {}

@@ -22,7 +22,8 @@
     "db:migrate": "npx prisma migrate dev",
     "db:studio": "npx prisma studio",
     "dev": "docker compose up -d && nest start --watch",
-    "qdrant": "docker compose up -d refactor_qdrant && start http://localhost:6333/dashboard"
+    "qdrant": "docker compose up -d refactor_qdrant && start http://localhost:6333/dashboard",
+    "debug:support-agent": "ts-node -r tsconfig-paths/register src/support-agent/debug/run-support-agent.debug.ts"
   },
   "dependencies": {
     "@a2seven/yoo-checkout": "^1.1.4",

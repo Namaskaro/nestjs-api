@@ -27,9 +27,7 @@ export function createIntentRouterNode(
 
       orchestrator: null,
 
-      faqResults: [],
-
-      productSearchResult: null,
+      workerResults: [],
 
       answer: null,
     };

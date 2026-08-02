@@ -1,7 +1,7 @@
 import { SupportAgentStateType } from '../support-agent.state';
 
 export type AfterIntentRoute =
-  | 'orchestrator'
+  | 'orchestratorNode'
   | 'reject'
   | 'clarificationTopic'
   | 'clarificationQuestion';
@@ -15,8 +15,8 @@ export function afterIntentRoute(
     throw new Error('AfterIntentRoute: отсутствует результат IntentRouter');
   }
 
-  if (decision.route === 'orchestrator') {
-    return 'orchestrator';
+  if (decision.route === 'orchestratorNode') {
+    return 'orchestratorNode';
   }
 
   if (decision.route === 'unsupported') {

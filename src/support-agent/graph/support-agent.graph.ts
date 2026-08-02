@@ -91,9 +91,9 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
       /**
        * Основные routing-ноды.
        */
-      .addNode('intentRouter', intentRouterNode)
+      .addNode('intentRouterNode', intentRouterNode)
 
-      .addNode('orchestrator', orchestratorNode)
+      .addNode('orchestratorNode', orchestratorNode)
 
       /**
        * Конечный неподдерживаемый ответ.
@@ -122,13 +122,13 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
       /**
        * Начало графа.
        */
-      .addEdge(START, 'intentRouter')
+      .addEdge(START, 'intentRouterNode')
 
       /**
        * Роутинг после intent router.
        */
-      .addConditionalEdges('intentRouter', afterIntentRoute, {
-        orchestrator: 'orchestrator',
+      .addConditionalEdges('intentRouterNode', afterIntentRoute, {
+        orchestratorNode: 'orchestratorNode',
 
         reject: 'reject',
 
@@ -148,7 +148,7 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
       /**
        * Конкретный query анализируется заново.
        */
-      .addEdge('clarificationQuestion', 'intentRouter')
+      .addEdge('clarificationQuestion', 'intentRouterNode')
 
       /**
        * Dynamic fan-out.
@@ -159,7 +159,7 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
        * - productSearch;
        * - оба воркера.
        */
-      .addConditionalEdges('orchestrator', dispatchWorkers, [
+      .addConditionalEdges('orchestratorNode', dispatchWorkers, [
         'faqSearchWorker',
         'productSearch',
       ])
@@ -192,6 +192,10 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy(): Promise<void> {
     await this.checkpointer.end();
+  }
+
+  getCompiledGraph() {
+    return this.graph;
   }
 
   /**
