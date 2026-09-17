@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { IS_DEV_ENV } from 'src/shared/utils/is-dev.util';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from '../modules/auth/auth.module';
 import { FileModule } from '../modules/file/file.module';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { UserModule } from '../modules/user/user.module';
 import { CloudStorageModule } from '../cloud-storage/cloud-storage.module';
 import { StorageModule } from '../modules/libs/storage/storage.module';
@@ -18,9 +16,6 @@ import { ReviewsModule } from '../modules/reviews/reviews.module';
 import { MailModule } from '../mail/mail.module';
 import { EmailConfirmationModule } from '../modules/auth/email-confirmation/email-confirmation.module';
 import { SocketService } from '../modules/socket/socket.service';
-import { YookassaModule } from 'nestjs-yookassa';
-import { getYookassaConfig } from './config/getYookassaConfig';
-import { YoomoneyModule } from '../yoomoney/yookassa.module';
 import { OrdersModule } from '../modules/orders/orders.module';
 import { RedisModule } from '../modules/redis/redis.module';
 import { PasswordRecoveryModule } from '../modules/auth/password-recovery/password-recovery.module';
@@ -28,17 +23,16 @@ import { TwoFactorAuthModule } from '../modules/auth/two-factor-auth/two-factor-
 import { SpeechModule } from '../speech/speech.module';
 import { QdrantModule } from './qdrant/qdrant.module';
 import { SupportAgentModule } from '../support-agent/support-agent.module';
+import { RerankerModule } from './reranker/reranker.module';
+import { StoreKnowledgeModule } from '../store-knowledge/store-knowledge.module';
+import { YookassaModule } from '../payment/yookassa/yookassa.module';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       ignoreEnvFile: !IS_DEV_ENV,
-    }),
-    YookassaModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: getYookassaConfig,
-      inject: [ConfigService],
     }),
     PrismaModule,
     AuthModule,
@@ -54,7 +48,7 @@ import { SupportAgentModule } from '../support-agent/support-agent.module';
     ReviewsModule,
     MailModule,
     EmailConfirmationModule,
-    YoomoneyModule,
+    YookassaModule,
     OrdersModule,
     RedisModule,
     PasswordRecoveryModule,
@@ -62,6 +56,9 @@ import { SupportAgentModule } from '../support-agent/support-agent.module';
     SpeechModule,
     QdrantModule,
     SupportAgentModule,
+    RerankerModule,
+    StoreKnowledgeModule,
+    PaymentModule,
   ],
   controllers: [],
   providers: [SocketService],

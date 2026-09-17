@@ -7,31 +7,37 @@ export const ProductQdrantPayloadSchema = z.object({
   title: z.string(),
   description: z.string(),
 
+  brandId: z.string().uuid(),
   brand: z.string(),
+
+  categoryId: z.string().uuid(),
   category: z.string(),
+
+  subcategoryId: z.string().uuid(),
   subcategory: z.string(),
 
-  color: z.string(),
-  price: z.string(),
+  color: z.string().nullable(),
+
+  // START CHANGES — EXACT COLOR KEY + RAW DETAILS В QDRANT PAYLOAD
+
+  colorKey: z.string().nullable().default(null),
+  details: z.array(z.string()).default([]),
+
+  // END CHANGES — EXACT COLOR KEY + RAW DETAILS В QDRANT PAYLOAD
+
+  price: z.number().nonnegative(),
+
+  gender: z.string(),
+  type: z.string(),
+  sizes: z.array(z.string()),
+  stock: z.number().int().nonnegative(),
 
   image: z.string(),
   inStock: z.boolean(),
+
+  searchText: z.string(),
 
   semanticRepresentation: ProductSemanticRepresentationSchema,
 });
 
 export type ProductQdrantPayload = z.infer<typeof ProductQdrantPayloadSchema>;
-
-// const payload = ProductQdrantPayloadSchema.parse({
-//   productId: product.id,
-//   title: product.title,
-//   description: product.description,
-//   brand: product.brand.name,
-//   category: product.subcategory.category.name,
-//   subcategory: product.subcategory.name,
-//   color: product.color,
-//   price: product.price,
-//   image: product.images[0] ?? '',
-//   inStock: product.inStock,
-//   semanticRepresentation,
-// });

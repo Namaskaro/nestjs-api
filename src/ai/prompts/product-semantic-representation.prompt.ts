@@ -1,5 +1,7 @@
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 
+// START CHANGES — DETAILS ДОБАВЛЕНЫ В SEMANTIC REPRESENTATION INPUT
+
 export const productSemanticRepresentationPrompt =
   ChatPromptTemplate.fromMessages([
     [
@@ -18,6 +20,7 @@ export const productSemanticRepresentationPrompt =
 7. Ценовое позиционирование указывай только тогда, когда оно прямо следует из входных данных. Иначе верни: "не удалось определить по имеющимся данным".
 8. Search tags должны быть естественными поисковыми запросами покупателя без повторов и выдуманных характеристик.
 9. Summary должен содержать не более двух коротких предложений.
+10. Поле "Детали" содержит фактические характеристики товара. Используй их при формировании summary, styleAssociations, useCases и searchTags только когда это действительно следует из самих деталей.
 
 Заполни все поля структуры ProductSemanticRepresentationSchema.
 `,
@@ -28,10 +31,12 @@ export const productSemanticRepresentationPrompt =
 Название: {title}
 Описание: {description}
 Бренд: {brand}
-Категория: {category}
 Подкатегория: {subcategory}
 Цвет: {color}
+Детали: {details}
 Цена: {price}
 `,
     ],
   ]);
+
+// END CHANGES — DETAILS ДОБАВЛЕНЫ В SEMANTIC REPRESENTATION INPUT

@@ -1,7 +1,5 @@
 import { z } from 'zod';
-
-import { ProductAgentAnswerSchema } from '../product-agent/schemas/agreagte-answer.schema';
-import { FaqSearchResultSchema } from './faq-search-result.schema';
+import { ProductAgentAnswerSchema } from '../agents/product-agent/schemas/agreagte-answer.schema';
 
 export const ProductSearchAnswerBlockSchema = z.object({
   worker: z.literal('product_search'),
@@ -9,26 +7,85 @@ export const ProductSearchAnswerBlockSchema = z.object({
   data: ProductAgentAnswerSchema,
 });
 
-export const FaqSearchAnswerBlockSchema = z.object({
-  worker: z.literal('faq_worker'),
+export const CustomerHelpAnswerBlockSchema = z.object({
+  worker: z.literal('customer_help'),
 
-  data: z.array(FaqSearchResultSchema).default(() => []),
+  data: z.object({
+    message: z.string(),
+  }),
 });
 
 export const SupportAgentAnswerBlockSchema = z.discriminatedUnion('worker', [
   ProductSearchAnswerBlockSchema,
-  FaqSearchAnswerBlockSchema,
+  CustomerHelpAnswerBlockSchema,
 ]);
 
-export const SupportAgentAnswerSchema = z.object({
+const EmptyBlocksSchema = z
+  .array(SupportAgentAnswerBlockSchema)
+  .max(0)
+  .default(() => []);
+
+// НОВОЕ:
+// Финальный ответ непосредственно от ProductAgent.
+export const ProductAgentFinalAnswerSchema = ProductAgentAnswerSchema.extend({
+  type: z.literal('product_agent'),
+
+  blocks: EmptyBlocksSchema,
+});
+
+// НОВОЕ:
+// Финальный ответ непосредственно от CustomerHelp.
+export const CustomerHelpFinalAnswerSchema = z.object({
+  type: z.literal('customer_help'),
+
   message: z.string(),
 
-  blocks: z.array(SupportAgentAnswerBlockSchema).default(() => []),
+  blocks: EmptyBlocksSchema,
 });
 
-export const SupportAgentMessageSchema = SupportAgentAnswerSchema.pick({
-  message: true,
+// НОВОЕ:
+// Финальный ответ после объединения нескольких agents/workers.
+export const AggregateFinalAnswerSchema = z.object({
+  type: z.literal('aggregate'),
+
+  message: z.string(),
+
+  blocks: z.array(SupportAgentAnswerBlockSchema).min(1),
 });
+
+// НОВОЕ:
+// Обычные системные ответы SupportAgent:
+// reject, handoff-result и подобные сообщения.
+export const SupportMessageAnswerSchema = z.object({
+  type: z.literal('message').default('message'),
+
+  message: z.string(),
+
+  blocks: EmptyBlocksSchema,
+});
+
+// НОВОЕ:
+// state.answer теперь может содержать разные типы финального ответа.
+export const SupportAgentAnswerSchema = z.union([
+  ProductAgentFinalAnswerSchema,
+  CustomerHelpFinalAnswerSchema,
+  AggregateFinalAnswerSchema,
+  SupportMessageAnswerSchema,
+]);
+
+export const SupportAgentMessageSchema = z.object({
+  message: z.string(),
+});
+
+export type ProductAgentFinalAnswer = z.infer<
+  typeof ProductAgentFinalAnswerSchema
+>;
+
+export type CustomerHelpFinalAnswer = z.infer<
+  typeof CustomerHelpFinalAnswerSchema
+>;
+
+export type AggregateFinalAnswer = z.infer<typeof AggregateFinalAnswerSchema>;
 
 export type SupportAgentAnswer = z.infer<typeof SupportAgentAnswerSchema>;
 

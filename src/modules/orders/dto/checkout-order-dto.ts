@@ -1,25 +1,45 @@
-import { DeliveryProvider, OrderStatus, PaymentType } from '@/prisma/generated';
-import { IsNumber, IsString } from 'class-validator';
+import { DeliveryProvider, PaymentType } from '@/prisma/generated';
+
+import {
+  IsDateString,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CheckoutOrderDto {
-  status: OrderStatus;
   @IsString()
   fullName: string;
+
   @IsString()
   address: string;
-  @IsString()
+
+  @IsEmail()
   email: string;
+
   @IsString()
   phone: string;
+
+  @IsOptional()
   @IsString()
-  comment: string;
-  deliveryDate: Date;
-  @IsNumber()
-  deliveryFee: number;
+  comment?: string;
+
+  @IsDateString()
+  deliveryDate: string;
+
+  @IsOptional()
   @IsString()
-  deliveryTime: string;
+  deliveryTime?: string;
+
+  @IsEnum(PaymentType)
   paymentType: PaymentType;
-  deliveryProvider: DeliveryProvider;
-  @IsNumber()
-  finalAmount: number;
+
+  @IsOptional()
+  @IsEnum(DeliveryProvider)
+  deliveryProvider?: DeliveryProvider;
+
+  @IsOptional()
+  @IsString()
+  promoCode?: string;
 }

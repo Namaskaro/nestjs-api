@@ -9,24 +9,29 @@ datasource db {
 }
 
 model User {
-  id                 String           @id @default(uuid())
-  name               String?          @default("Не указано")
-  email              String?          @unique
+  id                 String   @id @default(uuid())
+  name               String?  @default("Не указано")
+  email              String?  @unique
   password           String?
-  createdAt          DateTime         @default(now()) @map("created_at")
-  updatedAt          DateTime         @updatedAt @map("updated_at")
-  role               Role             @default(Client)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  role               Role     @default(Client)
   bio                Json?
-  image              String           @default("/uploads/no-user-image.png")
-  emailVerified      Boolean          @default(false) @map("email_verified")
-  isTwoFactorEnabled Boolean          @default(false) @map("is_two_factor_enabled")
-  chats              Chat[]
-  operatorProfile    OperatorProfile?
-  reviews            Review[]
-  accounts           Account[]
-  cart               Cart?
-  orders             Order[]
-  favorites          Product[]
+  image              String   @default("/uploads/no-user-image.png")
+  emailVerified      Boolean  @default(false) @map("email_verified")
+  isTwoFactorEnabled Boolean  @default(false) @map("is_two_factor_enabled")
+
+  chat            Chat?
+  sentMessages    Message[]        @relation("MessageAuthor")
+  operatorProfile OperatorProfile?
+
+  supportCases SupportCase[]
+
+  reviews   Review[]
+  accounts  Account[]
+  cart      Cart?
+  orders    Order[]
+  favorites Product[]
 
   @@map("user")
 }
@@ -40,38 +45,78 @@ model OperatorProfile {
   updatedAt     DateTime       @updatedAt
   inviteExpires DateTime?
   inviteToken   String?        @unique
-  chats         Chat[]
-  user          User           @relation(fields: [userId], references: [id])
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  chats Chat[]
+
+  supportCases SupportCase[]
+
+  @@index([status, isActive])
+}
+
+model SupportCase {
+  id         String  @id @default(uuid())
+  userId     String
+  chatId     String
+  operatorId String?
+
+  reason SupportCaseReason
+
+  issue String @db.Text
+
+  summary String? @db.Text
+
+  status SupportCaseStatus @default(WAITING_OPERATOR)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  closedAt  DateTime?
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat     Chat             @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  operator OperatorProfile? @relation(fields: [operatorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([operatorId, status])
+  @@index([chatId, createdAt])
+  @@index([status, createdAt])
 }
 
 model Chat {
-  id         String           @id @default(uuid())
-  userId     String
-  operatorId String?
-  status     ChatStatus       @default(BOT_ACTIVE)
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  operator   OperatorProfile? @relation(fields: [operatorId], references: [id])
-  user       User             @relation(fields: [userId], references: [id])
-  messages   Message[]
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  operatorId    String?
+  mode          ChatMode @default(BOT)
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operator OperatorProfile? @relation(fields: [operatorId], references: [id], onDelete: SetNull)
+
+  messages Message[]
+
+  supportCases SupportCase[]
+
+  @@index([operatorId, mode])
+  @@index([mode, lastMessageAt])
 }
 
 model Message {
-  id         String     @id @default(uuid())
-  chatId     String
-  senderType SenderType
-  senderId   String?
-  content    String
-  createdAt  DateTime   @default(now())
-  chat       Chat       @relation(fields: [chatId], references: [id])
-}
+  id        String                  @id @default(uuid())
+  chatId    String
+  authorId  String?
+  role      ConversationMessageRole
+  content   String                  @db.Text
+  payload   Json?
+  createdAt DateTime                @default(now())
 
-model QuickReply {
-  id        String   @id @default(uuid())
-  title     String
-  payload   String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  chat   Chat  @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  author User? @relation("MessageAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([chatId, createdAt])
+  @@index([authorId])
 }
 
 model Token {
@@ -127,10 +172,12 @@ model Product {
   type          ProductType
   blurURL       String[]     @default([])
   sizes         String[]     @default([])
+  color         String?
   discount      String?      @default("0")
   isNew         Boolean?
   inStock       Boolean      @default(true)
   stock         Int          @default(10)
+  details       String[]     @default([])
   reviews       Review[]
   cartItems     CartItem[]
   brand         Brand?       @relation(fields: [brandId], references: [id])
@@ -144,8 +191,8 @@ model Product {
 }
 
 model ProductEmbedding {
-  productId String                      @id
-  vector    Unsupported("vector(1536)")
+  productId String                     @id
+  vector    Unsupported("vector(768)")
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
@@ -230,16 +277,23 @@ model Order {
   deliveryProvider DeliveryProvider?
   finalAmount      Int
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payment          Payment?
 
+  // CHANGED: один заказ может иметь несколько попыток оплаты
+  payments Payment[]
+
+  // CHANGED: пригодится для списка заказов пользователя
+  @@index([userId, createdAt])
   @@map("order")
 }
 
 model Payment {
-  id                Int           @id @default(autoincrement())
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  orderId           String        @unique
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // CHANGED: больше не @unique
+  orderId String
+
   providerPaymentId String        @unique
   amount            Int
   status            PaymentStatus @default(PENDING)
@@ -247,7 +301,8 @@ model Payment {
   rawResponse       Json?
   order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  @@unique([orderId, providerPaymentId])
+  // CHANGED
+  @@index([orderId, createdAt])
   @@map("payment")
 }
 
@@ -260,7 +315,7 @@ model CartItem {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   cart      Cart     @relation(fields: [cartId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([cartId, productId, size])
   @@map("cart_item")
@@ -279,13 +334,31 @@ model Cart {
   @@map("cart")
 }
 
-model FaqKnowledge {
-  id        String                      @id
-  section   String
-  question  String
-  answer    String
-  content   String
-  embedding Unsupported("vector(1536)")
+model StoreKnowledge {
+  id String @id @default(uuid())
+
+  key String @unique
+
+  section String
+  topic   String?
+
+  question String
+  answer   String @db.Text
+
+  notice String? @db.Text
+
+  footnote String? @db.Text
+
+  tags String[] @default([])
+
+  isActive Boolean @default(true)
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([section, isActive])
 }
 
 enum DiscountType {
@@ -306,6 +379,12 @@ enum DeliveryProvider {
   SDEK
 }
 
+enum ConversationMessageRole {
+  USER
+  ASSISTANT
+  OPERATOR
+}
+
 enum UserGender {
   MAN    @map("MAN")
   WOMAN  @map("WOMAN")
@@ -318,12 +397,20 @@ enum ProductType {
   ACCESSORIES @map("ACCESSORIES")
 }
 
+// CHANGED
 enum OrderStatus {
-  PENDING
-  SUCCESS
-  CANCELLED
   DRAFT
+
+  // В коде PENDING_PAYMENT, в существующей БД остаётся PENDING
+  PENDING_PAYMENT @map("PENDING")
+
+  // В коде PAID, в существующей БД остаётся SUCCESS
+  PAID @map("SUCCESS")
+
+  PROCESSING
+  SHIPPED
   DELIVERED
+  CANCELLED
 }
 
 enum PaymentType {
@@ -353,11 +440,23 @@ enum OperatorStatus {
   OFFLINE
 }
 
-enum ChatStatus {
-  BOT_ACTIVE
+enum ChatMode {
+  BOT
   WAITING_OPERATOR
-  OPERATOR_ACTIVE
-  CLOSED
+  OPERATOR
+}
+
+enum SupportCaseStatus {
+  WAITING_OPERATOR
+  IN_PROGRESS
+  RESOLVED
+  CANCELLED
+}
+
+enum SupportCaseReason {
+  CUSTOMER_REQUEST
+  UNSUPPORTED_ACTION
+  ASSISTANT_FAILURE
 }
 
 enum SenderType {

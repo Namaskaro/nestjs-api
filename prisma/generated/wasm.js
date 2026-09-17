@@ -142,11 +142,26 @@ exports.Prisma.OperatorProfileScalarFieldEnum = {
   inviteToken: 'inviteToken'
 };
 
+exports.Prisma.SupportCaseScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  chatId: 'chatId',
+  operatorId: 'operatorId',
+  reason: 'reason',
+  issue: 'issue',
+  summary: 'summary',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  closedAt: 'closedAt'
+};
+
 exports.Prisma.ChatScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   operatorId: 'operatorId',
-  status: 'status',
+  mode: 'mode',
+  lastMessageAt: 'lastMessageAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -154,17 +169,10 @@ exports.Prisma.ChatScalarFieldEnum = {
 exports.Prisma.MessageScalarFieldEnum = {
   id: 'id',
   chatId: 'chatId',
-  senderType: 'senderType',
-  senderId: 'senderId',
+  authorId: 'authorId',
+  role: 'role',
   content: 'content',
-  createdAt: 'createdAt'
-};
-
-exports.Prisma.QuickReplyScalarFieldEnum = {
-  id: 'id',
-  title: 'title',
   payload: 'payload',
-  isActive: 'isActive',
   createdAt: 'createdAt'
 };
 
@@ -212,10 +220,12 @@ exports.Prisma.ProductScalarFieldEnum = {
   type: 'type',
   blurURL: 'blurURL',
   sizes: 'sizes',
+  color: 'color',
   discount: 'discount',
   isNew: 'isNew',
   inStock: 'inStock',
-  stock: 'stock'
+  stock: 'stock',
+  details: 'details'
 };
 
 exports.Prisma.ProductEmbeddingScalarFieldEnum = {
@@ -322,12 +332,20 @@ exports.Prisma.CartScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.FaqKnowledgeScalarFieldEnum = {
+exports.Prisma.StoreKnowledgeScalarFieldEnum = {
   id: 'id',
+  key: 'key',
   section: 'section',
+  topic: 'topic',
   question: 'question',
   answer: 'answer',
-  content: 'content'
+  notice: 'notice',
+  footnote: 'footnote',
+  tags: 'tags',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -372,18 +390,29 @@ exports.OperatorStatus = exports.$Enums.OperatorStatus = {
   OFFLINE: 'OFFLINE'
 };
 
-exports.ChatStatus = exports.$Enums.ChatStatus = {
-  BOT_ACTIVE: 'BOT_ACTIVE',
-  WAITING_OPERATOR: 'WAITING_OPERATOR',
-  OPERATOR_ACTIVE: 'OPERATOR_ACTIVE',
-  CLOSED: 'CLOSED'
+exports.SupportCaseReason = exports.$Enums.SupportCaseReason = {
+  CUSTOMER_REQUEST: 'CUSTOMER_REQUEST',
+  UNSUPPORTED_ACTION: 'UNSUPPORTED_ACTION',
+  ASSISTANT_FAILURE: 'ASSISTANT_FAILURE'
 };
 
-exports.SenderType = exports.$Enums.SenderType = {
-  USER: 'USER',
+exports.SupportCaseStatus = exports.$Enums.SupportCaseStatus = {
+  WAITING_OPERATOR: 'WAITING_OPERATOR',
+  IN_PROGRESS: 'IN_PROGRESS',
+  RESOLVED: 'RESOLVED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.ChatMode = exports.$Enums.ChatMode = {
   BOT: 'BOT',
-  OPERATOR: 'OPERATOR',
-  SYSTEM: 'SYSTEM'
+  WAITING_OPERATOR: 'WAITING_OPERATOR',
+  OPERATOR: 'OPERATOR'
+};
+
+exports.ConversationMessageRole = exports.$Enums.ConversationMessageRole = {
+  USER: 'USER',
+  ASSISTANT: 'ASSISTANT',
+  OPERATOR: 'OPERATOR'
 };
 
 exports.TokenType = exports.$Enums.TokenType = {
@@ -411,11 +440,13 @@ exports.DiscountType = exports.$Enums.DiscountType = {
 };
 
 exports.OrderStatus = exports.$Enums.OrderStatus = {
-  PENDING: 'PENDING',
-  SUCCESS: 'SUCCESS',
-  CANCELLED: 'CANCELLED',
   DRAFT: 'DRAFT',
-  DELIVERED: 'DELIVERED'
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  PAID: 'PAID',
+  PROCESSING: 'PROCESSING',
+  SHIPPED: 'SHIPPED',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED'
 };
 
 exports.PaymentType = exports.$Enums.PaymentType = {
@@ -439,9 +470,9 @@ exports.PaymentStatus = exports.$Enums.PaymentStatus = {
 exports.Prisma.ModelName = {
   User: 'User',
   OperatorProfile: 'OperatorProfile',
+  SupportCase: 'SupportCase',
   Chat: 'Chat',
   Message: 'Message',
-  QuickReply: 'QuickReply',
   Token: 'Token',
   Account: 'Account',
   VerificationToken: 'VerificationToken',
@@ -456,7 +487,7 @@ exports.Prisma.ModelName = {
   Payment: 'Payment',
   CartItem: 'CartItem',
   Cart: 'Cart',
-  FaqKnowledge: 'FaqKnowledge'
+  StoreKnowledge: 'StoreKnowledge'
 };
 
 /**

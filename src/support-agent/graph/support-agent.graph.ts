@@ -1,41 +1,41 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
-import { AiService } from '@/src/ai/ai.service';
-
-import { PrismaService } from '@/src/core/prisma/prisma.service';
-
 import { HumanMessage } from '@langchain/core/messages';
-
 import { Command, END, START, StateGraph } from '@langchain/langgraph';
-
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
+
+import { AiService } from '@/src/ai/ai.service';
+import { StoreKnowledgeService } from '@/src/store-knowledge/store-knowledge.service';
+
+import { createCustomerHelpAgent } from '../agents/customer-help-agent/customer-help.agent';
+import { createHandoffAgentGraph } from '../agents/handoff-agent/handoff-agent.graph';
+import { handoffResultNode } from '../agents/handoff-agent/nodes/handoff-result.node';
+import { ProductAgentService } from '../agents/product-agent/product-agent.service';
+import { createProductAgent } from '../agents/product-agent/product.agent';
+
+import {
+  SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
+  SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
+  SUPPORT_AGENT_PRODUCT_NODE_TIMEOUT_MS,
+} from '../config/support-agent-execution.config';
+
+import { RequestRouterWorkerSchema } from '../schemas/request-router.schema';
+import { SupportAgentResumeValue } from '../schemas/support-agent-resume.schema';
+
+import { createAggregateFinalAnswerNode } from './nodes/aggregate-final-answer.node';
+import { clarificationQuestionNode } from './nodes/clarification-question.node';
+import { clarificationTopicNode } from './nodes/clarification-topic.node';
+import { preIntentNode } from './nodes/pre-intent.node';
+import { rejectNode } from './nodes/reject.node';
+import { createRequestRouterNode } from './nodes/request-router.node';
+
+import { afterPreIntentRoute } from './routers/after-pre-intent.route';
+import { afterRequestRoute } from './routers/after-request.route';
 
 import { SupportAgentState } from './support-agent.state';
 
-import { createIntentRouterNode } from './nodes/intent-router.node';
-
-import { createOrchestratorNode } from './nodes/orchestrator.node';
-
-import { createAggregateFinalAnswerNode } from './nodes/aggregate-final-answer.node';
-
-import { rejectNode } from './nodes/reject.node';
-
-import { clarificationTopicNode } from './nodes/clarification-topic.node';
-
-import { clarificationQuestionNode } from './nodes/clarification-question.node';
-
-import { createFaqSearchWorker } from './workers/faq-search.worker';
-
-import { createProductSearchSubgraphWorker } from './workers/product-search-subgraph.worker';
-
-import { afterIntentRoute } from './routers/after-intent.route';
-
-import { dispatchWorkers } from './routers/dispatch-workers';
-
-import { ProductAgentService } from '../product-agent/product-agent.service';
-
-import { createProductSearchAgentGraph } from '../product-agent/product.agent.graph';
-import { ClarificationResumeValue } from '../schemas/clarification-resume.schema';
+import { createCustomerHelpAgentWorker } from './workers/customer-help-agent.worker';
+import { createProductAgentWorker } from './workers/product-agent.worker';
 
 @Injectable()
 export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
@@ -45,141 +45,117 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly aiService: AiService,
-
-    private readonly prismaService: PrismaService,
-
     private readonly productAgentService: ProductAgentService,
+    private readonly storeKnowledgeService: StoreKnowledgeService,
   ) {
     const postgresUri = process.env.POSTGRES_URI;
 
-    if (!postgresUri) {
-      throw new Error(
-        'SupportAgentGraph: переменная POSTGRES_URI не определена',
-      );
-    }
+    this.checkpointer = PostgresSaver.fromConnString(postgresUri, {
+      schema: 'langgraph',
+    });
 
-    this.checkpointer = PostgresSaver.fromConnString(postgresUri);
-
-    /**
-     * ProductAgentService предоставляет
-     * ProductAgentGraph доступ к поиску товаров.
-     *
-     * Сам compiled graph не инжектируется
-     * через NestJS.
-     */
-    const productSearchAgentGraph = createProductSearchAgentGraph(
+    const productAgent = createProductAgent(
       this.aiService,
       this.productAgentService,
     );
 
-    const intentRouterNode = createIntentRouterNode(this.aiService);
-
-    const orchestratorNode = createOrchestratorNode(this.aiService);
-
-    const faqSearchWorker = createFaqSearchWorker(
+    const customerHelpAgent = createCustomerHelpAgent(
       this.aiService,
-      this.prismaService,
+      this.storeKnowledgeService,
     );
 
-    const productSearchWorker = createProductSearchSubgraphWorker(
-      productSearchAgentGraph,
-    );
+    const handoffAgentGraph = createHandoffAgentGraph(this.aiService);
+
+    const requestRouterNode = createRequestRouterNode(this.aiService);
+
+    const customerHelpWorker = createCustomerHelpAgentWorker(customerHelpAgent);
+
+    const productAgentWorker = createProductAgentWorker(productAgent);
 
     const aggregateAnswerNode = createAggregateFinalAnswerNode(this.aiService);
 
+    const agentNodes = RequestRouterWorkerSchema.options;
+
     this.graph = new StateGraph(SupportAgentState)
-      /**
-       * Основные routing-ноды.
-       */
-      .addNode('intentRouterNode', intentRouterNode)
+      .addNode('preIntentNode', preIntentNode)
 
-      .addNode('orchestratorNode', orchestratorNode)
+      .addNode('requestRouterNode', requestRouterNode, {
+        retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
 
-      /**
-       * Конечный неподдерживаемый ответ.
-       */
+        timeout: SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
+      })
+
       .addNode('reject', rejectNode)
 
-      /**
-       * Clarification-ноды.
-       */
       .addNode('clarificationTopic', clarificationTopicNode)
 
       .addNode('clarificationQuestion', clarificationQuestionNode)
 
-      /**
-       * Workers основного support-agent.
-       */
-      .addNode('faqSearchWorker', faqSearchWorker)
+      .addNode('customerHelpAgent', customerHelpWorker, {
+        ends: [END, 'aggregateAnswer', 'handoffAgent', ...agentNodes],
 
-      .addNode('productSearch', productSearchWorker)
+        retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
 
-      /**
-       * Общая точка fan-in.
-       */
+        timeout: SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
+      })
+
+      .addNode('productAgent', productAgentWorker, {
+        ends: [END, 'aggregateAnswer', 'handoffAgent', ...agentNodes],
+
+        retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
+
+        // ===== START CHANGE: PRODUCT AGENT ИМЕЕТ ОТДЕЛЬНЫЙ WALL-CLOCK LIMIT =====
+
+        timeout: SUPPORT_AGENT_PRODUCT_NODE_TIMEOUT_MS,
+
+        // ===== END CHANGE: PRODUCT AGENT ИМЕЕТ ОТДЕЛЬНЫЙ WALL-CLOCK LIMIT =====
+      })
+
       .addNode('aggregateAnswer', aggregateAnswerNode)
 
-      /**
-       * Начало графа.
-       */
-      .addEdge(START, 'intentRouterNode')
+      .addNode('handoffAgent', handoffAgentGraph)
 
-      /**
-       * Роутинг после intent router.
-       */
-      .addConditionalEdges('intentRouterNode', afterIntentRoute, {
-        orchestratorNode: 'orchestratorNode',
+      .addNode('handoffResult', handoffResultNode)
+
+      .addEdge(START, 'preIntentNode')
+
+      .addConditionalEdges('preIntentNode', afterPreIntentRoute, {
+        productAgent: 'productAgent',
+
+        customerHelpAgent: 'customerHelpAgent',
+
+        requestRouterNode: 'requestRouterNode',
+
+        reject: 'reject',
+
+        clarificationTopic: 'clarificationTopic',
+      })
+
+      .addConditionalEdges('requestRouterNode', afterRequestRoute, {
+        productAgent: 'productAgent',
+
+        customerHelpAgent: 'customerHelpAgent',
 
         reject: 'reject',
 
         clarificationTopic: 'clarificationTopic',
 
         clarificationQuestion: 'clarificationQuestion',
+
+        handoffAgent: 'handoffAgent',
       })
 
-      /**
-       * Первый clarification:
-       * пользователь выбирает тему.
-       *
-       * Затем выбирает конкретный вопрос.
-       */
       .addEdge('clarificationTopic', 'clarificationQuestion')
 
-      /**
-       * Конкретный query анализируется заново.
-       */
-      .addEdge('clarificationQuestion', 'intentRouterNode')
+      .addEdge('clarificationQuestion', 'preIntentNode')
 
-      /**
-       * Dynamic fan-out.
-       *
-       * Оркестратор может выбрать:
-       *
-       * - faqSearchWorker;
-       * - productSearch;
-       * - оба воркера.
-       */
-      .addConditionalEdges('orchestratorNode', dispatchWorkers, [
-        'faqSearchWorker',
-        'productSearch',
-      ])
-
-      /**
-       * Fan-in.
-       *
-       * Все выбранные workers
-       * сходятся в aggregateAnswer.
-       */
-      .addEdge('faqSearchWorker', 'aggregateAnswer')
-
-      .addEdge('productSearch', 'aggregateAnswer')
-
-      /**
-       * Конечные переходы.
-       */
       .addEdge('aggregateAnswer', END)
 
       .addEdge('reject', END)
+
+      .addEdge('handoffAgent', 'handoffResult')
+
+      .addEdge('handoffResult', END)
 
       .compile({
         checkpointer: this.checkpointer,
@@ -198,17 +174,66 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
     return this.graph;
   }
 
-  /**
-   * Запуск нового пользовательского запроса.
-   */
-  invoke(query: string, threadId: string) {
+  invoke(
+    query: string,
+    threadId: string,
+    onCustomEvent?: (
+      eventName: string,
+      payload: unknown,
+    ) => void | Promise<void>,
+
+    // ===== START CHANGE: STABLE MESSAGE ID =====
+
+    messageId?: string,
+
+    // ===== END CHANGE: STABLE MESSAGE ID =====
+  ) {
     return this.graph.invoke(
+      {
+        query,
+
+        // ===== START CHANGE: RETRY НЕ ДУБЛИРУЕТ HUMAN MESSAGE =====
+
+        messages: [
+          new HumanMessage({
+            content: query,
+
+            ...(messageId
+              ? {
+                  id: messageId,
+                }
+              : {}),
+          }),
+        ],
+
+        // ===== END CHANGE: RETRY НЕ ДУБЛИРУЕТ HUMAN MESSAGE =====
+      },
+      {
+        configurable: {
+          thread_id: threadId,
+        },
+
+        callbacks: onCustomEvent
+          ? [
+              {
+                handleCustomEvent: onCustomEvent,
+              },
+            ]
+          : undefined,
+      },
+    );
+  }
+
+  streamEvents(query: string, threadId: string) {
+    return this.graph.streamEvents(
       {
         query,
 
         messages: [new HumanMessage(query)],
       },
       {
+        version: 'v3',
+
         configurable: {
           thread_id: threadId,
         },
@@ -216,22 +241,42 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  /**
-   * Продолжение остановленного interrupt.
-   *
-   * threadId должен совпадать
-   * с threadId первоначального invoke.
-   */
   resume(
-    value: ClarificationResumeValue,
-
+    value: SupportAgentResumeValue,
     threadId: string,
+    onCustomEvent?: (
+      eventName: string,
+      payload: unknown,
+    ) => void | Promise<void>,
   ) {
     return this.graph.invoke(
       new Command({
         resume: value,
       }),
       {
+        configurable: {
+          thread_id: threadId,
+        },
+
+        callbacks: onCustomEvent
+          ? [
+              {
+                handleCustomEvent: onCustomEvent,
+              },
+            ]
+          : undefined,
+      },
+    );
+  }
+
+  resumeEvents(value: SupportAgentResumeValue, threadId: string) {
+    return this.graph.streamEvents(
+      new Command({
+        resume: value,
+      }),
+      {
+        version: 'v3',
+
         configurable: {
           thread_id: threadId,
         },

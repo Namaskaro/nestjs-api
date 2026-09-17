@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
 export class ProductSemanticInputDto {
   @IsString()
@@ -11,10 +11,14 @@ export class ProductSemanticInputDto {
   brand: string;
 
   @IsString()
-  category: string;
+  subcategory: string;
 
   @IsString()
   color: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  details: string[];
 
   @IsString()
   price: string;

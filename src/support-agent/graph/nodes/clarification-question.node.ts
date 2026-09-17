@@ -7,6 +7,7 @@ import { SupportAgentState } from '../support-agent.state';
 import { clarificationConfig } from '../../config/clarification.config';
 
 import { ClarificationNodeSchema } from '../../schemas/clarification-response.schema';
+
 import {
   ClarificationCustomQuestionResumeSchema,
   ClarificationQuestionResumeSchema,
@@ -17,33 +18,12 @@ const PRODUCT_SEARCH_HELP_QUESTION_ID = 'product_search_help';
 export const clarificationQuestionNode: GraphNode<typeof SupportAgentState> = (
   state,
 ) => {
-  const decision = state.intentRouter;
-
-  if (!decision) {
-    throw new Error(
-      'ClarificationQuestionNode: отсутствует результат IntentRouter',
-    );
-  }
-
-  if (decision.route !== 'clarification') {
-    throw new Error(
-      `ClarificationQuestionNode: получен неправильный маршрут ${decision.route}`,
-    );
-  }
-
-  const topic = state.clarification ?? decision.clarificationTopic;
-
-  if (!topic) {
-    throw new Error('ClarificationQuestionNode: тема уточнения не определена');
-  }
-
+  const topic = state.clarification ?? state.requestRouter?.clarificationTopic;
   const topicConfig = clarificationConfig[topic];
-
   const interruptPayload = ClarificationNodeSchema.parse({
     kind: 'questions',
-
-    question: `Что именно вас интересует по теме ` + `«${topicConfig.label}»?`,
-
+    question:
+      `Хорошо. Что именно вас интересует по теме ` + `«${topicConfig.label}»?`,
     topic,
 
     options: topicConfig.questions,
@@ -62,7 +42,8 @@ export const clarificationQuestionNode: GraphNode<typeof SupportAgentState> = (
 
     if (!selectedQuestion) {
       throw new Error(
-        `ClarificationQuestionNode: вопрос ${resumeValue.questionId} не найден`,
+        `ClarificationQuestionNode: вопрос ` +
+          `${resumeValue.questionId} не найден`,
       );
     }
 
@@ -94,17 +75,12 @@ export const clarificationQuestionNode: GraphNode<typeof SupportAgentState> = (
 
   return {
     query: concreteQuery,
-
     messages: [new HumanMessage(concreteQuery)],
-
+    rejectCount: 0,
+    preIntentRoute: null,
     clarification: null,
-
-    intentRouter: null,
-
-    orchestrator: null,
-
+    requestRouter: null,
     workerResults: [],
-
     answer: null,
   };
 };

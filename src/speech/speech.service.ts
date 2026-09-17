@@ -117,17 +117,13 @@ export class SpeechService implements OnModuleDestroy {
             restrictionType:
               stt.LanguageRestrictionOptions_LanguageRestrictionType.WHITELIST,
 
-            languageCode: ['ru-RU'],
+            languageCode: ['ru-RU', 'en-EN'],
           },
 
           audioProcessingType:
             stt.RecognitionModelOptions_AudioProcessingType.REAL_TIME,
         },
 
-        /*
-         * После паузы SpeechKit завершает текущую фразу
-         * и начинает распознавать следующую отдельно.
-         */
         eouClassifier: {
           defaultClassifier: {
             type: stt.DefaultEouClassifier_EouSensitivity.HIGH,
@@ -162,8 +158,6 @@ export class SpeechService implements OnModuleDestroy {
     session.stream.end();
     this.logger.log(`SpeechKit session stopping for ${clientId}`);
   }
-
- 
 
   private handleResponse(
     session: SpeechSession,

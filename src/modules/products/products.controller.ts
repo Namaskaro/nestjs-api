@@ -1,11 +1,88 @@
+// import {
+//   Body,
+//   Controller,
+//   DefaultValuePipe,
+//   Delete,
+//   Get,
+//   Param,
+//   ParseIntPipe,
+//   Post,
+//   Put,
+//   Query,
+//   Req,
+//   UploadedFiles,
+//   UseGuards,
+//   UseInterceptors,
+// } from '@nestjs/common';
+// import { ProductsService } from './products.service';
+// import { Auth } from '../auth/decorators/auth.decorator';
+// import { Role, UserGender } from '@/prisma/generated';
+// import { Roles } from '../auth/decorators/role.decorator';
+// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+// import { RolesGuard } from '../auth/guards/roles.guard';
+// import { CreateProductDto } from './dto/create-product.dto';
+// import { FilesInterceptor } from '@nestjs/platform-express';
+// import { FilterQueryDto } from './dto/filter-query-dto';
+// import { Admin } from '../auth/decorators/admin.decorator';
+
+// @Controller('products')
+// export class ProductsController {
+//   constructor(private readonly productsService: ProductsService) {}
+
+//   @Get()
+//   async getAllProducts(@Query('searchTerm') searchTerm?: string) {
+//     return this.productsService.getAllProducts(searchTerm);
+//   }
+
+//   @Get('filtered-cursor')
+//   getCursor(@Query() q: FilterQueryDto) {
+//     console.log('[CTRL /filtered-cursor] query =', q);
+//     return this.productsService.getPaginatedProducts(q);
+//   }
+
+//   @Get('filtered')
+//   getOffset(@Query() dto: FilterQueryDto, @Req() req: any) {
+//     return this.productsService.getPaginatedProducts(dto);
+//   }
+
+//   // @Get('/filtered')
+//   // async getPaginatedProducts(@Query() filters: FilterQueryDto) {
+//   //   return this.productsService.getPaginatedProducts(filters);
+//   // }
+
+//   @Get('/:id')
+//   async getProductById(@Param('id') id: string) {
+//     return this.productsService.getProductById(id);
+//   }
+
+//   @Get('/:gender')
+//   async getProductByGender(@Param('gender') gender: UserGender) {
+//     return this.productsService.getProductsByGender(gender);
+//   }
+
+//   @Post('/create')
+//   @UseInterceptors(FilesInterceptor('images', 5)) // ← имя поля из form-data
+//   async create(
+//     @Body() createProductDto: CreateProductDto,
+//     @UploadedFiles() files: Express.Multer.File[],
+//   ) {
+//     return this.productsService.create(createProductDto, files);
+//   }
+
+//   @Delete('/:id')
+//   @Auth()
+//   @Roles(Role.Admin)
+//   @UseGuards(JwtAuthGuard, RolesGuard)
+//   async deleteProduct(@Param('id') id: string) {
+//     return this.productsService.delete(id);
+//   }
+// }
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -21,8 +98,10 @@ import { Roles } from '../auth/decorators/role.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FilterQueryDto } from './dto/filter-query-dto';
+import { Admin } from '../auth/decorators/admin.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -41,15 +120,18 @@ export class ProductsController {
 
   @Get('filtered')
   getOffset(@Query() dto: FilterQueryDto, @Req() req: any) {
-    console.log('RAW QUERY >>>', req.query); // тут увидите brand: ['Nike','Adidas']
-    console.log('DTO.brands >>>', dto.brand);
     return this.productsService.getPaginatedProducts(dto);
   }
 
-  // @Get('/filtered')
-  // async getPaginatedProducts(@Query() filters: FilterQueryDto) {
-  //   return this.productsService.getPaginatedProducts(filters);
-  // }
+  @Post('/reindex')
+  @Auth()
+  @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async reindexProducts() {
+    return this.productsService.reindexProducts();
+  }
+
+  // END CHANGES — ADMIN REINDEX ДЛЯ ПОЛНОЙ ПЕРЕСБОРКИ PRODUCT SEARCH INDEX
 
   @Get('/:id')
   async getProductById(@Param('id') id: string) {
@@ -62,6 +144,7 @@ export class ProductsController {
   }
 
   @Post('/create')
+  // @Admin()
   @UseInterceptors(FilesInterceptor('images', 5)) // ← имя поля из form-data
   async create(
     @Body() createProductDto: CreateProductDto,
@@ -70,21 +153,20 @@ export class ProductsController {
     return this.productsService.create(createProductDto, files);
   }
 
-  // @Post('/create')
-  // @Auth()
-  // @Roles(Role.Admin)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // async createProduct(@Body() dto: CreateProductDto) {
-  //   return this.productsService.create(dto);
-  // }
+  // START CHANGES — EDIT PRODUCT + SEARCH INDEX SYNC
 
-  // @Put('/:id')
-  // @Auth()
-  // @Roles(Role.Admin)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // async updateProduct(@Param('id') id: string, @Body() dto: CreateProductDto) {
-  //   return this.productsService.update(id, dto);
-  // }
+  @Put('/:id')
+  @Auth()
+  @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async updateProduct(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    return this.productsService.update(id, updateProductDto);
+  }
+
+  // END CHANGES — EDIT PRODUCT + SEARCH INDEX SYNC
 
   @Delete('/:id')
   @Auth()

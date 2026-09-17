@@ -4,8 +4,7 @@ import {
   IsArray,
   IsEnum,
   IsNotEmpty,
-  isNotEmpty,
-  IsNumber,
+  IsOptional,
   IsString,
 } from 'class-validator';
 
@@ -46,4 +45,17 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   brandId: string;
+
+  @IsOptional()
+  @IsString()
+  color?: string;
+
+  // START CHANGES — DETAILS ДОБАВЛЕНЫ В CREATE/UPDATE CONTRACT
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  details?: string[];
+
+  // END CHANGES — DETAILS ДОБАВЛЕНЫ В CREATE/UPDATE CONTRACT
 }

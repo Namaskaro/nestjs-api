@@ -2,7 +2,6 @@ import { PrismaService } from '@/src/core/prisma/prisma.service';
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { hash } from 'argon2';
@@ -46,10 +45,6 @@ export class UserService {
         favorites: true,
       },
     });
-
-    // if (!user) {
-    //   throw new NotFoundException('Пользователь не найден');
-    // }
 
     return user;
   }
