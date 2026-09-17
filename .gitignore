@@ -34,3 +34,8 @@ authorized_key.json
 *.dump
 *.sql
 backup*
+
+# App specific 
+
+/data
+/.cache
