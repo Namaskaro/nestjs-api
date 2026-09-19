@@ -1,5 +1,7 @@
 import { readProductContext } from '../../../schemas/product-context.schema';
+
 import type { ProductAgentStateUpdate } from '../product-agent.state';
+
 import {
   findProductNeed,
   type ProductTurnContext,
@@ -18,9 +20,12 @@ export function handleSearchShowTurn({
   context.displayOrder = state.searchResults.flatMap((result) =>
     result.products.map((product) => ({
       needId: result.needId,
+
       productId: product.id,
     })),
   );
+
+  context.referenceOrder = [...context.displayOrder];
 
   context.comparison = context.comparison.filter((reference) => {
     if (state.searchNeedIds.includes(reference.needId)) {
@@ -44,7 +49,9 @@ export function handleSearchShowTurn({
 
       const label = [
         need.semanticQuery,
+
         need.filters.brand,
+
         need.filters.color,
 
         need.filters.size ? `размер ${need.filters.size}` : null,

@@ -20,11 +20,14 @@ import {
 } from '@/src/support-agent/support-agent.service';
 
 import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
+
 import { ChatService } from './chat.service';
+
 import { JoinChatDto } from './dto/join-chat.dto';
+
 import { SendMessageDto } from './dto/send-message.dto';
 
-// ===== START CHANGE: RETRY ТОЛЬКО ДЛЯ ВРЕМЕННЫХ ОШИБОК =====
+import { SubmitConsultationFeedbackDto } from './dto/submit-consultation-feedback.dto';
 
 function isRetryableAssistantError(error: unknown): boolean {
   if (!(error instanceof Error)) {
@@ -74,8 +77,6 @@ function isRetryableAssistantError(error: unknown): boolean {
   );
 }
 
-// ===== END CHANGE: RETRY ТОЛЬКО ДЛЯ ВРЕМЕННЫХ ОШИБОК =====
-
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
   cors: {
@@ -94,6 +95,7 @@ export class ChatGateway {
 
   constructor(
     private readonly chatService: ChatService,
+
     private readonly supportAgentService: SupportAgentService,
   ) {}
 
@@ -168,11 +170,7 @@ export class ChatGateway {
         return;
       }
 
-      // ===== START CHANGE: DB MESSAGE ID ИДЁТ В LANGGRAPH =====
-
       await this.runAssistant(dto.chatId, userMessage.content, userMessage.id);
-
-      // ===== END CHANGE: DB MESSAGE ID ИДЁТ В LANGGRAPH =====
     } finally {
       if (usesAssistant) {
         this.releaseAssistantSlot(dto.chatId);
@@ -228,11 +226,76 @@ export class ChatGateway {
 
       ack();
 
-      // ===== START CHANGE: RETRY НЕ ДУБЛИРУЕТ HUMAN MESSAGE В CHECKPOINT =====
-
       await this.runAssistant(dto.chatId, lastMessage.content, lastMessage.id);
+    } finally {
+      this.releaseAssistantSlot(dto.chatId);
+    }
+  }
 
-      // ===== END CHANGE: RETRY НЕ ДУБЛИРУЕТ HUMAN MESSAGE В CHECKPOINT =====
+  @SubscribeMessage('chat:consultation_feedback')
+  async submitConsultationFeedback(
+    @ConnectedSocket()
+    socket: Socket,
+
+    @MessageBody()
+    dto: SubmitConsultationFeedbackDto,
+
+    @Ack()
+    ack: (payload: unknown) => void,
+  ) {
+    await this.chatService.assertUserCanAccessChat(
+      socket.data.user,
+      dto.chatId,
+    );
+
+    this.acquireAssistantSlot(dto.chatId);
+
+    try {
+      const feedback =
+        await this.supportAgentService.submitConsultationFeedback(
+          dto.chatId,
+          dto.sessionId,
+          dto.helpful,
+        );
+
+      const assistantMessage =
+        await this.chatService.updateConsultationFeedbackMessage({
+          chatId: dto.chatId,
+
+          sessionId: feedback.sessionId,
+
+          helpful: feedback.helpful,
+
+          submittedAt: feedback.submittedAt,
+        });
+
+      this.server
+        .to(`chat:${dto.chatId}`)
+        .emit('chat:message_updated', assistantMessage);
+
+      ack({
+        sessionId: feedback.sessionId,
+
+        helpful: feedback.helpful,
+
+        submittedAt: feedback.submittedAt,
+
+        messageId: assistantMessage.id,
+      });
+    } catch (error) {
+      if (error instanceof WsException) {
+        throw error;
+      }
+
+      if (error instanceof Error && error.message.startsWith('ProductAgent:')) {
+        throw new WsException({
+          status: 'bad_request',
+
+          message: error.message.replace(/^ProductAgent:\s*/u, ''),
+        });
+      }
+
+      throw error;
     } finally {
       this.releaseAssistantSlot(dto.chatId);
     }
@@ -303,7 +366,9 @@ export class ChatGateway {
 
   private async runAssistant(
     chatId: string,
+
     content: string,
+
     messageId: string,
   ) {
     try {
@@ -321,11 +386,7 @@ export class ChatGateway {
     } catch (error) {
       this.logger.error(error);
 
-      // ===== START CHANGE: RETRYABILITY ЗАВИСИТ ОТ ОШИБКИ, А НЕ НОМЕРА ПОПЫТКИ =====
-
       this.emitAssistantError(chatId, error, true);
-
-      // ===== END CHANGE: RETRYABILITY ЗАВИСИТ ОТ ОШИБКИ, А НЕ НОМЕРА ПОПЫТКИ =====
     } finally {
       this.emitAssistantIdle(chatId);
     }
@@ -344,8 +405,6 @@ export class ChatGateway {
       return;
     }
 
-    // ===== START CHANGE: CONSULTATION ARTIFACTS СОХРАНЯЮТСЯ В PAYLOAD =====
-
     const blocks =
       result.answer.type === 'product_agent'
         ? [
@@ -358,12 +417,12 @@ export class ChatGateway {
                 groups: result.answer.groups,
 
                 consultation: result.answer.consultation,
+
+                consultationCompletion: result.answer.consultationCompletion,
               },
             },
           ]
         : result.answer.blocks;
-
-    // ===== END CHANGE: CONSULTATION ARTIFACTS СОХРАНЯЮТСЯ В PAYLOAD =====
 
     const assistantMessage = await this.chatService.createMessage({
       chatId,
@@ -401,7 +460,9 @@ export class ChatGateway {
 
   private emitAssistantError(
     chatId: string,
+
     error: unknown,
+
     allowManualRetry: boolean,
   ) {
     const retryable = allowManualRetry && isRetryableAssistantError(error);
@@ -417,7 +478,11 @@ export class ChatGateway {
     });
   }
 
-  private emitAssistantEvent(chatId: string, event: SupportAgentStreamEvent) {
+  private emitAssistantEvent(
+    chatId: string,
+
+    event: SupportAgentStreamEvent,
+  ) {
     if (event.type === 'assistant_status') {
       this.server.to(`chat:${chatId}`).emit('chat:assistant_status', {
         chatId,

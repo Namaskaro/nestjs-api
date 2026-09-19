@@ -13,9 +13,10 @@ import type { ProductTurnContext } from './product-turn.context';
 
 export function handleDetailsTurn(
   turn: ProductTurnContext,
+
   runtime: ConsultationRuntime,
 ): ProductAgentStateUpdate {
-  const { state } = turn;
+  const { state, context } = turn;
 
   const { core, products } = runtime;
 
@@ -57,9 +58,19 @@ export function handleDetailsTurn(
     focusAttributeIds,
   });
 
+  context.referenceOrder = [reference];
+
   const message = `Подробная информация: ${product.title}.`;
 
-  return finishDeterministicTurn(turn, runtime, message, {
-    productDetailsPresentation,
-  });
+  return finishDeterministicTurn(
+    turn,
+
+    runtime,
+
+    message,
+
+    {
+      productDetailsPresentation,
+    },
+  );
 }

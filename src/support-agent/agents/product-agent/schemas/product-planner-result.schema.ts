@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { ProductClarificationFieldSchema } from '../../../schemas/product-context.schema';
 
+import { ConsultationUserCompletionReasonSchema } from './consultation-lifecycle.schema';
+
 const NeedIndexSchema = z.number().int().min(1).max(5);
 
 export const ProductActionSchema = z.enum([
@@ -11,10 +13,10 @@ export const ProductActionSchema = z.enum([
   'DETAILS',
   'FEEDBACK',
   'CONSULT',
+  'COMPLETE',
+  'HANDOFF',
   'CLARIFY',
 ]);
-
-// ===== START CHANGE: FILTER PATCH =====
 
 export const ProductFilterPatchSchema = z.object({
   gender: z.enum(['MAN', 'WOMAN', 'UNISEX']).nullable().optional(),
@@ -50,18 +52,12 @@ export const ProductFilterPatchSchema = z.object({
 
 export type ProductFilterPatch = z.infer<typeof ProductFilterPatchSchema>;
 
-// ===== END CHANGE: FILTER PATCH =====
-
 export const ProductNeedPatchSchema = z.object({
   needIndex: NeedIndexSchema.nullable(),
 
   semanticQuery: z.string().trim().min(1).max(1000).nullable(),
 
-  // ===== START CHANGE: FILTER CHANGES -> FILTER PATCH =====
-
   filterPatch: ProductFilterPatchSchema,
-
-  // ===== END CHANGE: FILTER CHANGES -> FILTER PATCH =====
 
   brandMode: z.enum(['keep', 'candidate', 'required', 'preferred', 'clear']),
 
@@ -74,6 +70,11 @@ export const ProductNeedPatchSchema = z.object({
   removePreferences: z.array(z.string().trim().min(1).max(500)).max(10),
 });
 
+export const ProductPlannerHandoffReasonSchema = z.enum([
+  'CUSTOMER_REQUEST',
+  'UNSUPPORTED_ACTION',
+]);
+
 export const ProductPlannerResultSchema = z.object({
   action: ProductActionSchema,
 
@@ -83,13 +84,17 @@ export const ProductPlannerResultSchema = z.object({
 
   reuseNeedIndexes: z.array(NeedIndexSchema).max(5),
 
-  referenceSource: z.enum(['display', 'comparison']),
+  referenceSource: z.enum(['active', 'display', 'comparison']),
 
   positions: z.array(z.number().int().min(1).max(25)).max(4),
 
   attributeIds: z.array(z.string().trim().min(1)).max(8),
 
   reaction: z.enum(['like', 'dislike', 'mixed']).nullable(),
+
+  completionReason: ConsultationUserCompletionReasonSchema.nullable(),
+
+  handoffReason: ProductPlannerHandoffReasonSchema.nullable(),
 
   question: z.string().trim().min(1).max(500).nullable(),
 

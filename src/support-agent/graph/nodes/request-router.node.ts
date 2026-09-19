@@ -12,19 +12,38 @@ import {
   RequestRouterWorkerSchema,
 } from '../../schemas/request-router.schema';
 
+import { readProductContext } from '../../schemas/product-context.schema';
+
 import { SupportAgentState } from '../support-agent.state';
 
-// ===== START CHANGE — COMPACT PRODUCT CONTEXT FOR ROUTER =====
+function createRouterProductContext(value: unknown) {
+  if (value == null) {
+    return null;
+  }
 
-function createRouterProductContext(
-  context: typeof SupportAgentState.State.productContext,
-) {
-  if (!context) {
+  const context = readProductContext(value);
+
+  if (context.needs.length === 0) {
     return null;
   }
 
   const indexOf = (needId: string) =>
     context.needs.findIndex((need) => need.needId === needId) + 1;
+
+  const presentation = (refs: typeof context.displayOrder) =>
+    refs.map((ref, index) => ({
+      position: index + 1,
+
+      needIndex: indexOf(ref.needId),
+
+      productId: ref.productId,
+    }));
+
+  const activeReferences = context.referenceOrder.length
+    ? context.referenceOrder
+    : context.comparison.length
+    ? context.comparison
+    : context.displayOrder;
 
   return {
     version: context.version,
@@ -41,17 +60,23 @@ function createRouterProductContext(
       productsCount: need.shownProducts.length,
     })),
 
-    display: context.displayOrder.map((reference, index) => ({
-      position: index + 1,
+    active: presentation(activeReferences),
 
-      needIndex: indexOf(reference.needId),
-    })),
+    display: presentation(context.displayOrder),
 
-    comparison: context.comparison.map((reference, index) => ({
-      position: index + 1,
+    comparison: presentation(context.comparison),
 
-      needIndex: indexOf(reference.needId),
-    })),
+    consultationSession: context.consultationSession
+      ? {
+          status: context.consultationSession.status,
+
+          needIndexes: context.consultationSession.needIds
+            .map(indexOf)
+            .filter((index) => index > 0),
+
+          completionReason: context.consultationSession.completionReason,
+        }
+      : null,
 
     pendingClarification: context.pendingClarification
       ? {
@@ -70,8 +95,6 @@ function createRouterProductContext(
       : null,
   };
 }
-
-// ===== END CHANGE — COMPACT PRODUCT CONTEXT FOR ROUTER =====
 
 export function createRequestRouterNode(
   aiService: AiService,
@@ -92,8 +115,6 @@ export function createRequestRouterNode(
       state.messages.slice(0, -1),
     );
 
-    // ===== START CHANGE — DO NOT SEND FULL PRODUCT CONTEXT =====
-
     const routerProductContext = createRouterProductContext(
       state.productContext,
     );
@@ -101,8 +122,6 @@ export function createRequestRouterNode(
     const productContext = routerProductContext
       ? JSON.stringify(routerProductContext, null, 2)
       : 'null';
-
-    // ===== END CHANGE — DO NOT SEND FULL PRODUCT CONTEXT =====
 
     const modelDecision = await chain.invoke({
       history,
@@ -112,40 +131,83 @@ export function createRequestRouterNode(
       productContext,
     });
 
-    const workers = RequestRouterWorkerSchema.options.filter(
-      (worker) => modelDecision.workerQueries[worker] !== null,
+    const workerQueries = {
+      ...modelDecision.workerQueries,
+    };
+
+    let workers = RequestRouterWorkerSchema.options.filter(
+      (worker) => workerQueries[worker] !== null,
     );
 
-    const route = workers.length > 0 ? 'execute' : modelDecision.fallbackRoute;
+    let fallbackRoute = modelDecision.fallbackRoute;
 
-    if (!route) {
-      throw new Error(
-        [
-          'RequestRouterNode: модель не выбрала worker',
-          'и не указала fallbackRoute',
-        ].join(' '),
-      );
+    let clarificationTopic = modelDecision.clarificationTopic;
+
+    let handoffRequest = modelDecision.handoffRequest;
+
+    let reason = modelDecision.reason;
+
+    if (workers.length === 0 && !fallbackRoute) {
+      const context = state.productContext
+        ? readProductContext(state.productContext)
+        : null;
+
+      const hasProductContext = Boolean(context && context.needs.length > 0);
+
+      if (hasProductContext) {
+        workerQueries.productAgent = state.query;
+
+        workers = ['productAgent'];
+
+        fallbackRoute = null;
+
+        clarificationTopic = null;
+
+        handoffRequest = null;
+
+        reason =
+          'Deterministic fallback: сохранён ProductContext, запрос передан ProductAgent.';
+      } else {
+        fallbackRoute = 'clarification';
+
+        clarificationTopic = null;
+
+        handoffRequest = null;
+
+        reason = 'Deterministic fallback: модель не выбрала domain agent.';
+      }
     }
 
-    if (route === 'handoff' && !modelDecision.handoffRequest) {
-      throw new Error(
-        'RequestRouterNode: для handoff отсутствует handoffRequest',
-      );
+    if (
+      workers.length === 0 &&
+      fallbackRoute === 'handoff' &&
+      !handoffRequest
+    ) {
+      fallbackRoute = 'clarification';
+
+      clarificationTopic = null;
+
+      handoffRequest = null;
+
+      reason =
+        'Deterministic fallback: модель выбрала handoff без handoffRequest.';
     }
+
+    const route =
+      workers.length > 0 ? 'execute' : fallbackRoute ?? 'clarification';
 
     const decision = RequestRouterSchema.parse({
       route,
 
       workers,
 
-      workerQueries: modelDecision.workerQueries,
+      workerQueries,
 
-      clarificationTopic:
-        route === 'clarification' ? modelDecision.clarificationTopic : null,
+      clarificationTopic: route === 'clarification' ? clarificationTopic : null,
 
-      handoffRequest: route === 'handoff' ? modelDecision.handoffRequest : null,
+      handoffRequest: route === 'handoff' ? handoffRequest : null,
 
-      reason: modelDecision.reason,
+      reason,
     });
 
     const executionMode =

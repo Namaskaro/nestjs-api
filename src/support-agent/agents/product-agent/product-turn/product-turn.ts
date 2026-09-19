@@ -6,11 +6,15 @@ import { prepareConsultationRuntime } from './consultation-runtime';
 
 import { handleCompareTurn } from './compare.turn';
 
+import { handleCompleteConsultationTurn } from './complete-consultation.turn';
+
 import { handleConsultationTurn } from './consultation.turn';
 
 import { handleDetailsTurn } from './details.turn';
 
 import { handleFeedbackTurn } from './feedback.turn';
+
+import { handleProductHandoffTurn } from './handoff.turn';
 
 import type { ProductTurnContext } from './product-turn.context';
 
@@ -22,12 +26,8 @@ export async function handleProductTurn({
   state,
   productAgentService,
   consultant,
-
-  // ===== START CHANGE: RECEIVE SEPARATE COMPARISON SYNTHESIS =====
-
   comparisonSynthesis,
-}: // ===== END CHANGE: RECEIVE SEPARATE COMPARISON SYNTHESIS =====
-HandleProductTurnInput): Promise<ProductAgentStateUpdate> {
+}: HandleProductTurnInput): Promise<ProductAgentStateUpdate> {
   const context = readProductContext(state.productContext);
 
   const turn: ProductTurnContext = {
@@ -39,12 +39,16 @@ HandleProductTurnInput): Promise<ProductAgentStateUpdate> {
 
     consultant,
 
-    // ===== START CHANGE: PASS SYNTHESIS THROUGH PRODUCT TURN CONTEXT =====
-
     comparisonSynthesis,
-
-    // ===== END CHANGE: PASS SYNTHESIS THROUGH PRODUCT TURN CONTEXT =====
   };
+
+  if (state.turn.action === 'COMPLETE') {
+    return handleCompleteConsultationTurn(turn);
+  }
+
+  if (state.turn.action === 'HANDOFF') {
+    return handleProductHandoffTurn(turn);
+  }
 
   if (state.turn.action === 'SEARCH' || state.turn.action === 'SHOW') {
     return handleSearchShowTurn(turn);

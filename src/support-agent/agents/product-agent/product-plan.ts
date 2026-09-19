@@ -6,14 +6,23 @@ import {
   type ProductNeedMemory,
   type ProductReference,
 } from '../../schemas/product-context.schema';
+
+import { HandoffRequestSchema } from '../handoff-agent/schemas/handoff.schema';
+
 import { getCategoryProfile } from './category-profiles';
+
+import { touchConsultationSession } from './consultation-session';
+
 import { emptyConsultationMemory } from './consultation-core/consultation-core.schema';
+
 import type { ProductTurn } from './product-agent.state';
+
 import {
   ProductPlannerResultSchema,
   type ProductFilterPatch,
   type ProductPlannerResult,
 } from './schemas/product-planner-result.schema';
+
 import { ProductSearchFiltersSchema } from './schemas/product-need.schema';
 
 class InvalidPlan extends Error {}
@@ -112,8 +121,6 @@ function applyFilterPatch(
   }
 }
 
-// ===== START CHANGE: ACTION OWNS PLAN FIELDS =====
-
 function normalizePlanByAction(
   plan: ProductPlannerResult,
 ): ProductPlannerResult {
@@ -124,6 +131,8 @@ function normalizePlanByAction(
         positions: [],
         attributeIds: [],
         reaction: null,
+        completionReason: null,
+        handoffReason: null,
         question: null,
         clarificationNeedIndex: null,
         clarificationFields: [],
@@ -136,6 +145,8 @@ function normalizePlanByAction(
         positions: [],
         attributeIds: [],
         reaction: null,
+        completionReason: null,
+        handoffReason: null,
         question: null,
         clarificationNeedIndex: null,
         clarificationFields: [],
@@ -147,6 +158,8 @@ function normalizePlanByAction(
         updates: [],
         removeNeedIndexes: [],
         reaction: null,
+        completionReason: null,
+        handoffReason: null,
         question: null,
         clarificationNeedIndex: null,
         clarificationFields: [],
@@ -160,6 +173,8 @@ function normalizePlanByAction(
         reuseNeedIndexes: [],
         attributeIds: [],
         reaction: null,
+        completionReason: null,
+        handoffReason: null,
         question: null,
         clarificationNeedIndex: null,
         clarificationFields: [],
@@ -172,6 +187,8 @@ function normalizePlanByAction(
         removeNeedIndexes: [],
         reuseNeedIndexes: [],
         attributeIds: [],
+        completionReason: null,
+        handoffReason: null,
         question: null,
         clarificationNeedIndex: null,
         clarificationFields: [],
@@ -183,6 +200,36 @@ function normalizePlanByAction(
         updates: [],
         removeNeedIndexes: [],
         reaction: null,
+        completionReason: null,
+        handoffReason: null,
+        question: null,
+        clarificationNeedIndex: null,
+        clarificationFields: [],
+      };
+
+    case 'COMPLETE':
+      return {
+        ...plan,
+        updates: [],
+        removeNeedIndexes: [],
+        reuseNeedIndexes: [],
+        attributeIds: [],
+        reaction: null,
+        handoffReason: null,
+        question: null,
+        clarificationNeedIndex: null,
+        clarificationFields: [],
+      };
+
+    case 'HANDOFF':
+      return {
+        ...plan,
+        updates: [],
+        removeNeedIndexes: [],
+        reuseNeedIndexes: [],
+        attributeIds: [],
+        reaction: null,
+        completionReason: null,
         question: null,
         clarificationNeedIndex: null,
         clarificationFields: [],
@@ -194,15 +241,15 @@ function normalizePlanByAction(
         updates: [],
         removeNeedIndexes: [],
         reuseNeedIndexes: [],
-        referenceSource: 'display',
+        referenceSource: 'active',
         positions: [],
         attributeIds: [],
         reaction: null,
+        completionReason: null,
+        handoffReason: null,
       };
   }
 }
-
-// ===== END CHANGE: ACTION OWNS PLAN FIELDS =====
 
 export function applyProductPlan(
   previous: unknown,
@@ -221,7 +268,7 @@ export function applyProductPlan(
   const fallback = (
     question: string,
     needId: string | null = null,
-    fields: ProductContext['pendingClarification']['fields'] = [],
+    fields: NonNullable<ProductContext['pendingClarification']>['fields'] = [],
   ) => {
     const context = readProductContext(original);
 
@@ -233,16 +280,31 @@ export function applyProductPlan(
       proposal: null,
     };
 
+    if (context.consultationSession?.status === 'ACTIVE') {
+      touchConsultationSession(context, context.consultationSession.needIds);
+    }
+
     return {
       productContext: context,
+
       activeNeedIds: [],
+
       searchNeedIds: [],
+
       turn: {
         action: 'CLARIFY',
+
         products: [],
+
         attributeIds: [],
+
         reaction: null,
+
+        completionReason: null,
+
+        handoffRequest: null,
       } as ProductTurn,
+
       message: question,
     };
   };
@@ -255,11 +317,7 @@ export function applyProductPlan(
     );
   }
 
-  // ===== START CHANGE: NORMALIZE BY ACTION =====
-
   const plan = normalizePlanByAction(parsed.data);
-
-  // ===== END CHANGE: NORMALIZE BY ACTION =====
 
   const byIndex = (index: number): ProductNeedMemory =>
     original.needs[index - 1] ??
@@ -293,6 +351,14 @@ export function applyProductPlan(
       );
     }
 
+    if (plan.action === 'COMPLETE' && plan.completionReason === null) {
+      reject('Уточните, вы закончили выбор или хотите продолжить подбор?');
+    }
+
+    if (plan.action === 'HANDOFF' && plan.handoffReason === null) {
+      reject('Уточните, нужна ли вам помощь оператора?');
+    }
+
     const context = readProductContext(original);
 
     const removed = new Set(
@@ -302,6 +368,7 @@ export function applyProductPlan(
     context.needs = context.needs.filter((need) => !removed.has(need.needId));
 
     const searchNeedIds: string[] = [];
+
     const touched = new Set<string>();
 
     for (const update of plan.updates) {
@@ -411,10 +478,15 @@ export function applyProductPlan(
 
       const next: ProductNeedMemory = {
         needId,
+
         semanticQuery,
+
         filters,
+
         preferences,
+
         shownProducts: existing?.shownProducts ?? [],
+
         consultation: existing?.consultation ?? emptyConsultationMemory(),
       };
 
@@ -453,21 +525,37 @@ export function applyProductPlan(
       }
     }
 
+    const activeReferenceOrder =
+      original.referenceOrder.length > 0
+        ? original.referenceOrder
+        : original.comparison.length > 0
+        ? original.comparison
+        : original.displayOrder;
+
     const source =
-      plan.referenceSource === 'display'
+      plan.referenceSource === 'active'
+        ? activeReferenceOrder
+        : plan.referenceSource === 'display'
         ? original.displayOrder
         : original.comparison;
 
     let products: ProductReference[] = plan.positions.map(
       (position) =>
         source[position - 1] ??
-        reject('В текущей выдаче нет товара с таким номером.'),
+        reject('В текущем наборе нет товара с таким номером.'),
     );
 
     if (plan.action === 'COMPARE' && !products.length) {
       products = source.filter(
         (reference) => !reuse.length || reuse.includes(reference.needId),
       );
+    }
+
+    if (
+      plan.action === 'COMPLETE' &&
+      plan.completionReason !== 'PRODUCT_SELECTED'
+    ) {
+      products = [];
     }
 
     if (products.some((reference) => !exists(original, reference))) {
@@ -483,7 +571,7 @@ export function applyProductPlan(
         ),
       ).length !== products.length
     ) {
-      reject('Для сравнения нужны разные товары.');
+      reject('Для действия нужны разные товары.');
     }
 
     if (plan.action === 'COMPARE') {
@@ -515,6 +603,28 @@ export function applyProductPlan(
       reject('Что именно вам не подходит в этом товаре?');
     }
 
+    if (
+      plan.action === 'COMPLETE' &&
+      plan.completionReason === 'PRODUCT_SELECTED' &&
+      products.length === 0
+    ) {
+      reject('Какой именно товар вы выбрали?');
+    }
+
+    if (
+      plan.action === 'COMPLETE' &&
+      context.consultationSession?.status !== 'ACTIVE'
+    ) {
+      reject('Сейчас нет активной товарной консультации для завершения.');
+    }
+
+    const terminalNeedIds =
+      context.consultationSession?.status === 'ACTIVE'
+        ? context.consultationSession.needIds.filter((needId) =>
+            context.needs.some((need) => need.needId === needId),
+          )
+        : [];
+
     const activeNeedIds =
       plan.action === 'SEARCH'
         ? unique([...searchNeedIds, ...reuse])
@@ -522,14 +632,23 @@ export function applyProductPlan(
         ? removed.size || !reuse.length
           ? context.needs.map((need) => need.needId)
           : reuse
+        : plan.action === 'COMPLETE' || plan.action === 'HANDOFF'
+        ? unique([
+            ...products.map((reference) => reference.needId),
+            ...terminalNeedIds,
+          ])
         : unique([...products.map((reference) => reference.needId), ...reuse]);
 
-    if (!activeNeedIds.length && !removed.size) {
+    if (!activeNeedIds.length && !removed.size && plan.action !== 'HANDOFF') {
       reject('Какой из подборов вы хотите обсудить?');
     }
 
     for (const needId of activeNeedIds) {
-      const need = context.needs.find((item) => item.needId === needId)!;
+      const need = context.needs.find((item) => item.needId === needId);
+
+      if (!need) {
+        continue;
+      }
 
       const attributes = new Set(
         getCategoryProfile(need.filters.type).attributes.map((item) => item.id),
@@ -544,6 +663,10 @@ export function applyProductPlan(
       exists(context, reference),
     );
 
+    context.referenceOrder = context.referenceOrder.filter((reference) =>
+      exists(context, reference),
+    );
+
     context.comparison = context.comparison.filter(
       (reference) =>
         exists(context, reference) && !searchNeedIds.includes(reference.needId),
@@ -553,9 +676,35 @@ export function applyProductPlan(
       context.comparison = [];
     }
 
+    if (!context.referenceOrder.length) {
+      context.referenceOrder =
+        context.comparison.length > 0
+          ? [...context.comparison]
+          : [...context.displayOrder];
+    }
+
     if (plan.action === 'SEARCH' || plan.action === 'SHOW') {
       context.pendingClarification = null;
     }
+
+    if (
+      activeNeedIds.length &&
+      !['COMPLETE', 'HANDOFF'].includes(plan.action)
+    ) {
+      touchConsultationSession(context, activeNeedIds);
+    }
+
+    const handoffRequest =
+      plan.action === 'HANDOFF' && plan.handoffReason
+        ? HandoffRequestSchema.parse({
+            reason: plan.handoffReason,
+
+            trigger:
+              plan.handoffReason === 'CUSTOMER_REQUEST'
+                ? 'EXPLICIT_USER_REQUEST'
+                : 'UNSUPPORTED_INTENT',
+          })
+        : null;
 
     return {
       productContext: readProductContext(context),
@@ -566,9 +715,16 @@ export function applyProductPlan(
 
       turn: {
         action: plan.action,
+
         products,
+
         attributeIds: plan.attributeIds,
+
         reaction: plan.reaction,
+
+        completionReason: plan.completionReason,
+
+        handoffRequest,
       },
 
       message: activeNeedIds.length ? null : 'Убрал указанные подборы.',

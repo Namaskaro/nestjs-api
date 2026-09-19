@@ -28,7 +28,13 @@ export async function handleCompareTurn(
 
   const { core, products } = runtime;
 
-  const needId = state.turn.products[0].needId;
+  const reference = state.turn.products[0];
+
+  if (!reference) {
+    throw new Error('ProductAgent: COMPARE требует выбранные товары');
+  }
+
+  const needId = reference.needId;
 
   const need = findProductNeed(context, needId);
 
@@ -80,35 +86,31 @@ export async function handleCompareTurn(
     });
   }
 
-  // ===== START CHANGE: VERIFIED CORE COMPARISON =====
-
   const comparisonView = core.compareProducts({
     needId,
 
     expectedRevision: core.referenceOptions(needId).memoryRevision,
 
-    productIds: state.turn.products.map((reference) => reference.productId),
+    productIds: state.turn.products.map(
+      (productReference) => productReference.productId,
+    ),
 
     attributeIds: state.turn.attributeIds.length
       ? state.turn.attributeIds
       : null,
   });
 
-  // ===== END CHANGE: VERIFIED CORE COMPARISON =====
-
-  // ===== START CHANGE: DETAILS ARTIFACTS FOR FUTURE SIDE-BY-SIDE CARDS =====
-
   core.getProductDetails({
     needId,
 
-    productIds: state.turn.products.map((reference) => reference.productId),
+    productIds: state.turn.products.map(
+      (productReference) => productReference.productId,
+    ),
 
     attributeIds: null,
 
     presentation: 'details',
   });
-
-  // ===== END CHANGE: DETAILS ARTIFACTS FOR FUTURE SIDE-BY-SIDE CARDS =====
 
   const comparison = core
     .currentArtifacts()
@@ -121,8 +123,6 @@ export async function handleCompareTurn(
       'ProductAgent: ConsultationCore не создал comparison artifact',
     );
   }
-
-  // ===== START CHANGE: USER-FACING PRESENTATION =====
 
   const prepared = prepareComparisonPresentation({
     comparison,
@@ -146,9 +146,9 @@ export async function handleCompareTurn(
 
   const message = buildComparisonMessage(presentation);
 
-  // ===== END CHANGE: USER-FACING PRESENTATION =====
+  context.comparison = [...state.turn.products];
 
-  context.comparison = state.turn.products;
+  context.referenceOrder = [...state.turn.products];
 
   return finishDeterministicTurn(turn, runtime, message, {
     comparisonPresentation: presentation,

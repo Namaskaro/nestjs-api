@@ -1,14 +1,18 @@
 import { z } from 'zod';
 
 import { ProductItemSchema } from '../agents/product-agent/schemas/product-agent-result.schema';
+
 import {
   ConsultationMemorySchema,
   emptyConsultationMemory,
 } from '../agents/product-agent/consultation-core/consultation-core.schema';
+
 import {
   ProductNeedSchema,
   ProductSearchFiltersSchema,
 } from '../agents/product-agent/schemas/product-need.schema';
+
+import { ConsultationSessionSchema } from '../agents/product-agent/schemas/consultation-lifecycle.schema';
 
 export const ProductReferenceSchema = z.object({
   needId: z.string().min(1),
@@ -65,7 +69,14 @@ const ProductContextV2Schema = z.object({
 
   comparison: z.array(ProductReferenceSchema).max(4),
 
+  referenceOrder: z
+    .array(ProductReferenceSchema)
+    .max(25)
+    .default(() => []),
+
   pendingClarification: PendingProductClarificationSchema.nullable(),
+
+  consultationSession: ConsultationSessionSchema.nullable().default(null),
 });
 
 const LegacyProductContextSchema = z.object({
@@ -88,44 +99,52 @@ export function emptyProductContext(): ProductContext {
 
     comparison: [],
 
+    referenceOrder: [],
+
     pendingClarification: null,
+
+    consultationSession: null,
   };
 }
 
-export const ProductContextSchema = z.preprocess((value) => {
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    'version' in value &&
-    value.version === 2
-  ) {
-    return value;
-  }
+export const ProductContextSchema = z.preprocess(
+  (value) => {
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'version' in value &&
+      value.version === 2
+    ) {
+      return value;
+    }
 
-  const legacy = LegacyProductContextSchema.safeParse(value);
+    const legacy = LegacyProductContextSchema.safeParse(value);
 
-  if (!legacy.success) {
-    return value;
-  }
+    if (!legacy.success) {
+      return value;
+    }
 
-  return {
-    ...emptyProductContext(),
+    return {
+      ...emptyProductContext(),
 
-    needs: legacy.data.needs.map((need, index) => ({
-      needId: `legacy-${index + 1}`,
+      needs: legacy.data.needs.map((need, index) => ({
+        needId: `legacy-${index + 1}`,
 
-      semanticQuery: need.semanticQuery,
+        semanticQuery: need.semanticQuery,
 
-      filters: need.filters,
+        filters: need.filters,
 
-      preferences: [],
+        preferences: [],
 
-      shownProducts: [],
+        shownProducts: [],
 
-      consultation: emptyConsultationMemory(),
-    })),
-  };
-}, ProductContextV2Schema);
+        consultation: emptyConsultationMemory(),
+      })),
+    };
+  },
+
+  ProductContextV2Schema,
+);
 
 export function readProductContext(value: unknown): ProductContext {
   return value == null

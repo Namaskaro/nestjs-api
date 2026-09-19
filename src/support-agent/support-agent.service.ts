@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
+
 import { INTERRUPT, isInterrupted } from '@langchain/langgraph';
 
 import { SupportAgentGraph } from './graph/support-agent.graph';
+
+import type { ConsultationFeedbackReceipt } from './agents/product-agent/schemas/consultation-lifecycle.schema';
+
 import type { AssistantStatus } from './schemas/support-agent-status.schema';
 
 type SupportAgentGraphResult = Awaited<ReturnType<SupportAgentGraph['invoke']>>;
@@ -15,21 +19,26 @@ export type SupportAgentAssistantStatus = AssistantStatus;
 export type SupportAgentStreamEvent =
   | {
       type: 'assistant_status';
+
       status: SupportAgentAssistantStatus;
     }
   | {
       type: 'assistant_delta';
+
       delta: string;
     };
 
 export type SupportAgentRunResult =
   | {
       kind: 'answer';
+
       answer: SupportAgentAnswer;
+
       handoff: SupportAgentHandoff;
     }
   | {
       kind: 'interrupt';
+
       interrupt: unknown;
     };
 
@@ -57,21 +66,22 @@ export class SupportAgentService {
 
   async run(
     query: string,
+
     threadId: string,
+
     onEvent?: EventHandler,
+
     messageId?: string,
   ): Promise<SupportAgentRunResult> {
     return this.withThreadLock(threadId, async () => {
       const result = await this.supportAgentGraph.invoke(
         query,
+
         threadId,
+
         this.createCustomEventHandler(onEvent),
 
-        // ===== START CHANGE: RETRY ПЕРЕИСПОЛЬЗУЕТ ID DB-СООБЩЕНИЯ =====
-
         messageId,
-
-        // ===== END CHANGE: RETRY ПЕРЕИСПОЛЬЗУЕТ ID DB-СООБЩЕНИЯ =====
       );
 
       return this.toRunResult(result);
@@ -88,7 +98,9 @@ export class SupportAgentService {
     return this.withThreadLock(threadId, async () => {
       const result = await this.supportAgentGraph.resume(
         value,
+
         threadId,
+
         this.createCustomEventHandler(onEvent),
       );
 
@@ -96,12 +108,39 @@ export class SupportAgentService {
     });
   }
 
-  streamEvents(query: string, threadId: string) {
-    return this.supportAgentGraph.streamEvents(query, threadId);
+  async submitConsultationFeedback(
+    threadId: string,
+
+    sessionId: string,
+
+    helpful: boolean,
+  ): Promise<ConsultationFeedbackReceipt> {
+    return this.withThreadLock(threadId, () =>
+      this.supportAgentGraph.submitConsultationFeedback(
+        threadId,
+
+        sessionId,
+
+        helpful,
+      ),
+    );
+  }
+
+  streamEvents(
+    query: string,
+
+    threadId: string,
+  ) {
+    return this.supportAgentGraph.streamEvents(
+      query,
+
+      threadId,
+    );
   }
 
   private async withThreadLock<T>(
     threadId: string,
+
     operation: () => Promise<T>,
   ): Promise<T> {
     if (this.activeThreadIds.has(threadId)) {
@@ -122,7 +161,11 @@ export class SupportAgentService {
       return undefined;
     }
 
-    return async (eventName: string, payload: unknown) => {
+    return async (
+      eventName: string,
+
+      payload: unknown,
+    ) => {
       if (eventName === 'assistant_status') {
         const eventPayload = payload as {
           status: SupportAgentAssistantStatus;
@@ -130,6 +173,7 @@ export class SupportAgentService {
 
         await onEvent({
           type: 'assistant_status',
+
           status: eventPayload.status,
         });
 
@@ -143,6 +187,7 @@ export class SupportAgentService {
 
         await onEvent({
           type: 'assistant_delta',
+
           delta: eventPayload.delta,
         });
       }
@@ -161,6 +206,7 @@ export class SupportAgentService {
 
       return {
         kind: 'interrupt',
+
         interrupt: interrupt.value,
       };
     }
@@ -171,7 +217,9 @@ export class SupportAgentService {
 
     return {
       kind: 'answer',
+
       answer: result.answer,
+
       handoff: result.handoff,
     };
   }

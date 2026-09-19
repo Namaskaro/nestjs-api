@@ -1,17 +1,31 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 import { HumanMessage } from '@langchain/core/messages';
+
 import { Command, END, START, StateGraph } from '@langchain/langgraph';
+
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 
 import { AiService } from '@/src/ai/ai.service';
+
 import { StoreKnowledgeService } from '@/src/store-knowledge/store-knowledge.service';
 
 import { createCustomerHelpAgent } from '../agents/customer-help-agent/customer-help.agent';
+
 import { createHandoffAgentGraph } from '../agents/handoff-agent/handoff-agent.graph';
+
 import { handoffResultNode } from '../agents/handoff-agent/nodes/handoff-result.node';
+
+import { submitConsultationFeedback as applyConsultationFeedback } from '../agents/product-agent/consultation-session';
+
 import { ProductAgentService } from '../agents/product-agent/product-agent.service';
+
 import { createProductAgent } from '../agents/product-agent/product.agent';
+
+import {
+  ConsultationFeedbackReceiptSchema,
+  type ConsultationFeedbackReceipt,
+} from '../agents/product-agent/schemas/consultation-lifecycle.schema';
 
 import {
   SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
@@ -20,21 +34,31 @@ import {
 } from '../config/support-agent-execution.config';
 
 import { RequestRouterWorkerSchema } from '../schemas/request-router.schema';
+
+import { readProductContext } from '../schemas/product-context.schema';
+
 import { SupportAgentResumeValue } from '../schemas/support-agent-resume.schema';
 
 import { createAggregateFinalAnswerNode } from './nodes/aggregate-final-answer.node';
+
 import { clarificationQuestionNode } from './nodes/clarification-question.node';
+
 import { clarificationTopicNode } from './nodes/clarification-topic.node';
+
 import { preIntentNode } from './nodes/pre-intent.node';
+
 import { rejectNode } from './nodes/reject.node';
+
 import { createRequestRouterNode } from './nodes/request-router.node';
 
 import { afterPreIntentRoute } from './routers/after-pre-intent.route';
+
 import { afterRequestRoute } from './routers/after-request.route';
 
 import { SupportAgentState } from './support-agent.state';
 
 import { createCustomerHelpAgentWorker } from './workers/customer-help-agent.worker';
+
 import { createProductAgentWorker } from './workers/product-agent.worker';
 
 @Injectable()
@@ -45,7 +69,9 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly aiService: AiService,
+
     private readonly productAgentService: ProductAgentService,
+
     private readonly storeKnowledgeService: StoreKnowledgeService,
   ) {
     const postgresUri = process.env.POSTGRES_URI;
@@ -104,11 +130,7 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
         retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
 
-        // ===== START CHANGE: PRODUCT AGENT ИМЕЕТ ОТДЕЛЬНЫЙ WALL-CLOCK LIMIT =====
-
         timeout: SUPPORT_AGENT_PRODUCT_NODE_TIMEOUT_MS,
-
-        // ===== END CHANGE: PRODUCT AGENT ИМЕЕТ ОТДЕЛЬНЫЙ WALL-CLOCK LIMIT =====
       })
 
       .addNode('aggregateAnswer', aggregateAnswerNode)
@@ -176,23 +198,19 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   invoke(
     query: string,
+
     threadId: string,
+
     onCustomEvent?: (
       eventName: string,
       payload: unknown,
     ) => void | Promise<void>,
 
-    // ===== START CHANGE: STABLE MESSAGE ID =====
-
     messageId?: string,
-
-    // ===== END CHANGE: STABLE MESSAGE ID =====
   ) {
     return this.graph.invoke(
       {
         query,
-
-        // ===== START CHANGE: RETRY НЕ ДУБЛИРУЕТ HUMAN MESSAGE =====
 
         messages: [
           new HumanMessage({
@@ -205,8 +223,6 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
               : {}),
           }),
         ],
-
-        // ===== END CHANGE: RETRY НЕ ДУБЛИРУЕТ HUMAN MESSAGE =====
       },
       {
         configurable: {
@@ -243,7 +259,9 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   resume(
     value: SupportAgentResumeValue,
+
     threadId: string,
+
     onCustomEvent?: (
       eventName: string,
       payload: unknown,
@@ -269,7 +287,11 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  resumeEvents(value: SupportAgentResumeValue, threadId: string) {
+  resumeEvents(
+    value: SupportAgentResumeValue,
+
+    threadId: string,
+  ) {
     return this.graph.streamEvents(
       new Command({
         resume: value,
@@ -282,5 +304,37 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
         },
       },
     );
+  }
+
+  async submitConsultationFeedback(
+    threadId: string,
+
+    sessionId: string,
+
+    helpful: boolean,
+  ): Promise<ConsultationFeedbackReceipt> {
+    const config = {
+      configurable: {
+        thread_id: threadId,
+      },
+    };
+
+    const snapshot = await this.graph.getState(config);
+
+    const productContext = readProductContext(snapshot.values.productContext);
+
+    const feedback = applyConsultationFeedback(productContext, {
+      sessionId,
+
+      helpful,
+
+      source: 'BUTTON',
+    });
+
+    await this.graph.updateState(config, {
+      productContext: readProductContext(productContext),
+    });
+
+    return ConsultationFeedbackReceiptSchema.parse(feedback);
   }
 }
