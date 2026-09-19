@@ -32,10 +32,10 @@ authorized_key.json
 *.pem
 
 *.dump
-*.sql
+/*.sql
 backup*
 
 # App specific 
 
-/data
-/.cache
+/data/
+/.cache/
