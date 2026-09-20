@@ -1,6 +1,6 @@
 // START CHANGES — CATEGORY PROFILE REGISTRY
 
-import type { CategoryProfile } from '../consultation-core/consultation-core.schema';
+import type { CategoryProfile } from '@/src/product-consultation/core/consultation-core.schema';
 import { ACCESSORIES_PROFILE } from './accessories.profile';
 
 import { CLOTHES_PROFILE } from './clothes.profile';

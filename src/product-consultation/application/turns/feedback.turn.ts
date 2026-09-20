@@ -1,4 +1,4 @@
-import type { ProductAgentStateUpdate } from '../product-agent.state';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
 import {
   finishDeterministicTurn,
   type ConsultationRuntime,

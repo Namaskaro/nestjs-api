@@ -16,9 +16,8 @@ import {
   ProductSearchAnswerBlockSchema,
 } from '@/src/support-agent/schemas/support-agent-answer.schema';
 
-import { ProductAgent } from '../../agents/product-agent/product.agent';
-
-import { readProductContext } from '../../../product-consultation/application/context/product-context.schema';
+import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
+import { ProductAgent } from '@/src/product-consultation/application/agent/product.agent';
 
 export function createProductAgentWorker(
   productAgent: ProductAgent,

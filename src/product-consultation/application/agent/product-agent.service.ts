@@ -15,18 +15,18 @@ import { normalizeSearchFilterValue } from '@/src/shared/utils/normalize-search-
 import {
   buildCurrentStoreBinding,
   type ResolvedStoreCatalog,
-} from '../../../product-consultation/adapters/current-store/current-store.mapping';
-import { toProductDetailsMany } from '../../../product-consultation/adapters/current-store/current-store-product.adapter';
-import type { ProductDetails } from './consultation-core/consultation-core.schema';
+} from '../../adapters/current-store/current-store.mapping';
+import { toProductDetailsMany } from '../../adapters/current-store/current-store-product.adapter';
+import type { ProductDetails } from '@/src/product-consultation/core/consultation-core.schema';
 import {
   ProductItemSchema,
   type ProductItem,
-} from '../../../product-consultation/application/agent/product-agent-result.schema';
-import type { ProductNeed } from '../../../product-consultation/application/search/product-need.schema';
+} from '@/src/product-consultation/application/agent/product-agent-result.schema';
+import type { ProductNeed } from '@/src/product-consultation/application/search/product-need.schema';
 import {
   ProductSearchResultSchema,
   type ProductSearchResult,
-} from './schemas/product-search-results.schema';
+} from '@/src/product-consultation/application/search/product-search-results.schema';
 
 const RRF_CANDIDATE_LIMIT = 20;
 const FINAL_PRODUCT_LIMIT = 5;

@@ -1,6 +1,6 @@
 // START CHANGES — EXPANDED FASHION ACCESSORIES CATEGORY PROFILE
 
-import { CategoryProfileSchema } from '../consultation-core/consultation-core.schema';
+import { CategoryProfileSchema } from '@/src/product-consultation/core/consultation-core.schema';
 import {
   GENERIC_ATTRIBUTES,
   capacityAttribute,

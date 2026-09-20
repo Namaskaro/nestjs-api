@@ -4,9 +4,8 @@ import { INTERRUPT, isInterrupted } from '@langchain/langgraph';
 
 import { SupportAgentGraph } from './graph/support-agent.graph';
 
-import type { ConsultationFeedbackReceipt } from './agents/product-agent/schemas/consultation-lifecycle.schema';
-
 import type { AssistantStatus } from './schemas/support-agent-status.schema';
+import { ConsultationFeedbackReceipt } from '../product-consultation/application/session/consultation-lifecycle.schema';
 
 type SupportAgentGraphResult = Awaited<ReturnType<SupportAgentGraph['invoke']>>;
 

@@ -1,4 +1,4 @@
-import { CategoryProfileSchema } from '../consultation-core/consultation-core.schema';
+import { CategoryProfileSchema } from '@/src/product-consultation/core/consultation-core.schema';
 import { GENERIC_ATTRIBUTES } from './shared.attributes';
 
 export const GENERIC_PROFILE = CategoryProfileSchema.parse({

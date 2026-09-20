@@ -3,8 +3,8 @@
 // import {
 //   HandoffRequestSchema,
 //   HandoffSchema,
-// } from '../agents/handoff-agent/schemas/handoff.schema';
-// import { ProductNeedSchema } from '../agents/product-agent/schemas/product-need.schema';
+// } from '@/src/support-agent/agents/handoff-agent/schemas/handoff.schema';
+// import { ProductNeedSchema } from '@/src/product-consultation/application/search/product-need.schema';
 // import { ClarificationTopicSchema } from '../schemas/clarification-topic.schema';
 // import {
 //   RequestRouterSchema,
@@ -71,7 +71,7 @@ import { z } from 'zod';
 import {
   HandoffRequestSchema,
   HandoffSchema,
-} from '../agents/handoff-agent/schemas/handoff.schema';
+} from '@/src/support-agent/agents/handoff-agent/schemas/handoff.schema';
 
 import { ClarificationTopicSchema } from '../schemas/clarification-topic.schema';
 
@@ -84,7 +84,7 @@ import {
   SupportAgentAnswerBlockSchema,
   SupportAgentAnswerSchema,
 } from '../schemas/support-agent-answer.schema';
-import { ProductContextSchema } from '../../product-consultation/application/context/product-context.schema';
+import { ProductContextSchema } from '@/src/product-consultation/application/context/product-context.schema';
 
 export const SupportAgentState = new StateSchema({
   query: z.string(),

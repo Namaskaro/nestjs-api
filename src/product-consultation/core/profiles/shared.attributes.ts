@@ -3,7 +3,7 @@
 import {
   AttributeDefinitionSchema,
   type AttributeDefinition,
-} from '../consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 
 type AttributeOptions = {
   kind?: 'text' | 'number' | 'boolean' | 'set';

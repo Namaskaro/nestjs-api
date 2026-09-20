@@ -1,18 +1,18 @@
 import type { GraphNode } from '@langchain/langgraph';
 
-import { AiService } from '../../../../ai/ai.service';
+import { AiService } from '@/src/ai/ai.service';
 
-import { ProductAgentService } from '../product-agent.service';
+import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
-import { ProductAgentState } from '../product-agent.state';
+import { ProductAgentState } from '@/src/product-consultation/application/agent/product-agent.state';
 
-import { handleProductTurn } from '../product-turn/product-turn';
+import { handleProductTurn } from '@/src/product-consultation/application/turns/product-turn';
 
-import { createConsultationAgent } from '../subagents/consultation-agent/consultation.agent';
+import { createConsultationAgent } from '@/src/product-consultation/application/consultation-agent/consultation.agent';
 
 // ===== START CHANGE: CREATE COMPARISON SYNTHESIS SEPARATELY =====
 
-import { createComparisonSynthesis } from '../subagents/consultation-agent/comparison-synthesis';
+import { createComparisonSynthesis } from '@/src/product-consultation/application/consultation-agent/comparison-synthesis';
 
 // ===== END CHANGE: CREATE COMPARISON SYNTHESIS SEPARATELY =====
 

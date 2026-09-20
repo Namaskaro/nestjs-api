@@ -1,14 +1,14 @@
 import type {
   CategoryProfile,
   ProductDetails,
-} from '../consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 
 import {
   ProductDetailsPresentationSchema,
   ProductSnapshotSchema,
   type ProductDetailsPresentation,
   type ProductSnapshot,
-} from '../../../support-agent/agents/product-agent/schemas/product-presentation.schema';
+} from '@/src/product-consultation/application/presentation/product-presentation.schema';
 
 const PRODUCT_ENVELOPE_ATTRIBUTE_IDS = new Set([
   'price',

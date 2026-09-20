@@ -1,5 +1,5 @@
-import { CATEGORY_PROFILES } from '../../core/profiles';
-import type { ProductDetails } from '../../consultation-core/consultation-core.schema';
+import { CATEGORY_PROFILES } from '@/src/product-consultation/core/profiles';
+import type { ProductDetails } from '@/src/product-consultation/core/consultation-core.schema';
 import { createCatalogAdapter } from '../catalog/catalog-adapter';
 import {
   CURRENT_STORE_MAPPING,

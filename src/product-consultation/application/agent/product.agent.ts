@@ -1,6 +1,6 @@
 import { END, START, StateGraph } from '@langchain/langgraph';
 
-import { AiService } from '../../../ai/ai.service';
+import { AiService } from '@/src/ai/ai.service';
 
 import { createConsultProductsNode } from './nodes/consult-products.node';
 
@@ -8,12 +8,12 @@ import { createPlanProductNode } from './nodes/plan-product.node';
 
 import { createSearchProductsNode } from './nodes/search-products.node';
 
-import { ProductAgentService } from './product-agent.service';
+import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
 import {
   ProductAgentState,
   type ProductAgentStateType,
-} from './product-agent.state';
+} from '@/src/product-consultation/application/agent/product-agent.state';
 
 function routeAfterPlan(state: ProductAgentStateType) {
   if (state.turn.action === 'COMPLETE' || state.turn.action === 'HANDOFF') {

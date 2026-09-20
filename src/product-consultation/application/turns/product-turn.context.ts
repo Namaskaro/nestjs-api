@@ -1,17 +1,17 @@
 import {
   type ProductContext,
   type ProductNeedMemory,
-} from '../../../../product-consultation/application/context/product-context.schema';
+} from '@/src/product-consultation/application/context/product-context.schema';
 
-import { ProductAgentService } from '../product-agent.service';
+import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
-import type { ProductAgentStateType } from '../product-agent.state';
+import type { ProductAgentStateType } from '@/src/product-consultation/application/agent/product-agent.state';
 
-import type { ConsultationAgent } from '../subagents/consultation-agent/consultation.agent';
+import type { ConsultationAgent } from '@/src/product-consultation/application/consultation-agent/consultation.agent';
 
 // ===== START CHANGE: SEPARATE COMPARISON SYNTHESIS DEPENDENCY =====
 
-import type { ComparisonSynthesis } from '../subagents/consultation-agent/comparison-synthesis';
+import type { ComparisonSynthesis } from '@/src/product-consultation/application/consultation-agent/comparison-synthesis';
 
 // ===== END CHANGE: SEPARATE COMPARISON SYNTHESIS DEPENDENCY =====
 

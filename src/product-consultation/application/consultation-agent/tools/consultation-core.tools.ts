@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { tool } from 'langchain';
-import { ConsultationCore } from '../../../../../../product-consultation/core/consultation-core';
+import { ConsultationCore } from '@/src/product-consultation/core/consultation-core';
 import {
   CompareProductsInputSchema,
   ConsultationMemoryPatchSchema,
   GetProductDetailsInputSchema,
-} from '../../../consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 import {
   UpdateConsultationMemoryToolInputSchema,
   type ConsultationMemoryOperation,

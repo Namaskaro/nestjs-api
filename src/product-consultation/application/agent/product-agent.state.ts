@@ -4,20 +4,20 @@ import { z } from 'zod';
 import {
   ProductContextSchema,
   ProductReferenceSchema,
-} from '../../../product-consultation/application/context/product-context.schema';
+} from '@/src/product-consultation/application/context/product-context.schema';
 
-import { HandoffRequestSchema } from '../handoff-agent/schemas/handoff.schema';
+import { HandoffRequestSchema } from '@/src/support-agent/agents/handoff-agent/schemas/handoff.schema';
 
 import {
   ConsultationCompletionPresentationSchema,
   ConsultationUserCompletionReasonSchema,
-} from '../../../product-consultation/application/session/consultation-lifecycle.schema';
+} from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
 
-import { ProductActionSchema } from '../../../product-consultation/application/planner/product-planner-result.schema';
+import { ProductActionSchema } from '@/src/product-consultation/application/planner/product-planner-result.schema';
 
-import { ProductSearchResultSchema } from './schemas/product-search-results.schema';
+import { ProductSearchResultSchema } from '@/src/product-consultation/application/search/product-search-results.schema';
 
-import { ConsultationAgentResultSchema } from './subagents/consultation-agent/schemas/consultation-agent.schema';
+import { ConsultationAgentResultSchema } from '@/src/product-consultation/application/consultation-agent/schemas/consultation-agent.schema';
 
 export const ProductTurnSchema = z.object({
   action: ProductActionSchema,

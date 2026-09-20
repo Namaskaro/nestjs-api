@@ -4,7 +4,7 @@ import {
   PendingProductClarificationSchema,
   ProductClarificationFieldSchema,
   ProductReferenceSchema,
-} from '../../../../../../product-consultation/application/context/product-context.schema';
+} from '@/src/product-consultation/application/context/product-context.schema';
 
 import {
   AgentConsultationMemoryViewSchema,
@@ -18,11 +18,11 @@ import {
   ProductComparisonSchema,
   ProductDetailsArtifactSchema,
   RecommendationSchema,
-} from '../../../consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 
-import { ComparisonPresentationSchema } from '../../../schemas/comparison-presentation.schema';
+import { ComparisonPresentationSchema } from '@/src/product-consultation/application/presentation/comparison-presentation.schema';
 
-import { ProductDetailsPresentationSchema } from '../../../schemas/product-presentation.schema';
+import { ProductDetailsPresentationSchema } from '@/src/product-consultation/application/presentation/product-presentation.schema';
 
 export const ConsultationRefinementFieldSchema =
   ProductClarificationFieldSchema;
