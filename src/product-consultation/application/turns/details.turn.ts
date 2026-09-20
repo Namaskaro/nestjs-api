@@ -1,13 +1,13 @@
-import { getCategoryProfile } from '../../../../product-consultation/core/profiles';
+import { getCategoryProfile } from '@/src/product-consultation/core/profiles';
 
-import type { ProductAgentStateUpdate } from '../product-agent.state';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
 
 import {
   finishDeterministicTurn,
   type ConsultationRuntime,
 } from './consultation-runtime';
 
-import { buildProductDetailsPresentation } from './product-presentation';
+import { buildProductDetailsPresentation } from '@/src/product-consultation/application/presentation/product-presentation';
 
 import type { ProductTurnContext } from './product-turn.context';
 

@@ -1,13 +1,13 @@
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
-import { AiService } from '../../../../../ai/ai.service';
+import { AiService } from '@/src/ai/ai.service';
 
 import {
   ComparisonSynthesisInputSchema,
   ComparisonSynthesisOutputSchema,
   type ComparisonSynthesisInput,
   type ComparisonSynthesisOutput,
-} from '../../schemas/comparison-presentation.schema';
+} from '@/src/product-consultation/application/presentation/comparison-presentation.schema';
 
 import { comparisonSynthesisPrompt } from './prompts/comparison-synthesis.prompt';
 

@@ -1,28 +1,28 @@
-import { readProductContext } from '../context/product-context.schema';
+import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
-import { CATEGORY_PROFILES, getCategoryProfile } from '../../core/profiles';
+import { CATEGORY_PROFILES, getCategoryProfile } from '@/src/product-consultation/core/profiles';
 
 import {
   ConsultationCore,
   type ConsultationNeedSnapshot,
-} from '../../core/consultation-core';
+} from '@/src/product-consultation/core/consultation-core';
 
-import type { ProductDetails } from '../consultation-core/consultation-core.schema';
+import type { ProductDetails } from '@/src/product-consultation/core/consultation-core.schema';
 
-import type { ProductAgentService } from '../agent/product-agent.service';
+import type { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
-import type { ProductAgentStateUpdate } from '../agent/product-agent.state';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
 
-import type { ComparisonPresentation } from '../../../support-agent/agents/product-agent/schemas/comparison-presentation.schema';
+import type { ComparisonPresentation } from '@/src/product-consultation/application/presentation/comparison-presentation.schema';
 
-import type { ProductDetailsPresentation } from '../presentation/product-presentation.schema';
+import type { ProductDetailsPresentation } from '@/src/product-consultation/application/presentation/product-presentation.schema';
 
-import { ConsultationAgentResultSchema } from '../subagents/consultation-agent/schemas/consultation-agent.schema';
+import { ConsultationAgentResultSchema } from '@/src/product-consultation/application/consultation-agent/schemas/consultation-agent.schema';
 
 import {
   findProductNeed,
   type ProductTurnContext,
-} from '../../../support-agent/agents/product-agent/product-turn/product-turn.context';
+} from '@/src/product-consultation/application/turns/product-turn.context';
 
 type ConsultationBinding = Awaited<
   ReturnType<ProductAgentService['getConsultationBinding']>

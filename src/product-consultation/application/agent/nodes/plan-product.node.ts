@@ -2,24 +2,24 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 import type { GraphNode } from '@langchain/langgraph';
 
-import { AiService } from '../../../../ai/ai.service';
+import { AiService } from '@/src/ai/ai.service';
 
-import { readProductContext } from '../../../../product-consultation/application/context/product-context.schema';
+import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
-import { getCategoryProfile } from '../../../../product-consultation/core/profiles';
+import { getCategoryProfile } from '@/src/product-consultation/core/profiles';
 
-import { ProductAgentService } from '../product-agent.service';
+import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
-import { ProductAgentState } from '../../../../product-consultation/application/agent/product-agent.state';
+import { ProductAgentState } from '@/src/product-consultation/application/agent/product-agent.state';
 
 import {
   applyProductPlan,
   brandKey,
-} from '../../../../product-consultation/application/planner/product-plan';
+} from '@/src/product-consultation/application/planner/product-plan';
 
-import { productPlannerPrompt } from '../../../../product-consultation/application/planner/product-agent.prompt';
+import { productPlannerPrompt } from '@/src/product-consultation/application/planner/product-agent.prompt';
 
-import { ProductPlannerResultSchema } from '../../../../product-consultation/application/planner/product-planner-result.schema';
+import { ProductPlannerResultSchema } from '@/src/product-consultation/application/planner/product-planner-result.schema';
 
 export function createPlanProductNode(
   aiService: AiService,

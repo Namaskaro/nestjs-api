@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-import { ProductClarificationFieldSchema } from '../context/product-context.schema';
+import { ProductClarificationFieldSchema } from '@/src/product-consultation/application/context/product-context.schema';
 
-import { ConsultationUserCompletionReasonSchema } from '../session/consultation-lifecycle.schema';
+import { ConsultationUserCompletionReasonSchema } from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
 
 const NeedIndexSchema = z.number().int().min(1).max(5);
 

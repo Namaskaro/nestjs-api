@@ -4,9 +4,9 @@ import {
   type BaseMessage,
 } from '@langchain/core/messages';
 import { createAgent } from 'langchain';
-import { AiService } from '../../../../../ai/ai.service';
-import { ConsultationCore } from '../../../../../product-consultation/core/consultation-core';
-import type { AgentComparisonView } from '../../consultation-core/consultation-core.schema';
+import { AiService } from '@/src/ai/ai.service';
+import { ConsultationCore } from '@/src/product-consultation/core/consultation-core';
+import type { AgentComparisonView } from '@/src/product-consultation/core/consultation-core.schema';
 import {
   consultationAgentPrompt,
   consultationCompletionPrompt,

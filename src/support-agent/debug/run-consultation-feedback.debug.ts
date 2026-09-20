@@ -13,7 +13,7 @@ import {
   buildConsultationCompletionPresentation,
   completeConsultationSession,
   touchConsultationSession,
-} from '../agents/product-agent/consultation-session';
+} from '@/src/product-consultation/application/session/consultation-session';
 
 import { SupportAgentGraph } from '../graph/support-agent.graph';
 
@@ -22,7 +22,7 @@ import { SupportAgentService } from '../support-agent.service';
 import {
   emptyProductContext,
   readProductContext,
-} from '../../product-consultation/application/context/product-context.schema';
+} from '@/src/product-consultation/application/context/product-context.schema';
 import { ChatService } from '@/src/modules/chat/chat.service';
 
 const THREAD_ID = 'consultation-feedback-debug';

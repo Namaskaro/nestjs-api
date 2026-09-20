@@ -16,12 +16,12 @@ import { createHandoffAgentGraph } from '../agents/handoff-agent/handoff-agent.g
 
 import { handoffResultNode } from '../agents/handoff-agent/nodes/handoff-result.node';
 
-import { submitConsultationFeedback as applyConsultationFeedback } from '../../product-consultation/application/session/consultation-session';
+import { submitConsultationFeedback as applyConsultationFeedback } from '@/src/product-consultation/application/session/consultation-session';
 
 import {
   ConsultationFeedbackReceiptSchema,
   type ConsultationFeedbackReceipt,
-} from '../../product-consultation/application/session/consultation-lifecycle.schema';
+} from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
 
 import {
   SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
@@ -31,7 +31,7 @@ import {
 
 import { RequestRouterWorkerSchema } from '../schemas/request-router.schema';
 
-import { readProductContext } from '../../product-consultation/application/context/product-context.schema';
+import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
 import { SupportAgentResumeValue } from '../schemas/support-agent-resume.schema';
 

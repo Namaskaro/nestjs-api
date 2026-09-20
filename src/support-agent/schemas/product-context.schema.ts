@@ -3,16 +3,15 @@ import { z } from 'zod';
 import { ProductItemSchema } from '../../product-consultation/application/agent/product-agent-result.schema';
 
 import {
-  ConsultationMemorySchema,
-  emptyConsultationMemory,
-} from '../agents/product-agent/consultation-core/consultation-core.schema';
-
-import {
   ProductNeedSchema,
   ProductSearchFiltersSchema,
 } from '../../product-consultation/application/search/product-need.schema';
 
 import { ConsultationSessionSchema } from '../../product-consultation/application/session/consultation-lifecycle.schema';
+import {
+  ConsultationMemorySchema,
+  emptyConsultationMemory,
+} from '@/src/product-consultation/core/consultation-core.schema';
 
 export const ProductReferenceSchema = z.object({
   needId: z.string().min(1),

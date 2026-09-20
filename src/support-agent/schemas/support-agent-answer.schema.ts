@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProductAgentAnswerSchema } from '../agents/product-agent/schemas/agreagte-answer.schema';
+import { ProductAgentAnswerSchema } from '@/src/product-consultation/application/agent/agreagte-answer.schema';
 
 export const ProductSearchAnswerBlockSchema = z.object({
   worker: z.literal('product_search'),

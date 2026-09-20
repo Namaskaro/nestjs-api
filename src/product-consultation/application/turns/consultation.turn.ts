@@ -1,12 +1,12 @@
-import { readProductContext } from '../context/product-context.schema';
-import type { AgentComparisonView } from '../consultation-core/consultation-core.schema';
-import type { ProductAgentStateUpdate } from '../agent/product-agent.state';
-import { ConsultationAgentInputSchema } from '../subagents/consultation-agent/schemas/consultation-agent.schema';
+import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
+import type { AgentComparisonView } from '@/src/product-consultation/core/consultation-core.schema';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
+import { ConsultationAgentInputSchema } from '@/src/product-consultation/application/consultation-agent/schemas/consultation-agent.schema';
 import type { ConsultationRuntime } from './consultation-runtime';
 import {
   findProductNeed,
   type ProductTurnContext,
-} from '../../../support-agent/agents/product-agent/product-turn/product-turn.context';
+} from '@/src/product-consultation/application/turns/product-turn.context';
 
 export async function handleConsultationTurn(
   turn: ProductTurnContext,

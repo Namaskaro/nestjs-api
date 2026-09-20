@@ -137,7 +137,7 @@
 
 import { z } from 'zod';
 
-import { ProductSnapshotSchema } from './product-presentation.schema';
+import { ProductSnapshotSchema } from '@/src/product-consultation/application/presentation/product-presentation.schema';
 
 const IdSchema = z.string().trim().min(1);
 

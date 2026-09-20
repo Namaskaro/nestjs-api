@@ -2,12 +2,12 @@
 
 import { normalizeSearchFilterValue } from '@/src/shared/utils/normalize-search-filter-value';
 
-import { getCategoryProfile } from '../../core/profiles';
+import { getCategoryProfile } from '@/src/product-consultation/core/profiles';
 import {
   CanonicalRequirementSchema,
   type CanonicalRequirement,
-} from '../../consultation-core/consultation-core.schema';
-import type { ProductNeed } from '../../application/search/product-need.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
+import type { ProductNeed } from '@/src/product-consultation/application/search/product-need.schema';
 
 import { decodeDefault } from '../catalog/catalog-adapter';
 import type {

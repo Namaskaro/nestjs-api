@@ -9,7 +9,7 @@ import {
   type CategoryProfile,
   type ProductDetails,
   type ProductFact,
-} from '../consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 
 import type {
   AttributeBag,

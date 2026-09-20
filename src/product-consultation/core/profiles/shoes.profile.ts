@@ -1,6 +1,6 @@
 // START CHANGES — SHOES CATEGORY PROFILE
 
-import { CategoryProfileSchema } from '../consultation-core/consultation-core.schema';
+import { CategoryProfileSchema } from '@/src/product-consultation/core/consultation-core.schema';
 import {
   GENERIC_ATTRIBUTES,
   colorAttribute,

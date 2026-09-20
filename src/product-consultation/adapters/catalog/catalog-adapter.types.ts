@@ -2,7 +2,7 @@ import type {
   AttributeDefinition,
   ProductDetails,
   ProductFact,
-} from '../consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 
 export type CatalogPath = readonly (string | number)[];
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { ConsultationCore } from '../../../../../product-consultation/core/consultation-core';
-import type { RecommendationReason } from '../../consultation-core/consultation-core.schema';
+import { ConsultationCore } from '@/src/product-consultation/core/consultation-core';
+import type { RecommendationReason } from '@/src/product-consultation/core/consultation-core.schema';
 import {
   ConsultationAgentResultSchema,
   ConsultationDecisionSchema,

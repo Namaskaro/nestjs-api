@@ -1,18 +1,18 @@
 import { z } from 'zod';
 
-import { ProductItemSchema } from '../agent/product-agent-result.schema';
+import { ProductItemSchema } from '@/src/product-consultation/application/agent/product-agent-result.schema';
 
 import {
   ConsultationMemorySchema,
   emptyConsultationMemory,
-} from '../agents/product-agent/consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 
 import {
   ProductNeedSchema,
   ProductSearchFiltersSchema,
-} from '../search/product-need.schema';
+} from '@/src/product-consultation/application/search/product-need.schema';
 
-import { ConsultationSessionSchema } from '../session/consultation-lifecycle.schema';
+import { ConsultationSessionSchema } from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
 
 export const ProductReferenceSchema = z.object({
   needId: z.string().min(1),

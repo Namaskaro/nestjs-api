@@ -2,11 +2,10 @@ import { AIMessage } from '@langchain/core/messages';
 
 import type { GraphNode } from '@langchain/langgraph';
 
-import { markConsultationSessionHandedOff } from '../../product-agent/consultation-session';
-
 import { readProductContext } from '../../../../product-consultation/application/context/product-context.schema';
 
 import { SupportAgentState } from '../../../graph/support-agent.state';
+import { markConsultationSessionHandedOff } from '@/src/product-consultation/application/session/consultation-session';
 
 export const handoffResultNode: GraphNode<typeof SupportAgentState> = (
   state,

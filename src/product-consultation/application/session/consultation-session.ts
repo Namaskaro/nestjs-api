@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import type { ProductContext } from '../../../product-consultation/application/context/product-context.schema';
+import type { ProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
 import {
   ConsultationCompletionPresentationSchema,
@@ -11,7 +11,7 @@ import {
   type ConsultationFeedbackSource,
   type ConsultationSession,
   type ConsultationUserCompletionReason,
-} from './schemas/consultation-lifecycle.schema';
+} from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
 
 function isoNow(now?: Date): string {
   return (now ?? new Date()).toISOString();

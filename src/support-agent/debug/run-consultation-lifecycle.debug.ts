@@ -4,12 +4,12 @@ import {
   completeConsultationSession,
   markConsultationSessionHandedOff,
   touchConsultationSession,
-} from '../agents/product-agent/consultation-session';
+} from '@/src/product-consultation/application/session/consultation-session';
 
 import {
   emptyProductContext,
   type ProductContext,
-} from '../../product-consultation/application/context/product-context.schema';
+} from '@/src/product-consultation/application/context/product-context.schema';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) {

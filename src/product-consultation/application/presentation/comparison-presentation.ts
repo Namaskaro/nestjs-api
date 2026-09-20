@@ -1,20 +1,20 @@
-import type { ProductNeedMemory } from '../context/product-context.schema';
+import type { ProductNeedMemory } from '@/src/product-consultation/application/context/product-context.schema';
 
 import type {
   CategoryProfile,
   ProductComparison,
   ProductDetails,
   ProductFact,
-} from '../consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 
 import {
   ComparisonPresentationSchema,
   type ComparisonPresentation,
   type ComparisonSynthesisInput,
   type ComparisonSynthesisOutput,
-} from '../../../support-agent/agents/product-agent/schemas/comparison-presentation.schema';
+} from '@/src/product-consultation/application/presentation/comparison-presentation.schema';
 
-import { buildProductSnapshot } from './product-presentation';
+import { buildProductSnapshot } from '@/src/product-consultation/application/presentation/product-presentation';
 
 const MAX_KEY_DIFFERENCES = 4;
 

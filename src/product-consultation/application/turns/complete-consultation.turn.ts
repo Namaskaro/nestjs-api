@@ -1,13 +1,13 @@
-import { readProductContext } from '../context/product-context.schema';
+import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
 import {
   buildConsultationCompletionPresentation,
   completeConsultationSession,
-} from '../session/consultation-session';
+} from '@/src/product-consultation/application/session/consultation-session';
 
-import type { ProductAgentStateUpdate } from '../agent/product-agent.state';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
 
-import type { ProductTurnContext } from '../../../support-agent/agents/product-agent/product-turn/product-turn.context';
+import type { ProductTurnContext } from '@/src/product-consultation/application/turns/product-turn.context';
 
 function completionMessage(
   reason: NonNullable<ProductTurnContext['state']['turn']['completionReason']>,

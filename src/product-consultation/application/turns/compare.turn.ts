@@ -1,6 +1,6 @@
-import { getCategoryProfile } from '../../../../product-consultation/core/profiles';
+import { getCategoryProfile } from '@/src/product-consultation/core/profiles';
 
-import type { ProductAgentStateUpdate } from '../product-agent.state';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
 
 import {
   finishDeterministicTurn,
@@ -11,7 +11,7 @@ import {
   buildComparisonMessage,
   finalizeComparisonPresentation,
   prepareComparisonPresentation,
-} from './comparison-presentation';
+} from '@/src/product-consultation/application/presentation/comparison-presentation';
 
 import {
   emptyConsultationPatch,

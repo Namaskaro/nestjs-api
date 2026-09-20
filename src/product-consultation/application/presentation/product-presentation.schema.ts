@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {
   AttributeKindSchema,
   FactStatusSchema,
-} from '../consultation-core/consultation-core.schema';
+} from '@/src/product-consultation/core/consultation-core.schema';
 
 const IdSchema = z.string().trim().min(1).max(160);
 
