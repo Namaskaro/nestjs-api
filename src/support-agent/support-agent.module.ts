@@ -1,32 +1,20 @@
 import { Module } from '@nestjs/common';
 
 import { AiModule } from '../ai/ai.module';
-
-import { PrismaModule } from '../core/prisma/prisma.module';
-
-import { SupportAgentController } from './support-agent.controller';
-
-import { SupportAgentService } from './support-agent.service';
-
-import { SupportAgentGraph } from './graph/support-agent.graph';
-
-import { ProductAgentService } from './agents/product-agent/product-agent.service';
-import { QdrantModule } from '../core/qdrant/qdrant.module';
-import { RerankerModule } from '../core/reranker/reranker.module';
+import { ProductConsultationModule } from '../product-consultation/product-consultation.module';
 import { StoreKnowledgeModule } from '../store-knowledge/store-knowledge.module';
 
+import { SupportAgentController } from './support-agent.controller';
+import { SupportAgentGraph } from './graph/support-agent.graph';
+import { SupportAgentService } from './support-agent.service';
+
 @Module({
-  imports: [
-    AiModule,
-    PrismaModule,
-    QdrantModule,
-    RerankerModule,
-    StoreKnowledgeModule,
-  ],
+  imports: [AiModule, ProductConsultationModule, StoreKnowledgeModule],
 
   controllers: [SupportAgentController],
 
-  providers: [SupportAgentService, SupportAgentGraph, ProductAgentService],
+  providers: [SupportAgentService, SupportAgentGraph],
+
   exports: [SupportAgentService],
 })
 export class SupportAgentModule {}

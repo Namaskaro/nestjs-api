@@ -5,7 +5,7 @@ import {
   completeConsultationSession,
 } from '../session/consultation-session';
 
-import type { ProductAgentStateUpdate } from '../../../support-agent/agents/product-agent/product-agent.state';
+import type { ProductAgentStateUpdate } from '../agent/product-agent.state';
 
 import type { ProductTurnContext } from '../../../support-agent/agents/product-agent/product-turn/product-turn.context';
 

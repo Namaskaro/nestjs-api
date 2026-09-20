@@ -18,10 +18,6 @@ import { handoffResultNode } from '../agents/handoff-agent/nodes/handoff-result.
 
 import { submitConsultationFeedback as applyConsultationFeedback } from '../../product-consultation/application/session/consultation-session';
 
-import { ProductAgentService } from '../agents/product-agent/product-agent.service';
-
-import { createProductAgent } from '../agents/product-agent/product.agent';
-
 import {
   ConsultationFeedbackReceiptSchema,
   type ConsultationFeedbackReceipt,
@@ -60,6 +56,8 @@ import { SupportAgentState } from './support-agent.state';
 import { createCustomerHelpAgentWorker } from './workers/customer-help-agent.worker';
 
 import { createProductAgentWorker } from './workers/product-agent.worker';
+import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
+import { createProductAgent } from '@/src/product-consultation/application/agent/product.agent';
 
 @Injectable()
 export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {

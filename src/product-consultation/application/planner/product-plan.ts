@@ -5,25 +5,25 @@ import {
   type ProductContext,
   type ProductNeedMemory,
   type ProductReference,
-} from '../../../product-consultation/application/context/product-context.schema';
+} from '../context/product-context.schema';
 
-import { HandoffRequestSchema } from '../handoff-agent/schemas/handoff.schema';
+import { HandoffRequestSchema } from '../../../support-agent/agents/handoff-agent/schemas/handoff.schema';
 
-import { getCategoryProfile } from '../../../product-consultation/core/profiles';
+import { getCategoryProfile } from '../../core/profiles';
 
-import { touchConsultationSession } from '../../../product-consultation/application/session/consultation-session';
+import { touchConsultationSession } from '../session/consultation-session';
 
 import { emptyConsultationMemory } from './consultation-core/consultation-core.schema';
 
-import type { ProductTurn } from './product-agent.state';
+import type { ProductTurn } from '../agent/product-agent.state';
 
 import {
   ProductPlannerResultSchema,
   type ProductFilterPatch,
   type ProductPlannerResult,
-} from '../../../product-consultation/application/planner/product-planner-result.schema';
+} from './product-planner-result.schema';
 
-import { ProductSearchFiltersSchema } from '../../../product-consultation/application/search/product-need.schema';
+import { ProductSearchFiltersSchema } from '../search/product-need.schema';
 
 class InvalidPlan extends Error {}
 

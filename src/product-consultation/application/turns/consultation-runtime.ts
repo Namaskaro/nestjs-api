@@ -9,13 +9,13 @@ import {
 
 import type { ProductDetails } from '../consultation-core/consultation-core.schema';
 
-import type { ProductAgentService } from '../../../support-agent/agents/product-agent/product-agent.service';
+import type { ProductAgentService } from '../agent/product-agent.service';
 
-import type { ProductAgentStateUpdate } from '../../../support-agent/agents/product-agent/product-agent.state';
+import type { ProductAgentStateUpdate } from '../agent/product-agent.state';
 
 import type { ComparisonPresentation } from '../../../support-agent/agents/product-agent/schemas/comparison-presentation.schema';
 
-import type { ProductDetailsPresentation } from '../../../support-agent/agents/product-agent/schemas/product-presentation.schema';
+import type { ProductDetailsPresentation } from '../presentation/product-presentation.schema';
 
 import { ConsultationAgentResultSchema } from '../subagents/consultation-agent/schemas/consultation-agent.schema';
 

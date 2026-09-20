@@ -4,16 +4,16 @@ import { z } from 'zod';
 import {
   ProductContextSchema,
   ProductReferenceSchema,
-} from '../../../product-consultation/application/context/product-context.schema';
+} from '../context/product-context.schema';
 
-import { HandoffRequestSchema } from '../handoff-agent/schemas/handoff.schema';
+import { HandoffRequestSchema } from '../../../support-agent/agents/handoff-agent/schemas/handoff.schema';
 
 import {
   ConsultationCompletionPresentationSchema,
   ConsultationUserCompletionReasonSchema,
-} from '../../../product-consultation/application/session/consultation-lifecycle.schema';
+} from '../session/consultation-lifecycle.schema';
 
-import { ProductActionSchema } from '../../../product-consultation/application/planner/product-planner-result.schema';
+import { ProductActionSchema } from '../planner/product-planner-result.schema';
 
 import { ProductSearchResultSchema } from './schemas/product-search-results.schema';
 

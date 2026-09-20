@@ -8,7 +8,7 @@ import {
   ProductSnapshotSchema,
   type ProductDetailsPresentation,
   type ProductSnapshot,
-} from '../../../support-agent/agents/product-agent/schemas/product-presentation.schema';
+} from './product-presentation.schema';
 
 const PRODUCT_ENVELOPE_ATTRIBUTE_IDS = new Set([
   'price',

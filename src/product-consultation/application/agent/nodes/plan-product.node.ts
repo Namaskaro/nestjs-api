@@ -10,11 +10,14 @@ import { getCategoryProfile } from '../../../../product-consultation/core/profil
 
 import { ProductAgentService } from '../product-agent.service';
 
-import { ProductAgentState } from '../product-agent.state';
+import { ProductAgentState } from '../../../../product-consultation/application/agent/product-agent.state';
 
-import { applyProductPlan, brandKey } from '../product-plan';
+import {
+  applyProductPlan,
+  brandKey,
+} from '../../../../product-consultation/application/planner/product-plan';
 
-import { productPlannerPrompt } from '../prompts/product-agent.prompt';
+import { productPlannerPrompt } from '../../../../product-consultation/application/planner/product-agent.prompt';
 
 import { ProductPlannerResultSchema } from '../../../../product-consultation/application/planner/product-planner-result.schema';
 

@@ -1,6 +1,6 @@
 import { readProductContext } from '../context/product-context.schema';
 import type { AgentComparisonView } from '../consultation-core/consultation-core.schema';
-import type { ProductAgentStateUpdate } from '../../../support-agent/agents/product-agent/product-agent.state';
+import type { ProductAgentStateUpdate } from '../agent/product-agent.state';
 import { ConsultationAgentInputSchema } from '../subagents/consultation-agent/schemas/consultation-agent.schema';
 import type { ConsultationRuntime } from './consultation-runtime';
 import {

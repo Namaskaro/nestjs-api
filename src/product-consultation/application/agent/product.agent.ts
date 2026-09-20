@@ -13,7 +13,7 @@ import { ProductAgentService } from './product-agent.service';
 import {
   ProductAgentState,
   type ProductAgentStateType,
-} from './product-agent.state';
+} from '../../../product-consultation/application/agent/product-agent.state';
 
 function routeAfterPlan(state: ProductAgentStateType) {
   if (state.turn.action === 'COMPLETE' || state.turn.action === 'HANDOFF') {
