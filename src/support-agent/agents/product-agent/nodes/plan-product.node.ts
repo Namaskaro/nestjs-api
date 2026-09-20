@@ -4,9 +4,9 @@ import type { GraphNode } from '@langchain/langgraph';
 
 import { AiService } from '../../../../ai/ai.service';
 
-import { readProductContext } from '../../../schemas/product-context.schema';
+import { readProductContext } from '../../../../product-consultation/application/context/product-context.schema';
 
-import { getCategoryProfile } from '../category-profiles';
+import { getCategoryProfile } from '../../../../product-consultation/core/profiles';
 
 import { ProductAgentService } from '../product-agent.service';
 
@@ -16,7 +16,7 @@ import { applyProductPlan, brandKey } from '../product-plan';
 
 import { productPlannerPrompt } from '../prompts/product-agent.prompt';
 
-import { ProductPlannerResultSchema } from '../schemas/product-planner-result.schema';
+import { ProductPlannerResultSchema } from '../../../../product-consultation/application/planner/product-planner-result.schema';
 
 export function createPlanProductNode(
   aiService: AiService,

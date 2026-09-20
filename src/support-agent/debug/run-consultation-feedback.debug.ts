@@ -22,7 +22,7 @@ import { SupportAgentService } from '../support-agent.service';
 import {
   emptyProductContext,
   readProductContext,
-} from '../schemas/product-context.schema';
+} from '../../product-consultation/application/context/product-context.schema';
 import { ChatService } from '@/src/modules/chat/chat.service';
 
 const THREAD_ID = 'consultation-feedback-debug';

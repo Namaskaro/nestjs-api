@@ -12,7 +12,7 @@ import {
   RequestRouterWorkerSchema,
 } from '../../schemas/request-router.schema';
 
-import { readProductContext } from '../../schemas/product-context.schema';
+import { readProductContext } from '../../../product-consultation/application/context/product-context.schema';
 
 import { SupportAgentState } from '../support-agent.state';
 

@@ -18,7 +18,7 @@ import {
 
 import { ProductAgent } from '../../agents/product-agent/product.agent';
 
-import { readProductContext } from '../../schemas/product-context.schema';
+import { readProductContext } from '../../../product-consultation/application/context/product-context.schema';
 
 export function createProductAgentWorker(
   productAgent: ProductAgent,

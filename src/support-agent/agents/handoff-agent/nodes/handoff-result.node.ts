@@ -4,7 +4,7 @@ import type { GraphNode } from '@langchain/langgraph';
 
 import { markConsultationSessionHandedOff } from '../../product-agent/consultation-session';
 
-import { readProductContext } from '../../../schemas/product-context.schema';
+import { readProductContext } from '../../../../product-consultation/application/context/product-context.schema';
 
 import { SupportAgentState } from '../../../graph/support-agent.state';
 

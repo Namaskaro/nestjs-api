@@ -1,4 +1,4 @@
-import { readProductContext } from '../../schemas/product-context.schema';
+import { readProductContext } from '../../../product-consultation/application/context/product-context.schema';
 
 import type { SupportAgentStateType } from '../support-agent.state';
 

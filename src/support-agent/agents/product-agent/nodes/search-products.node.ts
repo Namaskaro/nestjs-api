@@ -1,8 +1,8 @@
 import type { GraphNode } from '@langchain/langgraph';
-import { readProductContext } from '../../../schemas/product-context.schema';
+import { readProductContext } from '../../../../product-consultation/application/context/product-context.schema';
 import { ProductAgentService } from '../product-agent.service';
 import { ProductAgentState } from '../product-agent.state';
-import { ProductNeedSchema } from '../schemas/product-need.schema';
+import { ProductNeedSchema } from '../../../../product-consultation/application/search/product-need.schema';
 
 export function createSearchProductsNode(
   productAgentService: ProductAgentService,

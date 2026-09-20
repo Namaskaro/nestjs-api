@@ -84,7 +84,7 @@ import {
   SupportAgentAnswerBlockSchema,
   SupportAgentAnswerSchema,
 } from '../schemas/support-agent-answer.schema';
-import { ProductContextSchema } from '../schemas/product-context.schema';
+import { ProductContextSchema } from '../../product-consultation/application/context/product-context.schema';
 
 export const SupportAgentState = new StateSchema({
   query: z.string(),

@@ -15,14 +15,14 @@ import { normalizeSearchFilterValue } from '@/src/shared/utils/normalize-search-
 import {
   buildCurrentStoreBinding,
   type ResolvedStoreCatalog,
-} from './catalog-adapters/current-store/current-store.mapping';
-import { toProductDetailsMany } from './catalog-adapters/current-store/current-store-product.adapter';
+} from '../../../product-consultation/adapters/current-store/current-store.mapping';
+import { toProductDetailsMany } from '../../../product-consultation/adapters/current-store/current-store-product.adapter';
 import type { ProductDetails } from './consultation-core/consultation-core.schema';
 import {
   ProductItemSchema,
   type ProductItem,
-} from './schemas/product-agent-result.schema';
-import type { ProductNeed } from './schemas/product-need.schema';
+} from '../../../product-consultation/application/agent/product-agent-result.schema';
+import type { ProductNeed } from '../../../product-consultation/application/search/product-need.schema';
 import {
   ProductSearchResultSchema,
   type ProductSearchResult,

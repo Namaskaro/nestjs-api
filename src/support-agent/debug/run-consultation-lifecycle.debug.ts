@@ -9,7 +9,7 @@ import {
 import {
   emptyProductContext,
   type ProductContext,
-} from '../schemas/product-context.schema';
+} from '../../product-consultation/application/context/product-context.schema';
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) {
