@@ -1,6 +1,7 @@
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 import { AiService } from '@/src/ai/ai.service';
+import { logLlmUsage } from '@/src/ai/llm-usage';
 
 import {
   ComparisonSynthesisInputSchema,
@@ -32,6 +33,7 @@ export function createComparisonSynthesis(aiService: AiService) {
       }
 
       try {
+        const startedAt = Date.now();
         const response = await model.invoke(
           [
             new SystemMessage(comparisonSynthesisPrompt),
@@ -42,6 +44,17 @@ export function createComparisonSynthesis(aiService: AiService) {
             signal: AbortSignal.timeout(COMPARISON_SYNTHESIS_TIMEOUT_MS),
           },
         );
+
+        logLlmUsage({
+          node: 'comparison_synthesis',
+          response,
+          durationMs: Date.now() - startedAt,
+
+          attributes: {
+            productsCount: input.products.length,
+            differencesCount: input.keyDifferences.length,
+          },
+        });
 
         const parsed = ComparisonSynthesisOutputSchema.safeParse(
           response.parsed,

@@ -1,17 +1,27 @@
 import { randomUUID } from 'node:crypto';
 
-import type { ProductContext } from '@/src/product-consultation/application/context/product-context.schema';
-
+import type { ProductContext } from '../context/product-context.schema';
 import {
+  ConsultationCompletionPresentation,
   ConsultationCompletionPresentationSchema,
+  ConsultationFeedbackReceipt,
   ConsultationFeedbackReceiptSchema,
+  ConsultationFeedbackSource,
+  ConsultationSession,
   ConsultationSessionSchema,
-  type ConsultationCompletionPresentation,
-  type ConsultationFeedbackReceipt,
-  type ConsultationFeedbackSource,
-  type ConsultationSession,
-  type ConsultationUserCompletionReason,
-} from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
+  ConsultationUserCompletionReason,
+} from './consultation-lifecycle.schema';
+
+// import {
+//   ConsultationCompletionPresentationSchema,
+//   ConsultationFeedbackReceiptSchema,
+//   ConsultationSessionSchema,
+//   type ConsultationCompletionPresentation,
+//   type ConsultationFeedbackReceipt,
+//   type ConsultationFeedbackSource,
+//   type ConsultationSession,
+//   type ConsultationUserCompletionReason,
+// } from '../../../support-agent/agents/product-agent/schemas/consultation-lifecycle.schema';
 
 function isoNow(now?: Date): string {
   return (now ?? new Date()).toISOString();
@@ -30,13 +40,18 @@ export function touchConsultationSession(
 
   const current = context.consultationSession;
 
+  const knownNeedIds = new Set(context.needs.map((need) => need.needId));
+
+  const normalizeNeedIds = (values: readonly string[]) =>
+    unique(values).filter((needId) => knownNeedIds.has(needId));
+
   if (!current || current.status !== 'ACTIVE') {
     const session = ConsultationSessionSchema.parse({
       sessionId: randomUUID(),
 
       status: 'ACTIVE',
 
-      needIds: unique(needIds),
+      needIds: normalizeNeedIds(needIds),
 
       startedAt: timestamp,
 
@@ -59,7 +74,7 @@ export function touchConsultationSession(
   const session = ConsultationSessionSchema.parse({
     ...current,
 
-    needIds: unique([...current.needIds, ...needIds]),
+    needIds: normalizeNeedIds([...current.needIds, ...needIds]),
 
     lastActivityAt: timestamp,
   });
@@ -68,7 +83,6 @@ export function touchConsultationSession(
 
   return session;
 }
-
 export function completeConsultationSession(
   context: ProductContext,
   {

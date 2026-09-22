@@ -94,7 +94,7 @@
     "@types/express": "^4.17.13",
     "@types/express-session": "^1.18.2",
     "@types/fs-extra": "^11.0.4",
-    "@types/jest": "29.2.4",
+    "@types/jest": "^29.2.4",
     "@types/multer": "^1.4.12",
     "@types/node": "18.11.18",
     "@types/passport-google-oauth20": "^2.0.16",
@@ -118,20 +118,28 @@
     "typescript": "^5.9.2"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
-  }
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": "src",
+  "testRegex": ".*\\.spec\\.ts$",
+  "transform": {
+  "^.+\\.(t|j)s$": [
+    "ts-jest",
+    {
+      "tsconfig": "<rootDir>/../tsconfig.spec.json"
+    }
+  ]
+},
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/../$1"
+  },
+  "collectCoverageFrom": [
+    "**/*.(t|j)s"
+  ],
+  "coverageDirectory": "../coverage",
+  "testEnvironment": "node"
+}
 }

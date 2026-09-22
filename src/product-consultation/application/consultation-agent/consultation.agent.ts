@@ -5,6 +5,7 @@ import {
 } from '@langchain/core/messages';
 import { createAgent } from 'langchain';
 import { AiService } from '@/src/ai/ai.service';
+import { logAggregatedLlmUsage, logLlmUsage } from '@/src/ai/llm-usage';
 import { ConsultationCore } from '@/src/product-consultation/core/consultation-core';
 import type { AgentComparisonView } from '@/src/product-consultation/core/consultation-core.schema';
 import {
@@ -69,6 +70,8 @@ export function createConsultationAgent(aiService: AiService) {
         });
 
         try {
+          const startedAt = Date.now();
+
           const run = await agent.invoke(
             {
               messages,
@@ -77,6 +80,16 @@ export function createConsultationAgent(aiService: AiService) {
               recursionLimit: 24,
             },
           );
+
+          logAggregatedLlmUsage({
+            node: 'product_consultant_loop',
+            responses: run.messages,
+            durationMs: Date.now() - startedAt,
+
+            attributes: {
+              messagesCount: run.messages.length,
+            },
+          });
 
           messages = run.messages;
         } catch (error) {
@@ -91,6 +104,8 @@ export function createConsultationAgent(aiService: AiService) {
         }
       }
 
+      const completionStartedAt = Date.now();
+
       const completion = await completionModel.invoke([
         new SystemMessage(consultationCompletionPrompt),
 
@@ -98,6 +113,17 @@ export function createConsultationAgent(aiService: AiService) {
 
         new HumanMessage('Сформируй итоговый результат консультации.'),
       ]);
+
+      logLlmUsage({
+        node: 'product_consultation_completion',
+        response: completion,
+        durationMs: Date.now() - completionStartedAt,
+
+        attributes: {
+          transcriptMessages: messages.length,
+          preparedComparison: comparisons !== undefined,
+        },
+      });
 
       return finalizeConsultation(input, completion.parsed, core);
     },

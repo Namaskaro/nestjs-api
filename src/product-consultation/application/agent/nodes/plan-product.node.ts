@@ -3,6 +3,7 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import type { GraphNode } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
+import { logLlmUsage } from '@/src/ai/llm-usage';
 
 import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
@@ -57,6 +58,8 @@ export function createPlanProductNode(
       : context.comparison.length
       ? context.comparison
       : context.displayOrder;
+
+    const startedAt = Date.now();
 
     const response = await planner.invoke([
       new SystemMessage(productPlannerPrompt),
@@ -117,6 +120,27 @@ export function createPlanProductNode(
     ]);
 
     const parsed = ProductPlannerResultSchema.safeParse(response.parsed);
+
+    logLlmUsage({
+      node: 'product_planner',
+      response,
+      durationMs: Date.now() - startedAt,
+
+      attributes: parsed.success
+        ? {
+            parseSuccess: true,
+            action: parsed.data.action,
+            updatesCount: parsed.data.updates.length,
+            newUpdatesCount: parsed.data.updates.filter(
+              (update) => update.needIndex === null,
+            ).length,
+            reuseCount: parsed.data.reuseNeedIndexes.length,
+            removeCount: parsed.data.removeNeedIndexes.length,
+          }
+        : {
+            parseSuccess: false,
+          },
+    });
 
     const values = parsed.success
       ? [

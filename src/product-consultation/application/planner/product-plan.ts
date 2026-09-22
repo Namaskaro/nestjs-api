@@ -20,6 +20,7 @@ import type { ProductTurn } from '@/src/product-consultation/application/agent/p
 import {
   ProductPlannerResultSchema,
   type ProductFilterPatch,
+  type ProductNeedPatch,
   type ProductPlannerResult,
 } from '@/src/product-consultation/application/planner/product-planner-result.schema';
 
@@ -39,12 +40,171 @@ export const brandKey = (value: string) =>
 export const normalizedQuote = (value: string) =>
   value.trim().replace(/\s+/gu, ' ');
 
+function normalizedTokens(value: string): string[] {
+  return (
+    normalizedQuote(value)
+      .toLocaleLowerCase('ru-RU')
+      .match(/[\p{L}\p{N}]+/gu) ?? []
+  );
+}
+
+function sourceContainsAllTerms(sourceText: string, value: string): boolean {
+  const sourceTokens = new Set(normalizedTokens(sourceText));
+
+  const valueTokens = normalizedTokens(value);
+
+  return (
+    valueTokens.length > 0 &&
+    valueTokens.every((token) => sourceTokens.has(token))
+  );
+}
+
+function isSupportedNewNeed(
+  update: ProductNeedPatch,
+  sourceText: string,
+): boolean {
+  if (update.needIndex !== null) {
+    return true;
+  }
+
+  if (
+    !update.brandValue ||
+    !['candidate', 'required', 'preferred'].includes(update.brandMode)
+  ) {
+    return true;
+  }
+
+  return sourceContainsAllTerms(sourceText, update.brandValue);
+}
+
+function samePreferences(
+  left: readonly string[],
+  right: readonly string[],
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  const values = new Set(left);
+
+  return right.every((value) => values.has(value));
+}
+
+function sameSearchFilters(
+  left: ProductNeedMemory['filters'],
+  right: ProductNeedMemory['filters'],
+): boolean {
+  return (
+    left.gender === right.gender &&
+    left.type === right.type &&
+    left.brand === right.brand &&
+    left.category === right.category &&
+    left.subcategory === right.subcategory &&
+    left.color === right.color &&
+    left.size === right.size &&
+    left.minPrice === right.minPrice &&
+    left.maxPrice === right.maxPrice
+  );
+}
+
+function sameNeedDefinition(
+  left: ProductNeedMemory,
+  right: ProductNeedMemory,
+): boolean {
+  return (
+    normalizedQuote(left.semanticQuery).toLocaleLowerCase('ru-RU') ===
+      normalizedQuote(right.semanticQuery).toLocaleLowerCase('ru-RU') &&
+    sameSearchFilters(left.filters, right.filters) &&
+    samePreferences(left.preferences, right.preferences)
+  );
+}
+
 function exists(context: ProductContext, reference: ProductReference) {
   return context.needs.some(
     (need) =>
       need.needId === reference.needId &&
       need.shownProducts.some((product) => product.id === reference.productId),
   );
+}
+
+function findProductByReference(
+  context: ProductContext,
+  reference: ProductReference,
+) {
+  return context.needs
+    .find((need) => need.needId === reference.needId)
+    ?.shownProducts.find((product) => product.id === reference.productId);
+}
+
+function findUniqueNamedProductReference(
+  context: ProductContext,
+  references: readonly ProductReference[],
+  sourceText: string,
+): ProductReference | null {
+  const queryTokens = new Set(normalizedTokens(sourceText));
+
+  const matches = references.filter((reference) => {
+    const product = findProductByReference(context, reference);
+
+    if (!product) {
+      return false;
+    }
+
+    const titleTokens = normalizedTokens(product.title).filter(
+      (token) => token.length >= 4 || /\d/u.test(token),
+    );
+
+    return titleTokens.some((token) => queryTokens.has(token));
+  });
+
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function findOrdinalPosition(
+  sourceText: string,
+  itemsCount: number,
+): number | null {
+  const text = normalizedQuote(sourceText).toLocaleLowerCase('ru-RU');
+
+  const boundary = '[^\\p{L}\\p{N}_]';
+
+  if (
+    new RegExp(
+      `(?:^|${boundary})перв(?:ый|ого|ому|ым|ом)(?=$|${boundary})`,
+      'u',
+    ).test(text)
+  ) {
+    return 1;
+  }
+
+  if (
+    new RegExp(
+      `(?:^|${boundary})втор(?:ой|ого|ому|ым|ом)(?=$|${boundary})`,
+      'u',
+    ).test(text)
+  ) {
+    return 2;
+  }
+
+  if (
+    new RegExp(
+      `(?:^|${boundary})трет(?:ий|ьего|ьему|ьим|ьем)(?=$|${boundary})`,
+      'u',
+    ).test(text)
+  ) {
+    return 3;
+  }
+
+  if (
+    new RegExp(
+      `(?:^|${boundary})последн(?:ий|его|ему|им|ем)(?=$|${boundary})`,
+      'u',
+    ).test(text)
+  ) {
+    return itemsCount;
+  }
+
+  return null;
 }
 
 const FILTER_PATCH_FIELDS = [
@@ -254,7 +414,7 @@ function normalizePlanByAction(
 export function applyProductPlan(
   previous: unknown,
   rawPlan: unknown,
-  _sourceText: string,
+  sourceText: string,
   canonicalBrands: ReadonlyMap<string, string | null> = new Map(),
 ): {
   productContext: ProductContext;
@@ -367,11 +527,21 @@ export function applyProductPlan(
 
     context.needs = context.needs.filter((need) => !removed.has(need.needId));
 
+    if (context.consultationSession?.status === 'ACTIVE') {
+      context.consultationSession.needIds =
+        context.consultationSession.needIds.filter(
+          (needId) => !removed.has(needId),
+        );
+    }
+
     const searchNeedIds: string[] = [];
 
     const touched = new Set<string>();
 
     for (const update of plan.updates) {
+      if (!isSupportedNewNeed(update, sourceText)) {
+        continue;
+      }
       const existing =
         update.needIndex === null ? null : byIndex(update.needIndex);
 
@@ -490,6 +660,8 @@ export function applyProductPlan(
         consultation: existing?.consultation ?? emptyConsultationMemory(),
       };
 
+      const changed = !existing || !sameNeedDefinition(existing, next);
+
       if (existing) {
         context.needs = context.needs.map((need) =>
           need.needId === needId ? next : need,
@@ -498,11 +670,38 @@ export function applyProductPlan(
         context.needs.push(next);
       }
 
-      searchNeedIds.push(needId);
+      if (changed) {
+        searchNeedIds.push(needId);
+      }
     }
 
     if (context.needs.length > 5) {
-      reject('Какой из прежних подборов убрать? Одновременно доступны пять.');
+      const overflow = context.needs.length - 5;
+
+      const protectedNeedIds = new Set(searchNeedIds);
+
+      const evictionCandidates = context.needs.filter(
+        (need) => !protectedNeedIds.has(need.needId),
+      );
+
+      const evictedNeedIds = new Set(
+        evictionCandidates.slice(0, overflow).map((need) => need.needId),
+      );
+
+      if (evictedNeedIds.size !== overflow) {
+        reject('В одном запросе слишком много независимых товарных задач.');
+      }
+
+      context.needs = context.needs.filter(
+        (need) => !evictedNeedIds.has(need.needId),
+      );
+
+      if (context.consultationSession?.status === 'ACTIVE') {
+        context.consultationSession.needIds =
+          context.consultationSession.needIds.filter(
+            (needId) => !evictedNeedIds.has(needId),
+          );
+      }
     }
 
     const reuse = plan.reuseNeedIndexes.map((index) => {
@@ -544,6 +743,24 @@ export function applyProductPlan(
         source[position - 1] ??
         reject('В текущем наборе нет товара с таким номером.'),
     );
+
+    if (plan.action === 'CONSULT' && products.length === 0) {
+      const namedReference = findUniqueNamedProductReference(
+        original,
+        source,
+        sourceText,
+      );
+
+      if (namedReference) {
+        products = [namedReference];
+      } else {
+        const ordinalPosition = findOrdinalPosition(sourceText, source.length);
+
+        if (ordinalPosition !== null && source[ordinalPosition - 1]) {
+          products = [source[ordinalPosition - 1]];
+        }
+      }
+    }
 
     if (plan.action === 'COMPARE' && !products.length) {
       products = source.filter(
@@ -637,6 +854,10 @@ export function applyProductPlan(
             ...products.map((reference) => reference.needId),
             ...terminalNeedIds,
           ])
+        : plan.action === 'CONSULT' && products.length > 0
+        ? unique(products.map((reference) => reference.needId))
+        : plan.action === 'CONSULT' && products.length > 0
+        ? unique(products.map((reference) => reference.needId))
         : unique([...products.map((reference) => reference.needId), ...reuse]);
 
     if (!activeNeedIds.length && !removed.size && plan.action !== 'HANDOFF') {

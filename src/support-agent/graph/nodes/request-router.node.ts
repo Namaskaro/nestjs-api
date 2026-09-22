@@ -1,6 +1,7 @@
 import type { GraphNode } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
+import { logLlmUsage } from '@/src/ai/llm-usage';
 
 import { requestRouterHistoryTrimmer } from '../../context/history-context';
 
@@ -105,6 +106,7 @@ export function createRequestRouterNode(
     RequestRouterModelSchema,
     {
       name: 'route_support_request',
+      includeRaw: true,
     },
   );
 
@@ -123,13 +125,28 @@ export function createRequestRouterNode(
       ? JSON.stringify(routerProductContext, null, 2)
       : 'null';
 
-    const modelDecision = await chain.invoke({
+    const startedAt = Date.now();
+
+    const response = await chain.invoke({
       history,
 
       query: state.query,
 
       productContext,
     });
+
+    logLlmUsage({
+      node: 'request_router',
+      response,
+      durationMs: Date.now() - startedAt,
+
+      attributes: {
+        historyMessages: history.length,
+        hasProductContext: routerProductContext !== null,
+      },
+    });
+
+    const modelDecision = RequestRouterModelSchema.parse(response.parsed);
 
     const workerQueries = {
       ...modelDecision.workerQueries,

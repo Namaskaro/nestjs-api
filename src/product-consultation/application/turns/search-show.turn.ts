@@ -1,11 +1,7 @@
 import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
 import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
-
-import {
-  findProductNeed,
-  type ProductTurnContext,
-} from './product-turn.context';
+import { findProductNeed, ProductTurnContext } from './product-turn.context';
 
 export function handleSearchShowTurn({
   state,
@@ -43,6 +39,11 @@ export function handleSearchShowTurn({
 
   context.pendingClarification = null;
 
+  const containsText = (source: string, value: string) =>
+    source
+      .toLocaleLowerCase('ru-RU')
+      .includes(value.toLocaleLowerCase('ru-RU'));
+
   const message = state.searchResults
     .map((result) => {
       const need = findProductNeed(context, result.needId);
@@ -50,7 +51,10 @@ export function handleSearchShowTurn({
       const label = [
         need.semanticQuery,
 
-        need.filters.brand,
+        need.filters.brand &&
+        !containsText(need.semanticQuery, need.filters.brand)
+          ? need.filters.brand
+          : null,
 
         need.filters.color,
 

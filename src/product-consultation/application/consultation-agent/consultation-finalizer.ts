@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { ConsultationCore } from '@/src/product-consultation/core/consultation-core';
 import type { RecommendationReason } from '@/src/product-consultation/core/consultation-core.schema';
@@ -10,6 +11,8 @@ import {
 import { ConsultationCompletionOutputSchema } from './schemas/consultation-completion.schema';
 
 class InvalidCompletion extends Error {}
+
+const logger = new Logger('ConsultationFinalizer');
 
 const reject = (): never => {
   throw new InvalidCompletion('Invalid consultation output');
@@ -36,8 +39,8 @@ export function finalizeConsultation(
     ConsultationAgentResultSchema.parse({
       message:
         artifacts.comparisons.length || artifacts.productDetails.length
-          ? 'Ниже — проверенные сведения о выбранных товарах.'
-          : 'Недостаточно проверенных данных для рекомендации.',
+          ? 'Не удалось надёжно сформировать рекомендацию по выбранным товарам. Не буду придумывать вывод.'
+          : 'Недостаточно проверенных данных, чтобы дать надёжную рекомендацию.',
       decisions: input.searches.map((search) => ({
         needId: search.needId,
         query: search.query,
@@ -172,6 +175,30 @@ export function finalizeConsultation(
     ) {
       throw error;
     }
+
+    logger.warn(
+      JSON.stringify({
+        event: 'consultation_fallback',
+
+        kind:
+          error instanceof z.ZodError
+            ? 'zod'
+            : error instanceof InvalidCompletion
+            ? 'invalid_completion'
+            : 'consultation_core',
+
+        message: error instanceof Error ? error.message : String(error),
+
+        issues:
+          error instanceof z.ZodError
+            ? error.issues.map((issue) => ({
+                code: issue.code,
+                path: issue.path.join('.'),
+                message: issue.message,
+              }))
+            : [],
+      }),
+    );
 
     result = fallback();
   }
