@@ -55,17 +55,19 @@ function getSerializedName(serialized: unknown, fallback: string): string {
 }
 
 function toEvaluationJsonValue(value: unknown): EvaluationJsonValue {
-  if (value === undefined) {
+  if (value === null || value === undefined) {
     return null;
   }
 
-  if (
-    value === null ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  ) {
-    return value;
+  switch (typeof value) {
+    case 'string':
+      return value;
+
+    case 'number':
+      return value;
+
+    case 'boolean':
+      return value;
   }
 
   try {
@@ -118,7 +120,9 @@ function extractCallbackUsage(
 
         candidates.push(
           generation,
+
           generationRecord?.message,
+
           generationRecord?.generationInfo,
         );
       }
@@ -179,7 +183,7 @@ function summarizeToolResult(value: unknown): EvaluationJsonValue {
   }
 
   return {
-    type: typeof value,
+    type: value === null ? 'null' : typeof value,
   };
 }
 

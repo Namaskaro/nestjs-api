@@ -6,9 +6,15 @@ import {
 
 import type { EvaluationObservation } from './contracts/evaluation-observation';
 
+import type { EvaluationResult } from './contracts/evaluation-result';
+
 import { EvaluationRecorder } from './recording/evaluation-recorder';
 
 import { createLangChainEvalCallback } from './recording/langchain-eval-callback';
+
+import { createDefaultDeterministicEvaluator } from './evaluators/default-deterministic-evaluators';
+
+import { buildEvaluationReport } from './reporting/evaluation-report';
 
 import type { EvaluationTargetAdapter } from './targets/evaluation-target';
 
@@ -17,13 +23,6 @@ type RunEvaluationScenarioInput = {
 
   target: EvaluationTargetAdapter;
 
-  /**
-   * Позволяет fixture layer позже подготовить
-   * реальное initial state для конкретного target.
-   *
-   * Если override отсутствует —
-   * используется scenario.initialState.
-   */
   initialState?: EvaluationJsonValue | null;
 };
 
@@ -31,7 +30,13 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export async function runEvaluationScenario({
+/**
+ * Низкоуровневый запуск.
+ *
+ * Только выполняет scenario и записывает факты.
+ * Ничего не оценивает.
+ */
+export async function recordEvaluationScenario({
   scenario: rawScenario,
   target,
   initialState: initialStateOverride,
@@ -73,6 +78,8 @@ export async function runEvaluationScenario({
         state: currentState,
 
         callbacks: [callback],
+
+        toolCallSink: recorder,
       });
 
       for (const artifact of result.artifacts) {
@@ -91,10 +98,6 @@ export async function runEvaluationScenario({
 
       currentState = result.stateAfter;
 
-      /**
-       * После technical failure следующие turns
-       * уже не являются честным продолжением scenario.
-       */
       if (result.outcome === 'technical_failure') {
         break;
       }
@@ -122,4 +125,45 @@ export async function runEvaluationScenario({
   }
 
   return recorder.finish(currentState);
+}
+
+/**
+ * Полный deterministic evaluation:
+ *
+ * scenario
+ * → target
+ * → observation
+ * → deterministic evaluators
+ * → report
+ */
+export async function runDeterministicEvaluationScenario({
+  scenario: rawScenario,
+  target,
+  initialState,
+}: RunEvaluationScenarioInput): Promise<EvaluationResult> {
+  const scenario = EvaluationScenarioSchema.parse(rawScenario);
+
+  const observation = await recordEvaluationScenario({
+    scenario,
+
+    target,
+
+    initialState,
+  });
+
+  const evaluator = createDefaultDeterministicEvaluator();
+
+  const checks = await evaluator.evaluate({
+    scenario,
+
+    observation,
+  });
+
+  return buildEvaluationReport({
+    scenario,
+
+    observation,
+
+    checks,
+  });
 }

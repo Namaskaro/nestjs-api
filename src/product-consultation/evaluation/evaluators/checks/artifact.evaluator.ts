@@ -55,7 +55,7 @@ const ArtifactParamsSchema = z
   });
 
 export class ArtifactEvaluator implements EvaluationCheckEvaluator {
-  readonly id = 'artifact';
+  readonly evaluator = 'artifact';
 
   readonly source = 'deterministic' as const;
 
@@ -97,6 +97,8 @@ export class ArtifactEvaluator implements EvaluationCheckEvaluator {
         : `Artifact "${params.kind}" не соответствует ожиданию: ${count}.`,
 
       details: {
+        evaluator: this.evaluator,
+
         kind: params.kind,
 
         actual: count,

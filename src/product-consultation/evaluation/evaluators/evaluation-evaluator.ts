@@ -20,9 +20,16 @@ export type EvaluationCheckContext = {
 
 export interface EvaluationCheckEvaluator {
   /**
-   * Должен совпадать с check.id в scenario.
+   * Имя типа evaluator-а.
+   *
+   * Должно совпадать с check.evaluator.
+   *
+   * Например:
+   * tool-call-count
+   * artifact
+   * no-errors
    */
-  readonly id: string;
+  readonly evaluator: string;
 
   readonly source: EvaluationCheckSource;
 

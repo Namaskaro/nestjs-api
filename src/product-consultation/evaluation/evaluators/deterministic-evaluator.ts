@@ -24,17 +24,17 @@ export class DeterministicEvaluator {
   register(evaluator: EvaluationCheckEvaluator): void {
     if (evaluator.source !== 'deterministic') {
       throw new Error(
-        `DeterministicEvaluator: evaluator "${evaluator.id}" имеет source="${evaluator.source}"`,
+        `DeterministicEvaluator: evaluator "${evaluator.evaluator}" имеет source="${evaluator.source}"`,
       );
     }
 
-    if (this.evaluators.has(evaluator.id)) {
+    if (this.evaluators.has(evaluator.evaluator)) {
       throw new Error(
-        `DeterministicEvaluator: evaluator "${evaluator.id}" уже зарегистрирован`,
+        `DeterministicEvaluator: evaluator "${evaluator.evaluator}" уже зарегистрирован`,
       );
     }
 
-    this.evaluators.set(evaluator.id, evaluator);
+    this.evaluators.set(evaluator.evaluator, evaluator);
   }
 
   async evaluate({
@@ -50,13 +50,13 @@ export class DeterministicEvaluator {
     const results: EvaluationCheckResult[] = [];
 
     for (const check of scenario.checks) {
-      const evaluator = this.evaluators.get(check.id);
+      const evaluator = this.evaluators.get(check.evaluator);
 
       /**
-       * Это нормально.
+       * Здесь evaluator может отсутствовать,
+       * если check относится к live_model.
        *
-       * Возможно, check должен оцениваться
-       * live-model evaluator-ом или человеком.
+       * Его обработает другой evaluator layer.
        */
       if (!evaluator) {
         continue;
@@ -74,6 +74,10 @@ export class DeterministicEvaluator {
         results.push({
           ...result,
 
+          /**
+           * Всегда сохраняем ID конкретной
+           * проверки из scenario.
+           */
           id: check.id,
 
           source: 'deterministic',
@@ -88,7 +92,9 @@ export class DeterministicEvaluator {
 
           message: error instanceof Error ? error.message : String(error),
 
-          details: null,
+          details: {
+            evaluator: check.evaluator,
+          },
         });
       }
     }

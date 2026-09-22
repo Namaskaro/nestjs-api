@@ -8,7 +8,6 @@ import {
 export const EvaluationCheckSourceSchema = z.enum([
   'deterministic',
   'live_model',
-  'human',
 ]);
 
 export type EvaluationCheckSource = z.infer<typeof EvaluationCheckSourceSchema>;
@@ -23,6 +22,9 @@ export const EvaluationCheckStatusSchema = z.enum([
 export type EvaluationCheckStatus = z.infer<typeof EvaluationCheckStatusSchema>;
 
 export const EvaluationCheckResultSchema = z.object({
+  /**
+   * ID конкретной проверки из scenario.
+   */
   id: z.string().trim().min(1),
 
   source: EvaluationCheckSourceSchema,
@@ -37,15 +39,12 @@ export const EvaluationCheckResultSchema = z.object({
 export type EvaluationCheckResult = z.infer<typeof EvaluationCheckResultSchema>;
 
 export const EvaluationQualityMetricsSchema = z.object({
-  /**
-   * Выполнена ли пользовательская задача.
-   */
   taskSuccess: z.boolean().nullable(),
 
   /**
    * 0..1.
    *
-   * null = ещё не оценивалось.
+   * null = ещё не оценено.
    */
   groundedness: z.number().min(0).max(1).nullable(),
 
@@ -57,7 +56,7 @@ export const EvaluationQualityMetricsSchema = z.object({
   contextPollution: z.boolean().nullable(),
 
   /**
-   * true = был выполнен поиск, который сценарию не требовался.
+   * true = был выполнен ненужный поиск.
    */
   unnecessarySearch: z.boolean().nullable(),
 
@@ -99,14 +98,12 @@ export const EvaluationExecutionMetricsSchema = z.object({
   errorCount: z.number().int().nonnegative(),
 
   /**
-   * Стоимость runtime самого тестируемого target-а.
-   *
-   * Judge cost сюда не входит.
+   * Стоимость runtime тестируемой системы.
    */
   estimatedCostUsd: z.number().nonnegative().nullable(),
 
   /**
-   * Стоимость live-model evaluators / judges отдельно.
+   * Стоимость evaluation/judge моделей отдельно.
    */
   evaluationCostUsd: z.number().nonnegative().nullable(),
 });
@@ -134,9 +131,6 @@ export const EvaluationResultSchema = z.object({
 
   /**
    * Полный factual record прогона.
-   *
-   * Result содержит оценку,
-   * Observation содержит то, что реально произошло.
    */
   observation: EvaluationObservationSchema,
 });

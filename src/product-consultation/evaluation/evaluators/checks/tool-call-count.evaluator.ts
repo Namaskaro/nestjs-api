@@ -10,8 +10,8 @@ import type {
 const ToolCallCountParamsSchema = z
   .object({
     /**
-     * Если name не указан,
-     * считаются вообще все tool calls.
+     * Если name отсутствует,
+     * считаются все tool calls.
      */
     name: z.string().trim().min(1).optional(),
 
@@ -59,7 +59,7 @@ const ToolCallCountParamsSchema = z
   });
 
 export class ToolCallCountEvaluator implements EvaluationCheckEvaluator {
-  readonly id = 'tool-call-count';
+  readonly evaluator = 'tool-call-count';
 
   readonly source = 'deterministic' as const;
 
@@ -104,6 +104,8 @@ export class ToolCallCountEvaluator implements EvaluationCheckEvaluator {
         : `Количество tool calls не соответствует ожиданию: ${count}.`,
 
       details: {
+        evaluator: this.evaluator,
+
         toolName: params.name ?? null,
 
         actual: count,

@@ -6,7 +6,7 @@ import type {
 } from '../evaluation-evaluator';
 
 export class NoErrorsEvaluator implements EvaluationCheckEvaluator {
-  readonly id = 'no-errors';
+  readonly evaluator = 'no-errors';
 
   readonly source = 'deterministic' as const;
 

@@ -37,9 +37,10 @@ export const EvaluationMessageTurnSchema = z.object({
   message: z.string().trim().min(1),
 
   /**
-   * Нужен для сценариев retry / idempotency.
+   * Нужен для retry / idempotency scenarios.
    *
-   * Это infrastructure identity, а не часть Product Consultation semantics.
+   * Это infrastructure identity,
+   * а не часть Product Consultation semantics.
    */
   messageId: z.string().trim().min(1).nullable().default(null),
 });
@@ -50,10 +51,9 @@ export const EvaluationResumeTurnSchema = z.object({
   kind: z.literal('resume'),
 
   /**
-   * Значение, которым продолжается interrupted execution.
+   * Значение для продолжения interrupted execution.
    *
-   * Harness не знает внутреннюю форму этого значения.
-   * Target отвечает за его интерпретацию.
+   * Harness не знает его внутреннюю структуру.
    */
   value: EvaluationJsonValueSchema,
 });
@@ -69,24 +69,31 @@ export type EvaluationScenarioTurn = z.infer<
 
 export const EvaluationCheckDefinitionSchema = z.object({
   /**
-   * Стабильный ID проверки.
+   * Уникальный ID конкретной проверки внутри scenario.
    *
    * Например:
-   * - no-unnecessary-search
-   * - preserves-user-constraint
-   * - answer-grounded
-   *
-   * Реализация проверки живёт в evaluators/,
-   * а не внутри scenario contract.
+   * - no-extra-search
+   * - comparison-artifact-created
+   * - no-runtime-errors
    */
   id: z.string().trim().min(1),
+
+  /**
+   * Имя evaluator-а, который должен выполнить проверку.
+   *
+   * Например:
+   * - tool-call-count
+   * - artifact
+   * - no-errors
+   */
+  evaluator: z.string().trim().min(1),
 
   description: z.string().trim().min(1),
 
   /**
-   * Необязательные параметры конкретной проверки.
+   * Параметры evaluator-а.
    *
-   * Контракт намеренно не знает внутреннюю структуру state.
+   * Harness не знает их конкретную форму.
    */
   params: z.record(z.string(), EvaluationJsonValueSchema).default(() => ({})),
 });
@@ -95,52 +102,72 @@ export type EvaluationCheckDefinition = z.infer<
   typeof EvaluationCheckDefinitionSchema
 >;
 
-export const EvaluationScenarioSchema = z.object({
-  /**
-   * Например E01, E15, E30.
-   */
-  id: z.string().trim().min(1),
+export const EvaluationScenarioSchema = z
+  .object({
+    /**
+     * Например E01, E15, E30.
+     */
+    id: z.string().trim().min(1),
 
-  title: z.string().trim().min(1),
+    title: z.string().trim().min(1),
 
-  description: z.string().trim().min(1).nullable().default(null),
+    description: z.string().trim().min(1).nullable().default(null),
 
-  /**
-   * Что именно запускаем:
-   * Product Consultation напрямую
-   * или весь SupportAgent end-to-end.
-   */
-  target: EvaluationTargetSchema,
+    /**
+     * Что запускаем:
+     * Product Consultation напрямую
+     * или SupportAgent end-to-end.
+     */
+    target: EvaluationTargetSchema,
 
-  /**
-   * Имя фиксированного fixture catalog.
-   *
-   * Сам каталог хранится в fixtures/.
-   */
-  fixtureCatalogId: z.string().trim().min(1).nullable().default(null),
+    /**
+     * Ссылка на согласованный fixture.
+     *
+     * Fixture не обязан быть каталогом.
+     */
+    fixtureId: z.string().trim().min(1).nullable().default(null),
 
-  /**
-   * Начальное состояние разговора.
-   *
-   * Harness рассматривает его как opaque JSON snapshot
-   * и не знает его внутренней архитектуры.
-   */
-  initialState: EvaluationJsonValueSchema.nullable().default(null),
+    /**
+     * Начальное состояние сценария.
+     *
+     * Harness воспринимает его как opaque JSON.
+     */
+    initialState: EvaluationJsonValueSchema.nullable().default(null),
 
-  /**
-   * Один scenario может быть multi-turn.
-   */
-  turns: z.array(EvaluationScenarioTurnSchema).min(1),
+    /**
+     * Scenario может быть multi-turn.
+     */
+    turns: z.array(EvaluationScenarioTurnSchema).min(1),
 
-  /**
-   * Какие проверки должны быть выполнены после прогона.
-   */
-  checks: z.array(EvaluationCheckDefinitionSchema).default(() => []),
+    /**
+     * Проверки, которые должны быть выполнены.
+     */
+    checks: z.array(EvaluationCheckDefinitionSchema).default(() => []),
 
-  /**
-   * Для выборки smoke / regression / search / context и т.д.
-   */
-  tags: z.array(z.string().trim().min(1)).default(() => []),
-});
+    /**
+     * Например:
+     * baseline, smoke, regression, context, search.
+     */
+    tags: z.array(z.string().trim().min(1)).default(() => []),
+  })
+  .superRefine((scenario, context) => {
+    const checkIds = new Set<string>();
+
+    for (const check of scenario.checks) {
+      if (checkIds.has(check.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+
+          path: ['checks'],
+
+          message: `Evaluation check id "${check.id}" используется несколько раз.`,
+        });
+
+        continue;
+      }
+
+      checkIds.add(check.id);
+    }
+  });
 
 export type EvaluationScenario = z.infer<typeof EvaluationScenarioSchema>;

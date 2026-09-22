@@ -11,20 +11,28 @@ import type {
   EvaluationTarget,
 } from '../contracts/evaluation-scenario';
 
+import type { EvaluationToolCallSink } from '../recording/evaluation-capability-proxy';
+
 export type EvaluationTargetRunInput = {
   turn: EvaluationScenarioTurn;
 
   /**
-   * Harness не знает внутреннюю структуру состояния.
+   * Harness не знает внутреннюю структуру state.
    */
   state: EvaluationJsonValue | null;
 
   /**
-   * Используется для observability.
-   *
-   * Target не обязан сам что-либо записывать.
+   * LangChain / LangGraph callbacks.
    */
   callbacks?: RunnableConfig['callbacks'];
+
+  /**
+   * Recorder обычных deterministic capabilities.
+   *
+   * Target сам решает,
+   * какие свои вызовы считать capability calls.
+   */
+  toolCallSink?: EvaluationToolCallSink;
 };
 
 export type EvaluationTargetRunResult = {
