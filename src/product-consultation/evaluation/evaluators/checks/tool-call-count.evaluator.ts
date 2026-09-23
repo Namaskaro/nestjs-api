@@ -10,7 +10,16 @@ import type {
 const ToolCallCountParamsSchema = z
   .object({
     /**
-     * Если name отсутствует,
+     * Если указан turnId,
+     * считаем вызовы только внутри этого turn.
+     *
+     * Если не указан —
+     * считаем по всему scenario.
+     */
+    turnId: z.string().trim().min(1).optional(),
+
+    /**
+     * Если name не указан,
      * считаются все tool calls.
      */
     name: z.string().trim().min(1).optional(),
@@ -69,7 +78,23 @@ export class ToolCallCountEvaluator implements EvaluationCheckEvaluator {
   }: EvaluationCheckContext): EvaluationCheckResult {
     const params = ToolCallCountParamsSchema.parse(check.params);
 
-    const calls = observation.turns.flatMap((turn) => turn.toolCalls);
+    let turns = observation.turns;
+
+    if (params.turnId) {
+      const turn = observation.turns.find(
+        (item) => item.input.id === params.turnId,
+      );
+
+      if (!turn) {
+        throw new Error(
+          `ToolCallCountEvaluator: turn "${params.turnId}" не найден`,
+        );
+      }
+
+      turns = [turn];
+    }
+
+    const calls = turns.flatMap((turn) => turn.toolCalls);
 
     const matchingCalls =
       params.name === undefined
@@ -105,6 +130,8 @@ export class ToolCallCountEvaluator implements EvaluationCheckEvaluator {
 
       details: {
         evaluator: this.evaluator,
+
+        turnId: params.turnId ?? null,
 
         toolName: params.name ?? null,
 

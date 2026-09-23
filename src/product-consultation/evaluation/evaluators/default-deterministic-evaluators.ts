@@ -1,5 +1,7 @@
 import { ArtifactEvaluator } from './checks/artifact.evaluator';
 
+import { JsonValueEvaluator } from './checks/json-value.evaluator';
+
 import { NoErrorsEvaluator } from './checks/no-errors.evaluator';
 
 import { ToolCallCountEvaluator } from './checks/tool-call-count.evaluator';
@@ -13,5 +15,7 @@ export function createDefaultDeterministicEvaluator(): DeterministicEvaluator {
     new ToolCallCountEvaluator(),
 
     new ArtifactEvaluator(),
+
+    new JsonValueEvaluator(),
   ]);
 }

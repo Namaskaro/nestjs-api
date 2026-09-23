@@ -1,17 +1,17 @@
 import type { EvaluationScenario } from '../contracts/evaluation-scenario';
 
+import { E01_PRODUCT_SELECTION_FLOW } from './e01-product-selection-flow.scenario';
+
 /**
- * Baseline scenarios добавляем только тогда,
- * когда для сценария есть согласованные входные данные.
+ * Единый baseline Product Consultation.
  *
- * Здесь нельзя придумывать:
- * - товары;
- * - характеристики;
- * - состояние диалога;
- * - результаты поиска;
- * - ожидаемые факты.
- *
- * Один и тот же baseline должен использоваться
+ * Один и тот же набор сценариев должен использоваться
  * до, во время и после большого refactor-а.
+ *
+ * Сценарий с fixtureId === null уже фиксирует ожидаемое поведение,
+ * но не считается полностью deterministic до подключения
+ * frozen fixture.
  */
-export const BASELINE_SCENARIOS: readonly EvaluationScenario[] = [];
+export const BASELINE_SCENARIOS: readonly EvaluationScenario[] = [
+  E01_PRODUCT_SELECTION_FLOW,
+];

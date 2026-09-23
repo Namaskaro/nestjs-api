@@ -9,6 +9,15 @@ import type {
 
 const ArtifactParamsSchema = z
   .object({
+    /**
+     * Если указан turnId,
+     * проверяем artifacts только этого turn.
+     *
+     * Если нет —
+     * проверяем весь scenario.
+     */
+    turnId: z.string().trim().min(1).optional(),
+
     kind: z.string().trim().min(1),
 
     exact: z.number().int().nonnegative().optional(),
@@ -65,7 +74,21 @@ export class ArtifactEvaluator implements EvaluationCheckEvaluator {
   }: EvaluationCheckContext): EvaluationCheckResult {
     const params = ArtifactParamsSchema.parse(check.params);
 
-    const artifacts = observation.turns
+    let turns = observation.turns;
+
+    if (params.turnId) {
+      const turn = observation.turns.find(
+        (item) => item.input.id === params.turnId,
+      );
+
+      if (!turn) {
+        throw new Error(`ArtifactEvaluator: turn "${params.turnId}" не найден`);
+      }
+
+      turns = [turn];
+    }
+
+    const artifacts = turns
       .flatMap((turn) => turn.artifacts)
       .filter((artifact) => artifact.kind === params.kind);
 
@@ -98,6 +121,8 @@ export class ArtifactEvaluator implements EvaluationCheckEvaluator {
 
       details: {
         evaluator: this.evaluator,
+
+        turnId: params.turnId ?? null,
 
         kind: params.kind,
 

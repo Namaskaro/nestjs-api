@@ -4,6 +4,8 @@ import { createProductAgent } from '@/src/product-consultation/application/agent
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
+import { ProductNeedSchema } from '@/src/product-consultation/application/search/product-need.schema';
+
 import {
   EvaluationJsonValueSchema,
   type EvaluationJsonValue,
@@ -30,14 +32,52 @@ function toJson(value: unknown): EvaluationJsonValue | null {
   return EvaluationJsonValueSchema.parse(value);
 }
 
-function jsonArgs(args: readonly unknown[]): EvaluationJsonValue {
-  const serialized = JSON.stringify(args);
+function mapSearchArgs(args: readonly unknown[]): EvaluationJsonValue {
+  const parsed = ProductNeedSchema.safeParse(args[0]);
 
-  if (serialized === undefined) {
-    return null;
+  if (!parsed.success) {
+    return {
+      query: null,
+
+      constraints: null,
+    };
   }
 
-  return JSON.parse(serialized) as EvaluationJsonValue;
+  const need = parsed.data;
+
+  return {
+    query: need.semanticQuery,
+
+    constraints: {
+      gender: need.filters.gender,
+
+      type: need.filters.type,
+
+      brand: need.filters.brand,
+
+      category: need.filters.category,
+
+      subcategory: need.filters.subcategory,
+
+      color: need.filters.color,
+
+      size: need.filters.size,
+
+      minPrice: need.filters.minPrice,
+
+      maxPrice: need.filters.maxPrice,
+    },
+  };
+}
+
+function mapProductDetailsArgs(args: readonly unknown[]): EvaluationJsonValue {
+  const productIds = Array.isArray(args[0])
+    ? args[0].filter((value): value is string => typeof value === 'string')
+    : [];
+
+  return {
+    productIds,
+  };
 }
 
 export class CurrentProductConsultationTarget
@@ -67,7 +107,7 @@ export class CurrentProductConsultationTarget
 
           name: 'search_products',
 
-          mapArgs: jsonArgs,
+          mapArgs: mapSearchArgs,
         },
 
         {
@@ -75,7 +115,7 @@ export class CurrentProductConsultationTarget
 
           name: 'get_product_details',
 
-          mapArgs: jsonArgs,
+          mapArgs: mapProductDetailsArgs,
         },
       ],
     });
@@ -192,6 +232,16 @@ export class CurrentProductConsultationTarget
         kind: 'product_details',
 
         data: toJson(productDetailsPresentation),
+      });
+    }
+
+    if (result.consultationCompletion) {
+      artifacts.push({
+        id: result.consultationCompletion.sessionId,
+
+        kind: 'consultation_completion',
+
+        data: toJson(result.consultationCompletion),
       });
     }
 

@@ -1,0 +1,1970 @@
+{
+  "id": "e01-current-catalog",
+  "capturedAt": "2026-09-23T00:24:26.224Z",
+  "searches": [
+    {
+      "key": "nike-base",
+      "request": {
+        "semanticQuery": "мужские кроссовки Nike",
+        "filters": {
+          "gender": "MAN",
+          "type": "SHOES",
+          "brand": "Nike",
+          "category": null,
+          "subcategory": null,
+          "color": null,
+          "size": null,
+          "minPrice": null,
+          "maxPrice": null
+        }
+      },
+      "products": [
+        {
+          "id": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+          "title": "Nike SB Dunk Low Pro",
+          "price": "15000",
+          "image": "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788379040984_0.webp"
+        },
+        {
+          "id": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+          "title": "Nike Mind 002",
+          "price": "23000",
+          "image": "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378762624_0.webp"
+        },
+        {
+          "id": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+          "title": "Kobe Air Force 1 Low",
+          "price": "18700",
+          "image": "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378937502_0.webp"
+        }
+      ],
+      "consultationBinding": {
+        "profileId": "SHOES",
+        "requirements": [
+          {
+            "requirementId": "filter:inStock",
+            "attributeId": "inStock",
+            "operator": "eq",
+            "value": true,
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Товар должен быть в наличии"
+          },
+          {
+            "requirementId": "filter:brand",
+            "attributeId": "brand",
+            "operator": "eq",
+            "value": "09ce3fcd-7160-45b3-8e1e-6914c91c6df7",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Бренд: Nike"
+          },
+          {
+            "requirementId": "filter:type",
+            "attributeId": "type",
+            "operator": "eq",
+            "value": "SHOES",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Тип товара: SHOES"
+          },
+          {
+            "requirementId": "filter:gender",
+            "attributeId": "gender",
+            "operator": "eq",
+            "value": "MAN",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Каталожная маркировка: MAN"
+          }
+        ]
+      }
+    },
+    {
+      "key": "nike-green-daily",
+      "request": {
+        "semanticQuery": "мужские кроссовки Nike\nПожелания: для повседневной носки",
+        "filters": {
+          "gender": "MAN",
+          "type": "SHOES",
+          "brand": "Nike",
+          "category": null,
+          "subcategory": null,
+          "color": "зелёный",
+          "size": null,
+          "minPrice": null,
+          "maxPrice": null
+        }
+      },
+      "products": [],
+      "consultationBinding": {
+        "profileId": "SHOES",
+        "requirements": [
+          {
+            "requirementId": "filter:inStock",
+            "attributeId": "inStock",
+            "operator": "eq",
+            "value": true,
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Товар должен быть в наличии"
+          },
+          {
+            "requirementId": "filter:brand",
+            "attributeId": "brand",
+            "operator": "eq",
+            "value": "09ce3fcd-7160-45b3-8e1e-6914c91c6df7",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Бренд: Nike"
+          },
+          {
+            "requirementId": "filter:type",
+            "attributeId": "type",
+            "operator": "eq",
+            "value": "SHOES",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Тип товара: SHOES"
+          },
+          {
+            "requirementId": "filter:gender",
+            "attributeId": "gender",
+            "operator": "eq",
+            "value": "MAN",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Каталожная маркировка: MAN"
+          },
+          {
+            "requirementId": "filter:color",
+            "attributeId": "color",
+            "operator": "eq",
+            "value": "зеленый",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Цвет: зелёный"
+          }
+        ]
+      }
+    },
+    {
+      "key": "adidas-green-daily",
+      "request": {
+        "semanticQuery": "мужские кроссовки Adidas\nПожелания: для повседневной носки",
+        "filters": {
+          "gender": "MAN",
+          "type": "SHOES",
+          "brand": "Adidas",
+          "category": null,
+          "subcategory": null,
+          "color": "зелёный",
+          "size": null,
+          "minPrice": null,
+          "maxPrice": null
+        }
+      },
+      "products": [],
+      "consultationBinding": {
+        "profileId": "SHOES",
+        "requirements": [
+          {
+            "requirementId": "filter:inStock",
+            "attributeId": "inStock",
+            "operator": "eq",
+            "value": true,
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Товар должен быть в наличии"
+          },
+          {
+            "requirementId": "filter:brand",
+            "attributeId": "brand",
+            "operator": "eq",
+            "value": "e6ccf0cb-06f1-4762-8420-6d70e6412e3a",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Бренд: Adidas"
+          },
+          {
+            "requirementId": "filter:type",
+            "attributeId": "type",
+            "operator": "eq",
+            "value": "SHOES",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Тип товара: SHOES"
+          },
+          {
+            "requirementId": "filter:gender",
+            "attributeId": "gender",
+            "operator": "eq",
+            "value": "MAN",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Каталожная маркировка: MAN"
+          },
+          {
+            "requirementId": "filter:color",
+            "attributeId": "color",
+            "operator": "eq",
+            "value": "зеленый",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Цвет: зелёный"
+          }
+        ]
+      }
+    },
+    {
+      "key": "adidas-daily",
+      "request": {
+        "semanticQuery": "мужские кроссовки Adidas\nПожелания: для повседневной носки",
+        "filters": {
+          "gender": "MAN",
+          "type": "SHOES",
+          "brand": "Adidas",
+          "category": null,
+          "subcategory": null,
+          "color": null,
+          "size": null,
+          "minPrice": null,
+          "maxPrice": null
+        }
+      },
+      "products": [
+        {
+          "id": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+          "title": "HANDBALL SPEZIAL SHOES",
+          "price": "12500",
+          "image": "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1786737176125_0.webp"
+        },
+        {
+          "id": "74876032-94a0-4229-9b6e-27135c7608f9",
+          "title": "Campus 00s",
+          "price": "12800",
+          "image": "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378143828_0.webp"
+        }
+      ],
+      "consultationBinding": {
+        "profileId": "SHOES",
+        "requirements": [
+          {
+            "requirementId": "filter:inStock",
+            "attributeId": "inStock",
+            "operator": "eq",
+            "value": true,
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Товар должен быть в наличии"
+          },
+          {
+            "requirementId": "filter:brand",
+            "attributeId": "brand",
+            "operator": "eq",
+            "value": "e6ccf0cb-06f1-4762-8420-6d70e6412e3a",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Бренд: Adidas"
+          },
+          {
+            "requirementId": "filter:type",
+            "attributeId": "type",
+            "operator": "eq",
+            "value": "SHOES",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Тип товара: SHOES"
+          },
+          {
+            "requirementId": "filter:gender",
+            "attributeId": "gender",
+            "operator": "eq",
+            "value": "MAN",
+            "unit": null,
+            "resolution": "resolved",
+            "label": "Каталожная маркировка: MAN"
+          }
+        ]
+      }
+    }
+  ],
+  "productDetails": [
+    {
+      "id": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+      "title": "Nike SB Dunk Low Pro",
+      "description": "На классику всегда можно положиться. В модели Dunk Low культовое цветовое сочетание сочетается с премиальными материалами и мягкой подкладкой — и дарит совершенно новый уровень комфорта. Возможности безграничны — в каком образе вы будете носить свои Dunks?\r\n\r\nПреимущества\r\nВерх из кожи со временем становится мягче и приобретает винтажный характер.\r\nАмортизация Air Zoom создаёт ощущение мгновенного отрыва от земли.\r\nРезиновая подошва с классическим кругом для манёвренности обеспечивает надёжное сцепление и подчёркивает наследие модели.\r\n\r\nДетали модели\r\nМягкий бортик с подкладкой.\r\nПромежуточная подошва из пены.\r\nЦвет на фото: Green Noise/Light Curry/Off‑Noir/Watermelon.",
+      "productType": "SHOES",
+      "profileId": "SHOES",
+      "price": "15000",
+      "currency": null,
+      "discount": "0",
+      "images": [
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788379040984_0.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788379042654_1.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788379043160_2.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788379044029_3.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788379044515_4.webp"
+      ],
+      "availability": {
+        "inStock": true,
+        "stock": 10
+      },
+      "brand": {
+        "id": "09ce3fcd-7160-45b3-8e1e-6914c91c6df7",
+        "name": "Nike"
+      },
+      "category": {
+        "id": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+        "name": "Обувь"
+      },
+      "subcategory": {
+        "id": "768d89df-4b57-4430-b744-1b0bb9653f75",
+        "name": "Кроссовки"
+      },
+      "attributes": [
+        {
+          "attributeId": "price",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 15000,
+          "displayValue": "15000",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/price"
+              ],
+              "transformation": "mapping@3 | read_path | parse_decimal | validate_nonnegative_number | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "brand",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "09ce3fcd-7160-45b3-8e1e-6914c91c6df7",
+          "displayValue": "Nike",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/brand/id",
+                "/brand/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "category",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+          "displayValue": "Обувь",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/subcategory/category/id",
+                "/subcategory/category/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "subcategory",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "768d89df-4b57-4430-b744-1b0bb9653f75",
+          "displayValue": "Кроссовки",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/subcategory/id",
+                "/subcategory/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "type",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "SHOES",
+          "displayValue": "SHOES",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/type"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "inStock",
+          "kind": "boolean",
+          "unit": null,
+          "status": "known",
+          "value": true,
+          "displayValue": "true",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/inStock"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "stock",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 10,
+          "displayValue": "10",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/stock"
+              ],
+              "transformation": "mapping@3 | read_path | validate_nonnegative_integer | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "gender",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "MAN",
+          "displayValue": "MAN",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/gender"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "color",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "разноцветный",
+          "displayValue": "Разноцветный",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/color"
+              ],
+              "transformation": "mapping@3 | read_path | normalize_search_filter_value | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "sizes",
+          "kind": "set",
+          "unit": null,
+          "status": "known",
+          "value": [
+            "40",
+            "40.5",
+            "41",
+            "41.5",
+            "42",
+            "42.5",
+            "43",
+            "43.5",
+            "44",
+            "45",
+            "44.5"
+          ],
+          "displayValue": "40, 40.5, 41, 41.5, 42, 42.5, 43, 43.5, 44, 45, 44.5",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:20:57.473Z",
+              "paths": [
+                "/sizes"
+              ],
+              "transformation": "mapping@3 | read_path | trim_and_deduplicate_set | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "material",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "composition",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "upperMaterial",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "season",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "purpose",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "sole",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "lining",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "weight",
+          "kind": "number",
+          "unit": "kg",
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "waterProtection",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        }
+      ],
+      "source": {
+        "sourceId": "current-store:catalog",
+        "recordId": "27807943-51e2-49fd-a0eb-4f3cd6568177",
+        "observedAt": "2026-09-23T00:24:26.219Z",
+        "updatedAt": "2026-09-04T12:20:57.473Z"
+      }
+    },
+    {
+      "id": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+      "title": "Nike Mind 002",
+      "description": "Преимущества технологии Nike Mind — в удобных кроссовках, в которых можно отправиться куда угодно. Да, мы это сделали! Мягкая и упругая пена амортизирует каждый шаг, а крупные выступы на подошве воздействуют на стопу, стимулируя сенсорные зоны мозга — так вы остаётесь в моменте и лучше ощущаете окружающее пространство. Ведь когда в игре может победить любой, победа — в голове.\r\n\r\nПробудите свои чувства\r\nТехнология разработана в отделе науки о сознании Nike: 22 выступа двигаются вверх‑вниз, воздействуя на стопу, — научно доказано, что это активирует сенсорные зоны мозга.\r\n\r\nГотовьтесь с комфортом\r\nМягкая пена в промежуточной подошве обеспечивает надёжную и комфортную амортизацию. Верх из трикотажа имеет специальные перфорации для воздухопроницаемости. Эластичная ткань на стельке даёт выступам пространство для движения и при этом остаётся приятной на ощупь.\r\n\r\nДополнительные преимущества\r\nРезиновые накладки в области носка и пятки обеспечивают прочное сцепление с поверхностью.\r\nТрикотажный язычок мягкий и имеет перфорации для лучшей воздухопроницаемости.\r\n\r\nДетали модели\r\nПетля на пятке для удобного надевания.\r\nФормованная пена на пятке и язычке.\r\nЦвет на фото: Phantom/Cream II/College Grey.",
+      "productType": "SHOES",
+      "profileId": "SHOES",
+      "price": "23000",
+      "currency": null,
+      "discount": "0",
+      "images": [
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378762624_0.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378764322_1.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378764815_2.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378765337_3.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378765820_4.webp"
+      ],
+      "availability": {
+        "inStock": true,
+        "stock": 10
+      },
+      "brand": {
+        "id": "09ce3fcd-7160-45b3-8e1e-6914c91c6df7",
+        "name": "Nike"
+      },
+      "category": {
+        "id": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+        "name": "Обувь"
+      },
+      "subcategory": {
+        "id": "768d89df-4b57-4430-b744-1b0bb9653f75",
+        "name": "Кроссовки"
+      },
+      "attributes": [
+        {
+          "attributeId": "price",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 23000,
+          "displayValue": "23000",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/price"
+              ],
+              "transformation": "mapping@3 | read_path | parse_decimal | validate_nonnegative_number | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "brand",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "09ce3fcd-7160-45b3-8e1e-6914c91c6df7",
+          "displayValue": "Nike",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/brand/id",
+                "/brand/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "category",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+          "displayValue": "Обувь",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/subcategory/category/id",
+                "/subcategory/category/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "subcategory",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "768d89df-4b57-4430-b744-1b0bb9653f75",
+          "displayValue": "Кроссовки",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/subcategory/id",
+                "/subcategory/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "type",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "SHOES",
+          "displayValue": "SHOES",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/type"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "inStock",
+          "kind": "boolean",
+          "unit": null,
+          "status": "known",
+          "value": true,
+          "displayValue": "true",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/inStock"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "stock",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 10,
+          "displayValue": "10",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/stock"
+              ],
+              "transformation": "mapping@3 | read_path | validate_nonnegative_integer | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "gender",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "MAN",
+          "displayValue": "MAN",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/gender"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "color",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "белый",
+          "displayValue": "Белый",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/color"
+              ],
+              "transformation": "mapping@3 | read_path | normalize_search_filter_value | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "sizes",
+          "kind": "set",
+          "unit": null,
+          "status": "known",
+          "value": [
+            "40",
+            "40.5",
+            "41",
+            "41.5",
+            "42",
+            "42.5",
+            "43",
+            "43.5",
+            "44",
+            "45"
+          ],
+          "displayValue": "40, 40.5, 41, 41.5, 42, 42.5, 43, 43.5, 44, 45",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:17:47.394Z",
+              "paths": [
+                "/sizes"
+              ],
+              "transformation": "mapping@3 | read_path | trim_and_deduplicate_set | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "material",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "composition",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "upperMaterial",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "season",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "purpose",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "sole",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "lining",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "weight",
+          "kind": "number",
+          "unit": "kg",
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "waterProtection",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        }
+      ],
+      "source": {
+        "sourceId": "current-store:catalog",
+        "recordId": "c32a02c1-3315-477b-8509-c3c461aa27ce",
+        "observedAt": "2026-09-23T00:24:26.219Z",
+        "updatedAt": "2026-09-04T12:17:47.394Z"
+      }
+    },
+    {
+      "id": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+      "title": "Kobe Air Force 1 Low",
+      "description": "Эта лимитированная версия кроссовок AF‑1 пронизана духом «Мамбы»: например, сплошной принт под змеиную кожу придаёт культовой классике особый характер. Вышитый номер и эмблема на пятке — дань уважения альма‑матер Коби, а логотипы Sheath на язычке и внешней стороне пятки добавляют фирменный стиль. В завершение образ дополняют специальные наконечники для шнурков с надписью «Mamba Forever».\r\n\r\nПреимущества\r\nВерх из синтетической кожи с перфорированным мысом обеспечивает воздухопроницаемость и комфорт.\r\nАмортизирующая вставка Nike Air даёт лёгкую амортизацию.\r\nРезиновая подошва с классическими кругами для манёвренности в баскетболе обеспечивает сцепление и износостойкость.\r\n\r\nДетали модели\r\nМягкий бортик с подкладкой.\r\nПромежуточная подошва из пены.\r\nЦвет на фото: Vast Grey/White/Electric Green.",
+      "productType": "SHOES",
+      "profileId": "SHOES",
+      "price": "18700",
+      "currency": null,
+      "discount": "10",
+      "images": [
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378937502_0.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378939463_1.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378939931_2.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378940680_3.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378941157_4.webp"
+      ],
+      "availability": {
+        "inStock": true,
+        "stock": 10
+      },
+      "brand": {
+        "id": "09ce3fcd-7160-45b3-8e1e-6914c91c6df7",
+        "name": "Nike"
+      },
+      "category": {
+        "id": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+        "name": "Обувь"
+      },
+      "subcategory": {
+        "id": "768d89df-4b57-4430-b744-1b0bb9653f75",
+        "name": "Кроссовки"
+      },
+      "attributes": [
+        {
+          "attributeId": "price",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 18700,
+          "displayValue": "18700",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/price"
+              ],
+              "transformation": "mapping@3 | read_path | parse_decimal | validate_nonnegative_number | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "brand",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "09ce3fcd-7160-45b3-8e1e-6914c91c6df7",
+          "displayValue": "Nike",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/brand/id",
+                "/brand/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "category",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+          "displayValue": "Обувь",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/subcategory/category/id",
+                "/subcategory/category/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "subcategory",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "768d89df-4b57-4430-b744-1b0bb9653f75",
+          "displayValue": "Кроссовки",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/subcategory/id",
+                "/subcategory/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "type",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "SHOES",
+          "displayValue": "SHOES",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/type"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "inStock",
+          "kind": "boolean",
+          "unit": null,
+          "status": "known",
+          "value": true,
+          "displayValue": "true",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/inStock"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "stock",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 10,
+          "displayValue": "10",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/stock"
+              ],
+              "transformation": "mapping@3 | read_path | validate_nonnegative_integer | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "gender",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "MAN",
+          "displayValue": "MAN",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/gender"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "color",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "белый",
+          "displayValue": "Белый",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/color"
+              ],
+              "transformation": "mapping@3 | read_path | normalize_search_filter_value | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "sizes",
+          "kind": "set",
+          "unit": null,
+          "status": "known",
+          "value": [
+            "41",
+            "42",
+            "43",
+            "45",
+            "42.5"
+          ],
+          "displayValue": "41, 42, 43, 45, 42.5",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:47.367Z",
+              "paths": [
+                "/sizes"
+              ],
+              "transformation": "mapping@3 | read_path | trim_and_deduplicate_set | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "material",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "composition",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "upperMaterial",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "season",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "purpose",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "sole",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "lining",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "weight",
+          "kind": "number",
+          "unit": "kg",
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "waterProtection",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        }
+      ],
+      "source": {
+        "sourceId": "current-store:catalog",
+        "recordId": "01c5a698-1d8d-4a88-87ed-5fd14a7075ae",
+        "observedAt": "2026-09-23T00:24:26.219Z",
+        "updatedAt": "2026-09-04T12:22:47.367Z"
+      }
+    },
+    {
+      "id": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+      "title": "HANDBALL SPEZIAL SHOES",
+      "description": "Кроссовки Handball Spezial изначально были созданы в 1979 году для элитных спортсменов, занимающихся гандболом. Со временем эта модель стала культовой в уличной моде — её ценят за винтажный вид и непревзойдённый комфорт.\r\n\r\nВ этой версии использованы замшевые накладки: они придают обуви премиальный вид и повышают износостойкость — так что кроссовки отлично подходят для повседневной носки. Мягкая резиновая подошва цвета «жвачка» осталась такой же, как в оригинальной модели: она обеспечивает надёжное сцепление с поверхностью и придаёт обуви классический вид.\r\n\r\nМодель отдаёт дань уважения своим спортивным корням: лёгкие нейлоновые вставки сочетаются с полосками из синтетической кожи и деталями на пятке — это добавляет образу спортивной выразительности. Будь то обычный день или желание сделать свой современный образ ярче — эти кроссовки станут смелым акцентом и подчеркнут вневременную эстетику. Прикоснитесь к наследию adidas — пусть каждый ваш шаг будет отсылкой к спортивной истории.",
+      "productType": "SHOES",
+      "profileId": "SHOES",
+      "price": "12500",
+      "currency": null,
+      "discount": "0",
+      "images": [
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1786737176125_0.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1786737178199_1.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1786737178673_2.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1786737179145_3.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1786737179692_4.webp"
+      ],
+      "availability": {
+        "inStock": true,
+        "stock": 10
+      },
+      "brand": {
+        "id": "e6ccf0cb-06f1-4762-8420-6d70e6412e3a",
+        "name": "Adidas"
+      },
+      "category": {
+        "id": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+        "name": "Обувь"
+      },
+      "subcategory": {
+        "id": "768d89df-4b57-4430-b744-1b0bb9653f75",
+        "name": "Кроссовки"
+      },
+      "attributes": [
+        {
+          "attributeId": "price",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 12500,
+          "displayValue": "12500",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/price"
+              ],
+              "transformation": "mapping@3 | read_path | parse_decimal | validate_nonnegative_number | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "brand",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "e6ccf0cb-06f1-4762-8420-6d70e6412e3a",
+          "displayValue": "Adidas",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/brand/id",
+                "/brand/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "category",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+          "displayValue": "Обувь",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/subcategory/category/id",
+                "/subcategory/category/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "subcategory",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "768d89df-4b57-4430-b744-1b0bb9653f75",
+          "displayValue": "Кроссовки",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/subcategory/id",
+                "/subcategory/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "type",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "SHOES",
+          "displayValue": "SHOES",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/type"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "inStock",
+          "kind": "boolean",
+          "unit": null,
+          "status": "known",
+          "value": true,
+          "displayValue": "true",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/inStock"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "stock",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 10,
+          "displayValue": "10",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/stock"
+              ],
+              "transformation": "mapping@3 | read_path | validate_nonnegative_integer | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "gender",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "MAN",
+          "displayValue": "MAN",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/gender"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "color",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "серый",
+          "displayValue": "Серый",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/color"
+              ],
+              "transformation": "mapping@3 | read_path | normalize_search_filter_value | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "sizes",
+          "kind": "set",
+          "unit": null,
+          "status": "known",
+          "value": [
+            "40",
+            "40.5",
+            "41",
+            "41.5",
+            "42",
+            "42.5",
+            "43",
+            "43.5",
+            "44",
+            "44.5",
+            "45"
+          ],
+          "displayValue": "40, 40.5, 41, 41.5, 42, 42.5, 43, 43.5, 44, 44.5, 45",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:18:35.521Z",
+              "paths": [
+                "/sizes"
+              ],
+              "transformation": "mapping@3 | read_path | trim_and_deduplicate_set | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "material",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "composition",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "upperMaterial",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "season",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "purpose",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "sole",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "lining",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "weight",
+          "kind": "number",
+          "unit": "kg",
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "waterProtection",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        }
+      ],
+      "source": {
+        "sourceId": "current-store:catalog",
+        "recordId": "742a0635-9cd3-4c7f-bf4d-f6fb8c8b79e2",
+        "observedAt": "2026-09-23T00:24:26.219Z",
+        "updatedAt": "2026-09-04T12:18:35.521Z"
+      }
+    },
+    {
+      "id": "74876032-94a0-4229-9b6e-27135c7608f9",
+      "title": "Campus 00s",
+      "description": "Эти кроссовки adidas берут культовые элементы модели Campus 80s и придают им современную трактовку в духе скейтбординга. Замша известна своей прочностью: со временем она подстраивается под форму стопы, обеспечивая долговечность обуви и надёжную опору. Новое сочетание университетских цветовых блоков, графики и брендинга создаёт свежий образ — его сможет сделать своим и по‑своему стилизовать новое поколение.",
+      "productType": "SHOES",
+      "profileId": "SHOES",
+      "price": "12800",
+      "currency": null,
+      "discount": "10",
+      "images": [
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378143828_0.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378146241_1.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378147034_2.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378147553_3.webp",
+        "https://3dc2f0ff-61e7-427a-9cd6-bb9186b5fb66.selstorage.ru/products/1788378148035_4.webp"
+      ],
+      "availability": {
+        "inStock": true,
+        "stock": 10
+      },
+      "brand": {
+        "id": "e6ccf0cb-06f1-4762-8420-6d70e6412e3a",
+        "name": "Adidas"
+      },
+      "category": {
+        "id": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+        "name": "Обувь"
+      },
+      "subcategory": {
+        "id": "768d89df-4b57-4430-b744-1b0bb9653f75",
+        "name": "Кроссовки"
+      },
+      "attributes": [
+        {
+          "attributeId": "price",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 12800,
+          "displayValue": "12800",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/price"
+              ],
+              "transformation": "mapping@3 | read_path | parse_decimal | validate_nonnegative_number | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "brand",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "e6ccf0cb-06f1-4762-8420-6d70e6412e3a",
+          "displayValue": "Adidas",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/brand/id",
+                "/brand/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "category",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "0ef5b947-52ce-4dab-9bc7-1be54c48b3ca",
+          "displayValue": "Обувь",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/subcategory/category/id",
+                "/subcategory/category/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "subcategory",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "768d89df-4b57-4430-b744-1b0bb9653f75",
+          "displayValue": "Кроссовки",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/subcategory/id",
+                "/subcategory/name"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "type",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "SHOES",
+          "displayValue": "SHOES",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/type"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "inStock",
+          "kind": "boolean",
+          "unit": null,
+          "status": "known",
+          "value": true,
+          "displayValue": "true",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/inStock"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "stock",
+          "kind": "number",
+          "unit": null,
+          "status": "known",
+          "value": 10,
+          "displayValue": "10",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/stock"
+              ],
+              "transformation": "mapping@3 | read_path | validate_nonnegative_integer | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "gender",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "MAN",
+          "displayValue": "MAN",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/gender"
+              ],
+              "transformation": "mapping@3 | read_path | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "color",
+          "kind": "text",
+          "unit": null,
+          "status": "known",
+          "value": "синий",
+          "displayValue": "Синий",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/color"
+              ],
+              "transformation": "mapping@3 | read_path | normalize_search_filter_value | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "sizes",
+          "kind": "set",
+          "unit": null,
+          "status": "known",
+          "value": [
+            "40",
+            "40.5",
+            "41",
+            "41.5",
+            "42.5",
+            "42",
+            "43",
+            "43.5",
+            "44"
+          ],
+          "displayValue": "40, 40.5, 41, 41.5, 42.5, 42, 43, 43.5, 44",
+          "provenance": [
+            {
+              "sourceId": "current-store:catalog",
+              "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+              "observedAt": "2026-09-23T00:24:26.219Z",
+              "updatedAt": "2026-09-04T12:22:31.864Z",
+              "paths": [
+                "/sizes"
+              ],
+              "transformation": "mapping@3 | read_path | trim_and_deduplicate_set | merge:consensus"
+            }
+          ]
+        },
+        {
+          "attributeId": "material",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "composition",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "upperMaterial",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "season",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "purpose",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "sole",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "lining",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "weight",
+          "kind": "number",
+          "unit": "kg",
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        },
+        {
+          "attributeId": "waterProtection",
+          "kind": "text",
+          "unit": null,
+          "status": "unknown",
+          "value": null,
+          "displayValue": null,
+          "provenance": []
+        }
+      ],
+      "source": {
+        "sourceId": "current-store:catalog",
+        "recordId": "74876032-94a0-4229-9b6e-27135c7608f9",
+        "observedAt": "2026-09-23T00:24:26.219Z",
+        "updatedAt": "2026-09-04T12:22:31.864Z"
+      }
+    }
+  ]
+}
