@@ -10,45 +10,38 @@ import {
 import { ConsultationMemoryStateSchema } from '../memory/consultation-memory-state.schema';
 
 /**
- * Новое persistent состояние одной
- * товарной консультации.
+ * Authoritative состояние одной консультации.
  *
- * Пока здесь намеренно только фундамент:
+ * Консультация может существовать ещё ДО поиска:
  *
- * - что ищем;
- * - зачем / по каким критериям выбираем.
+ * search = null
  *
- * Results, references, actions и presentation
- * будут отдельными bounded concepts.
+ * Например:
+ *
+ * user: "Хочу что-нибудь подобрать"
+ * assistant: "Для какого случая?"
+ *
+ * Поэтому наличие consultation state
+ * больше не означает, что SearchSpec уже создан.
  */
 export const ProductConsultationStateSchema = z
   .object({
     version: z.literal(1),
 
-    search: SearchSpecSchema,
+    search: SearchSpecSchema.nullable(),
 
     memory: ConsultationMemoryStateSchema,
   })
   .strict();
 
-/**
- * Semantic delta одного пользовательского turn.
- *
- * Здесь НЕТ:
- *
- * - expectedRevision;
- * - needId;
- * - server-generated IDs;
- * - полного нового state.
- *
- * Внешний interpreter сообщает только,
- * ЧТО изменилось.
- *
- * Core сам применяет изменение
- * к authoritative current state.
- */
 export const ConsultationStateDeltaSchema = z
   .object({
+    /**
+     * Только patch существующего SearchSpec.
+     *
+     * Новый независимый поиск создаётся
+     * не через delta.search.
+     */
     search: SearchSpecPatchSchema.optional(),
 
     memory: ConsultationMemoryPatchSchema.optional(),

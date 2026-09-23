@@ -15,39 +15,35 @@ export const SearchConstraintValueSchema = z.union([
   z.boolean(),
 ]);
 
-export const SearchConstraintSchema = z.object({
-  attributeId: SearchIdSchema,
+export const SearchConstraintSchema = z
+  .object({
+    attributeId: SearchIdSchema,
 
-  operator: SearchConstraintOperatorSchema,
+    operator: SearchConstraintOperatorSchema,
 
-  value: SearchConstraintValueSchema,
+    value: SearchConstraintValueSchema,
 
-  unit: z.string().trim().min(1).nullable().default(null),
-});
+    unit: z.string().trim().min(1).nullable().default(null),
+  })
+  .strict();
 
-export const SearchConstraintSelectorSchema = z.object({
-  attributeId: SearchIdSchema,
+export const SearchConstraintSelectorSchema = z
+  .object({
+    attributeId: SearchIdSchema,
 
-  operator: SearchConstraintOperatorSchema,
-});
+    operator: SearchConstraintOperatorSchema,
+  })
+  .strict();
 
-/**
- * Общая shape для:
- *
- * - initial SearchSpec;
- * - persistent SearchSpec.
- *
- * Нам нужна отдельная base schema,
- * потому что Zod v4 запрещает .omit()
- * на schema с refinements.
- */
-const SearchSpecFieldsSchema = z.object({
-  semanticIntent: z.string().trim().min(1).max(1000),
+const SearchSpecFieldsSchema = z
+  .object({
+    semanticIntent: z.string().trim().min(1).max(1000),
 
-  category: SearchIdSchema.nullable(),
+    category: SearchIdSchema.nullable(),
 
-  constraints: z.array(SearchConstraintSchema),
-});
+    constraints: z.array(SearchConstraintSchema),
+  })
+  .strict();
 
 function validateUniqueConstraints(
   constraints: readonly z.infer<typeof SearchConstraintSchema>[],
@@ -67,10 +63,6 @@ function validateUniqueConstraints(
   return null;
 }
 
-/**
- * SearchSpec до того, как Core добавил
- * server-owned version.
- */
 export const SearchSpecDraftSchema = SearchSpecFieldsSchema.superRefine(
   (spec, context) => {
     const duplicate = validateUniqueConstraints(spec.constraints);
@@ -93,6 +85,7 @@ export const SearchSpecSchema = z
 
     ...SearchSpecFieldsSchema.shape,
   })
+  .strict()
   .superRefine((spec, context) => {
     const duplicate = validateUniqueConstraints(spec.constraints);
 
@@ -107,29 +100,17 @@ export const SearchSpecSchema = z
     }
   });
 
-export const SearchSpecPatchSchema = z.object({
-  /**
-   * undefined = оставить как есть.
-   */
-  semanticIntent: z.string().trim().min(1).max(1000).optional(),
+export const SearchSpecPatchSchema = z
+  .object({
+    semanticIntent: z.string().trim().min(1).max(1000).optional(),
 
-  /**
-   * undefined = оставить;
-   * null = очистить category.
-   */
-  category: SearchIdSchema.nullable().optional(),
+    category: SearchIdSchema.nullable().optional(),
 
-  /**
-   * Добавляет constraint либо заменяет
-   * constraint с тем же attributeId + operator.
-   */
-  set: z.array(SearchConstraintSchema).default(() => []),
+    set: z.array(SearchConstraintSchema).default(() => []),
 
-  /**
-   * Удаляет только явно указанные constraints.
-   */
-  clear: z.array(SearchConstraintSelectorSchema).default(() => []),
-});
+    clear: z.array(SearchConstraintSelectorSchema).default(() => []),
+  })
+  .strict();
 
 export type SearchConstraint = z.infer<typeof SearchConstraintSchema>;
 

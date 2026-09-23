@@ -1,10 +1,75 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { createSearchSpec } from '../search/search-spec';
+
 import {
+  beginSearchExecution,
+  commitSearchExecution,
   createConsultationResultsState,
-  replaceActiveResults,
+  failSearchExecution,
   resolveProductSelection,
+  resolveProductSelectionForAction,
 } from './consultation-results';
+
+function nikeSearch() {
+  return createSearchSpec({
+    semanticIntent: 'мужские кроссовки',
+
+    category: 'SHOES',
+
+    constraints: [
+      {
+        attributeId: 'gender',
+
+        operator: 'eq',
+
+        value: 'MAN',
+
+        unit: null,
+      },
+
+      {
+        attributeId: 'brand',
+
+        operator: 'eq',
+
+        value: 'Nike',
+
+        unit: null,
+      },
+    ],
+  });
+}
+
+function adidasSearch() {
+  return createSearchSpec({
+    semanticIntent: 'мужские кроссовки',
+
+    category: 'SHOES',
+
+    constraints: [
+      {
+        attributeId: 'gender',
+
+        operator: 'eq',
+
+        value: 'MAN',
+
+        unit: null,
+      },
+
+      {
+        attributeId: 'brand',
+
+        operator: 'eq',
+
+        value: 'Adidas',
+
+        unit: null,
+      },
+    ],
+  });
+}
 
 function nikeResults() {
   return [
@@ -64,144 +129,526 @@ function adidasResults() {
   ];
 }
 
+function products(count: number) {
+  return Array.from(
+    {
+      length: count,
+    },
+
+    (_, index) => ({
+      productId: `product-${index + 1}`,
+
+      title: `Product ${index + 1}`,
+
+      price: String(1000 + index * 100),
+
+      image: null,
+    }),
+  );
+}
+
+function activeState(productCount = 3) {
+  const started = beginSearchExecution(
+    createConsultationResultsState(),
+
+    nikeSearch(),
+
+    () => 'execution-1',
+  );
+
+  return commitSearchExecution(
+    started.state,
+
+    started.executionId,
+
+    products(productCount),
+
+    () => 'result-1',
+  );
+}
+
 describe('ConsultationResults', () => {
-  it('creates empty active result state', () => {
+  it('creates empty results state', () => {
     expect(createConsultationResultsState()).toEqual({
       version: 1,
 
       revision: 0,
 
-      active: [],
+      pendingSearch: null,
+
+      active: null,
     });
   });
 
-  it('stores a new active product set', () => {
-    const state = replaceActiveResults(
+  it('starts server-owned search execution', () => {
+    const started = beginSearchExecution(
       createConsultationResultsState(),
-      nikeResults(),
+
+      nikeSearch(),
+
+      () => 'execution-nike',
     );
 
-    expect(state.revision).toBe(1);
+    expect(started.executionId).toBe('execution-nike');
 
-    expect(state.active.map((product) => product.productId)).toEqual([
+    expect(started.state.pendingSearch).toEqual({
+      executionId: 'execution-nike',
+
+      search: nikeSearch(),
+    });
+
+    expect(started.state.active).toBeNull();
+  });
+
+  it('commits successful search into immutable snapshot', () => {
+    const started = beginSearchExecution(
+      createConsultationResultsState(),
+
+      nikeSearch(),
+
+      () => 'execution-nike',
+    );
+
+    const state = commitSearchExecution(
+      started.state,
+
+      started.executionId,
+
+      nikeResults(),
+
+      () => 'result-nike',
+    );
+
+    expect(state.pendingSearch).toBeNull();
+
+    expect(state.active?.resultId).toBe('result-nike');
+
+    expect(state.active?.executionId).toBe('execution-nike');
+
+    expect(state.active?.search).toEqual(nikeSearch());
+
+    expect(state.active?.products.map((product) => product.productId)).toEqual([
       'nike-1',
       'nike-2',
       'nike-3',
     ]);
   });
 
-  it('new search replaces the previous active product set', () => {
-    const nike = replaceActiveResults(
+  it('new search invalidates previous active result set', () => {
+    const first = beginSearchExecution(
       createConsultationResultsState(),
-      nikeResults(),
+
+      nikeSearch(),
+
+      () => 'execution-nike',
     );
 
-    const adidas = replaceActiveResults(nike, adidasResults());
+    const nikeState = commitSearchExecution(
+      first.state,
 
-    expect(adidas.revision).toBe(2);
+      first.executionId,
 
-    expect(adidas.active.map((product) => product.productId)).toEqual([
-      'adidas-1',
-      'adidas-2',
-    ]);
+      nikeResults(),
+
+      () => 'result-nike',
+    );
+
+    expect(nikeState.active).not.toBeNull();
+
+    const second = beginSearchExecution(
+      nikeState,
+
+      adidasSearch(),
+
+      () => 'execution-adidas',
+    );
+
+    expect(second.state.active).toBeNull();
+
+    expect(second.state.pendingSearch?.search).toEqual(adidasSearch());
+  });
+
+  it('rejects a late result from previous search execution', () => {
+    const nike = beginSearchExecution(
+      createConsultationResultsState(),
+
+      nikeSearch(),
+
+      () => 'execution-nike',
+    );
+
+    const adidas = beginSearchExecution(
+      nike.state,
+
+      adidasSearch(),
+
+      () => 'execution-adidas',
+    );
+
+    expect(() =>
+      commitSearchExecution(
+        adidas.state,
+
+        'execution-nike',
+
+        nikeResults(),
+
+        () => 'late-result',
+      ),
+    ).toThrow('stale search execution execution-nike');
+
+    expect(adidas.state.pendingSearch?.executionId).toBe('execution-adidas');
+
+    expect(adidas.state.active).toBeNull();
+  });
+
+  it('accepts result from the current search execution', () => {
+    const nike = beginSearchExecution(
+      createConsultationResultsState(),
+
+      nikeSearch(),
+
+      () => 'execution-nike',
+    );
+
+    const adidas = beginSearchExecution(
+      nike.state,
+
+      adidasSearch(),
+
+      () => 'execution-adidas',
+    );
+
+    const committed = commitSearchExecution(
+      adidas.state,
+
+      'execution-adidas',
+
+      adidasResults(),
+
+      () => 'result-adidas',
+    );
+
+    expect(committed.active?.resultId).toBe('result-adidas');
 
     expect(
-      adidas.active.some((product) => product.productId === 'nike-1'),
-    ).toBe(false);
+      committed.active?.products.map((product) => product.productId),
+    ).toEqual(['adidas-1', 'adidas-2']);
   });
 
-  it('zero-result search clears previous active products', () => {
-    const withProducts = replaceActiveResults(
+  it('distinguishes successful zero-result search from technical failure', () => {
+    const zeroStarted = beginSearchExecution(
       createConsultationResultsState(),
-      nikeResults(),
+
+      nikeSearch(),
+
+      () => 'execution-zero',
     );
 
-    const zeroResult = replaceActiveResults(withProducts, []);
+    const zeroResult = commitSearchExecution(
+      zeroStarted.state,
 
-    expect(zeroResult.revision).toBe(2);
+      zeroStarted.executionId,
 
-    expect(zeroResult.active).toEqual([]);
-  });
+      [],
 
-  it('resolves ordinal positions to server-owned product IDs', () => {
-    const state = replaceActiveResults(
-      createConsultationResultsState(),
-      adidasResults(),
+      () => 'result-zero',
     );
 
-    const resolved = resolveProductSelection(state, {
-      kind: 'positions',
+    expect(zeroResult.active).not.toBeNull();
 
-      positions: [1, 2],
-    });
+    expect(zeroResult.active?.products).toEqual([]);
 
-    expect(resolved.productIds).toEqual(['adidas-1', 'adidas-2']);
-
-    expect(resolved.products.map((product) => product.title)).toEqual([
-      'HANDBALL SPEZIAL SHOES',
-      'Campus 00s',
-    ]);
-  });
-
-  it('resolves active selection to the whole active result set', () => {
-    const state = replaceActiveResults(
+    const failedStarted = beginSearchExecution(
       createConsultationResultsState(),
-      nikeResults(),
+
+      nikeSearch(),
+
+      () => 'execution-failed',
     );
 
-    const resolved = resolveProductSelection(state, {
-      kind: 'active',
-    });
+    const failed = failSearchExecution(
+      failedStarted.state,
 
-    expect(resolved.productIds).toEqual(['nike-1', 'nike-2', 'nike-3']);
+      failedStarted.executionId,
+    );
+
+    expect(failed.active).toBeNull();
+
+    expect(failed.pendingSearch).toBeNull();
   });
 
-  it('rejects an ordinal position outside the active result set', () => {
-    const state = replaceActiveResults(
+  it('rejects stale technical failure', () => {
+    const first = beginSearchExecution(
       createConsultationResultsState(),
-      adidasResults(),
+
+      nikeSearch(),
+
+      () => 'execution-1',
+    );
+
+    const second = beginSearchExecution(
+      first.state,
+
+      adidasSearch(),
+
+      () => 'execution-2',
     );
 
     expect(() =>
-      resolveProductSelection(state, {
+      failSearchExecution(
+        second.state,
+
+        'execution-1',
+      ),
+    ).toThrow('stale search execution execution-1');
+  });
+
+  it('resolves ordinal positions inside active snapshot', () => {
+    const started = beginSearchExecution(
+      createConsultationResultsState(),
+
+      adidasSearch(),
+
+      () => 'execution-adidas',
+    );
+
+    const state = commitSearchExecution(
+      started.state,
+
+      started.executionId,
+
+      adidasResults(),
+
+      () => 'result-adidas',
+    );
+
+    const resolved = resolveProductSelection(
+      state,
+
+      {
         kind: 'positions',
 
-        positions: [3],
-      }),
-    ).toThrow('position 3 is outside active product set');
+        positions: [1, 2],
+      },
+    );
+
+    expect(resolved.resultId).toBe('result-adidas');
+
+    expect(resolved.productIds).toEqual(['adidas-1', 'adidas-2']);
   });
 
-  it('rejects selection when active result set is empty', () => {
+  it('rejects selection without active snapshot', () => {
     expect(() =>
-      resolveProductSelection(createConsultationResultsState(), {
-        kind: 'active',
-      }),
+      resolveProductSelection(
+        createConsultationResultsState(),
+
+        {
+          kind: 'active',
+        },
+      ),
+    ).toThrow('active search result is missing');
+  });
+
+  it('rejects selection from successful empty result', () => {
+    const started = beginSearchExecution(
+      createConsultationResultsState(),
+
+      nikeSearch(),
+
+      () => 'execution-zero',
+    );
+
+    const state = commitSearchExecution(
+      started.state,
+
+      started.executionId,
+
+      [],
+
+      () => 'result-zero',
+    );
+
+    expect(() =>
+      resolveProductSelection(
+        state,
+
+        {
+          kind: 'active',
+        },
+      ),
     ).toThrow('active product set is empty');
   });
 
-  it('rejects duplicate product IDs in active result set', () => {
+  it('rejects duplicate product IDs in snapshot', () => {
+    const started = beginSearchExecution(
+      createConsultationResultsState(),
+
+      nikeSearch(),
+
+      () => 'execution-1',
+    );
+
     expect(() =>
-      replaceActiveResults(createConsultationResultsState(), [
-        {
-          productId: 'same-product',
+      commitSearchExecution(
+        started.state,
 
-          title: 'Product A',
+        started.executionId,
 
-          price: '100',
+        [
+          {
+            productId: 'same-product',
 
-          image: null,
-        },
+            title: 'Product A',
 
-        {
-          productId: 'same-product',
+            price: '100',
 
-          title: 'Product B',
+            image: null,
+          },
 
-          price: '200',
+          {
+            productId: 'same-product',
 
-          image: null,
-        },
-      ]),
+            title: 'Product B',
+
+            price: '200',
+
+            image: null,
+          },
+        ],
+
+        () => 'result-1',
+      ),
     ).toThrow();
+  });
+
+  it('DETAILS accepts exactly one resolved product', () => {
+    const state = activeState(3);
+
+    const resolved = resolveProductSelectionForAction(
+      state,
+
+      'DETAILS',
+
+      {
+        kind: 'positions',
+
+        positions: [2],
+      },
+    );
+
+    expect(resolved.productIds).toEqual(['product-2']);
+  });
+
+  it('DETAILS rejects active selection with multiple products', () => {
+    expect(() =>
+      resolveProductSelectionForAction(
+        activeState(3),
+
+        'DETAILS',
+
+        {
+          kind: 'active',
+        },
+      ),
+    ).toThrow('DETAILS requires exactly one resolved product');
+  });
+
+  it('FEEDBACK rejects active selection with multiple products', () => {
+    expect(() =>
+      resolveProductSelectionForAction(
+        activeState(3),
+
+        'FEEDBACK',
+
+        {
+          kind: 'active',
+        },
+      ),
+    ).toThrow('FEEDBACK requires exactly one resolved product');
+  });
+
+  it('COMPARE rejects active selection with one product', () => {
+    expect(() =>
+      resolveProductSelectionForAction(
+        activeState(1),
+
+        'COMPARE',
+
+        {
+          kind: 'active',
+        },
+      ),
+    ).toThrow('COMPARE requires 2-4 resolved products');
+  });
+
+  it('COMPARE accepts two to four products', () => {
+    const resolved = resolveProductSelectionForAction(
+      activeState(4),
+
+      'COMPARE',
+
+      {
+        kind: 'active',
+      },
+    );
+
+    expect(resolved.productIds).toHaveLength(4);
+  });
+
+  it('COMPARE rejects more than four products', () => {
+    expect(() =>
+      resolveProductSelectionForAction(
+        activeState(5),
+
+        'COMPARE',
+
+        {
+          kind: 'active',
+        },
+      ),
+    ).toThrow('COMPARE requires 2-4 resolved products');
+  });
+
+  it('RECOMMEND accepts up to five active products', () => {
+    const resolved = resolveProductSelectionForAction(
+      activeState(5),
+
+      'RECOMMEND',
+
+      {
+        kind: 'active',
+      },
+    );
+
+    expect(resolved.productIds).toHaveLength(5);
+  });
+
+  it('RECOMMEND rejects more than five active products', () => {
+    expect(() =>
+      resolveProductSelectionForAction(
+        activeState(6),
+
+        'RECOMMEND',
+
+        {
+          kind: 'active',
+        },
+      ),
+    ).toThrow('RECOMMEND requires 1-5 resolved products');
+  });
+
+  it('rejects unsupported action selection', () => {
+    expect(() =>
+      resolveProductSelectionForAction(
+        activeState(2),
+
+        'SEARCH',
+
+        {
+          kind: 'active',
+        },
+      ),
+    ).toThrow('action SEARCH does not support product selection');
   });
 });
