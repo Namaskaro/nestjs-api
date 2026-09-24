@@ -1,11 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-
 import {
   applyConsultationStateDelta,
   createProductConsultationState,
-} from './consultation-state';
-
-import { findSearchConstraint } from '../search/search-spec';
+} from '../consultation-state';
+import { findSearchConstraint } from '../../search/search-spec';
 
 function emptyMemoryPatch() {
   return {

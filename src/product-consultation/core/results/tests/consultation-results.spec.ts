@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { createSearchSpec } from '../search/search-spec';
+import { createSearchSpec } from '../../search/search-spec';
 
 import {
   beginSearchExecution,
@@ -9,7 +9,9 @@ import {
   failSearchExecution,
   resolveProductSelection,
   resolveProductSelectionForAction,
-} from './consultation-results';
+  resolveProductSelectionForActionFromResult,
+  resolveProductSelectionFromResult,
+} from '../consultation-results';
 
 function nikeSearch() {
   return createSearchSpec({
@@ -177,6 +179,8 @@ describe('ConsultationResults', () => {
       pendingSearch: null,
 
       active: null,
+
+      lastConfirmed: null,
     });
   });
 
@@ -198,9 +202,11 @@ describe('ConsultationResults', () => {
     });
 
     expect(started.state.active).toBeNull();
+
+    expect(started.state.lastConfirmed).toBeNull();
   });
 
-  it('commits successful search into immutable snapshot', () => {
+  it('commits successful search into active and lastConfirmed', () => {
     const started = beginSearchExecution(
       createConsultationResultsState(),
 
@@ -223,18 +229,12 @@ describe('ConsultationResults', () => {
 
     expect(state.active?.resultId).toBe('result-nike');
 
-    expect(state.active?.executionId).toBe('execution-nike');
+    expect(state.lastConfirmed?.resultId).toBe('result-nike');
 
-    expect(state.active?.search).toEqual(nikeSearch());
-
-    expect(state.active?.products.map((product) => product.productId)).toEqual([
-      'nike-1',
-      'nike-2',
-      'nike-3',
-    ]);
+    expect(state.active).toEqual(state.lastConfirmed);
   });
 
-  it('new search invalidates previous active result set', () => {
+  it('new search invalidates active but preserves last confirmed result', () => {
     const first = beginSearchExecution(
       createConsultationResultsState(),
 
@@ -253,8 +253,6 @@ describe('ConsultationResults', () => {
       () => 'result-nike',
     );
 
-    expect(nikeState.active).not.toBeNull();
-
     const second = beginSearchExecution(
       nikeState,
 
@@ -265,7 +263,171 @@ describe('ConsultationResults', () => {
 
     expect(second.state.active).toBeNull();
 
+    expect(second.state.lastConfirmed?.resultId).toBe('result-nike');
+
     expect(second.state.pendingSearch?.search).toEqual(adidasSearch());
+  });
+
+  it('technical failure preserves previous confirmed snapshot without making it active', () => {
+    const nikeStarted = beginSearchExecution(
+      createConsultationResultsState(),
+
+      nikeSearch(),
+
+      () => 'execution-nike',
+    );
+
+    const nikeState = commitSearchExecution(
+      nikeStarted.state,
+
+      nikeStarted.executionId,
+
+      nikeResults(),
+
+      () => 'result-nike',
+    );
+
+    const adidasStarted = beginSearchExecution(
+      nikeState,
+
+      adidasSearch(),
+
+      () => 'execution-adidas',
+    );
+
+    const failed = failSearchExecution(
+      adidasStarted.state,
+
+      adidasStarted.executionId,
+    );
+
+    expect(failed.pendingSearch).toBeNull();
+
+    /**
+     * Нельзя выдавать Nike
+     * за результат Adidas.
+     */
+    expect(failed.active).toBeNull();
+
+    /**
+     * Но реальная предыдущая выдача
+     * не потеряна.
+     */
+    expect(failed.lastConfirmed?.resultId).toBe('result-nike');
+
+    expect(
+      failed.lastConfirmed?.products.map((product) => product.productId),
+    ).toEqual(['nike-1', 'nike-2', 'nike-3']);
+  });
+
+  it('can explicitly resolve product from lastConfirmed after technical failure', () => {
+    const nikeStarted = beginSearchExecution(
+      createConsultationResultsState(),
+
+      nikeSearch(),
+
+      () => 'execution-nike',
+    );
+
+    const nikeState = commitSearchExecution(
+      nikeStarted.state,
+
+      nikeStarted.executionId,
+
+      nikeResults(),
+
+      () => 'result-nike',
+    );
+
+    const adidasStarted = beginSearchExecution(
+      nikeState,
+
+      adidasSearch(),
+
+      () => 'execution-adidas',
+    );
+
+    const failed = failSearchExecution(
+      adidasStarted.state,
+
+      adidasStarted.executionId,
+    );
+
+    const resolved = resolveProductSelectionFromResult(
+      failed,
+
+      'result-nike',
+
+      {
+        kind: 'positions',
+
+        positions: [2],
+      },
+    );
+
+    expect(resolved.productIds).toEqual(['nike-2']);
+  });
+
+  it('ordinary resolver still refuses old result after technical failure', () => {
+    const nikeStarted = beginSearchExecution(
+      createConsultationResultsState(),
+
+      nikeSearch(),
+
+      () => 'execution-nike',
+    );
+
+    const nikeState = commitSearchExecution(
+      nikeStarted.state,
+
+      nikeStarted.executionId,
+
+      nikeResults(),
+
+      () => 'result-nike',
+    );
+
+    const adidasStarted = beginSearchExecution(
+      nikeState,
+
+      adidasSearch(),
+
+      () => 'execution-adidas',
+    );
+
+    const failed = failSearchExecution(
+      adidasStarted.state,
+
+      adidasStarted.executionId,
+    );
+
+    expect(() =>
+      resolveProductSelection(
+        failed,
+
+        {
+          kind: 'active',
+        },
+      ),
+    ).toThrow('active search result is missing');
+  });
+
+  it('rejects unknown explicit historical result id', () => {
+    const state = activeState(3);
+
+    expect(() =>
+      resolveProductSelectionFromResult(
+        state,
+
+        'result-that-does-not-exist',
+
+        {
+          kind: 'positions',
+
+          positions: [1],
+        },
+      ),
+    ).toThrow('result snapshot result-that-does-not-exist is not available');
   });
 
   it('rejects a late result from previous search execution', () => {
@@ -302,7 +464,7 @@ describe('ConsultationResults', () => {
     expect(adidas.state.active).toBeNull();
   });
 
-  it('accepts result from the current search execution', () => {
+  it('accepts result from current search execution', () => {
     const nike = beginSearchExecution(
       createConsultationResultsState(),
 
@@ -331,9 +493,7 @@ describe('ConsultationResults', () => {
 
     expect(committed.active?.resultId).toBe('result-adidas');
 
-    expect(
-      committed.active?.products.map((product) => product.productId),
-    ).toEqual(['adidas-1', 'adidas-2']);
+    expect(committed.lastConfirmed?.resultId).toBe('result-adidas');
   });
 
   it('distinguishes successful zero-result search from technical failure', () => {
@@ -359,6 +519,8 @@ describe('ConsultationResults', () => {
 
     expect(zeroResult.active?.products).toEqual([]);
 
+    expect(zeroResult.lastConfirmed?.resultId).toBe('result-zero');
+
     const failedStarted = beginSearchExecution(
       createConsultationResultsState(),
 
@@ -374,6 +536,8 @@ describe('ConsultationResults', () => {
     );
 
     expect(failed.active).toBeNull();
+
+    expect(failed.lastConfirmed).toBeNull();
 
     expect(failed.pendingSearch).toBeNull();
   });
@@ -477,7 +641,7 @@ describe('ConsultationResults', () => {
           kind: 'active',
         },
       ),
-    ).toThrow('active product set is empty');
+    ).toThrow('product set is empty');
   });
 
   it('rejects duplicate product IDs in snapshot', () => {
@@ -523,12 +687,30 @@ describe('ConsultationResults', () => {
   });
 
   it('DETAILS accepts exactly one resolved product', () => {
+    const resolved = resolveProductSelectionForAction(
+      activeState(3),
+
+      'DETAILS',
+
+      {
+        kind: 'positions',
+
+        positions: [2],
+      },
+    );
+
+    expect(resolved.productIds).toEqual(['product-2']);
+  });
+
+  it('DETAILS can explicitly resolve lastConfirmed product by resultId', () => {
     const state = activeState(3);
 
-    const resolved = resolveProductSelectionForAction(
+    const resolved = resolveProductSelectionForActionFromResult(
       state,
 
       'DETAILS',
+
+      'result-1',
 
       {
         kind: 'positions',

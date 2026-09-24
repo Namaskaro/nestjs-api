@@ -12,16 +12,26 @@ export const EvaluationJsonValueSchema: z.ZodType<EvaluationJsonValue> = z.lazy(
   () =>
     z.union([
       z.string(),
+
       z.number(),
+
       z.boolean(),
+
       z.null(),
+
       z.array(EvaluationJsonValueSchema),
-      z.record(z.string(), EvaluationJsonValueSchema),
+
+      z.record(
+        z.string(),
+
+        EvaluationJsonValueSchema,
+      ),
     ]),
 );
 
 export const EvaluationTargetSchema = z.enum([
   'product_consultation',
+
   'support_agent',
 ]);
 
@@ -51,17 +61,20 @@ export const EvaluationResumeTurnSchema = z.object({
   kind: z.literal('resume'),
 
   /**
-   * Значение для продолжения interrupted execution.
+   * Значение для продолжения
+   * interrupted execution.
    *
-   * Harness не знает его внутреннюю структуру.
+   * Harness не знает
+   * его внутреннюю структуру.
    */
   value: EvaluationJsonValueSchema,
 });
 
-export const EvaluationScenarioTurnSchema = z.discriminatedUnion('kind', [
-  EvaluationMessageTurnSchema,
-  EvaluationResumeTurnSchema,
-]);
+export const EvaluationScenarioTurnSchema = z.discriminatedUnion(
+  'kind',
+
+  [EvaluationMessageTurnSchema, EvaluationResumeTurnSchema],
+);
 
 export type EvaluationScenarioTurn = z.infer<
   typeof EvaluationScenarioTurnSchema
@@ -69,9 +82,11 @@ export type EvaluationScenarioTurn = z.infer<
 
 export const EvaluationCheckDefinitionSchema = z.object({
   /**
-   * Уникальный ID конкретной проверки внутри scenario.
+   * Уникальный ID конкретной проверки
+   * внутри scenario.
    *
    * Например:
+   *
    * - no-extra-search
    * - comparison-artifact-created
    * - no-runtime-errors
@@ -79,9 +94,11 @@ export const EvaluationCheckDefinitionSchema = z.object({
   id: z.string().trim().min(1),
 
   /**
-   * Имя evaluator-а, который должен выполнить проверку.
+   * Имя evaluator-а,
+   * который должен выполнить проверку.
    *
    * Например:
+   *
    * - tool-call-count
    * - artifact
    * - no-errors
@@ -93,9 +110,16 @@ export const EvaluationCheckDefinitionSchema = z.object({
   /**
    * Параметры evaluator-а.
    *
-   * Harness не знает их конкретную форму.
+   * Harness не знает
+   * их конкретную форму.
    */
-  params: z.record(z.string(), EvaluationJsonValueSchema).default(() => ({})),
+  params: z
+    .record(
+      z.string(),
+
+      EvaluationJsonValueSchema,
+    )
+    .default(() => ({})),
 });
 
 export type EvaluationCheckDefinition = z.infer<
@@ -105,7 +129,11 @@ export type EvaluationCheckDefinition = z.infer<
 export const EvaluationScenarioSchema = z
   .object({
     /**
-     * Например E01, E15, E30.
+     * Например:
+     *
+     * E01
+     * E15
+     * E30
      */
     id: z.string().trim().min(1),
 
@@ -115,6 +143,7 @@ export const EvaluationScenarioSchema = z
 
     /**
      * Что запускаем:
+     *
      * Product Consultation напрямую
      * или SupportAgent end-to-end.
      */
@@ -130,7 +159,8 @@ export const EvaluationScenarioSchema = z
     /**
      * Начальное состояние сценария.
      *
-     * Harness воспринимает его как opaque JSON.
+     * Harness воспринимает его
+     * как opaque JSON.
      */
     initialState: EvaluationJsonValueSchema.nullable().default(null),
 
@@ -140,25 +170,72 @@ export const EvaluationScenarioSchema = z
     turns: z.array(EvaluationScenarioTurnSchema).min(1),
 
     /**
-     * Проверки, которые должны быть выполнены.
+     * Проверки,
+     * которые должны быть выполнены.
      */
     checks: z.array(EvaluationCheckDefinitionSchema).default(() => []),
 
     /**
      * Например:
-     * baseline, smoke, regression, context, search.
+     *
+     * baseline
+     * smoke
+     * regression
+     * context
+     * search
      */
     tags: z.array(z.string().trim().min(1)).default(() => []),
   })
   .superRefine((scenario, context) => {
+    /**
+     * turn.id является identity
+     * шага evaluation scenario.
+     *
+     * Два одинаковых turn ID
+     * делают:
+     *
+     * - reporting неоднозначным;
+     * - turn-scoped evaluators неоднозначными;
+     * - debugging неудобным;
+     * - replay потенциально неправильным.
+     *
+     * Поэтому duplicate запрещён
+     * уже на schema boundary.
+     */
+    const turnIds = new Set<string>();
+
+    for (let index = 0; index < scenario.turns.length; index += 1) {
+      const turn = scenario.turns[index];
+
+      if (turnIds.has(turn.id)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+
+          path: ['turns', index, 'id'],
+
+          message: `Evaluation turn id "${turn.id}" используется несколько раз.`,
+        });
+
+        continue;
+      }
+
+      turnIds.add(turn.id);
+    }
+
+    /**
+     * check.id тоже должен быть
+     * уникальным внутри scenario.
+     */
     const checkIds = new Set<string>();
 
-    for (const check of scenario.checks) {
+    for (let index = 0; index < scenario.checks.length; index += 1) {
+      const check = scenario.checks[index];
+
       if (checkIds.has(check.id)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
 
-          path: ['checks'],
+          path: ['checks', index, 'id'],
 
           message: `Evaluation check id "${check.id}" используется несколько раз.`,
         });

@@ -17,22 +17,30 @@ type AttributeOptions = {
 
 export function defineAttribute(
   id: string,
+
   label: string,
+
   options: AttributeOptions = {},
 ): AttributeDefinition {
   const kind = options.kind ?? 'text';
 
   const defaultOperators = {
     text: ['observe', 'eq'],
+
     number: ['observe', 'eq', 'lte', 'gte'],
+
     boolean: ['observe', 'eq'],
+
     set: ['observe', 'contains'],
   } as const;
 
   const defaultComparison = {
     text: 'exact',
+
     number: 'numeric',
+
     boolean: 'exact',
+
     set: 'set',
   } as const;
 
@@ -51,91 +59,185 @@ export function defineAttribute(
   });
 }
 
-export const priceAttribute = defineAttribute('price', 'Цена', {
-  kind: 'number',
-});
+export const priceAttribute = defineAttribute(
+  'price',
 
-export const brandAttribute = defineAttribute('brand', 'Бренд');
+  'Цена',
 
-export const categoryAttribute = defineAttribute('category', 'Категория');
+  {
+    kind: 'number',
+  },
+);
+
+export const brandAttribute = defineAttribute(
+  'brand',
+
+  'Бренд',
+);
+
+export const categoryAttribute = defineAttribute(
+  'category',
+
+  'Категория',
+);
 
 export const subcategoryAttribute = defineAttribute(
   'subcategory',
+
   'Подкатегория',
 );
 
-export const typeAttribute = defineAttribute('type', 'Тип товара');
+export const typeAttribute = defineAttribute(
+  'type',
 
-export const genderAttribute = defineAttribute('gender', 'Маркировка пола');
-
-export const colorAttribute = defineAttribute('color', 'Цвет');
-
-export const sizesAttribute = defineAttribute('sizes', 'Доступные размеры', {
-  kind: 'set',
-});
-
-export const inStockAttribute = defineAttribute('inStock', 'В наличии', {
-  kind: 'boolean',
-});
-
-export const stockAttribute = defineAttribute('stock', 'Общий остаток', {
-  kind: 'number',
-});
-
-export const materialAttribute = defineAttribute(
-  'material',
-  'Основной материал',
+  'Тип товара',
 );
 
-export const compositionAttribute = defineAttribute('composition', 'Состав');
+export const genderAttribute = defineAttribute(
+  'gender',
 
-export const upperMaterialAttribute = defineAttribute(
-  'upperMaterial',
-  'Материал верха',
+  'Маркировка пола',
 );
 
-export const seasonAttribute = defineAttribute('season', 'Сезон');
+export const colorAttribute = defineAttribute(
+  'color',
 
-export const purposeAttribute = defineAttribute(
-  'purpose',
-  'Заявленное назначение',
+  'Цвет',
 );
 
-export const soleAttribute = defineAttribute('sole', 'Подошва');
+export const sizesAttribute = defineAttribute(
+  'sizes',
 
-export const liningAttribute = defineAttribute('lining', 'Подкладка');
+  'Доступные размеры',
 
-export const weightAttribute = defineAttribute('weight', 'Указанный вес', {
-  kind: 'number',
-
-  unit: 'kg',
-});
-
-export const waterProtectionAttribute = defineAttribute(
-  'waterProtection',
-  'Водозащита',
-);
-
-export const fitAttribute = defineAttribute('fit', 'Посадка / крой');
-
-export const careAttribute = defineAttribute('care', 'Уход');
-
-export const dimensionsAttribute = defineAttribute('dimensions', 'Габариты');
-
-export const capacityAttribute = defineAttribute('capacity', 'Объём', {
-  kind: 'number',
-
-  unit: 'L',
-});
-
-export const compatibilityAttribute = defineAttribute(
-  'compatibility',
-  'Совместимость',
   {
     kind: 'set',
   },
 );
 
+export const materialAttribute = defineAttribute(
+  'material',
+
+  'Основной материал',
+);
+
+export const compositionAttribute = defineAttribute(
+  'composition',
+
+  'Состав',
+);
+
+export const upperMaterialAttribute = defineAttribute(
+  'upperMaterial',
+
+  'Материал верха',
+);
+
+export const seasonAttribute = defineAttribute(
+  'season',
+
+  'Сезон',
+);
+
+export const purposeAttribute = defineAttribute(
+  'purpose',
+
+  'Заявленное назначение',
+);
+
+export const soleAttribute = defineAttribute(
+  'sole',
+
+  'Подошва',
+);
+
+export const liningAttribute = defineAttribute(
+  'lining',
+
+  'Подкладка',
+);
+
+export const weightAttribute = defineAttribute(
+  'weight',
+
+  'Указанный вес',
+
+  {
+    kind: 'number',
+
+    unit: 'kg',
+  },
+);
+
+export const waterProtectionAttribute = defineAttribute(
+  'waterProtection',
+
+  'Водозащита',
+);
+
+export const fitAttribute = defineAttribute(
+  'fit',
+
+  'Посадка / крой',
+);
+
+export const careAttribute = defineAttribute(
+  'care',
+
+  'Уход',
+);
+
+export const dimensionsAttribute = defineAttribute(
+  'dimensions',
+
+  'Габариты',
+);
+
+export const capacityAttribute = defineAttribute(
+  'capacity',
+
+  'Объём',
+
+  {
+    kind: 'number',
+
+    unit: 'L',
+  },
+);
+
+export const compatibilityAttribute = defineAttribute(
+  'compatibility',
+
+  'Совместимость',
+
+  {
+    kind: 'set',
+  },
+);
+
+/**
+ * Generic attributes,
+ * доступные Product Consultation
+ * для всех категорий.
+ *
+ * ВАЖНО:
+ *
+ * availability здесь отсутствует намеренно.
+ *
+ * inStock / stock являются
+ * server-owned catalog eligibility data.
+ *
+ * До Product Consultation должны доходить
+ * только товары, которые уже разрешено
+ * показывать пользователю.
+ *
+ * Поэтому наличие товара:
+ *
+ * - не SearchSpec constraint;
+ * - не Memory criterion;
+ * - не recommendation preference;
+ * - не CategoryProfile attribute.
+ */
 export const GENERIC_ATTRIBUTES: AttributeDefinition[] = [
   priceAttribute,
 
@@ -146,8 +248,4 @@ export const GENERIC_ATTRIBUTES: AttributeDefinition[] = [
   subcategoryAttribute,
 
   typeAttribute,
-
-  inStockAttribute,
-
-  stockAttribute,
 ];

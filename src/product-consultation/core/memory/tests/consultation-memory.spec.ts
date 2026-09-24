@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   applyConsultationMemoryPatch,
   createConsultationMemoryState,
-} from './consultation-memory';
+} from '../consultation-memory';
 
 function emptyPatch() {
   return {

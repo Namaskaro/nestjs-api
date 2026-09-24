@@ -24,16 +24,6 @@ export const SearchExecutionSchema = z
   })
   .strict();
 
-/**
- * Immutable snapshot готовой выдачи.
- *
- * Содержит:
- *
- * - server-owned resultId;
- * - execution, который её создал;
- * - фактически выполненный SearchSpec;
- * - порядок показанных товаров.
- */
 export const SearchResultSnapshotSchema = z
   .object({
     resultId: IdSchema,
@@ -66,19 +56,44 @@ export const ConsultationResultsStateSchema = z
     revision: z.number().int().nonnegative(),
 
     /**
-     * Search, результат которого система
+     * Search execution,
+     * результат которого backend
      * сейчас имеет право принять.
      */
     pendingSearch: SearchExecutionSchema.nullable(),
 
     /**
-     * Последняя подтверждённая активная выдача.
+     * ТЕКУЩАЯ выдача текущего запроса.
      *
-     * При запуске нового search она очищается,
-     * чтобы ordinal references не указывали
-     * на товары предыдущего запроса.
+     * При запуске нового поиска
+     * active очищается.
+     *
+     * Поэтому старые ordinal references
+     * никогда случайно не становятся
+     * результатами нового SearchSpec.
      */
     active: SearchResultSnapshotSchema.nullable(),
+
+    /**
+     * Последний успешно подтверждённый
+     * Search Result Snapshot.
+     *
+     * Он сохраняется при техническом
+     * failure следующего поиска.
+     *
+     * ВАЖНО:
+     *
+     * lastConfirmed НЕ означает,
+     * что это текущая выдача.
+     *
+     * Это только сохранённый
+     * server-owned snapshot,
+     * на который можно явно сослаться
+     * по его resultId.
+     *
+     * Это ещё НЕ history engine.
+     */
+    lastConfirmed: SearchResultSnapshotSchema.nullable(),
   })
   .strict();
 

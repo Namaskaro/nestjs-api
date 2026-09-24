@@ -52,6 +52,7 @@ export type CurrentProductConsultationFixture = z.infer<
 
 function sameFilters(
   left: ProductNeed['filters'],
+
   right: ProductNeed['filters'],
 ): boolean {
   return (
@@ -70,15 +71,27 @@ function sameFilters(
 function normalizeQuery(value: string): string {
   return value
     .trim()
-    .replace(/\s+/gu, ' ')
+    .replace(
+      /\s+/gu,
+
+      ' ',
+    )
     .toLocaleLowerCase('ru-RU')
-    .replaceAll('ё', 'е');
+    .replaceAll(
+      'ё',
+
+      'е',
+    );
 }
 
 export async function loadCurrentProductConsultationFixture(
   filePath: string,
 ): Promise<CurrentProductConsultationFixture> {
-  const raw = await readFile(filePath, 'utf8');
+  const raw = await readFile(
+    filePath,
+
+    'utf8',
+  );
 
   const json = JSON.parse(raw) as unknown;
 
@@ -95,33 +108,44 @@ export class FrozenCurrentProductCatalog {
   }
 
   createServiceProxy(liveService: ProductAgentService): ProductAgentService {
-    return new Proxy(liveService, {
-      get: (target, property, receiver) => {
-        if (property === 'searchProducts') {
-          return (productNeed: ProductNeed) => this.searchProducts(productNeed);
-        }
+    return new Proxy(
+      liveService,
 
-        if (property === 'getProductDetails') {
-          return (productIds: readonly string[]) =>
-            this.getProductDetails(productIds);
-        }
+      {
+        get: (target, property, receiver) => {
+          if (property === 'searchProducts') {
+            return (productNeed: ProductNeed) =>
+              this.searchProducts(productNeed);
+          }
 
-        if (property === 'getConsultationBinding') {
-          return (productNeed: ProductNeed) =>
-            this.getConsultationBinding(productNeed);
-        }
+          if (property === 'getProductDetails') {
+            return (productIds: readonly string[]) =>
+              this.getProductDetails(productIds);
+          }
 
-        if (property === 'resolveBrandName') {
-          return (value: string) => this.resolveBrandName(value);
-        }
+          if (property === 'getConsultationBinding') {
+            return (productNeed: ProductNeed) =>
+              this.getConsultationBinding(productNeed);
+          }
 
-        const original = Reflect.get(target, property, receiver);
+          if (property === 'resolveBrandName') {
+            return (value: string) => this.resolveBrandName(value);
+          }
 
-        return typeof original === 'function'
-          ? original.bind(target)
-          : original;
+          const original = Reflect.get(
+            target,
+
+            property,
+
+            receiver,
+          );
+
+          return typeof original === 'function'
+            ? original.bind(target)
+            : original;
+        },
       },
-    });
+    );
   }
 
   async searchProducts(rawNeed: ProductNeed): Promise<ProductSearchResult> {
@@ -131,10 +155,12 @@ export class FrozenCurrentProductCatalog {
 
     return ProductSearchResultSchema.parse({
       /**
-       * Возвращаем именно текущий запрос агента,
+       * Возвращаем именно
+       * текущий запрос агента,
        * а товары — из frozen fixture.
        *
-       * Так harness видит, какие constraints
+       * Так harness видит,
+       * какие constraints
        * реально сформировал агент.
        */
       productNeed,
@@ -178,33 +204,71 @@ export class FrozenCurrentProductCatalog {
   }
 
   private findSearch(productNeed: ProductNeed) {
-    const candidates = this.fixture.searches.filter((search) =>
-      sameFilters(search.request.filters, productNeed.filters),
+    /**
+     * Frozen fixture представляет
+     * конкретные captured requests.
+     *
+     * Поэтому совпадение filters
+     * само по себе недостаточно.
+     *
+     * semanticQuery является частью
+     * captured search identity.
+     */
+    const filterCandidates = this.fixture.searches.filter((search) =>
+      sameFilters(
+        search.request.filters,
+
+        productNeed.filters,
+      ),
     );
 
-    if (candidates.length === 1) {
-      return candidates[0];
+    const normalizedQuery = normalizeQuery(productNeed.semanticQuery);
+
+    const exactMatches = filterCandidates.filter(
+      (search) =>
+        normalizeQuery(search.request.semanticQuery) === normalizedQuery,
+    );
+
+    if (exactMatches.length === 1) {
+      return exactMatches[0];
     }
 
-    if (candidates.length > 1) {
-      const query = normalizeQuery(productNeed.semanticQuery);
-
-      const exact = candidates.find(
-        (search) => normalizeQuery(search.request.semanticQuery) === query,
-      );
-
-      if (exact) {
-        return exact;
-      }
-
+    if (exactMatches.length > 1) {
       throw new Error(
-        'FrozenCurrentProductCatalog: несколько fixture search совпали по constraints.',
+        [
+          'FrozenCurrentProductCatalog: fixture содержит несколько одинаковых captured search.',
+
+          JSON.stringify({
+            semanticQuery: productNeed.semanticQuery,
+
+            filters: productNeed.filters,
+          }),
+        ].join(' '),
+      );
+    }
+
+    if (filterCandidates.length > 0) {
+      throw new Error(
+        [
+          'FrozenCurrentProductCatalog: filters совпали, но semanticQuery отсутствует в frozen fixture.',
+
+          JSON.stringify({
+            semanticQuery: productNeed.semanticQuery,
+
+            filters: productNeed.filters,
+
+            capturedSemanticQueries: filterCandidates.map(
+              (search) => search.request.semanticQuery,
+            ),
+          }),
+        ].join(' '),
       );
     }
 
     throw new Error(
       [
         'FrozenCurrentProductCatalog: запрос отсутствует в frozen fixture.',
+
         JSON.stringify({
           semanticQuery: productNeed.semanticQuery,
 

@@ -19,7 +19,9 @@ const fixturePath = resolve(
 
 function createNeed({
   brand,
+
   color,
+
   daily = true,
 }: {
   brand: string;
@@ -95,7 +97,9 @@ describe('FrozenCurrentProductCatalog', () => {
 
     expect(result.products.map((product) => product.title)).toEqual([
       'Nike SB Dunk Low Pro',
+
       'Nike Mind 002',
+
       'Kobe Air Force 1 Low',
     ]);
   });
@@ -141,16 +145,72 @@ describe('FrozenCurrentProductCatalog', () => {
 
     expect(result.products.map((product) => product.title)).toEqual([
       'HANDBALL SPEZIAL SHOES',
+
       'Campus 00s',
     ]);
   });
 
+  it('does not ignore semanticQuery when filters have one unique fixture match', async () => {
+    const { catalog } = await createFrozenCatalog();
+
+    const need = createNeed({
+      brand: 'Nike',
+
+      color: null,
+
+      daily: false,
+    });
+
+    /**
+     * Filters полностью совпадают
+     * с captured nike-base.
+     *
+     * Но semantic query другой.
+     *
+     * Раньше fixture всё равно
+     * возвращал Nike products,
+     * потому что filter candidate
+     * был всего один.
+     */
+    need.semanticQuery = 'совершенно другой semantic запрос';
+
+    await expect(catalog.searchProducts(need)).rejects.toThrow(
+      'filters совпали, но semanticQuery отсутствует в frozen fixture',
+    );
+  });
+
+  it('normalizes semanticQuery before matching captured request', async () => {
+    const { catalog } = await createFrozenCatalog();
+
+    const need = createNeed({
+      brand: 'Nike',
+
+      color: null,
+
+      daily: false,
+    });
+
+    need.semanticQuery = '  МУЖСКИЕ   КРОССОВКИ   NIKE  ';
+
+    const result = await catalog.searchProducts(need);
+
+    expect(result.products).toHaveLength(3);
+  });
+
   it('serves product details from fixture', async () => {
-    const { catalog, fixture } = await createFrozenCatalog();
+    const {
+      catalog,
+
+      fixture,
+    } = await createFrozenCatalog();
 
     const ids = fixture.searches
       .flatMap((search) => search.products)
-      .slice(0, 2)
+      .slice(
+        0,
+
+        2,
+      )
       .map((product) => product.id);
 
     const details = await catalog.getProductDetails(ids);

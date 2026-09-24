@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { ConsultationTurnInterpretationSchema } from './consultation-turn.schema';
+import { ConsultationTurnInterpretationSchema } from '../consultation-turn.schema';
 
 function emptyMemoryPatch() {
   return {

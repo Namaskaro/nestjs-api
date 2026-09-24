@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from 'node:util';
+
 import type { ConsultationMemoryIdFactory } from '../memory/consultation-memory';
 
 import {
@@ -15,9 +17,7 @@ import {
   type TurnFeedback,
 } from './consultation-turn.schema';
 
-const SEARCH_ACTIONS = new Set<ConsultationAction>([
-  'SEARCH',
-  'REFINE',
+const LEGACY_SEARCH_ACTIONS = new Set<ConsultationAction>([
   'RELAX_CONSTRAINTS',
   'ALTERNATIVES',
 ]);
@@ -52,36 +52,19 @@ export function applyConsultationTurn(
 
   createId?: ConsultationMemoryIdFactory,
 ): AppliedConsultationTurn {
-  /**
-   * Полная external validation
-   * происходит ДО state mutation.
-   */
   const interpretation =
     ConsultationTurnInterpretationSchema.parse(rawInterpretation);
 
   const baseState = current ?? createEmptyProductConsultationState();
 
-  /**
-   * SEARCH = новый полный SearchSpec.
-   *
-   * Если поиск уже существовал,
-   * это новая независимая задача:
-   * task memory сбрасывается.
-   *
-   * Если поиска ещё не было,
-   * предварительно собранная через CLARIFY
-   * memory сохраняется.
-   */
   if (interpretation.action === 'SEARCH') {
-    const hadExistingSearch = baseState.search !== null;
-
     let state = replaceProductConsultationSearch(
       baseState,
 
       interpretation.search!,
 
       {
-        resetMemory: hadExistingSearch,
+        resetMemory: false,
       },
     );
 
@@ -110,13 +93,6 @@ export function applyConsultationTurn(
     };
   }
 
-  /**
-   * Нельзя REFINE / COMPARE / DETAILS...
-   * то, чего ещё нет.
-   *
-   * CLARIFY / COMPLETE / HANDOFF
-   * могут существовать до первого поиска.
-   */
   if (
     baseState.search === null &&
     ACTIONS_REQUIRING_EXISTING_SEARCH.has(interpretation.action)
@@ -132,12 +108,33 @@ export function applyConsultationTurn(
     createId,
   );
 
+  let searchRequired = LEGACY_SEARCH_ACTIONS.has(interpretation.action);
+
+  /**
+   * REFINE запускает search
+   * только если SearchSpec
+   * действительно изменился.
+   *
+   * Пустой patch:
+   *
+   * {}
+   *
+   * или повтор:
+   *
+   * brand Nike → brand Nike
+   *
+   * больше не вызывают каталог зря.
+   */
+  if (interpretation.action === 'REFINE') {
+    searchRequired = !isDeepStrictEqual(baseState.search, state.search);
+  }
+
   return {
     state,
 
     action: interpretation.action,
 
-    searchRequired: SEARCH_ACTIONS.has(interpretation.action),
+    searchRequired,
 
     selection: interpretation.selection,
 

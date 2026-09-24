@@ -1,14 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { SHOES_PROFILE } from '../../profiles/shoes.profile';
+
 import {
   SearchConstraintSchema,
   SearchSpecPatchSchema,
-} from './search-spec.schema';
+} from '../search-spec.schema';
 
 import {
   assertSearchSpecMatchesCategoryProfile,
   assertSearchSpecPatchMatchesCategoryProfile,
-} from './search-spec-profile';
+} from '../search-spec-profile';
 
 function shoesProfile() {
   return {
@@ -357,5 +359,234 @@ describe('SearchSpec CategoryProfile validation', () => {
     });
 
     expect(parsed.success).toBe(false);
+  });
+
+  it('uses real SHOES_PROFILE units for price and weight', () => {
+    expect(() =>
+      assertSearchSpecMatchesCategoryProfile(
+        {
+          semanticIntent: 'лёгкие кроссовки до 20 тысяч',
+
+          category: 'SHOES',
+
+          constraints: [
+            {
+              attributeId: 'price',
+
+              operator: 'lte',
+
+              value: 20000,
+
+              /**
+               * Реальный priceAttribute
+               * не имеет физической unit.
+               */
+              unit: null,
+            },
+
+            {
+              attributeId: 'weight',
+
+              operator: 'lte',
+
+              value: 0.5,
+
+              /**
+               * Реальный weightAttribute.
+               */
+              unit: 'kg',
+            },
+          ],
+        },
+
+        SHOES_PROFILE,
+      ),
+    ).not.toThrow();
+  });
+
+  it('rejects numeric range where gte exceeds lte', () => {
+    expect(() =>
+      assertSearchSpecMatchesCategoryProfile(
+        {
+          semanticIntent: 'кроссовки по цене',
+
+          category: 'SHOES',
+
+          constraints: [
+            {
+              attributeId: 'price',
+
+              operator: 'gte',
+
+              value: 20000,
+
+              unit: null,
+            },
+
+            {
+              attributeId: 'price',
+
+              operator: 'lte',
+
+              value: 15000,
+
+              unit: null,
+            },
+          ],
+        },
+
+        SHOES_PROFILE,
+      ),
+    ).toThrow(
+      'numeric constraints for attribute price are contradictory: gte 20000 exceeds lte 15000',
+    );
+  });
+
+  it('accepts equal numeric lower and upper bounds', () => {
+    expect(() =>
+      assertSearchSpecMatchesCategoryProfile(
+        {
+          semanticIntent: 'кроссовки ровно за 15 тысяч',
+
+          category: 'SHOES',
+
+          constraints: [
+            {
+              attributeId: 'price',
+
+              operator: 'gte',
+
+              value: 15000,
+
+              unit: null,
+            },
+
+            {
+              attributeId: 'price',
+
+              operator: 'lte',
+
+              value: 15000,
+
+              unit: null,
+            },
+          ],
+        },
+
+        SHOES_PROFILE,
+      ),
+    ).not.toThrow();
+  });
+
+  it('rejects numeric eq below gte', () => {
+    expect(() =>
+      assertSearchSpecMatchesCategoryProfile(
+        {
+          semanticIntent: 'кроссовки по цене',
+
+          category: 'SHOES',
+
+          constraints: [
+            {
+              attributeId: 'price',
+
+              operator: 'eq',
+
+              value: 15000,
+
+              unit: null,
+            },
+
+            {
+              attributeId: 'price',
+
+              operator: 'gte',
+
+              value: 20000,
+
+              unit: null,
+            },
+          ],
+        },
+
+        SHOES_PROFILE,
+      ),
+    ).toThrow(
+      'numeric constraints for attribute price are contradictory: eq 15000 is below gte 20000',
+    );
+  });
+
+  it('rejects numeric eq above lte', () => {
+    expect(() =>
+      assertSearchSpecMatchesCategoryProfile(
+        {
+          semanticIntent: 'кроссовки по цене',
+
+          category: 'SHOES',
+
+          constraints: [
+            {
+              attributeId: 'price',
+
+              operator: 'eq',
+
+              value: 20000,
+
+              unit: null,
+            },
+
+            {
+              attributeId: 'price',
+
+              operator: 'lte',
+
+              value: 15000,
+
+              unit: null,
+            },
+          ],
+        },
+
+        SHOES_PROFILE,
+      ),
+    ).toThrow(
+      'numeric constraints for attribute price are contradictory: eq 20000 exceeds lte 15000',
+    );
+  });
+
+  it('rejects contradictory numeric constraints inside one patch', () => {
+    expect(() =>
+      assertSearchSpecPatchMatchesCategoryProfile(
+        {
+          set: [
+            {
+              attributeId: 'price',
+
+              operator: 'gte',
+
+              value: 20000,
+
+              unit: null,
+            },
+
+            {
+              attributeId: 'price',
+
+              operator: 'lte',
+
+              value: 15000,
+
+              unit: null,
+            },
+          ],
+
+          clear: [],
+        },
+
+        SHOES_PROFILE,
+      ),
+    ).toThrow(
+      'numeric constraints for attribute price are contradictory: gte 20000 exceeds lte 15000',
+    );
   });
 });

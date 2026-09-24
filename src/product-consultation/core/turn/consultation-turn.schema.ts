@@ -4,11 +4,42 @@ import { SearchSpecDraftSchema } from '../search/search-spec.schema';
 
 import { ConsultationStateDeltaSchema } from '../state/consultation-state.schema';
 
+/**
+ * INTERNAL action contract.
+ *
+ * RELAX_CONSTRAINTS / ALTERNATIVES пока оставлены
+ * только для совместимости старого internal кода.
+ *
+ * Public Product Consultant их больше не видит.
+ */
 export const ConsultationActionSchema = z.enum([
   'SEARCH',
   'REFINE',
   'RELAX_CONSTRAINTS',
   'ALTERNATIVES',
+  'SHOW_RESULTS',
+  'COMPARE',
+  'DETAILS',
+  'RECOMMEND',
+  'FEEDBACK',
+  'COMPLETE',
+  'CLARIFY',
+  'HANDOFF',
+]);
+
+/**
+ * Единственный набор actions,
+ * который разрешено отдавать будущей LLM.
+ *
+ * Ослабление constraints = REFINE.
+ *
+ * ALTERNATIVES пока не имеет отдельной
+ * deterministic backend semantics,
+ * поэтому наружу его не выставляем.
+ */
+export const PublicConsultationActionSchema = z.enum([
+  'SEARCH',
+  'REFINE',
   'SHOW_RESULTS',
   'COMPARE',
   'DETAILS',
@@ -30,10 +61,23 @@ export const ProductSelectionSchema = z.discriminatedUnion('kind', [
     .object({
       kind: z.literal('positions'),
 
+      /**
+       * Здесь только общий safety limit.
+       *
+       * DETAILS / COMPARE / RECOMMEND /
+       * FEEDBACK проверяют собственную
+       * cardinality уже после resolution.
+       *
+       * Благодаря этому здесь больше нет
+       * конфликта:
+       *
+       * generic max=4
+       * vs RECOMMEND max=5.
+       */
       positions: z
         .array(z.number().int().min(1).max(25))
         .min(1)
-        .max(4)
+        .max(25)
         .refine(
           (positions) => new Set(positions).size === positions.length,
 
@@ -70,32 +114,28 @@ export const ConsultationTurnInterpretationSchema = z
   .object({
     action: ConsultationActionSchema,
 
-    /**
-     * Полный SearchSpec только
-     * для нового независимого SEARCH.
-     */
     search: SearchSpecDraftSchema.nullable().default(null),
 
     /**
-     * Semantic delta текущей задачи.
+     * INTERNAL state delta.
      *
-     * Важное ownership rule:
-     *
-     * SearchSpec:
-     *   фактически исполняемые ограничения.
-     *
-     * Memory criteria:
-     *   предпочтения для reasoning /
-     *   recommendation.
-     *
-     * Поэтому внешний interpreter
-     * не имеет права создавать
-     * required memory criteria.
+     * Public Product Consultant этот объект
+     * больше напрямую не контролирует.
      */
     delta: ConsultationStateDeltaSchema.default(() => ({})),
 
     selection: ProductSelectionSchema.nullable().default(null),
 
+    /**
+     * INTERNAL semantic feedback.
+     *
+     * Для mixed-operation public feedback
+     * boundary сама создаёт server-owned
+     * Memory mutation.
+     *
+     * Здесь feedback остаётся нужен
+     * для чистого action=FEEDBACK.
+     */
     feedback: TurnFeedbackSchema.nullable().default(null),
   })
   .strict()
@@ -147,11 +187,7 @@ export const ConsultationTurnInterpretationSchema = z
     }
 
     /**
-     * SearchSpec — единственный владелец
-     * hard executable requirements.
-     *
-     * Memory criterion с required=true
-     * с внешней Turn boundary запрещён.
+     * SearchSpec — владелец hard constraints.
      */
     const memoryCriteria = interpretation.delta.memory?.criteria;
 
@@ -215,20 +251,22 @@ export const ConsultationTurnInterpretationSchema = z
       });
     }
 
-    const memoryFeedback = interpretation.delta.memory?.feedback;
-
-    if (
-      memoryFeedback &&
-      (memoryFeedback.upsert.length > 0 || memoryFeedback.remove.length > 0)
-    ) {
-      context.addIssue({
-        code: 'custom',
-
-        path: ['delta', 'memory', 'feedback'],
-
-        message: 'Feedback memory mutations are server-owned.',
-      });
-    }
+    /**
+     * ВАЖНО:
+     *
+     * Раньше здесь запрещался
+     * delta.memory.feedback.
+     *
+     * Это было нужно, пока interpretation
+     * могла приходить прямо от LLM.
+     *
+     * Теперь interpretation INTERNAL,
+     * а public boundary сама привязывает
+     * feedback к server-owned productId.
+     *
+     * Поэтому internal Memory feedback
+     * здесь разрешён.
+     */
 
     if (
       interpretation.action === 'FEEDBACK' &&
@@ -300,6 +338,10 @@ export const ConsultationTurnInterpretationSchema = z
   });
 
 export type ConsultationAction = z.infer<typeof ConsultationActionSchema>;
+
+export type PublicConsultationAction = z.infer<
+  typeof PublicConsultationActionSchema
+>;
 
 export type ProductSelection = z.infer<typeof ProductSelectionSchema>;
 

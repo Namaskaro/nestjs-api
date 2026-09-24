@@ -73,10 +73,10 @@ function assertValue(
 
     case 'set': {
       /**
-       * SearchSpec contains one searched
-       * member of the set.
+       * SearchSpec содержит один
+       * искомый элемент множества.
        *
-       * Example:
+       * Например:
        *
        * materials contains "leather"
        */
@@ -127,6 +127,113 @@ function assertSelector(
   assertOperator(attribute, selector.operator);
 }
 
+type NumericConstraintSet = {
+  eq?: number;
+
+  lte?: number;
+
+  gte?: number;
+};
+
+/**
+ * Проверяет совместный смысл numeric constraints.
+ *
+ * Каждое ограничение по отдельности может
+ * быть совершенно валидным:
+ *
+ * price >= 20_000
+ * price <= 15_000
+ *
+ * Но вместе они описывают невозможный диапазон.
+ *
+ * Проверяем:
+ *
+ * - gte <= lte;
+ * - eq >= gte;
+ * - eq <= lte.
+ *
+ * Равные границы разрешены:
+ *
+ * gte 15_000
+ * lte 15_000
+ *
+ * означает точную точку 15_000.
+ */
+function assertNumericConstraintCompatibility(
+  profile: ReturnType<typeof CategoryProfileSchema.parse>,
+
+  constraints: readonly SearchConstraint[],
+): void {
+  const grouped = new Map<string, NumericConstraintSet>();
+
+  for (const constraint of constraints) {
+    const attribute = findAttribute(profile, constraint.attributeId);
+
+    if (attribute.kind !== 'number') {
+      continue;
+    }
+
+    if (
+      constraint.operator !== 'eq' &&
+      constraint.operator !== 'lte' &&
+      constraint.operator !== 'gte'
+    ) {
+      continue;
+    }
+
+    if (typeof constraint.value !== 'number') {
+      /**
+       * Тип уже проверяется assertConstraint().
+       *
+       * Сюда не должны попадать
+       * невалидные numeric values.
+       */
+      continue;
+    }
+
+    const current = grouped.get(constraint.attributeId) ?? {};
+
+    current[constraint.operator] = constraint.value;
+
+    grouped.set(constraint.attributeId, current);
+  }
+
+  for (const [attributeId, numeric] of grouped) {
+    if (
+      numeric.gte !== undefined &&
+      numeric.lte !== undefined &&
+      numeric.gte > numeric.lte
+    ) {
+      fail(
+        `numeric constraints for attribute ${attributeId} are contradictory: ` +
+          `gte ${numeric.gte} exceeds lte ${numeric.lte}.`,
+      );
+    }
+
+    if (
+      numeric.eq !== undefined &&
+      numeric.gte !== undefined &&
+      numeric.eq < numeric.gte
+    ) {
+      fail(
+        `numeric constraints for attribute ${attributeId} are contradictory: ` +
+          `eq ${numeric.eq} is below gte ${numeric.gte}.`,
+      );
+    }
+
+    if (
+      numeric.eq !== undefined &&
+      numeric.lte !== undefined &&
+      numeric.eq > numeric.lte
+    ) {
+      fail(
+        `numeric constraints for attribute ${attributeId} are contradictory: ` +
+          `eq ${numeric.eq} exceeds lte ${numeric.lte}.`,
+      );
+    }
+  }
+}
+
 /**
  * Проверяет полный SearchSpec
  * против выбранного CategoryProfile.
@@ -137,7 +244,8 @@ function assertSelector(
  * - разрешён ли operator;
  * - правильный ли тип value;
  * - правильная ли unit;
- * - соответствует ли category profile.
+ * - соответствует ли category profile;
+ * - совместимы ли numeric constraints между собой.
  */
 export function assertSearchSpecMatchesCategoryProfile(
   specRaw: unknown,
@@ -161,6 +269,15 @@ export function assertSearchSpecMatchesCategoryProfile(
   for (const constraint of spec.constraints) {
     assertConstraint(profile, constraint);
   }
+
+  /**
+   * Только после individual validation.
+   *
+   * Теперь мы уже знаем, что numeric
+   * values действительно числа
+   * и units соответствуют profile.
+   */
+  assertNumericConstraintCompatibility(profile, spec.constraints);
 }
 
 /**
@@ -171,6 +288,13 @@ export function assertSearchSpecMatchesCategoryProfile(
  * не допускается.
  *
  * Другая category = новый SEARCH.
+ *
+ * Также проверяем противоречия,
+ * существующие прямо внутри patch.set.
+ *
+ * Противоречие между текущим SearchSpec
+ * и patch проверяется после применения patch
+ * через assertSearchSpecMatchesCategoryProfile().
  */
 export function assertSearchSpecPatchMatchesCategoryProfile(
   patchRaw: unknown,
@@ -196,4 +320,6 @@ export function assertSearchSpecPatchMatchesCategoryProfile(
   for (const selector of patch.clear) {
     assertSelector(profile, selector);
   }
+
+  assertNumericConstraintCompatibility(profile, patch.set);
 }

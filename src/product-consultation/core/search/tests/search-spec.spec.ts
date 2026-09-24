@@ -4,7 +4,7 @@ import {
   applySearchSpecPatch,
   createSearchSpec,
   findSearchConstraint,
-} from './search-spec';
+} from '../search-spec';
 
 function initialNikeSearch() {
   return createSearchSpec({

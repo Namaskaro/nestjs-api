@@ -14,6 +14,7 @@ import {
   ConsultationResultsStateSchema,
   type ConsultationResultProduct,
   type ConsultationResultsState,
+  type SearchResultSnapshot,
 } from './consultation-results.schema';
 
 export type ConsultationResultsIdFactory = () => string;
@@ -39,18 +40,21 @@ export function createConsultationResultsState(): ConsultationResultsState {
     pendingSearch: null,
 
     active: null,
+
+    lastConfirmed: null,
   });
 }
 
 /**
- * Начинает новый search execution.
+ * Новый search execution.
  *
- * Новый execution автоматически делает
- * предыдущий pending execution устаревшим.
+ * active очищается немедленно:
  *
- * Active выдача очищается сразу:
- * после изменения SearchSpec старые позиции
- * больше не должны считаться текущими.
+ * новый SearchSpec уже существует,
+ * поэтому старая выдача не является
+ * выдачей нового запроса.
+ *
+ * Но lastConfirmed сохраняется.
  */
 export function beginSearchExecution(
   currentRaw: ConsultationResultsState,
@@ -80,7 +84,17 @@ export function beginSearchExecution(
       search,
     },
 
+    /**
+     * Старый result больше
+     * не является current.
+     */
     active: null,
+
+    /**
+     * Но последний подтверждённый
+     * snapshot не теряем.
+     */
+    lastConfirmed: current.lastConfirmed,
   });
 
   return {
@@ -91,11 +105,10 @@ export function beginSearchExecution(
 }
 
 /**
- * Принимает только результат того execution,
- * который всё ещё является текущим.
+ * Commit успешного search.
  *
- * Старый или запоздавший execution
- * не может заменить active выдачу.
+ * Даже products=[] является
+ * успешно подтверждённым snapshot.
  */
 export function commitSearchExecution(
   currentRaw: ConsultationResultsState,
@@ -117,6 +130,16 @@ export function commitSearchExecution(
     );
   }
 
+  const snapshot = SearchResultSnapshot({
+    resultId: createId(),
+
+    executionId,
+
+    search: current.pendingSearch.search,
+
+    products,
+  });
+
   return ConsultationResultsStateSchema.parse({
     version: 1,
 
@@ -124,34 +147,45 @@ export function commitSearchExecution(
 
     pendingSearch: null,
 
-    active: {
-      resultId: createId(),
+    active: snapshot,
 
-      executionId,
-
-      /**
-       * Берём SearchSpec server-side
-       * из pending execution.
-       *
-       * Search result сам не имеет права
-       * прислать другой SearchSpec.
-       */
-      search: current.pendingSearch.search,
-
-      products,
-    },
+    /**
+     * Новый успешный search
+     * становится последним
+     * подтверждённым snapshot.
+     */
+    lastConfirmed: snapshot,
   });
 }
 
+function SearchResultSnapshot(input: {
+  resultId: string;
+
+  executionId: string;
+
+  search: SearchSpec;
+
+  products: readonly ConsultationResultProduct[];
+}): SearchResultSnapshot {
+  return {
+    resultId: input.resultId,
+
+    executionId: input.executionId,
+
+    search: input.search,
+
+    products: [...input.products],
+  };
+}
+
 /**
- * Технический failure отличается
- * от успешного zero-result search.
+ * Technical failure.
  *
- * failure:
- * active = null
+ * В отличие от successful zero-result:
  *
- * successful zero-result:
- * active = snapshot с products=[]
+ * active = null.
+ *
+ * Но lastConfirmed сохраняется.
  */
 export function failSearchExecution(
   currentRaw: ConsultationResultsState,
@@ -176,25 +210,28 @@ export function failSearchExecution(
 
     pendingSearch: null,
 
+    /**
+     * Не притворяемся,
+     * что старая выдача является
+     * результатом failed search.
+     */
     active: null,
+
+    /**
+     * Но пользователь реально
+     * видел этот snapshot раньше.
+     */
+    lastConfirmed: current.lastConfirmed,
   });
 }
 
-export function resolveProductSelection(
-  stateRaw: ConsultationResultsState,
+function resolveSelectionInsideSnapshot(
+  snapshot: SearchResultSnapshot,
 
   selection: ProductSelection,
 ): ResolvedProductSelection {
-  const state = ConsultationResultsStateSchema.parse(stateRaw);
-
-  const snapshot = state.active;
-
-  if (snapshot === null) {
-    throw new Error('ConsultationResults: active search result is missing.');
-  }
-
   if (snapshot.products.length === 0) {
-    throw new Error('ConsultationResults: active product set is empty.');
+    throw new Error('ConsultationResults: product set is empty.');
   }
 
   if (selection.kind === 'active') {
@@ -212,7 +249,7 @@ export function resolveProductSelection(
 
     if (!product) {
       throw new Error(
-        `ConsultationResults: position ${position} is outside active product set.`,
+        `ConsultationResults: position ${position} is outside product set.`,
       );
     }
 
@@ -228,15 +265,70 @@ export function resolveProductSelection(
   };
 }
 
-export function resolveProductSelectionForAction(
+/**
+ * Обычный resolver:
+ * работает ТОЛЬКО с current active.
+ */
+export function resolveProductSelection(
   stateRaw: ConsultationResultsState,
-
-  action: ConsultationAction,
 
   selection: ProductSelection,
 ): ResolvedProductSelection {
-  const resolved = resolveProductSelection(stateRaw, selection);
+  const state = ConsultationResultsStateSchema.parse(stateRaw);
 
+  if (state.active === null) {
+    throw new Error('ConsultationResults: active search result is missing.');
+  }
+
+  return resolveSelectionInsideSnapshot(state.active, selection);
+}
+
+/**
+ * Явное разрешение ссылки
+ * относительно server-owned resultId.
+ *
+ * Используется Public Turn Boundary,
+ * потому что она знает,
+ * какой snapshot видел Consultant.
+ *
+ * Может разрешить:
+ *
+ * - current active;
+ * - lastConfirmed после technical failure.
+ *
+ * Но не произвольную историю.
+ */
+export function resolveProductSelectionFromResult(
+  stateRaw: ConsultationResultsState,
+
+  resultId: string,
+
+  selection: ProductSelection,
+): ResolvedProductSelection {
+  const state = ConsultationResultsStateSchema.parse(stateRaw);
+
+  let snapshot: SearchResultSnapshot | null = null;
+
+  if (state.active?.resultId === resultId) {
+    snapshot = state.active;
+  } else if (state.lastConfirmed?.resultId === resultId) {
+    snapshot = state.lastConfirmed;
+  }
+
+  if (snapshot === null) {
+    throw new Error(
+      `ConsultationResults: result snapshot ${resultId} is not available.`,
+    );
+  }
+
+  return resolveSelectionInsideSnapshot(snapshot, selection);
+}
+
+function assertActionSelectionCount(
+  action: ConsultationAction,
+
+  resolved: ResolvedProductSelection,
+): void {
   const count = resolved.products.length;
 
   switch (action) {
@@ -247,7 +339,7 @@ export function resolveProductSelectionForAction(
         );
       }
 
-      break;
+      return;
     }
 
     case 'FEEDBACK': {
@@ -257,7 +349,7 @@ export function resolveProductSelectionForAction(
         );
       }
 
-      break;
+      return;
     }
 
     case 'COMPARE': {
@@ -267,7 +359,7 @@ export function resolveProductSelectionForAction(
         );
       }
 
-      break;
+      return;
     }
 
     case 'RECOMMEND': {
@@ -277,7 +369,7 @@ export function resolveProductSelectionForAction(
         );
       }
 
-      break;
+      return;
     }
 
     default: {
@@ -286,6 +378,43 @@ export function resolveProductSelectionForAction(
       );
     }
   }
+}
+
+export function resolveProductSelectionForAction(
+  stateRaw: ConsultationResultsState,
+
+  action: ConsultationAction,
+
+  selection: ProductSelection,
+): ResolvedProductSelection {
+  const resolved = resolveProductSelection(stateRaw, selection);
+
+  assertActionSelectionCount(action, resolved);
+
+  return resolved;
+}
+
+/**
+ * Та же action-specific validation,
+ * но относительно явно указанного
+ * server-owned resultId.
+ */
+export function resolveProductSelectionForActionFromResult(
+  stateRaw: ConsultationResultsState,
+
+  action: ConsultationAction,
+
+  resultId: string,
+
+  selection: ProductSelection,
+): ResolvedProductSelection {
+  const resolved = resolveProductSelectionFromResult(
+    stateRaw,
+    resultId,
+    selection,
+  );
+
+  assertActionSelectionCount(action, resolved);
 
   return resolved;
 }

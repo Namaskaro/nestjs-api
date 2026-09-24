@@ -1,4 +1,5 @@
 import { CategoryProfileSchema } from '@/src/product-consultation/core/consultation-core.schema';
+
 import { GENERIC_ATTRIBUTES } from './shared.attributes';
 
 export const GENERIC_PROFILE = CategoryProfileSchema.parse({
@@ -8,9 +9,16 @@ export const GENERIC_PROFILE = CategoryProfileSchema.parse({
 
   attributes: GENERIC_ATTRIBUTES,
 
-  defaultCriteria: ['price', 'brand', 'type', 'inStock'],
+  /**
+   * Availability здесь намеренно отсутствует.
+   *
+   * Product Consultation работает только
+   * с товарами, которые backend уже признал
+   * допустимыми для показа.
+   */
+  defaultCriteria: ['price', 'brand', 'type'],
 
-  criticalAttributes: ['type', 'inStock'],
+  criticalAttributes: ['type'],
 
   guidance: [
     {
@@ -36,18 +44,6 @@ export const GENERIC_PROFILE = CategoryProfileSchema.parse({
         'Связывай цену с бюджетом пользователя и известными различиями ' +
         'между товарами. Более высокая цена сама по себе не означает ' +
         'более подходящий товар.',
-    },
-
-    {
-      id: 'generic.availability',
-
-      when: 'Пользователь рассматривает реальную покупку товара.',
-
-      attributeIds: ['inStock', 'stock'],
-
-      instruction:
-        'Различай подтверждённую доступность и отсутствие данных. ' +
-        'Общий остаток не доказывает наличие конкретного варианта товара.',
     },
   ],
 

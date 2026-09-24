@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { findSearchConstraint } from '../search/search-spec';
+import { findSearchConstraint } from '../../search/search-spec';
 
-import { applyConsultationTurn } from './consultation-turn';
+import { applyConsultationTurn } from '../consultation-turn';
 
-import { ConsultationTurnInterpretationSchema } from './consultation-turn.schema';
+import { ConsultationTurnInterpretationSchema } from '../consultation-turn.schema';
 
 function emptyMemoryPatch() {
   return {
@@ -50,6 +50,36 @@ function nikeSearch() {
         operator: 'eq' as const,
 
         value: 'Nike',
+
+        unit: null,
+      },
+    ],
+  };
+}
+
+function adidasSearch() {
+  return {
+    semanticIntent: 'женские кроссовки',
+
+    category: 'SHOES',
+
+    constraints: [
+      {
+        attributeId: 'gender',
+
+        operator: 'eq' as const,
+
+        value: 'WOMAN',
+
+        unit: null,
+      },
+
+      {
+        attributeId: 'brand',
+
+        operator: 'eq' as const,
+
+        value: 'Adidas',
 
         unit: null,
       },
@@ -140,7 +170,7 @@ describe('ConsultationTurn', () => {
     expect(result.state.memory.memory.goals[0]?.text).toBe('ежедневная ходьба');
   });
 
-  it('first SEARCH preserves memory collected by CLARIFY', () => {
+  it('SEARCH preserves the task memory supplied to reducer', () => {
     const clarified = applyConsultationTurn(
       null,
 
@@ -193,18 +223,26 @@ describe('ConsultationTurn', () => {
   });
 
   it('creates consultation directly from SEARCH', () => {
-    const result = applyConsultationTurn(null, initialNikeTurn());
+    const result = applyConsultationTurn(
+      null,
+
+      initialNikeTurn(),
+    );
 
     expect(result.searchRequired).toBe(true);
 
     expect(result.state.search?.category).toBe('SHOES');
 
     expect(
-      findSearchConstraint(result.state.search!, {
-        attributeId: 'brand',
+      findSearchConstraint(
+        result.state.search!,
 
-        operator: 'eq',
-      })?.value,
+        {
+          attributeId: 'brand',
+
+          operator: 'eq',
+        },
+      )?.value,
     ).toBe('Nike');
   });
 
@@ -255,7 +293,11 @@ describe('ConsultationTurn', () => {
   });
 
   it('REFINE patches current SearchSpec', () => {
-    const first = applyConsultationTurn(null, initialNikeTurn());
+    const first = applyConsultationTurn(
+      null,
+
+      initialNikeTurn(),
+    );
 
     const refined = applyConsultationTurn(
       first.state,
@@ -290,24 +332,36 @@ describe('ConsultationTurn', () => {
     );
 
     expect(
-      findSearchConstraint(refined.state.search!, {
-        attributeId: 'brand',
+      findSearchConstraint(
+        refined.state.search!,
 
-        operator: 'eq',
-      })?.value,
+        {
+          attributeId: 'brand',
+
+          operator: 'eq',
+        },
+      )?.value,
     ).toBe('Nike');
 
     expect(
-      findSearchConstraint(refined.state.search!, {
-        attributeId: 'color',
+      findSearchConstraint(
+        refined.state.search!,
 
-        operator: 'eq',
-      })?.value,
+        {
+          attributeId: 'color',
+
+          operator: 'eq',
+        },
+      )?.value,
     ).toBe('зелёный');
   });
 
-  it('new SEARCH completely replaces previous SearchSpec', () => {
-    const first = applyConsultationTurn(null, initialNikeTurn());
+  it('SEARCH completely replaces SearchSpec', () => {
+    const first = applyConsultationTurn(
+      null,
+
+      initialNikeTurn(),
+    );
 
     const next = applyConsultationTurn(
       first.state,
@@ -315,23 +369,7 @@ describe('ConsultationTurn', () => {
       {
         action: 'SEARCH',
 
-        search: {
-          semanticIntent: 'ноутбук для разработки',
-
-          category: 'LAPTOP',
-
-          constraints: [
-            {
-              attributeId: 'brand',
-
-              operator: 'eq',
-
-              value: 'Lenovo',
-
-              unit: null,
-            },
-          ],
-        },
+        search: adidasSearch(),
 
         delta: {},
 
@@ -341,26 +379,34 @@ describe('ConsultationTurn', () => {
       },
     );
 
-    expect(next.state.search?.category).toBe('LAPTOP');
+    expect(next.state.search?.category).toBe('SHOES');
 
     expect(
-      findSearchConstraint(next.state.search!, {
-        attributeId: 'brand',
+      findSearchConstraint(
+        next.state.search!,
 
-        operator: 'eq',
-      })?.value,
-    ).toBe('Lenovo');
+        {
+          attributeId: 'brand',
+
+          operator: 'eq',
+        },
+      )?.value,
+    ).toBe('Adidas');
 
     expect(
-      findSearchConstraint(next.state.search!, {
-        attributeId: 'gender',
+      findSearchConstraint(
+        next.state.search!,
 
-        operator: 'eq',
-      }),
-    ).toBeNull();
+        {
+          attributeId: 'gender',
+
+          operator: 'eq',
+        },
+      )?.value,
+    ).toBe('WOMAN');
   });
 
-  it('new independent SEARCH resets old task memory', () => {
+  it('SEARCH does not infer a new task from existing SearchSpec', () => {
     const first = applyConsultationTurn(
       null,
 
@@ -393,21 +439,13 @@ describe('ConsultationTurn', () => {
       () => 'goal-shoes',
     );
 
-    expect(first.state.memory.memory.goals).toHaveLength(1);
-
-    const laptop = applyConsultationTurn(
+    const next = applyConsultationTurn(
       first.state,
 
       {
         action: 'SEARCH',
 
-        search: {
-          semanticIntent: 'ноутбук для разработки',
-
-          category: 'LAPTOP',
-
-          constraints: [],
-        },
+        search: adidasSearch(),
 
         delta: {},
 
@@ -417,29 +455,25 @@ describe('ConsultationTurn', () => {
       },
     );
 
-    expect(laptop.state.memory.memory).toEqual({
-      goals: [],
-      criteria: [],
-      feedback: [],
-    });
+    expect(next.state.memory.memory.goals).toHaveLength(1);
+
+    expect(next.state.memory.memory.goals[0]?.text).toBe('повседневная носка');
   });
 
-  it('new SEARCH can store memory for the new task after reset', () => {
-    const first = applyConsultationTurn(null, initialNikeTurn());
+  it('SEARCH can apply memory changes to supplied task state', () => {
+    const first = applyConsultationTurn(
+      null,
 
-    const laptop = applyConsultationTurn(
+      initialNikeTurn(),
+    );
+
+    const next = applyConsultationTurn(
       first.state,
 
       {
         action: 'SEARCH',
 
-        search: {
-          semanticIntent: 'ноутбук для разработки',
-
-          category: 'LAPTOP',
-
-          constraints: [],
-        },
+        search: adidasSearch(),
 
         delta: {
           memory: {
@@ -448,11 +482,11 @@ describe('ConsultationTurn', () => {
             goals: {
               add: [
                 {
-                  text: 'разработка',
+                  text: 'долгие прогулки',
 
                   importance: 'high',
 
-                  sourceText: 'нужен для разработки',
+                  sourceText: 'нужны для долгих прогулок',
                 },
               ],
 
@@ -468,18 +502,18 @@ describe('ConsultationTurn', () => {
         feedback: null,
       },
 
-      () => 'goal-development',
+      () => 'goal-walking',
     );
 
-    expect(laptop.state.memory.memory.goals).toEqual([
+    expect(next.state.memory.memory.goals).toEqual([
       {
-        goalId: 'goal-development',
+        goalId: 'goal-walking',
 
-        text: 'разработка',
+        text: 'долгие прогулки',
 
         importance: 'high',
 
-        sourceText: 'нужен для разработки',
+        sourceText: 'нужны для долгих прогулок',
       },
     ]);
   });
@@ -539,7 +573,11 @@ describe('ConsultationTurn', () => {
   });
 
   it('RECOMMEND cannot mutate SearchSpec', () => {
-    const first = applyConsultationTurn(null, initialNikeTurn());
+    const first = applyConsultationTurn(
+      null,
+
+      initialNikeTurn(),
+    );
 
     expect(() =>
       applyConsultationTurn(
@@ -578,16 +616,24 @@ describe('ConsultationTurn', () => {
     ).toThrow();
 
     expect(
-      findSearchConstraint(first.state.search!, {
-        attributeId: 'brand',
+      findSearchConstraint(
+        first.state.search!,
 
-        operator: 'eq',
-      })?.value,
+        {
+          attributeId: 'brand',
+
+          operator: 'eq',
+        },
+      )?.value,
     ).toBe('Nike');
   });
 
   it('COMPARE keeps ordinal selection without productId', () => {
-    const first = applyConsultationTurn(null, initialNikeTurn());
+    const first = applyConsultationTurn(
+      null,
+
+      initialNikeTurn(),
+    );
 
     const compare = applyConsultationTurn(
       first.state,
@@ -619,7 +665,11 @@ describe('ConsultationTurn', () => {
   });
 
   it('accepts semantic FEEDBACK without productId', () => {
-    const first = applyConsultationTurn(null, initialNikeTurn());
+    const first = applyConsultationTurn(
+      null,
+
+      initialNikeTurn(),
+    );
 
     const feedback = applyConsultationTurn(
       first.state,
@@ -654,60 +704,82 @@ describe('ConsultationTurn', () => {
     expect(feedback.state.memory.memory.feedback).toEqual([]);
   });
 
-  it('rejects arbitrary productId through memory feedback patch', () => {
-    const first = applyConsultationTurn(null, initialNikeTurn());
+  it('accepts server-owned resolved product feedback in internal memory patch', () => {
+    const first = applyConsultationTurn(
+      null,
 
-    expect(() =>
-      applyConsultationTurn(
-        first.state,
+      initialNikeTurn(),
+    );
 
-        {
-          action: 'FEEDBACK',
+    const result = applyConsultationTurn(
+      first.state,
 
-          search: null,
+      {
+        action: 'FEEDBACK',
 
-          delta: {
-            memory: {
-              ...emptyMemoryPatch(),
+        search: null,
 
-              feedback: {
-                upsert: [
-                  {
-                    productId: 'invented-product',
+        delta: {
+          memory: {
+            ...emptyMemoryPatch(),
 
-                    reaction: 'dislike',
+            feedback: {
+              upsert: [
+                {
+                  /**
+                   * В INTERNAL reducer productId
+                   * уже разрешён Public Boundary.
+                   *
+                   * Это не значение от LLM.
+                   */
+                  productId: 'nike-1',
 
-                    reason: 'не нравится',
+                  reaction: 'dislike',
 
-                    attributeId: null,
+                  reason: 'слишком массивные',
 
-                    sourceText: 'не нравится',
-                  },
-                ],
+                  attributeId: null,
 
-                remove: [],
-              },
+                  sourceText: 'первые слишком массивные',
+                },
+              ],
+
+              remove: [],
             },
           },
-
-          selection: {
-            kind: 'positions',
-
-            positions: [1],
-          },
-
-          feedback: {
-            reaction: 'dislike',
-
-            reason: 'не нравится',
-
-            attributeId: null,
-
-            sourceText: 'не нравится',
-          },
         },
-      ),
-    ).toThrow();
+
+        selection: {
+          kind: 'positions',
+
+          positions: [1],
+        },
+
+        feedback: {
+          reaction: 'dislike',
+
+          reason: 'слишком массивные',
+
+          attributeId: null,
+
+          sourceText: 'первые слишком массивные',
+        },
+      },
+    );
+
+    expect(result.state.memory.memory.feedback).toEqual([
+      {
+        productId: 'nike-1',
+
+        reaction: 'dislike',
+
+        reason: 'слишком массивные',
+
+        attributeId: null,
+
+        sourceText: 'первые слишком массивные',
+      },
+    ]);
   });
 
   it('rejects productId inside semantic feedback', () => {
