@@ -33,7 +33,9 @@ function errorMessage(error: unknown): string {
 /**
  * Низкоуровневый запуск.
  *
- * Только выполняет scenario и записывает факты.
+ * Только выполняет scenario
+ * и записывает факты.
+ *
  * Ничего не оценивает.
  */
 export async function recordEvaluationScenario({
@@ -67,7 +69,11 @@ export async function recordEvaluationScenario({
   for (let turnIndex = 0; turnIndex < scenario.turns.length; turnIndex += 1) {
     const turn = scenario.turns[turnIndex];
 
-    recorder.beginTurn(turn, currentState);
+    recorder.beginTurn(
+      turn,
+
+      currentState,
+    );
 
     const callback = createLangChainEvalCallback(recorder);
 
@@ -80,6 +86,13 @@ export async function recordEvaluationScenario({
         callbacks: [callback],
 
         toolCallSink: recorder,
+
+        /**
+         * Один и тот же recorder
+         * является sink и для
+         * offline model calls.
+         */
+        llmCallSink: recorder,
       });
 
       for (const artifact of result.artifacts) {

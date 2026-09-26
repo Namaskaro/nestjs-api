@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { ConsultationMemoryPatchSchema } from '../consultation-core.schema';
 
+import { normalizeConsultationGoalText } from './consultation-goal-normalization';
+
 import {
   ConsultationMemoryStateSchema,
   type ConsultationMemoryState,
@@ -37,10 +39,6 @@ function emptyPatch(): ConsultationMemoryPatch {
   };
 }
 
-function normalizeText(value: string): string {
-  return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
-}
-
 function compileGoalObservation(
   current: ConsultationMemoryState,
 
@@ -53,8 +51,10 @@ function compileGoalObservation(
 
   patch: ConsultationMemoryPatch,
 ): void {
+  const observationKey = normalizeConsultationGoalText(observation.text);
+
   const matches = current.memory.goals.filter(
-    (goal) => normalizeText(goal.text) === normalizeText(observation.text),
+    (goal) => normalizeConsultationGoalText(goal.text) === observationKey,
   );
 
   if (matches.length > 1) {
@@ -100,12 +100,16 @@ function compileGoalObservation(
   }
 
   /**
-   * Повтор той же semantic информации
+   * Повтор того же exact normalized goal
    * не должен увеличивать revision.
+   *
+   * Это именно техническое текстовое
+   * сопоставление, а не распознавание
+   * semantic paraphrases.
    */
   if (
     existing.importance === observation.importance &&
-    normalizeText(existing.text) === normalizeText(observation.text)
+    normalizeConsultationGoalText(existing.text) === observationKey
   ) {
     return;
   }

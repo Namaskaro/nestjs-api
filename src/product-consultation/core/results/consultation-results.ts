@@ -48,13 +48,13 @@ export function createConsultationResultsState(): ConsultationResultsState {
 /**
  * Новый search execution.
  *
- * active очищается немедленно:
+ * active очищается немедленно.
  *
- * новый SearchSpec уже существует,
- * поэтому старая выдача не является
- * выдачей нового запроса.
+ * lastConfirmed сохраняется.
  *
- * Но lastConfirmed сохраняется.
+ * Предыдущий failure marker
+ * больше не относится к новому
+ * execution, поэтому не переносится.
  */
 export function beginSearchExecution(
   currentRaw: ConsultationResultsState,
@@ -84,17 +84,17 @@ export function beginSearchExecution(
       search,
     },
 
-    /**
-     * Старый result больше
-     * не является current.
-     */
     active: null,
 
-    /**
-     * Но последний подтверждённый
-     * snapshot не теряем.
-     */
     lastConfirmed: current.lastConfirmed,
+
+    /**
+     * lastFailure намеренно
+     * отсутствует.
+     *
+     * Новый execution начинается
+     * с чистого lifecycle status.
+     */
   });
 
   return {
@@ -107,8 +107,11 @@ export function beginSearchExecution(
 /**
  * Commit успешного search.
  *
- * Даже products=[] является
- * успешно подтверждённым snapshot.
+ * Даже products=[] —
+ * successful result.
+ *
+ * Успех очищает предыдущий
+ * failure marker.
  */
 export function commitSearchExecution(
   currentRaw: ConsultationResultsState,
@@ -149,12 +152,13 @@ export function commitSearchExecution(
 
     active: snapshot,
 
-    /**
-     * Новый успешный search
-     * становится последним
-     * подтверждённым snapshot.
-     */
     lastConfirmed: snapshot,
+
+    /**
+     * lastFailure отсутствует:
+     * current execution завершился
+     * успешно.
+     */
   });
 }
 
@@ -181,11 +185,14 @@ function SearchResultSnapshot(input: {
 /**
  * Technical failure.
  *
- * В отличие от successful zero-result:
+ * В отличие от successful zero:
  *
  * active = null.
  *
- * Но lastConfirmed сохраняется.
+ * lastConfirmed сохраняется.
+ *
+ * И теперь явно сохраняем,
+ * какой execution/search упал.
  */
 export function failSearchExecution(
   currentRaw: ConsultationResultsState,
@@ -203,6 +210,8 @@ export function failSearchExecution(
     );
   }
 
+  const failedExecution = current.pendingSearch;
+
   return ConsultationResultsStateSchema.parse({
     version: 1,
 
@@ -210,18 +219,11 @@ export function failSearchExecution(
 
     pendingSearch: null,
 
-    /**
-     * Не притворяемся,
-     * что старая выдача является
-     * результатом failed search.
-     */
     active: null,
 
-    /**
-     * Но пользователь реально
-     * видел этот snapshot раньше.
-     */
     lastConfirmed: current.lastConfirmed,
+
+    lastFailure: failedExecution,
   });
 }
 
@@ -266,8 +268,7 @@ function resolveSelectionInsideSnapshot(
 }
 
 /**
- * Обычный resolver:
- * работает ТОЛЬКО с current active.
+ * Resolver только current active.
  */
 export function resolveProductSelection(
   stateRaw: ConsultationResultsState,
@@ -280,23 +281,21 @@ export function resolveProductSelection(
     throw new Error('ConsultationResults: active search result is missing.');
   }
 
-  return resolveSelectionInsideSnapshot(state.active, selection);
+  return resolveSelectionInsideSnapshot(
+    state.active,
+
+    selection,
+  );
 }
 
 /**
- * Явное разрешение ссылки
- * относительно server-owned resultId.
+ * Явный resolver относительно
+ * server-owned resultId.
  *
- * Используется Public Turn Boundary,
- * потому что она знает,
- * какой snapshot видел Consultant.
+ * Может использовать current active
+ * или lastConfirmed.
  *
- * Может разрешить:
- *
- * - current active;
- * - lastConfirmed после technical failure.
- *
- * Но не произвольную историю.
+ * Произвольной history здесь нет.
  */
 export function resolveProductSelectionFromResult(
   stateRaw: ConsultationResultsState,
@@ -321,7 +320,11 @@ export function resolveProductSelectionFromResult(
     );
   }
 
-  return resolveSelectionInsideSnapshot(snapshot, selection);
+  return resolveSelectionInsideSnapshot(
+    snapshot,
+
+    selection,
+  );
 }
 
 function assertActionSelectionCount(
@@ -387,17 +390,24 @@ export function resolveProductSelectionForAction(
 
   selection: ProductSelection,
 ): ResolvedProductSelection {
-  const resolved = resolveProductSelection(stateRaw, selection);
+  const resolved = resolveProductSelection(
+    stateRaw,
 
-  assertActionSelectionCount(action, resolved);
+    selection,
+  );
+
+  assertActionSelectionCount(
+    action,
+
+    resolved,
+  );
 
   return resolved;
 }
 
 /**
- * Та же action-specific validation,
- * но относительно явно указанного
- * server-owned resultId.
+ * Action-specific validation
+ * относительно server-owned resultId.
  */
 export function resolveProductSelectionForActionFromResult(
   stateRaw: ConsultationResultsState,
@@ -410,11 +420,17 @@ export function resolveProductSelectionForActionFromResult(
 ): ResolvedProductSelection {
   const resolved = resolveProductSelectionFromResult(
     stateRaw,
+
     resultId,
+
     selection,
   );
 
-  assertActionSelectionCount(action, resolved);
+  assertActionSelectionCount(
+    action,
+
+    resolved,
+  );
 
   return resolved;
 }

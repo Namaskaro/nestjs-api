@@ -137,6 +137,40 @@ describe('ConsultationMemoryObservation', () => {
     expect(patch).toEqual(emptyPatch());
   });
 
+  it('rejects duplicate goals with only whitespace and case differences in one turn', () => {
+    expect(() =>
+      compileConsultationMemoryObservations(
+        createConsultationMemoryState(),
+
+        [
+          {
+            kind: 'goal',
+
+            operation: 'remember',
+
+            text: 'Долгие   прогулки',
+
+            importance: 'normal',
+
+            sourceText: 'я много хожу пешком',
+          },
+
+          {
+            kind: 'goal',
+
+            operation: 'remember',
+
+            text: 'долгие прогулки',
+
+            importance: 'high',
+
+            sourceText: 'для меня важны долгие прогулки',
+          },
+        ],
+      ),
+    ).toThrow('Duplicate memory observation target: goal:долгие прогулки');
+  });
+
   it('backend chooses goalId when existing goal changes', () => {
     const current = applyConsultationMemoryPatch(
       createConsultationMemoryState(),

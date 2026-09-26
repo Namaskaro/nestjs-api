@@ -63,14 +63,8 @@ export const ConsultationResultsStateSchema = z
     pendingSearch: SearchExecutionSchema.nullable(),
 
     /**
-     * ТЕКУЩАЯ выдача текущего запроса.
-     *
-     * При запуске нового поиска
-     * active очищается.
-     *
-     * Поэтому старые ordinal references
-     * никогда случайно не становятся
-     * результатами нового SearchSpec.
+     * Текущая подтверждённая выдача
+     * текущего SearchSpec.
      */
     active: SearchResultSnapshotSchema.nullable(),
 
@@ -78,22 +72,29 @@ export const ConsultationResultsStateSchema = z
      * Последний успешно подтверждённый
      * Search Result Snapshot.
      *
-     * Он сохраняется при техническом
-     * failure следующего поиска.
-     *
-     * ВАЖНО:
-     *
-     * lastConfirmed НЕ означает,
-     * что это текущая выдача.
-     *
-     * Это только сохранённый
-     * server-owned snapshot,
-     * на который можно явно сослаться
-     * по его resultId.
-     *
-     * Это ещё НЕ history engine.
+     * Это не current result и
+     * не history engine.
      */
     lastConfirmed: SearchResultSnapshotSchema.nullable(),
+
+    /**
+     * Последний technical failure
+     * текущего search lifecycle.
+     *
+     * Храним именно execution,
+     * чтобы было известно:
+     *
+     * - какой search упал;
+     * - какой execution упал.
+     *
+     * Поля может не быть у старых
+     * persisted records.
+     *
+     * Новый begin/commit search
+     * очищает marker просто тем,
+     * что создаёт state без него.
+     */
+    lastFailure: SearchExecutionSchema.optional(),
   })
   .strict();
 

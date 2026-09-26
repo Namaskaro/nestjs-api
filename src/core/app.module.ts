@@ -27,6 +27,7 @@ import { RerankerModule } from './reranker/reranker.module';
 import { StoreKnowledgeModule } from '../store-knowledge/store-knowledge.module';
 import { YookassaModule } from '../payment/yookassa/yookassa.module';
 import { PaymentModule } from '../payment/payment.module';
+import { ProductConsultationModule } from '../product-consultation/product-consultation.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { PaymentModule } from '../payment/payment.module';
     RerankerModule,
     StoreKnowledgeModule,
     PaymentModule,
+    ProductConsultationModule,
   ],
   controllers: [],
   providers: [SocketService],

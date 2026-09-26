@@ -45,13 +45,23 @@ const SearchSpecFieldsSchema = z
   })
   .strict();
 
+type ConstraintIdentity = {
+  attributeId: string;
+
+  operator: z.infer<typeof SearchConstraintOperatorSchema>;
+};
+
+function constraintKey(constraint: ConstraintIdentity): string {
+  return `${constraint.attributeId}:${constraint.operator}`;
+}
+
 function validateUniqueConstraints(
-  constraints: readonly z.infer<typeof SearchConstraintSchema>[],
+  constraints: readonly ConstraintIdentity[],
 ): string | null {
   const seen = new Set<string>();
 
   for (const constraint of constraints) {
-    const key = `${constraint.attributeId}:${constraint.operator}`;
+    const key = constraintKey(constraint);
 
     if (seen.has(key)) {
       return key;
@@ -110,7 +120,93 @@ export const SearchSpecPatchSchema = z
 
     clear: z.array(SearchConstraintSelectorSchema).default(() => []),
   })
-  .strict();
+  .strict()
+  .superRefine((patch, context) => {
+    /**
+     * Один semantic constraint slot
+     * может изменяться в одном patch
+     * максимум один раз.
+     *
+     * Identity:
+     *
+     * attributeId + operator
+     *
+     * Поэтому:
+     *
+     * price:gte + price:lte
+     *
+     * валидны как два разных slot.
+     *
+     * Но:
+     *
+     * brand:eq + brand:eq
+     *
+     * или:
+     *
+     * set brand:eq + clear brand:eq
+     *
+     * неоднозначны и запрещены.
+     */
+    const seen = new Map<
+      string,
+      {
+        operation: 'set' | 'clear';
+
+        index: number;
+      }
+    >();
+
+    patch.set.forEach((constraint, index) => {
+      const key = constraintKey(constraint);
+
+      const previous = seen.get(key);
+
+      if (previous) {
+        context.addIssue({
+          code: 'custom',
+
+          path: ['set', index],
+
+          message: `Duplicate SearchSpecPatch target: ${key}`,
+        });
+
+        return;
+      }
+
+      seen.set(key, {
+        operation: 'set',
+
+        index,
+      });
+    });
+
+    patch.clear.forEach((selector, index) => {
+      const key = constraintKey(selector);
+
+      const previous = seen.get(key);
+
+      if (previous) {
+        context.addIssue({
+          code: 'custom',
+
+          path: ['clear', index],
+
+          message:
+            previous.operation === 'set'
+              ? `SearchSpecPatch cannot set and clear the same target: ${key}`
+              : `Duplicate SearchSpecPatch target: ${key}`,
+        });
+
+        return;
+      }
+
+      seen.set(key, {
+        operation: 'clear',
+
+        index,
+      });
+    });
+  });
 
 export type SearchConstraint = z.infer<typeof SearchConstraintSchema>;
 

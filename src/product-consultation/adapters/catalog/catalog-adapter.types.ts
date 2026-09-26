@@ -118,10 +118,17 @@ export type AttributeMapping<Row> =
       decode?: ValueDecoder;
     };
 
-export type CatalogHeader = Omit<
-  ProductDetails,
-  'attributes' | 'availability' | 'source'
-> & {
+/**
+ * Canonical product envelope.
+ *
+ * Availability намеренно находится здесь,
+ * а не в attribute mapping.
+ *
+ * inStock / stock являются server-owned
+ * catalog eligibility data и не входят
+ * в Product Consultation attribute space.
+ */
+export type CatalogHeader = Omit<ProductDetails, 'attributes' | 'source'> & {
   recordId: string;
 
   updatedAt: string | null;
@@ -147,12 +154,6 @@ export type CatalogMapping<Row> = {
   attributes: Readonly<Record<string, AttributeMapping<Row>>>;
 
   units?: UnitRegistry;
-
-  availability?: {
-    inStockAttributeId: string;
-
-    stockAttributeId: string;
-  };
 
   validateFacts?: (
     facts: ReadonlyMap<string, ProductFact>,

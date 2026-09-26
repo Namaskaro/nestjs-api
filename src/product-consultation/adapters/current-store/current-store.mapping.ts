@@ -218,6 +218,47 @@ const decodeNonNegativeNumber = nonNegativeNumber();
 
 const decodeInteger = nonNegativeNumber(true);
 
+/**
+ * Availability — часть server-owned canonical product envelope.
+ *
+ * Она намеренно не превращается в ProductFact.
+ *
+ * Для текущего Store authoritative правило простое:
+ * inStock должно согласовываться с stock > 0.
+ *
+ * Если source содержит противоречивые данные,
+ * Product Consultation получает unknown availability,
+ * а не выдумывает корректное значение.
+ */
+function readCurrentStoreAvailability(row: StoreProductRow): {
+  inStock: boolean | null;
+
+  stock: number | null;
+} {
+  const inStock = typeof row.inStock === 'boolean' ? row.inStock : null;
+
+  const stock =
+    typeof row.stock === 'number' &&
+    Number.isSafeInteger(row.stock) &&
+    row.stock >= 0
+      ? row.stock
+      : null;
+
+  if (inStock === null || stock === null || inStock !== stock > 0) {
+    return {
+      inStock: null,
+
+      stock: null,
+    };
+  }
+
+  return {
+    inStock,
+
+    stock,
+  };
+}
+
 const TRUE_VALUES = new Set(['да', 'true', 'yes', 'есть', 'имеется']);
 
 const FALSE_VALUES = new Set(['нет', 'false', 'no', 'отсутствует']);
@@ -320,7 +361,7 @@ function detail(...aliases: string[]): AttributeMapping<StoreProductRow> {
 export const CURRENT_STORE_MAPPING: CatalogMapping<StoreProductRow> = {
   sourceId: CURRENT_STORE_SOURCE_ID,
 
-  version: '3',
+  version: '4',
 
   units: CURRENT_STORE_UNITS,
 
@@ -365,6 +406,8 @@ export const CURRENT_STORE_MAPPING: CatalogMapping<StoreProductRow> = {
     discount: row.discount,
 
     images: row.images,
+
+    availability: readCurrentStoreAvailability(row),
 
     brand: row.brand,
 
@@ -413,12 +456,6 @@ export const CURRENT_STORE_MAPPING: CatalogMapping<StoreProductRow> = {
      * в котором их использует текущий поиск.
      */
     sizes: field(['sizes']),
-
-    inStock: field(['inStock']),
-
-    stock: field(['stock'], {
-      decode: decodeInteger,
-    }),
 
     /*
      * Общие details.
@@ -502,57 +539,6 @@ export const CURRENT_STORE_MAPPING: CatalogMapping<StoreProductRow> = {
 
     caseDiameter: detail('Диаметр корпуса'),
   },
-
-  availability: {
-    inStockAttributeId: 'inStock',
-
-    stockAttributeId: 'stock',
-  },
-
-  validateFacts: (facts) => {
-    const inStock = facts.get('inStock');
-
-    const stock = facts.get('stock');
-
-    if (
-      inStock?.status !== 'known' ||
-      stock?.status !== 'known' ||
-      typeof inStock.value !== 'boolean' ||
-      typeof stock.value !== 'number'
-    ) {
-      return [
-        {
-          attributeIds: ['inStock'],
-
-          status: 'unknown' as const,
-
-          reason: 'availability_not_confirmed',
-        },
-      ];
-    }
-
-    /*
-     * Это правило конкретно текущего Store.
-     *
-     * Другой Store может иметь:
-     * preorder,
-     * reserved stock,
-     * external warehouse и т.д.
-     */
-    if (inStock.value !== stock.value > 0) {
-      return [
-        {
-          attributeIds: ['inStock', 'stock'],
-
-          status: 'conflicting' as const,
-
-          reason: 'inStock_disagrees_with_stock',
-        },
-      ];
-    }
-
-    return [];
-  },
 };
 
 // END CHANGES — CURRENT STORE DECLARATIVE CATALOG MAPPING
@@ -595,14 +581,6 @@ export function buildCurrentStoreBinding(
       }),
     );
   }
-
-  addRequirement(
-    'inStock',
-    'inStock',
-    'eq',
-    true,
-    'Товар должен быть в наличии',
-  );
 
   if (filters.brand) {
     const brandId = resolvedCatalog?.brandId ?? null;
@@ -707,5 +685,3 @@ export function buildCurrentStoreBinding(
     requirements,
   };
 }
-
-// END CHANGES — CURRENT STORE SEARCH → CONSULTATION BINDING

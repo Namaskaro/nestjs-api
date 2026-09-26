@@ -1,130 +1,60 @@
+import { CategoryProfileSchema } from '../consultation-core.schema';
+
 import {
-  CategoryProfileSchema,
-  type AttributeDefinition,
-} from '../consultation-core.schema';
+  assertCategoryProfileAttributeCondition,
+  assertCategoryProfileAttributeSelector,
+  requireCategoryProfileAttribute,
+} from '../profiles/category-profile-attribute-validation';
 
 import {
   SearchSpecDraftSchema,
   SearchSpecPatchSchema,
   SearchSpecSchema,
   type SearchConstraint,
-  type SearchConstraintSelector,
 } from './search-spec.schema';
 
 function fail(message: string): never {
   throw new Error(`SearchSpecProfile: ${message}`);
 }
 
-function findAttribute(
+/**
+ * Zod runtime schema требует value,
+ * но inferred type SearchConstraint
+ * в текущей композиции schema может
+ * представлять его как optional.
+ *
+ * На этой boundary превращаем
+ * parsed SearchConstraint в строгий
+ * CategoryProfileAttributeCondition.
+ *
+ * Общий profile validator при этом
+ * остаётся строгим и НЕ принимает
+ * condition без value.
+ */
+function assertSearchConstraint(
   profile: ReturnType<typeof CategoryProfileSchema.parse>,
-
-  attributeId: string,
-): AttributeDefinition {
-  const attribute = profile.attributes.find(
-    (candidate) => candidate.id === attributeId,
-  );
-
-  if (!attribute) {
-    fail(`unknown attribute ${attributeId} for category ${profile.id}.`);
-  }
-
-  return attribute;
-}
-
-function assertOperator(
-  attribute: AttributeDefinition,
-
-  operator: SearchConstraint['operator'],
-): void {
-  if (!attribute.allowedOperators.includes(operator)) {
-    fail(`operator ${operator} is not allowed for attribute ${attribute.id}.`);
-  }
-}
-
-function assertValue(
-  attribute: AttributeDefinition,
-
-  value: SearchConstraint['value'],
-): void {
-  switch (attribute.kind) {
-    case 'text': {
-      if (typeof value !== 'string') {
-        fail(`attribute ${attribute.id} requires string value.`);
-      }
-
-      return;
-    }
-
-    case 'number': {
-      if (typeof value !== 'number') {
-        fail(`attribute ${attribute.id} requires number value.`);
-      }
-
-      return;
-    }
-
-    case 'boolean': {
-      if (typeof value !== 'boolean') {
-        fail(`attribute ${attribute.id} requires boolean value.`);
-      }
-
-      return;
-    }
-
-    case 'set': {
-      /**
-       * SearchSpec содержит один
-       * искомый элемент множества.
-       *
-       * Например:
-       *
-       * materials contains "leather"
-       */
-      if (typeof value !== 'string') {
-        fail(`attribute ${attribute.id} requires string member value.`);
-      }
-
-      return;
-    }
-  }
-}
-
-function assertUnit(
-  attribute: AttributeDefinition,
 
   constraint: SearchConstraint,
 ): void {
-  if (constraint.unit !== attribute.unit) {
+  if (constraint.value === undefined) {
     fail(
-      `attribute ${attribute.id} requires unit ${String(
-        attribute.unit,
-      )}, received ${String(constraint.unit)}.`,
+      `constraint ${constraint.attributeId}:${constraint.operator} requires value.`,
     );
   }
-}
 
-function assertConstraint(
-  profile: ReturnType<typeof CategoryProfileSchema.parse>,
+  assertCategoryProfileAttributeCondition(
+    {
+      attributeId: constraint.attributeId,
 
-  constraint: SearchConstraint,
-): void {
-  const attribute = findAttribute(profile, constraint.attributeId);
+      operator: constraint.operator,
 
-  assertOperator(attribute, constraint.operator);
+      value: constraint.value,
 
-  assertValue(attribute, constraint.value);
+      unit: constraint.unit ?? null,
+    },
 
-  assertUnit(attribute, constraint);
-}
-
-function assertSelector(
-  profile: ReturnType<typeof CategoryProfileSchema.parse>,
-
-  selector: SearchConstraintSelector,
-): void {
-  const attribute = findAttribute(profile, selector.attributeId);
-
-  assertOperator(attribute, selector.operator);
+    profile,
+  );
 }
 
 type NumericConstraintSet = {
@@ -167,7 +97,11 @@ function assertNumericConstraintCompatibility(
   const grouped = new Map<string, NumericConstraintSet>();
 
   for (const constraint of constraints) {
-    const attribute = findAttribute(profile, constraint.attributeId);
+    const attribute = requireCategoryProfileAttribute(
+      profile,
+
+      constraint.attributeId,
+    );
 
     if (attribute.kind !== 'number') {
       continue;
@@ -183,7 +117,8 @@ function assertNumericConstraintCompatibility(
 
     if (typeof constraint.value !== 'number') {
       /**
-       * Тип уже проверяется assertConstraint().
+       * Тип уже проверяется общей
+       * attribute semantic validation.
        *
        * Сюда не должны попадать
        * невалидные numeric values.
@@ -267,7 +202,7 @@ export function assertSearchSpecMatchesCategoryProfile(
   }
 
   for (const constraint of spec.constraints) {
-    assertConstraint(profile, constraint);
+    assertSearchConstraint(profile, constraint);
   }
 
   /**
@@ -314,11 +249,11 @@ export function assertSearchSpecPatchMatchesCategoryProfile(
   }
 
   for (const constraint of patch.set) {
-    assertConstraint(profile, constraint);
+    assertSearchConstraint(profile, constraint);
   }
 
   for (const selector of patch.clear) {
-    assertSelector(profile, selector);
+    assertCategoryProfileAttributeSelector(selector, profile);
   }
 
   assertNumericConstraintCompatibility(profile, patch.set);

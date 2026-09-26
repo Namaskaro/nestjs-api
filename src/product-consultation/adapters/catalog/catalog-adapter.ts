@@ -934,20 +934,6 @@ function validateMapping<Row>(
     }
   }
 
-  if (mapping.availability) {
-    const inStock = definitions.get(mapping.availability.inStockAttributeId);
-
-    const stock = definitions.get(mapping.availability.stockAttributeId);
-
-    if (
-      inStock?.kind !== 'boolean' ||
-      stock?.kind !== 'number' ||
-      stock.unit !== null
-    ) {
-      configurationError('Invalid availability attribute references');
-    }
-  }
-
   return {
     profiles: profileRegistry,
 
@@ -1052,35 +1038,12 @@ export function createCatalogAdapter<Row>(
       }
     }
 
-    const inStock = mapping.availability
-      ? facts.get(mapping.availability.inStockAttributeId)
-      : undefined;
-
-    const stock = mapping.availability
-      ? facts.get(mapping.availability.stockAttributeId)
-      : undefined;
-
     return ProductDetailsSchema.parse({
       ...header,
 
       attributes: [...facts.values()],
 
       source,
-
-      availability: {
-        inStock:
-          inStock?.status === 'known' && typeof inStock.value === 'boolean'
-            ? inStock.value
-            : null,
-
-        stock:
-          stock?.status === 'known' &&
-          typeof stock.value === 'number' &&
-          Number.isSafeInteger(stock.value) &&
-          stock.value >= 0
-            ? stock.value
-            : null,
-      },
     });
   }
 

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { normalizeConsultationGoalText } from './consultation-goal-normalization';
+
 const IdSchema = z.string().trim().min(1).max(160);
 
 const SourceTextSchema = z.string().trim().min(1).max(500);
@@ -132,6 +134,10 @@ export const ConsultationMemoryObservationSchema = z.discriminatedUnion(
  * Если пользователь изменил значение,
  * достаточно одного remember:
  * backend сам сделает update.
+ *
+ * Для goal используется тот же exact
+ * normalized key, что и при последующем
+ * поиске goal внутри Memory.
  */
 export const ConsultationMemoryObservationsSchema = z
   .array(ConsultationMemoryObservationSchema)
@@ -142,7 +148,7 @@ export const ConsultationMemoryObservationsSchema = z
     observations.forEach((observation, index) => {
       const key =
         observation.kind === 'goal'
-          ? ['goal', observation.text.trim().toLocaleLowerCase()].join(':')
+          ? ['goal', normalizeConsultationGoalText(observation.text)].join(':')
           : ['criterion', observation.attributeId, observation.operator].join(
               ':',
             );

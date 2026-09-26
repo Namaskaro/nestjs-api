@@ -11,10 +11,7 @@ import { PrismaService } from '@/src/core/prisma/prisma.service';
 
 import { QdrantCollections } from '@/src/core/qdrant/qdrant.collections';
 
-import {
-  QdrantService,
-  type QdrantFilter,
-} from '@/src/core/qdrant/qdrant.service';
+import { QdrantService } from '@/src/core/qdrant/qdrant.service';
 
 import { RerankerService } from '@/src/core/reranker/reranker.service';
 
@@ -34,31 +31,12 @@ import {
 
 import { CurrentStoreCatalogService } from './current-store-catalog.service';
 
-import type { ResolvedStoreCatalog } from './current-store.mapping';
-
-const RRF_CANDIDATE_LIMIT = 20;
-
-const FINAL_PRODUCT_LIMIT = 5;
-
-type FilterValues = {
-  inStock: boolean;
-
-  gender: string;
-
-  type: string;
-
-  brandId: string | null;
-
-  categoryId: string | null;
-
-  subcategoryId: string | null;
-
-  colorKey: string | null;
-
-  sizes: readonly string[];
-
-  price: number;
-};
+import {
+  buildCurrentStoreQdrantFilter,
+  CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
+  isCurrentStoreProductEligible,
+  matchesCurrentStoreHardFilters,
+} from './current-store-hard-filters';
 
 @Injectable()
 export class CurrentStoreProductSearchService {
@@ -106,9 +84,13 @@ export class CurrentStoreProductSearchService {
 
       productNeed.semanticQuery,
 
-      RRF_CANDIDATE_LIMIT,
+      20,
 
-      this.buildQdrantFilter(productNeed, catalog),
+      buildCurrentStoreQdrantFilter(
+        productNeed,
+
+        catalog,
+      ),
     );
 
     const seen = new Set<string>();
@@ -126,7 +108,13 @@ export class CurrentStoreProductSearchService {
 
       if (
         seen.has(payload.productId) ||
-        !this.matchesHardFilters(payload, productNeed, catalog)
+        !matchesCurrentStoreHardFilters(
+          payload,
+
+          productNeed,
+
+          catalog,
+        )
       ) {
         continue;
       }
@@ -140,11 +128,11 @@ export class CurrentStoreProductSearchService {
       return [];
     }
 
-    /*
-     * Qdrant — поисковый индекс.
+    /**
+     * Qdrant — retrieval index.
      *
-     * После retrieval повторно читаем актуальные данные
-     * из source of truth — Postgres.
+     * Финальная eligibility проверяется
+     * по source of truth — Postgres.
      */
     const rows = await this.prismaService.product.findMany({
       where: {
@@ -152,11 +140,7 @@ export class CurrentStoreProductSearchService {
           in: payloads.map((item) => item.productId),
         },
 
-        inStock: true,
-
-        stock: {
-          gt: 0,
-        },
+        ...CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
       },
 
       select: {
@@ -203,18 +187,16 @@ export class CurrentStoreProductSearchService {
     for (const payload of payloads) {
       const row = byId.get(payload.productId);
 
-      if (!row || !row.inStock || row.stock <= 0) {
+      if (!row || !isCurrentStoreProductEligible(row)) {
         continue;
       }
 
-      /*
-       * Hard filters проверяются повторно по source of truth.
-       *
-       * Это защищает от ситуации, когда Qdrant payload
-       * немного отстал от Postgres.
+      /**
+       * Hard constraints повторно
+       * проверяются по Postgres.
        */
       if (
-        !this.matchesHardFilters(
+        !matchesCurrentStoreHardFilters(
           {
             inStock: row.inStock,
 
@@ -263,7 +245,7 @@ export class CurrentStoreProductSearchService {
       }
     }
 
-    if (candidates.length <= FINAL_PRODUCT_LIMIT) {
+    if (candidates.length <= 5) {
       return candidates.map((item) => item.product);
     }
 
@@ -274,200 +256,9 @@ export class CurrentStoreProductSearchService {
 
       (item) => item.payload.searchText,
 
-      FINAL_PRODUCT_LIMIT,
+      5,
     );
 
-    return reranked
-      .slice(0, FINAL_PRODUCT_LIMIT)
-      .map(({ item }) => item.product);
-  }
-
-  private buildQdrantFilter(
-    need: ProductNeed,
-
-    catalog: ResolvedStoreCatalog,
-  ): QdrantFilter {
-    const { gender, type, color, size, minPrice, maxPrice } = need.filters;
-
-    const { brandId, categoryId, subcategoryId } = catalog;
-
-    return {
-      must: [
-        {
-          key: 'inStock',
-
-          match: {
-            value: true,
-          },
-        },
-
-        ...(gender
-          ? [
-              {
-                key: 'gender',
-
-                match: {
-                  value: gender,
-                },
-              },
-            ]
-          : []),
-
-        ...(type
-          ? [
-              {
-                key: 'type',
-
-                match: {
-                  value: type,
-                },
-              },
-            ]
-          : []),
-
-        ...(brandId
-          ? [
-              {
-                key: 'brandId',
-
-                match: {
-                  value: brandId,
-                },
-              },
-            ]
-          : []),
-
-        ...(subcategoryId
-          ? [
-              {
-                key: 'subcategoryId',
-
-                match: {
-                  value: subcategoryId,
-                },
-              },
-            ]
-          : categoryId
-          ? [
-              {
-                key: 'categoryId',
-
-                match: {
-                  value: categoryId,
-                },
-              },
-            ]
-          : []),
-
-        ...(color
-          ? [
-              {
-                key: 'colorKey',
-
-                match: {
-                  value: normalizeSearchFilterValue(color),
-                },
-              },
-            ]
-          : []),
-
-        ...(size
-          ? [
-              {
-                key: 'sizes',
-
-                match: {
-                  value: size,
-                },
-              },
-            ]
-          : []),
-
-        ...(minPrice !== null || maxPrice !== null
-          ? [
-              {
-                key: 'price',
-
-                range: {
-                  ...(minPrice !== null
-                    ? {
-                        gte: minPrice,
-                      }
-                    : {}),
-
-                  ...(maxPrice !== null
-                    ? {
-                        lte: maxPrice,
-                      }
-                    : {}),
-                },
-              },
-            ]
-          : []),
-      ],
-    } satisfies QdrantFilter;
-  }
-
-  private matchesHardFilters(
-    values: FilterValues,
-
-    need: ProductNeed,
-
-    catalog: ResolvedStoreCatalog,
-  ): boolean {
-    const { gender, type, color, size, minPrice, maxPrice } = need.filters;
-
-    if (!values.inStock) {
-      return false;
-    }
-
-    if (gender && values.gender !== gender) {
-      return false;
-    }
-
-    if (type && values.type !== type) {
-      return false;
-    }
-
-    if (catalog.brandId && values.brandId !== catalog.brandId) {
-      return false;
-    }
-
-    if (
-      catalog.subcategoryId &&
-      values.subcategoryId !== catalog.subcategoryId
-    ) {
-      return false;
-    }
-
-    if (
-      !catalog.subcategoryId &&
-      catalog.categoryId &&
-      values.categoryId !== catalog.categoryId
-    ) {
-      return false;
-    }
-
-    if (color && values.colorKey !== normalizeSearchFilterValue(color)) {
-      return false;
-    }
-
-    if (size && !values.sizes.includes(size)) {
-      return false;
-    }
-
-    if (!Number.isFinite(values.price) || values.price < 0) {
-      return false;
-    }
-
-    if (minPrice !== null && values.price < minPrice) {
-      return false;
-    }
-
-    if (maxPrice !== null && values.price > maxPrice) {
-      return false;
-    }
-
-    return true;
+    return reranked.slice(0, 5).map(({ item }) => item.product);
   }
 }

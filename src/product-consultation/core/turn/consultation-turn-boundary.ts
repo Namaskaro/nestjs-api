@@ -8,6 +8,12 @@ import {
 } from '../memory/consultation-memory-observation';
 
 import {
+  assertCategoryProfileAttributeCondition,
+  assertCategoryProfileAttributeSelector,
+  requireCategoryProfileAttribute,
+} from '../profiles/category-profile-attribute-validation';
+
+import {
   createConsultationMemoryState,
   type ConsultationMemoryIdFactory,
 } from '../memory/consultation-memory';
@@ -29,12 +35,9 @@ import {
   assertSearchSpecPatchMatchesCategoryProfile,
 } from '../search/search-spec-profile';
 
-import type {
-  SearchConstraint,
-  SearchSpec,
-  SearchSpecDraft,
-  SearchSpecPatch,
-} from '../search/search-spec.schema';
+import { assertChangedStructuredLiteralsDoNotRemain } from '../search/search-semantic-intent';
+
+import type { SearchSpec, SearchSpecDraft } from '../search/search-spec.schema';
 
 import { createEmptyProductConsultationState } from '../state/consultation-state';
 
@@ -124,6 +127,89 @@ function requireProfile(
   return profile;
 }
 
+function semanticProfileForTask(
+  baseState: ProductConsultationState | null,
+
+  proposal: ConsultationTurnProposal,
+
+  profileRaw: CategoryProfile | null,
+): CategoryProfile | null {
+  const category =
+    proposal.action === 'SEARCH'
+      ? proposal.search?.category ?? null
+      : baseState?.search?.category ?? null;
+
+  if (category === null) {
+    return null;
+  }
+
+  return requireProfile(category, profileRaw);
+}
+
+function assertMemoryObservationSemantics(
+  baseState: ProductConsultationState | null,
+
+  proposal: ConsultationTurnProposal,
+
+  profileRaw: CategoryProfile | null,
+): void {
+  const hasTypedCriterion = proposal.memoryObservations.some(
+    (observation) => observation.kind === 'criterion',
+  );
+
+  const feedbackAttributeId = proposal.feedback?.attributeId ?? null;
+
+  if (!hasTypedCriterion && feedbackAttributeId === null) {
+    return;
+  }
+
+  const profile = semanticProfileForTask(baseState, proposal, profileRaw);
+
+  if (profile === null) {
+    fail(
+      'typed Memory criterion or feedback attribute requires a categorized task.',
+    );
+  }
+
+  for (const observation of proposal.memoryObservations) {
+    if (observation.kind !== 'criterion') {
+      continue;
+    }
+
+    if (observation.operation === 'remember') {
+      assertCategoryProfileAttributeCondition(
+        {
+          attributeId: observation.attributeId,
+
+          operator: observation.operator,
+
+          value: observation.value,
+
+          unit: observation.unit,
+        },
+
+        profile,
+      );
+
+      continue;
+    }
+
+    assertCategoryProfileAttributeSelector(
+      {
+        attributeId: observation.attributeId,
+
+        operator: observation.operator,
+      },
+
+      profile,
+    );
+  }
+
+  if (feedbackAttributeId !== null) {
+    requireCategoryProfileAttribute(profile, feedbackAttributeId);
+  }
+}
+
 function assertCompleteSearch(
   search: SearchSpec | SearchSpecDraft,
 
@@ -163,6 +249,7 @@ function buildMemoryPatch(
 
   return compileConsultationMemoryObservations(
     memoryBase,
+
     proposal.memoryObservations,
   );
 }
@@ -225,158 +312,6 @@ function buildInternalInterpretation(
   });
 }
 
-function constraintKey(
-  constraint: Pick<SearchConstraint, 'attributeId' | 'operator'>,
-): string {
-  return [constraint.attributeId, constraint.operator].join(':');
-}
-
-function normalizeSemanticText(value: string): string {
-  return value
-    .normalize('NFKC')
-    .toLocaleLowerCase('ru-RU')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function semanticIntentContainsLiteralValue(
-  semanticIntent: string,
-
-  value: SearchConstraint['value'],
-): boolean {
-  /**
-   * Пока проверяем только строковые
-   * structured values.
-   *
-   * Это покрывает самый опасный
-   * практический кейс:
-   *
-   * brand Nike → Adidas,
-   * color green → blue и т.п.
-   *
-   * Числа и boolean здесь специально
-   * не интерпретируем как natural language.
-   */
-  if (typeof value !== 'string') {
-    return false;
-  }
-
-  const normalizedValue = normalizeSemanticText(value);
-
-  /**
-   * Очень короткие значения вроде
-   * M / L / XL или "43"
-   * не используем для lexical check:
-   * слишком велик риск ложных совпадений.
-   */
-  if (normalizedValue.length < 3) {
-    return false;
-  }
-
-  return normalizeSemanticText(semanticIntent).includes(normalizedValue);
-}
-
-function assertSemanticIntentConsistencyAfterPatch(
-  currentSearch: SearchSpec,
-
-  candidate: SearchSpec,
-
-  patch: SearchSpecPatch,
-): void {
-  /**
-   * semanticIntent проверяем только если
-   * structured constraints действительно
-   * изменились.
-   *
-   * Empty REFINE или повтор brand=brand
-   * здесь ничего не требуют.
-   */
-  const currentByKey = new Map<string, SearchConstraint>();
-
-  const candidateByKey = new Map<string, SearchConstraint>();
-
-  for (const constraint of currentSearch.constraints) {
-    currentByKey.set(
-      constraintKey(constraint),
-
-      constraint,
-    );
-  }
-
-  for (const constraint of candidate.constraints) {
-    candidateByKey.set(
-      constraintKey(constraint),
-
-      constraint,
-    );
-  }
-
-  for (const [key, previous] of currentByKey) {
-    const next = candidateByKey.get(key);
-
-    const removed = next === undefined;
-
-    const changed =
-      next !== undefined &&
-      (next.value !== previous.value || next.unit !== previous.unit);
-
-    if (!removed && !changed) {
-      continue;
-    }
-
-    /**
-     * Если старое structured value
-     * вообще не было продублировано
-     * в semanticIntent, проблемы нет.
-     *
-     * Например:
-     *
-     * semanticIntent = "мужские кроссовки"
-     * brand = Nike
-     *
-     * Nike → Adidas
-     *
-     * semanticIntent можно оставить как есть.
-     */
-    if (
-      !semanticIntentContainsLiteralValue(
-        currentSearch.semanticIntent,
-        previous.value,
-      )
-    ) {
-      continue;
-    }
-
-    /**
-     * Но если старое structured value
-     * находилось в semanticIntent,
-     * оно не должно пережить REFINE.
-     */
-    if (
-      semanticIntentContainsLiteralValue(
-        candidate.semanticIntent,
-        previous.value,
-      )
-    ) {
-      fail(
-        `semanticIntent still contains stale structured value ` +
-          `${String(previous.value)} after changing ${previous.attributeId}:${
-            previous.operator
-          }.`,
-      );
-    }
-  }
-
-  /**
-   * patch используется здесь намеренно:
-   * оставляем аргумент частью semantic
-   * invariant API — дальше сюда можно
-   * добавить проверки source of change,
-   * не меняя сигнатуру вызывающего кода.
-   */
-  void patch;
-}
-
 function assertSearchSemantics(
   currentState: ProductConsultationState | null,
 
@@ -389,6 +324,20 @@ function assertSearchSemantics(
       fail('SEARCH requires SearchSpec.');
     }
 
+    /**
+     * Здесь проверяем только authoritative
+     * structured contract:
+     *
+     * category / attributes / operators /
+     * values / units / numeric compatibility.
+     *
+     * semanticIntent может пока содержать
+     * literal structured values.
+     *
+     * Residual semanticIntent —
+     * целевое правило формирования proposal,
+     * а не universally provable Core invariant.
+     */
     assertCompleteSearch(interpretation.search, profileRaw);
 
     return;
@@ -428,10 +377,10 @@ function assertSearchSemantics(
   if (candidate.category === null) {
     assertCompleteSearch(candidate, profileRaw);
 
-    assertSemanticIntentConsistencyAfterPatch(
+    assertChangedStructuredLiteralsDoNotRemain(
       currentState.search,
+
       candidate,
-      patch,
     );
 
     return;
@@ -444,17 +393,22 @@ function assertSearchSemantics(
   assertSearchSpecMatchesCategoryProfile(candidate, profile);
 
   /**
-   * Profile/type/unit/constraint validation
-   * уже прошла.
+   * Это единственный lexical semanticIntent
+   * invariant, который Core может проверить
+   * безопасно и детерминированно:
    *
-   * Теперь проверяем отсутствие
-   * устаревшего literal structured value
-   * внутри semanticIntent.
+   * если structured value было изменено
+   * или удалено, его старая literal-копия
+   * не должна пережить REFINE.
+   *
+   * Мы НЕ пытаемся здесь распознавать
+   * произвольные новые facets
+   * внутри natural language.
    */
-  assertSemanticIntentConsistencyAfterPatch(
+  assertChangedStructuredLiteralsDoNotRemain(
     currentState.search,
+
     candidate,
-    patch,
   );
 }
 
@@ -558,16 +512,27 @@ export function prepareConsultationTurn(
 
   const taskBaseState = resolveTaskBaseState(currentState, proposal);
 
+  assertMemoryObservationSemantics(
+    taskBaseState,
+
+    proposal,
+
+    input.categoryProfile,
+  );
+
   const memoryPatch = buildMemoryPatch(taskBaseState, proposal);
 
   const preliminaryInterpretation = buildInternalInterpretation(
     proposal,
+
     memoryPatch,
   );
 
   assertSearchSemantics(
     taskBaseState,
+
     preliminaryInterpretation,
+
     input.categoryProfile,
   );
 
@@ -583,25 +548,33 @@ export function prepareConsultationTurn(
 
   const resolvedFeedbackSelection = resolveFeedbackSelection(
     currentResults,
+
     proposal,
+
     input.expectedResultId,
+
     resolvedSelection,
   );
 
   appendResolvedFeedback(
     memoryPatch,
+
     proposal.feedback,
+
     resolvedFeedbackSelection,
   );
 
   const finalInterpretation = buildInternalInterpretation(
     proposal,
+
     memoryPatch,
   );
 
   const turn = applyConsultationTurn(
     taskBaseState,
+
     finalInterpretation,
+
     input.createMemoryId,
   );
 

@@ -6,6 +6,8 @@ import {
   findSearchConstraint,
 } from '../search-spec';
 
+import { SearchSpecPatchSchema } from '../search-spec.schema';
+
 function initialNikeSearch() {
   return createSearchSpec({
     semanticIntent: 'мужские кроссовки',
@@ -339,5 +341,145 @@ describe('SearchSpec', () => {
         operator: 'lte',
       }),
     ).toBeNull();
+  });
+
+  it('rejects duplicate set operations for the same semantic target', () => {
+    const parsed = SearchSpecPatchSchema.safeParse({
+      set: [
+        {
+          attributeId: 'brand',
+
+          operator: 'eq',
+
+          value: 'Nike',
+
+          unit: null,
+        },
+
+        {
+          attributeId: 'brand',
+
+          operator: 'eq',
+
+          value: 'Adidas',
+
+          unit: null,
+        },
+      ],
+
+      clear: [],
+    });
+
+    expect(parsed.success).toBe(false);
+
+    if (parsed.success) {
+      throw new Error('Expected duplicate SearchSpecPatch target to fail.');
+    }
+
+    expect(
+      parsed.error.issues.some((issue) =>
+        issue.message.includes('Duplicate SearchSpecPatch target: brand:eq'),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects duplicate clear operations for the same semantic target', () => {
+    const parsed = SearchSpecPatchSchema.safeParse({
+      set: [],
+
+      clear: [
+        {
+          attributeId: 'color',
+
+          operator: 'eq',
+        },
+
+        {
+          attributeId: 'color',
+
+          operator: 'eq',
+        },
+      ],
+    });
+
+    expect(parsed.success).toBe(false);
+
+    if (parsed.success) {
+      throw new Error('Expected duplicate SearchSpecPatch target to fail.');
+    }
+
+    expect(
+      parsed.error.issues.some((issue) =>
+        issue.message.includes('Duplicate SearchSpecPatch target: color:eq'),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects set and clear for the same semantic target in one patch', () => {
+    const parsed = SearchSpecPatchSchema.safeParse({
+      set: [
+        {
+          attributeId: 'brand',
+
+          operator: 'eq',
+
+          value: 'Adidas',
+
+          unit: null,
+        },
+      ],
+
+      clear: [
+        {
+          attributeId: 'brand',
+
+          operator: 'eq',
+        },
+      ],
+    });
+
+    expect(parsed.success).toBe(false);
+
+    if (parsed.success) {
+      throw new Error('Expected conflicting SearchSpecPatch target to fail.');
+    }
+
+    expect(
+      parsed.error.issues.some((issue) =>
+        issue.message.includes(
+          'SearchSpecPatch cannot set and clear the same target: brand:eq',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('allows different operators for the same attribute in one patch', () => {
+    const parsed = SearchSpecPatchSchema.safeParse({
+      set: [
+        {
+          attributeId: 'price',
+
+          operator: 'gte',
+
+          value: 10000,
+
+          unit: 'RUB',
+        },
+
+        {
+          attributeId: 'price',
+
+          operator: 'lte',
+
+          value: 20000,
+
+          unit: 'RUB',
+        },
+      ],
+
+      clear: [],
+    });
+
+    expect(parsed.success).toBe(true);
   });
 });

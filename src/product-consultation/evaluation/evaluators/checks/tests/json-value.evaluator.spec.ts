@@ -1,16 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
-
 import {
+  EvaluationScenario,
   EvaluationScenarioSchema,
-  type EvaluationScenario,
-} from '../../contracts/evaluation-scenario';
-
+} from '../../../contracts/evaluation-scenario';
 import {
+  EvaluationObservation,
   EvaluationObservationSchema,
-  type EvaluationObservation,
-} from '../../contracts/evaluation-observation';
-
-import { createDefaultDeterministicEvaluator } from '../default-deterministic-evaluators';
+} from '../../../contracts/evaluation-observation';
+import { createDefaultDeterministicEvaluator } from '../../default-deterministic-evaluators';
 
 function createScenario(): EvaluationScenario {
   return EvaluationScenarioSchema.parse({

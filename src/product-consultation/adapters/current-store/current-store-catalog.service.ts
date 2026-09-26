@@ -11,10 +11,13 @@ import {
   type ResolvedStoreCatalog,
 } from './current-store.mapping';
 
+import { CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE } from './current-store-hard-filters';
+
 import { toProductDetailsMany } from './current-store-product.adapter';
 
 type Brand = {
   id: string;
+
   name: string;
 };
 
@@ -24,6 +27,7 @@ export class CurrentStoreCatalogService {
     string,
     {
       until: number;
+
       value: Brand | null;
     }
   >();
@@ -35,7 +39,13 @@ export class CurrentStoreCatalogService {
   }
 
   public async getConsultationBinding(productNeed: ProductNeed) {
-    const { brand, category, subcategory } = productNeed.filters;
+    const {
+      brand,
+
+      category,
+
+      subcategory,
+    } = productNeed.filters;
 
     const [brandId, subcategoryId, categoryId] = await Promise.all([
       this.resolveBrandId(brand),
@@ -49,13 +59,34 @@ export class CurrentStoreCatalogService {
 
     const resolved: ResolvedStoreCatalog = {
       brandId,
+
       categoryId,
+
       subcategoryId,
     };
 
-    return buildCurrentStoreBinding(productNeed.filters, resolved);
+    return buildCurrentStoreBinding(
+      productNeed.filters,
+
+      resolved,
+    );
   }
 
+  /**
+   * Загружает ProductDetails только
+   * для товаров, которые ПРЯМО СЕЙЧАС
+   * остаются eligible в current-store.
+   *
+   * Это важно для:
+   *
+   * - DETAILS;
+   * - COMPARE;
+   * - RECOMMEND;
+   * - будущих purchase actions.
+   *
+   * Search snapshot не является
+   * гарантией текущего наличия.
+   */
   public async getProductDetails(
     productIds: readonly string[],
   ): Promise<ProductDetails[]> {
@@ -76,27 +107,49 @@ export class CurrentStoreCatalogService {
         id: {
           in: ids,
         },
+
+        /**
+         * Server-owned eligibility.
+         *
+         * Availability не является
+         * consultation criterion.
+         */
+        ...CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
       },
 
       select: {
         id: true,
+
         title: true,
+
         description: true,
+
         price: true,
+
         discount: true,
+
         images: true,
+
         sizes: true,
+
         color: true,
+
         gender: true,
+
         type: true,
+
         inStock: true,
+
         stock: true,
+
         details: true,
+
         updatedAt: true,
 
         brand: {
           select: {
             id: true,
+
             name: true,
           },
         },
@@ -104,11 +157,13 @@ export class CurrentStoreCatalogService {
         subcategory: {
           select: {
             id: true,
+
             name: true,
 
             category: {
               select: {
                 id: true,
+
                 name: true,
               },
             },
@@ -118,12 +173,19 @@ export class CurrentStoreCatalogService {
     });
 
     const byId = new Map(
-      toProductDetailsMany(rows, new Date().toISOString()).map((product) => [
-        product.id,
-        product,
-      ]),
+      toProductDetailsMany(
+        rows,
+
+        new Date().toISOString(),
+      ).map((product) => [product.id, product]),
     );
 
+    /**
+     * Возвращаем в исходном порядке IDs,
+     * но отсутствующие / unavailable
+     * товары просто не попадают
+     * в eligible details.
+     */
     return ids.flatMap((id) => {
       const product = byId.get(id);
 
@@ -134,7 +196,13 @@ export class CurrentStoreCatalogService {
   public async resolveCatalogFilters(
     productNeed: ProductNeed,
   ): Promise<ResolvedStoreCatalog | null> {
-    const { brand, category, subcategory } = productNeed.filters;
+    const {
+      brand,
+
+      category,
+
+      subcategory,
+    } = productNeed.filters;
 
     const [brandId, subcategoryId, categoryId] = await Promise.all([
       this.resolveBrandId(brand),
@@ -160,7 +228,9 @@ export class CurrentStoreCatalogService {
 
     return {
       brandId,
+
       categoryId,
+
       subcategoryId,
     };
   }
@@ -173,6 +243,7 @@ export class CurrentStoreCatalogService {
     }
 
     const key = name.toLocaleLowerCase('ru-RU');
+
     const now = Date.now();
 
     const cached = this.exactBrands.get(key);
@@ -191,12 +262,14 @@ export class CurrentStoreCatalogService {
       where: {
         name: {
           equals: name,
+
           mode: 'insensitive',
         },
       },
 
       select: {
         id: true,
+
         name: true,
       },
     });
@@ -205,10 +278,15 @@ export class CurrentStoreCatalogService {
       this.exactBrands.delete(this.exactBrands.keys().next().value!);
     }
 
-    this.exactBrands.set(key, {
-      until: Date.now() + 30_000,
-      value: result,
-    });
+    this.exactBrands.set(
+      key,
+
+      {
+        until: Date.now() + 30_000,
+
+        value: result,
+      },
+    );
 
     return result;
   }
@@ -228,6 +306,7 @@ export class CurrentStoreCatalogService {
       where: {
         name: {
           contains: value,
+
           mode: 'insensitive',
         },
       },
@@ -253,6 +332,7 @@ export class CurrentStoreCatalogService {
       where: {
         name: {
           equals: value,
+
           mode: 'insensitive',
         },
       },
@@ -270,6 +350,7 @@ export class CurrentStoreCatalogService {
       where: {
         name: {
           contains: value,
+
           mode: 'insensitive',
         },
       },
@@ -289,6 +370,7 @@ export class CurrentStoreCatalogService {
       where: {
         name: {
           equals: value,
+
           mode: 'insensitive',
         },
       },
@@ -306,6 +388,7 @@ export class CurrentStoreCatalogService {
       where: {
         name: {
           contains: value,
+
           mode: 'insensitive',
         },
       },
