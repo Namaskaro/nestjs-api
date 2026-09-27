@@ -83,7 +83,17 @@ describe('CurrentStoreSearchSpecAdapter', () => {
       filters: {
         gender: 'MAN',
 
-        type: null,
+        /**
+         * B3:
+         *
+         * consultation category/profile SHOES
+         * deterministic компилируется
+         * в current-store Product.type = SHOES.
+         *
+         * Модель больше не обязана
+         * передавать отдельный type:eq SHOES.
+         */
+        type: 'SHOES',
 
         brand: 'Nike',
 

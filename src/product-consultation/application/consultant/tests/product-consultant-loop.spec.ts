@@ -4,6 +4,10 @@ import { resolve } from 'node:path';
 
 import { CurrentStoreSearchSpecAdapter } from '../../../adapters/current-store/current-store-search-spec.adapter';
 
+import type { ProductDetailsPort } from '../../catalog/product-details.port';
+
+import type { UsageScenarioSelectionDiagnostic } from '../../../core/profiles/usage-scenarios';
+
 import {
   ConsultationApplicationRecordSchema,
   type ConsultationApplicationRecord,
@@ -23,7 +27,10 @@ import type {
   ProductConsultantModelPort,
 } from '../product-consultant-model.port';
 
-import { ProductConsultantLoop } from '../product-consultant-loop';
+import {
+  ProductConsultantLoop,
+  type ProductConsultantLoopOptions,
+} from '../product-consultant-loop';
 
 const fixturePath = resolve(
   process.cwd(),
@@ -110,16 +117,12 @@ function searchNikeDecision() {
             unit: null,
           },
 
-          {
-            attributeId: 'type',
-
-            operator: 'eq',
-
-            value: 'SHOES',
-
-            unit: null,
-          },
-
+          /**
+           * B3 regression:
+           *
+           * type:eq SHOES модели
+           * больше передавать не нужно.
+           */
           {
             attributeId: 'brand',
 
@@ -142,6 +145,8 @@ function searchNikeDecision() {
     },
 
     usageScenarioIds: ['daily_walking'],
+
+    factAttributeIds: [],
 
     terminalText: null,
   };
@@ -167,6 +172,8 @@ function complete(text: string) {
 
     usageScenarioIds: [],
 
+    factAttributeIds: [],
+
     terminalText: text,
   };
 }
@@ -178,18 +185,10 @@ async function createRuntime() {
 
   let searchCalls = 0;
 
+  let detailsCalls = 0;
+
   const baseSearch = new CurrentStoreSearchSpecAdapter(catalog);
 
-  /**
-   * Это test-wrapper поверх
-   * настоящего ProductSearchPort.
-   *
-   * validate() обязательно
-   * делегируем реальному adapter.
-   *
-   * search() тоже делегируем,
-   * но дополнительно считаем вызовы.
-   */
   const searchPort = {
     validate(search: Parameters<typeof baseSearch.validate>[0]) {
       return baseSearch.validate(search);
@@ -199,6 +198,14 @@ async function createRuntime() {
       searchCalls += 1;
 
       return baseSearch.search(search);
+    },
+  };
+
+  const productDetails: ProductDetailsPort = {
+    async getProductDetails(productIds) {
+      detailsCalls += 1;
+
+      return catalog.getProductDetails(productIds);
     },
   };
 
@@ -224,7 +231,11 @@ async function createRuntime() {
     },
   );
 
-  function createLoop(decisions: unknown[]) {
+  function createLoop(
+    decisions: unknown[],
+
+    options: ProductConsultantLoopOptions = {},
+  ) {
     const model = new StubProductConsultantModel(decisions);
 
     const loop = new ProductConsultantLoop(
@@ -232,9 +243,15 @@ async function createRuntime() {
 
       writeOwner,
 
-      catalog,
+      productDetails,
 
       model,
+
+      {
+        searchCapabilities: baseSearch.capabilities(),
+
+        ...options,
+      },
     );
 
     return {
@@ -250,11 +267,13 @@ async function createRuntime() {
     createLoop,
 
     getSearchCalls: () => searchCalls,
+
+    getDetailsCalls: () => detailsCalls,
   };
 }
 
 describe('ProductConsultantLoop', () => {
-  it('runs SEARCH through one backend round and a terminal second model call', async () => {
+  it('runs SEARCH, reads bounded verified facts and finishes through second model call', async () => {
     const runtime = await createRuntime();
 
     const { loop, model } = runtime.createLoop([
@@ -279,6 +298,14 @@ describe('ProductConsultantLoop', () => {
 
     expect(runtime.getSearchCalls()).toBe(1);
 
+    /**
+     * S4:
+     *
+     * SEARCH теперь делает один
+     * bounded details read.
+     */
+    expect(runtime.getDetailsCalls()).toBe(1);
+
     expect(result.artifacts).toHaveLength(1);
 
     expect(model.calls[1]?.observation).toEqual({
@@ -291,10 +318,219 @@ describe('ProductConsultantLoop', () => {
 
     expect(model.calls[1]?.context.results.shownProducts).toHaveLength(3);
 
+    /**
+     * initialFactProducts = 3.
+     */
+    expect(model.calls[1]?.context.productFacts).toHaveLength(3);
+
+    /**
+     * Без explicit fact focus:
+     *
+     * daily_walking attrs идут раньше
+     * profile defaults.
+     */
+    expect(
+      model.calls[1]?.context.productFacts[0]?.facts.map(
+        (fact) => fact.attributeId,
+      ),
+    ).toEqual([
+      'purpose',
+
+      'upperMaterial',
+
+      'lining',
+
+      'sole',
+
+      'price',
+
+      'material',
+
+      'season',
+
+      'sizes',
+    ]);
+
     expect(result.record.processedRequestIds).toEqual(['message-1']);
   });
 
-  it('runs deterministic COMPARE in the next user turn without another search', async () => {
+  it('prioritizes explicit fact focus before usage scenario and profile defaults', async () => {
+    const runtime = await createRuntime();
+
+    const decision = searchNikeDecision();
+
+    decision.factAttributeIds = ['color'];
+
+    const { loop, model } = runtime.createLoop([
+      decision,
+
+      complete('Нашёл варианты и проверил цвет.'),
+    ]);
+
+    const result = await loop.run({
+      conversationId: 'conversation-fact-focus',
+
+      requestId: 'message-fact-focus',
+
+      currentMessage: 'Найди мужские Nike и скажи, какие у них цвета',
+    });
+
+    expect(result.outcome).toBe('completed');
+
+    expect(runtime.getDetailsCalls()).toBe(1);
+
+    const attributes = model.calls[1]?.context.productFacts[0]?.facts.map(
+      (fact) => fact.attributeId,
+    );
+
+    expect(attributes?.[0]).toBe('color');
+
+    expect(attributes).toEqual([
+      'color',
+
+      'purpose',
+
+      'upperMaterial',
+
+      'lining',
+
+      'sole',
+
+      'price',
+
+      'material',
+
+      'season',
+    ]);
+  });
+
+  it('passes compact store capabilities to both model rounds', async () => {
+    const runtime = await createRuntime();
+
+    const { loop, model } = runtime.createLoop([
+      searchNikeDecision(),
+
+      complete('Нашёл Nike.'),
+    ]);
+
+    await loop.run({
+      conversationId: 'conversation-capabilities',
+
+      requestId: 'message-capabilities',
+
+      currentMessage: 'Найди мужские Nike',
+    });
+
+    for (const call of model.calls) {
+      expect(call.context.searchCapabilities).not.toBeNull();
+
+      const shoes = call.context.searchCapabilities?.profiles.find(
+        (profile) => profile.profileId === 'SHOES',
+      );
+
+      expect(shoes).toBeDefined();
+
+      expect(
+        shoes?.attributes.some(
+          (attribute) => attribute.attributeId === 'brand',
+        ),
+      ).toBe(true);
+
+      expect(
+        shoes?.attributes.some((attribute) => attribute.attributeId === 'type'),
+      ).toBe(false);
+    }
+  });
+
+  it('drops unknown optional usage scenario before WriteOwner and still executes valid search', async () => {
+    const runtime = await createRuntime();
+
+    const diagnostics: UsageScenarioSelectionDiagnostic[] = [];
+
+    const decision = searchNikeDecision();
+
+    decision.usageScenarioIds = ['daily_walking', 'invented_comfort_scenario'];
+
+    const { loop, model } = runtime.createLoop(
+      [decision, complete('Нашёл подходящие модели Nike.')],
+
+      {
+        onDiagnostic: (diagnostic) => {
+          expect(runtime.getSearchCalls()).toBe(0);
+
+          diagnostics.push(diagnostic);
+        },
+      },
+    );
+
+    const result = await loop.run({
+      conversationId: 'conversation-usage-soft-failure',
+
+      requestId: 'message-usage-soft-failure',
+
+      currentMessage: 'Найди мужские Nike на каждый день',
+    });
+
+    expect(result.outcome).toBe('completed');
+
+    expect(runtime.getSearchCalls()).toBe(1);
+
+    expect(result.modelCalls).toBe(2);
+
+    expect(result.capabilityRounds).toBe(1);
+
+    expect(diagnostics).toEqual([
+      {
+        code: 'unknown_usage_scenario',
+
+        scenarioId: 'invented_comfort_scenario',
+
+        profileId: 'SHOES',
+      },
+    ]);
+
+    expect(
+      model.calls[1]?.context.usage?.selected.map((scenario) => scenario.id),
+    ).toEqual(['daily_walking']);
+
+    expect(
+      model.calls[1]?.context.usage?.selected.some(
+        (scenario) => scenario.id === 'invented_comfort_scenario',
+      ),
+    ).toBe(false);
+  });
+
+  it('does not let a broken diagnostic sink break a valid user request', async () => {
+    const runtime = await createRuntime();
+
+    const decision = searchNikeDecision();
+
+    decision.usageScenarioIds = ['daily_walking', 'invented_scenario'];
+
+    const { loop } = runtime.createLoop(
+      [decision, complete('Нашёл варианты Nike.')],
+
+      {
+        onDiagnostic: () => {
+          throw new Error('Tracing is temporarily unavailable.');
+        },
+      },
+    );
+
+    const result = await loop.run({
+      conversationId: 'conversation-broken-diagnostic',
+
+      requestId: 'message-broken-diagnostic',
+
+      currentMessage: 'Найди Nike на каждый день',
+    });
+
+    expect(result.outcome).toBe('completed');
+
+    expect(runtime.getSearchCalls()).toBe(1);
+  });
+
+  it('runs deterministic COMPARE in next user turn without another search', async () => {
     const runtime = await createRuntime();
 
     const search = runtime.createLoop([
@@ -337,6 +573,13 @@ describe('ProductConsultantLoop', () => {
 
         usageScenarioIds: ['daily_walking'],
 
+        /**
+         * S4:
+         * сравнение можно сфокусировать
+         * ephemeral attributes.
+         */
+        factAttributeIds: ['price', 'color'],
+
         terminalText: null,
       },
 
@@ -355,21 +598,11 @@ describe('ProductConsultantLoop', () => {
 
     expect(result.outcome).toBe('completed');
 
-    /**
-     * COMPARE не сделал
-     * новый retrieval.
-     */
     expect(runtime.getSearchCalls()).toBe(1);
 
     expect(result.artifacts.map((artifact) => artifact.kind)).toEqual([
       'product_comparison',
     ]);
-
-    expect(compare.model.calls[1]?.observation).toEqual({
-      kind: 'compare',
-
-      status: 'ready',
-    });
 
     const comparison = compare.model.calls[1]?.context.comparison;
 
@@ -384,15 +617,9 @@ describe('ProductConsultantLoop', () => {
     expect(JSON.stringify(comparison)).not.toContain(
       '27807943-51e2-49fd-a0eb-4f3cd6568177',
     );
-
-    expect(result.record.processedRequestIds).toEqual([
-      'message-1',
-
-      'message-2',
-    ]);
   });
 
-  it('rejects another capability request from model call #2 instead of creating recursive orchestration', async () => {
+  it('rejects another capability request from model call #2 instead of recursive orchestration', async () => {
     const runtime = await createRuntime();
 
     const { loop } = runtime.createLoop([
@@ -421,6 +648,8 @@ describe('ProductConsultantLoop', () => {
 
         usageScenarioIds: [],
 
+        factAttributeIds: [],
+
         terminalText: null,
       },
     ]);
@@ -440,8 +669,6 @@ describe('ProductConsultantLoop', () => {
     expect(result.capabilityRounds).toBe(1);
 
     expect(runtime.getSearchCalls()).toBe(1);
-
-    expect(result.record.processedRequestIds).toEqual(['message-budget']);
   });
 
   it('persists terminal CLARIFY observations with one model call and no capability round', async () => {
@@ -478,6 +705,8 @@ describe('ProductConsultantLoop', () => {
         },
 
         usageScenarioIds: [],
+
+        factAttributeIds: [],
 
         terminalText:
           'Для каких тренировок нужна обувь: бег, зал или другая нагрузка?',

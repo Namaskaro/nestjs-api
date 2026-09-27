@@ -134,16 +134,23 @@ function semanticProfileForTask(
 
   profileRaw: CategoryProfile | null,
 ): CategoryProfile | null {
+  /**
+   * SEARCH и pre-search CLARIFY
+   * могут принести новый complete
+   * SearchSpec.
+   */
   const category =
-    proposal.action === 'SEARCH'
-      ? proposal.search?.category ?? null
-      : baseState?.search?.category ?? null;
+    proposal.search?.category ?? baseState?.search?.category ?? null;
 
   if (category === null) {
     return null;
   }
 
-  return requireProfile(category, profileRaw);
+  return requireProfile(
+    category,
+
+    profileRaw,
+  );
 }
 
 function assertMemoryObservationSemantics(
@@ -163,7 +170,13 @@ function assertMemoryObservationSemantics(
     return;
   }
 
-  const profile = semanticProfileForTask(baseState, proposal, profileRaw);
+  const profile = semanticProfileForTask(
+    baseState,
+
+    proposal,
+
+    profileRaw,
+  );
 
   if (profile === null) {
     fail(
@@ -206,7 +219,11 @@ function assertMemoryObservationSemantics(
   }
 
   if (feedbackAttributeId !== null) {
-    requireCategoryProfileAttribute(profile, feedbackAttributeId);
+    requireCategoryProfileAttribute(
+      profile,
+
+      feedbackAttributeId,
+    );
   }
 }
 
@@ -223,9 +240,17 @@ function assertCompleteSearch(
     return;
   }
 
-  const profile = requireProfile(search.category, profileRaw);
+  const profile = requireProfile(
+    search.category,
 
-  assertSearchSpecMatchesCategoryProfile(search, profile);
+    profileRaw,
+  );
+
+  assertSearchSpecMatchesCategoryProfile(
+    search,
+
+    profile,
+  );
 }
 
 function resolveTaskBaseState(
@@ -324,21 +349,47 @@ function assertSearchSemantics(
       fail('SEARCH requires SearchSpec.');
     }
 
-    /**
-     * Здесь проверяем только authoritative
-     * structured contract:
-     *
-     * category / attributes / operators /
-     * values / units / numeric compatibility.
-     *
-     * semanticIntent может пока содержать
-     * literal structured values.
-     *
-     * Residual semanticIntent —
-     * целевое правило формирования proposal,
-     * а не universally provable Core invariant.
-     */
-    assertCompleteSearch(interpretation.search, profileRaw);
+    assertCompleteSearch(
+      interpretation.search,
+
+      profileRaw,
+    );
+
+    return;
+  }
+
+  /**
+   * PRE-SEARCH CLARIFY.
+   *
+   * SearchSpec здесь уже authoritative,
+   * но search execution ещё не нужен.
+   *
+   * Для такого сохранения category
+   * должна быть известна:
+   * иначе это ещё не executable
+   * SearchSpec задачи.
+   */
+  if (interpretation.action === 'CLARIFY' && interpretation.search !== null) {
+    if (interpretation.search.category === null) {
+      fail('CLARIFY persisted SearchSpec requires a category.');
+    }
+
+    if (
+      currentState?.search?.category !== null &&
+      currentState?.search?.category !== undefined &&
+      currentState.search.category !== interpretation.search.category
+    ) {
+      fail(
+        `cannot change category from ${currentState.search.category} ` +
+          `to ${interpretation.search.category} through CLARIFY; use start_new.`,
+      );
+    }
+
+    assertCompleteSearch(
+      interpretation.search,
+
+      profileRaw,
+    );
 
     return;
   }
@@ -352,7 +403,11 @@ function assertSearchSemantics(
   }
 
   if (interpretation.delta.search === undefined) {
-    assertCompleteSearch(currentState.search, profileRaw);
+    assertCompleteSearch(
+      currentState.search,
+
+      profileRaw,
+    );
 
     return;
   }
@@ -372,10 +427,18 @@ function assertSearchSemantics(
     );
   }
 
-  const candidate = applySearchSpecPatch(currentState.search, patch);
+  const candidate = applySearchSpecPatch(
+    currentState.search,
+
+    patch,
+  );
 
   if (candidate.category === null) {
-    assertCompleteSearch(candidate, profileRaw);
+    assertCompleteSearch(
+      candidate,
+
+      profileRaw,
+    );
 
     assertChangedStructuredLiteralsDoNotRemain(
       currentState.search,
@@ -386,25 +449,24 @@ function assertSearchSemantics(
     return;
   }
 
-  const profile = requireProfile(candidate.category, profileRaw);
+  const profile = requireProfile(
+    candidate.category,
 
-  assertSearchSpecPatchMatchesCategoryProfile(patch, profile);
+    profileRaw,
+  );
 
-  assertSearchSpecMatchesCategoryProfile(candidate, profile);
+  assertSearchSpecPatchMatchesCategoryProfile(
+    patch,
 
-  /**
-   * Это единственный lexical semanticIntent
-   * invariant, который Core может проверить
-   * безопасно и детерминированно:
-   *
-   * если structured value было изменено
-   * или удалено, его старая literal-копия
-   * не должна пережить REFINE.
-   *
-   * Мы НЕ пытаемся здесь распознавать
-   * произвольные новые facets
-   * внутри natural language.
-   */
+    profile,
+  );
+
+  assertSearchSpecMatchesCategoryProfile(
+    candidate,
+
+    profile,
+  );
+
   assertChangedStructuredLiteralsDoNotRemain(
     currentState.search,
 
@@ -510,7 +572,11 @@ export function prepareConsultationTurn(
 
   const proposal = ConsultationTurnProposalSchema.parse(input.proposal);
 
-  const taskBaseState = resolveTaskBaseState(currentState, proposal);
+  const taskBaseState = resolveTaskBaseState(
+    currentState,
+
+    proposal,
+  );
 
   assertMemoryObservationSemantics(
     taskBaseState,
@@ -520,7 +586,11 @@ export function prepareConsultationTurn(
     input.categoryProfile,
   );
 
-  const memoryPatch = buildMemoryPatch(taskBaseState, proposal);
+  const memoryPatch = buildMemoryPatch(
+    taskBaseState,
+
+    proposal,
+  );
 
   const preliminaryInterpretation = buildInternalInterpretation(
     proposal,

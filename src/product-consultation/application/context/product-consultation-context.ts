@@ -12,18 +12,25 @@ import {
   QuestionRuleSchema,
   type AgentComparisonView,
   type ProductDetails,
+  type ProductFact,
 } from '../../core/consultation-core.schema';
 
 import { CATEGORY_PROFILES } from '../../core/profiles';
 
 import {
   CategoryUsageScenarioSchema,
-  getCategoryUsageKnowledge,
+  MAX_SELECTED_USAGE_SCENARIOS,
+  resolveCategoryUsageScenarioSelection,
 } from '../../core/profiles/usage-scenarios';
 
 import type { SearchResultSnapshot } from '../../core/results/consultation-results.schema';
 
 import { SearchSpecSchema } from '../../core/search/search-spec.schema';
+
+import {
+  ProductSearchCapabilitiesSchema,
+  type ProductSearchCapabilities,
+} from '../search/product-search-capabilities';
 
 import {
   ConsultationApplicationRecordSchema,
@@ -36,7 +43,18 @@ const MAX_CONTEXT_FACT_PRODUCTS = 5;
 
 const MAX_CONTEXT_FACT_ATTRIBUTES = 16;
 
-const MAX_SELECTED_USAGE_SCENARIOS = 3;
+const MODEL_HIDDEN_FACT_ATTRIBUTES = new Set(['inStock', 'stock']);
+
+const MODEL_DISPLAY_VALUE_ATTRIBUTES = new Set([
+  'brand',
+
+  'category',
+
+  'subcategory',
+]);
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
 const ContextMessageSchema = z
   .object({
@@ -150,24 +168,37 @@ const ContextUsageKnowledgeSchema = z
   })
   .strict();
 
-/**
- * LLM projection deterministic comparison.
- *
- * ВАЖНО:
- *
- * здесь нет:
- *
- * - comparisonId;
- * - needId;
- * - memoryRevision;
- * - productId;
- * - criterionId;
- * - requirementId.
- *
- * Вместо productId Consultant
- * получает position относительно
- * server-bound snapshot.
- */
+const ContextSearchCapabilityAttributeSchema = z
+  .object({
+    attributeId: z.string().trim().min(1),
+
+    kind: z.enum(['text', 'number', 'boolean', 'set']),
+
+    unit: z.string().trim().min(1).nullable(),
+
+    operators: z
+      .array(z.enum(['eq', 'contains', 'lte', 'gte']))
+      .min(1)
+      .max(4),
+  })
+  .strict();
+
+const ContextSearchCapabilityProfileSchema = z
+  .object({
+    profileId: z.string().trim().min(1),
+
+    attributes: z.array(ContextSearchCapabilityAttributeSchema).max(64),
+  })
+  .strict();
+
+const ContextSearchCapabilitiesSchema = z
+  .object({
+    profiles: z.array(ContextSearchCapabilityProfileSchema).max(32),
+
+    maxConstraints: z.number().int().positive().nullable(),
+  })
+  .strict();
+
 const ContextComparisonCellSchema = z
   .object({
     position: z.number().int().positive(),
@@ -234,6 +265,8 @@ export const ProductConsultationLlmContextSchema = z
 
     task: ContextTaskSchema.nullable(),
 
+    searchCapabilities: ContextSearchCapabilitiesSchema.nullable(),
+
     results: z
       .object({
         status: z.enum(['idle', 'pending', 'active', 'failure']),
@@ -248,12 +281,6 @@ export const ProductConsultationLlmContextSchema = z
       .array(ContextProductFactsSchema)
       .max(MAX_CONTEXT_FACT_PRODUCTS),
 
-    /**
-     * Ephemeral deterministic
-     * comparison текущего round.
-     *
-     * Не persisted state.
-     */
     comparison: ContextComparisonSchema.nullable(),
 
     profile: ContextProfileSchema.nullable(),
@@ -281,15 +308,20 @@ export type BuildProductConsultationContextInput = {
 
   selectedProducts?: readonly ProductDetails[];
 
+  /**
+   * Если массив указан,
+   * он одновременно является:
+   *
+   * - whitelist;
+   * - priority order.
+   */
   factAttributeIds?: readonly string[] | null;
 
-  /**
-   * Deterministic comparison,
-   * вычисленный backend capability.
-   */
   comparison?: AgentComparisonView | null;
 
   usageScenarioIds?: readonly string[];
+
+  searchCapabilities?: ProductSearchCapabilities | null;
 };
 
 export type BuiltProductConsultationContext = {
@@ -299,6 +331,90 @@ export type BuiltProductConsultationContext = {
 
   context: ProductConsultationLlmContext;
 };
+
+type ModelFactValue = string | number | boolean | string[] | null;
+
+function semanticDisplayValue(displayValue: string | null): string | null {
+  if (displayValue === null) {
+    return null;
+  }
+
+  const normalized = displayValue.trim();
+
+  if (!normalized || UUID_PATTERN.test(normalized)) {
+    return null;
+  }
+
+  return normalized;
+}
+
+function modelSafeFactValue(input: {
+  attributeId: string;
+
+  status: 'known' | 'unknown' | 'not_applicable' | 'conflicting';
+
+  value: ModelFactValue;
+
+  displayValue: string | null;
+}): {
+  safe: boolean;
+
+  value: ModelFactValue;
+} {
+  if (input.status !== 'known') {
+    return {
+      safe: true,
+
+      value: input.value,
+    };
+  }
+
+  const displayValue = semanticDisplayValue(input.displayValue);
+
+  if (
+    MODEL_DISPLAY_VALUE_ATTRIBUTES.has(input.attributeId) &&
+    displayValue !== null
+  ) {
+    return {
+      safe: true,
+
+      value: displayValue,
+    };
+  }
+
+  if (typeof input.value === 'string' && UUID_PATTERN.test(input.value)) {
+    if (displayValue !== null) {
+      return {
+        safe: true,
+
+        value: displayValue,
+      };
+    }
+
+    return {
+      safe: false,
+
+      value: null,
+    };
+  }
+
+  if (
+    Array.isArray(input.value) &&
+    input.value.some((value) => UUID_PATTERN.test(value))
+  ) {
+    return {
+      safe: false,
+
+      value: null,
+    };
+  }
+
+  return {
+    safe: true,
+
+    value: input.value,
+  };
+}
 
 function visibleMemory(
   record: ConsultationApplicationRecord,
@@ -477,68 +593,22 @@ function resolveUsageContext(
 
   rawScenarioIds: readonly string[],
 ) {
-  const scenarioIds = rawScenarioIds.map((scenarioId) => scenarioId.trim());
+  const resolved = resolveCategoryUsageScenarioSelection(
+    profileId,
 
-  if (scenarioIds.some((scenarioId) => !scenarioId)) {
-    throw new Error(
-      'ProductConsultationContext: usage scenario ID must not be empty.',
-    );
-  }
-
-  if (scenarioIds.length > MAX_SELECTED_USAGE_SCENARIOS) {
-    throw new Error(
-      `ProductConsultationContext: at most ${MAX_SELECTED_USAGE_SCENARIOS} usage scenarios may be selected.`,
-    );
-  }
-
-  if (new Set(scenarioIds).size !== scenarioIds.length) {
-    throw new Error('ProductConsultationContext: duplicate usage scenario ID.');
-  }
-
-  if (profileId === null) {
-    if (scenarioIds.length > 0) {
-      throw new Error(
-        'ProductConsultationContext: usage scenario requires an active category profile.',
-      );
-    }
-
-    return null;
-  }
-
-  const knowledge = getCategoryUsageKnowledge(profileId);
-
-  if (knowledge === null) {
-    if (scenarioIds.length > 0) {
-      throw new Error(
-        `ProductConsultationContext: profile ${profileId} has no registered usage scenarios.`,
-      );
-    }
-
-    return null;
-  }
-
-  const scenarioById = new Map(
-    knowledge.scenarios.map((scenario) => [scenario.id, scenario]),
+    rawScenarioIds,
   );
 
-  const selected = scenarioIds.map((scenarioId) => {
-    const scenario = scenarioById.get(scenarioId);
-
-    if (!scenario) {
-      throw new Error(
-        `ProductConsultationContext: usage scenario ${scenarioId} is not registered for profile ${profileId}.`,
-      );
-    }
-
-    return scenario;
-  });
+  if (resolved.knowledge === null) {
+    return null;
+  }
 
   return {
-    profileId: knowledge.profileId,
+    profileId: resolved.knowledge.profileId,
 
-    version: knowledge.version,
+    version: resolved.knowledge.version,
 
-    available: knowledge.scenarios.map((scenario) => ({
+    available: resolved.knowledge.scenarios.map((scenario) => ({
       id: scenario.id,
 
       title: scenario.title,
@@ -548,8 +618,106 @@ function resolveUsageContext(
       signals: [...scenario.signals],
     })),
 
-    selected,
+    selected: resolved.selected,
   };
+}
+
+function searchCapabilitiesContext(
+  rawCapabilities: ProductSearchCapabilities | null,
+) {
+  if (rawCapabilities === null) {
+    return null;
+  }
+
+  const capabilities = ProductSearchCapabilitiesSchema.parse(rawCapabilities);
+
+  const capabilityByAttribute = new Map(
+    capabilities.constraints
+      .filter((capability) => capability.modelVisible)
+      .map((capability) => [capability.attributeId, capability] as const),
+  );
+
+  const profiles = capabilities.profileIds.flatMap((profileId) => {
+    const profile =
+      CATEGORY_PROFILES.find((candidate) => candidate.id === profileId) ?? null;
+
+    if (profile === null) {
+      return [];
+    }
+
+    const attributes = profile.attributes.flatMap((attribute) => {
+      const capability = capabilityByAttribute.get(attribute.id);
+
+      if (!capability) {
+        return [];
+      }
+
+      const operators = capability.operators.filter((operator) =>
+        attribute.allowedOperators.includes(operator),
+      );
+
+      if (operators.length === 0) {
+        return [];
+      }
+
+      return [
+        {
+          attributeId: attribute.id,
+
+          kind: attribute.kind,
+
+          unit: attribute.unit,
+
+          operators,
+        },
+      ];
+    });
+
+    return [
+      {
+        profileId: profile.id,
+
+        attributes,
+      },
+    ];
+  });
+
+  return {
+    profiles,
+
+    maxConstraints: capabilities.maxConstraints,
+  };
+}
+
+/**
+ * S4:
+ *
+ * Когда factAttributeIds переданы,
+ * они задают именно ПОРЯДОК,
+ * а не просто Set-filter.
+ *
+ * Иначе meaningful fact мог раньше
+ * оказаться после первых 16 attributes
+ * и исчезнуть из model context.
+ */
+function orderedCandidateFacts(
+  product: ProductDetails,
+
+  attributeIds: readonly string[] | null,
+): ProductFact[] {
+  if (attributeIds === null) {
+    return product.attributes;
+  }
+
+  const factByAttribute = new Map(
+    product.attributes.map((fact) => [fact.attributeId, fact] as const),
+  );
+
+  return [...new Set(attributeIds)].flatMap((attributeId) => {
+    const fact = factByAttribute.get(attributeId);
+
+    return fact ? [fact] : [];
+  });
 }
 
 function selectedFacts(input: {
@@ -581,9 +749,6 @@ function selectedFacts(input: {
     ),
   );
 
-  const requestedAttributes =
-    input.attributeIds === null ? null : new Set(input.attributeIds);
-
   return input.products.map((productRaw) => {
     const product = ProductDetailsSchema.parse(productRaw);
 
@@ -595,29 +760,45 @@ function selectedFacts(input: {
       );
     }
 
-    const facts = product.attributes
-      .filter(
-        (fact) =>
-          requestedAttributes === null ||
-          requestedAttributes.has(fact.attributeId),
-      )
-      .slice(
-        0,
+    const facts = orderedCandidateFacts(
+      product,
 
-        MAX_CONTEXT_FACT_ATTRIBUTES,
-      )
-      .map((fact) =>
-        AgentFactViewSchema.parse({
+      input.attributeIds,
+    )
+      .filter((fact) => !MODEL_HIDDEN_FACT_ATTRIBUTES.has(fact.attributeId))
+      .flatMap((fact) => {
+        const projected = modelSafeFactValue({
           attributeId: fact.attributeId,
 
           status: fact.status,
 
           value: fact.value,
 
-          unit: fact.unit,
-
           displayValue: fact.displayValue,
-        }),
+        });
+
+        if (!projected.safe) {
+          return [];
+        }
+
+        return [
+          AgentFactViewSchema.parse({
+            attributeId: fact.attributeId,
+
+            status: fact.status,
+
+            value: projected.value,
+
+            unit: fact.unit,
+
+            displayValue: fact.displayValue,
+          }),
+        ];
+      })
+      .slice(
+        0,
+
+        MAX_CONTEXT_FACT_ATTRIBUTES,
       );
 
     return {
@@ -667,36 +848,64 @@ function comparisonContext(input: {
     }
   }
 
+  const rows = comparison.rows.flatMap((row) => {
+    if (MODEL_HIDDEN_FACT_ATTRIBUTES.has(row.attributeId)) {
+      return [];
+    }
+
+    const projectedCells = [];
+
+    for (const cell of row.cells) {
+      const position = positionByProductId.get(cell.productId);
+
+      if (position === undefined) {
+        throw new Error(
+          `ProductConsultationContext: comparison product ${cell.productId} does not belong to the bound result snapshot.`,
+        );
+      }
+
+      const projected = modelSafeFactValue({
+        attributeId: row.attributeId,
+
+        status: cell.status,
+
+        value: cell.value,
+
+        displayValue: cell.displayValue,
+      });
+
+      if (!projected.safe) {
+        return [];
+      }
+
+      projectedCells.push({
+        position,
+
+        status: cell.status,
+
+        value: projected.value,
+
+        unit: cell.unit,
+
+        displayValue: cell.displayValue,
+      });
+    }
+
+    return [
+      {
+        attributeId: row.attributeId,
+
+        state: row.state,
+
+        range: row.range,
+
+        cells: projectedCells,
+      },
+    ];
+  });
+
   return {
-    rows: comparison.rows.map((row) => ({
-      attributeId: row.attributeId,
-
-      state: row.state,
-
-      range: row.range,
-
-      cells: row.cells.map((cell) => {
-        const position = positionByProductId.get(cell.productId);
-
-        if (position === undefined) {
-          throw new Error(
-            `ProductConsultationContext: comparison product ${cell.productId} does not belong to the bound result snapshot.`,
-          );
-        }
-
-        return {
-          position,
-
-          status: cell.status,
-
-          value: cell.value,
-
-          unit: cell.unit,
-
-          displayValue: cell.displayValue,
-        };
-      }),
-    })),
+    rows,
 
     limitations: [...comparison.limitations],
   };
@@ -744,6 +953,10 @@ export function buildProductConsultationContext(
               snapshot,
             ),
           },
+
+    searchCapabilities: searchCapabilitiesContext(
+      input.searchCapabilities ?? null,
+    ),
 
     results: {
       status: resultStatus(record),

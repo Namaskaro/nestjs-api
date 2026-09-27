@@ -7,45 +7,36 @@ import type { ProductNeed } from '../../application/search/product-need.schema';
 import type { ProductSearchResult } from '../../application/search/product-search-results.schema';
 
 import {
+  ProductSearchCapabilitiesSchema,
+  type ProductSearchCapabilities,
+} from '../../application/search/product-search-capabilities';
+
+import {
   ConsultationResultProductSchema,
   type ConsultationResultProduct,
 } from '../../core/results/consultation-results.schema';
 
 import type { SearchSpec } from '../../core/search/search-spec.schema';
 
-import { compileCurrentStoreSearchSpec } from './current-store-search-spec';
+import {
+  compileCurrentStoreSearchSpec,
+  CURRENT_STORE_SEARCH_CAPABILITIES,
+} from './current-store-search-spec';
 
 /**
- * Узкий внутренний contract существующего
- * current-store hybrid search.
- *
- * Новый SearchSpec adapter не должен
- * зависеть от concrete service class,
- * Prisma, Qdrant или других деталей
- * legacy implementation.
+ * Узкий внутренний contract
+ * существующего hybrid search.
  */
 export interface CurrentStoreProductNeedSearch {
   searchProducts(productNeed: ProductNeed): Promise<ProductSearchResult>;
 }
 
-/**
- * DI token для существующего
- * ProductNeed-based current-store search.
- */
 export const CURRENT_STORE_PRODUCT_NEED_SEARCH = Symbol(
   'CURRENT_STORE_PRODUCT_NEED_SEARCH',
 );
 
 /**
- * Новый SearchSpec-facing adapter.
- *
- * SearchSpec
- *   ↓
- * deterministic compilation
- *   ↓
- * existing ProductNeed-based hybrid search
- *   ↓
- * canonical ConsultationResultProduct[].
+ * SearchSpec-facing current-store adapter.
  */
 @Injectable()
 export class CurrentStoreSearchSpecAdapter implements ProductSearchPort {
@@ -54,15 +45,25 @@ export class CurrentStoreSearchSpecAdapter implements ProductSearchPort {
     private readonly productSearch: CurrentStoreProductNeedSearch,
   ) {}
 
+  /**
+   * Compact deterministic descriptor
+   * executable возможностей
+   * конкретного магазина.
+   *
+   * Никакого Qdrant/Prisma здесь
+   * наружу не протекает.
+   */
+  public capabilities(): ProductSearchCapabilities {
+    return ProductSearchCapabilitiesSchema.parse(
+      CURRENT_STORE_SEARCH_CAPABILITIES,
+    );
+  }
+
   public validate(search: SearchSpec): void {
     /**
-     * Compiler является одновременно
-     * capability validation:
-     *
-     * каждый hard constraint либо
-     * компилируется в реально
-     * поддерживаемый store filter,
-     * либо deterministic reject.
+     * Compiler использует тот же
+     * capability rule source,
+     * который возвращает capabilities().
      */
     compileCurrentStoreSearchSpec(search);
   }

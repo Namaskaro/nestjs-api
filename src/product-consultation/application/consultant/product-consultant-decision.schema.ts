@@ -7,40 +7,19 @@ import {
 
 import type { PublicConsultationAction } from '../../core/turn/consultation-turn.schema';
 
-/**
- * Actions, после которых application
- * обязан выполнить deterministic
- * capability/backend round.
- *
- * Поэтому текст пользователю
- * ещё не является terminal response.
- */
 export const PRODUCT_CONSULTANT_CAPABILITY_ACTIONS = [
   'SEARCH',
-
   'REFINE',
-
   'SHOW_RESULTS',
-
   'COMPARE',
-
   'DETAILS',
-
   'RECOMMEND',
 ] as const satisfies readonly PublicConsultationAction[];
 
-/**
- * Actions, после которых Consultant
- * уже может закончить текущий turn
- * обычным текстовым ответом.
- */
 export const PRODUCT_CONSULTANT_TERMINAL_ACTIONS = [
   'COMPLETE',
-
   'CLARIFY',
-
   'HANDOFF',
-
   'FEEDBACK',
 ] as const satisfies readonly PublicConsultationAction[];
 
@@ -57,62 +36,58 @@ const UsageScenarioIdSchema = z.string().trim().min(1).max(160);
 const UsageScenarioIdsSchema = z
   .array(UsageScenarioIdSchema)
   .max(3)
-  .superRefine(
-    (
-      scenarioIds,
+  .superRefine((scenarioIds, context) => {
+    if (new Set(scenarioIds).size !== scenarioIds.length) {
+      context.addIssue({
+        code: 'custom',
 
-      context,
-    ) => {
-      if (new Set(scenarioIds).size !== scenarioIds.length) {
-        context.addIssue({
-          code: 'custom',
+        path: ['usageScenarioIds'],
 
-          path: ['usageScenarioIds'],
+        message:
+          'Product Consultant decision contains duplicate usage scenario IDs.',
+      });
+    }
+  });
 
-          message:
-            'Product Consultant decision contains duplicate usage scenario IDs.',
-        });
-      }
-    },
-  );
+const FactAttributeIdSchema = z.string().trim().min(1).max(160);
 
 /**
- * Один structured output
- * одного Product Consultant.
+ * Ephemeral fact focus.
  *
- * Здесь намеренно НЕТ:
+ * Это НЕ:
  *
- * - productId;
- * - resultId;
- * - executionId;
- * - revision;
- * - artifacts;
- * - tool call objects;
- * - internal Memory IDs;
- * - persistence commands.
+ * - SearchSpec;
+ * - Memory;
+ * - hard constraint;
+ * - persisted comparison criteria.
  *
- * Все эти данные принадлежат backend.
+ * Consultant только сообщает application:
+ *
+ * "для следующего reasoning round
+ * особенно полезны эти ProductFacts".
  */
+const FactAttributeIdsSchema = z
+  .array(FactAttributeIdSchema)
+  .max(16)
+  .superRefine((attributeIds, context) => {
+    if (new Set(attributeIds).size !== attributeIds.length) {
+      context.addIssue({
+        code: 'custom',
+
+        path: ['factAttributeIds'],
+
+        message:
+          'Product Consultant decision contains duplicate fact attribute IDs.',
+      });
+    }
+  });
+
 export const ProductConsultantDecisionSchema = z
   .object({
-    /**
-     * Semantic proposal,
-     * который затем проходит
-     * deterministic public boundary.
-     */
     proposal: ConsultationTurnProposalSchema,
 
     /**
-     * Usage Scenario selection
-     * текущего reasoning round.
-     *
-     * Это ephemeral selection.
-     *
-     * Context Builder позже:
-     *
-     * - проверит profile;
-     * - проверит известность ID;
-     * - загрузит instruction.
+     * Ephemeral Usage Scenario selection.
      *
      * Scenario сам по себе
      * SearchSpec не изменяет.
@@ -120,100 +95,71 @@ export const ProductConsultantDecisionSchema = z
     usageScenarioIds: UsageScenarioIdsSchema.default(() => []),
 
     /**
-     * Финальный обычный текст
-     * пользователю.
+     * S4:
      *
-     * null означает:
+     * Ephemeral semantic focus
+     * для verified ProductFacts.
+     */
+    factAttributeIds: FactAttributeIdsSchema.default(() => []),
+
+    /**
+     * null:
      *
-     * application сначала должна
-     * выполнить proposal/capability
-     * и снова вызвать ЭТОГО ЖЕ
-     * Consultant с новым context.
+     * backend capability ещё
+     * должен выполниться.
+     *
+     * string:
+     *
+     * текущий turn заканчивается
+     * пользовательским ответом.
      */
     terminalText: z.string().trim().min(1).max(6000).nullable(),
   })
   .strict()
-  .superRefine(
-    (
-      decision,
+  .superRefine((decision, context) => {
+    const action = decision.proposal.action;
 
-      context,
-    ) => {
-      const action = decision.proposal.action;
+    const requiresCapability = CAPABILITY_ACTION_SET.has(action);
 
-      const requiresCapability = CAPABILITY_ACTION_SET.has(action);
+    const isTerminal = TERMINAL_ACTION_SET.has(action);
 
-      const isTerminal = TERMINAL_ACTION_SET.has(action);
+    if (!requiresCapability && !isTerminal) {
+      context.addIssue({
+        code: 'custom',
 
-      /**
-       * Public action list должна
-       * полностью принадлежать
-       * одной из двух групп.
-       *
-       * Это защита от ситуации,
-       * когда позже добавили action,
-       * но забыли определить
-       * его lifecycle semantics.
-       */
-      if (!requiresCapability && !isTerminal) {
-        context.addIssue({
-          code: 'custom',
+        path: ['proposal', 'action'],
 
-          path: ['proposal', 'action'],
+        message: `Product Consultant action ${action} has no lifecycle classification.`,
+      });
 
-          message: `Product Consultant action ${action} has no lifecycle classification.`,
-        });
+      return;
+    }
 
-        return;
-      }
+    if (requiresCapability && decision.terminalText !== null) {
+      context.addIssue({
+        code: 'custom',
 
-      /**
-       * Нельзя генерировать
-       * финальный ответ ДО того,
-       * как backend реально
-       * выполнил capability.
-       *
-       * Иначе модель может написать
-       * результат поиска/сравнения,
-       * которого ещё не существует.
-       */
-      if (requiresCapability && decision.terminalText !== null) {
-        context.addIssue({
-          code: 'custom',
+        path: ['terminalText'],
 
-          path: ['terminalText'],
+        message: `${action} requires backend capability execution before terminal response.`,
+      });
+    }
 
-          message: `${action} requires backend capability execution before terminal response.`,
-        });
-      }
+    if (isTerminal && decision.terminalText === null) {
+      context.addIssue({
+        code: 'custom',
 
-      /**
-       * Terminal semantic action
-       * должен реально закончиться
-       * текстом пользователю.
-       */
-      if (isTerminal && decision.terminalText === null) {
-        context.addIssue({
-          code: 'custom',
+        path: ['terminalText'],
 
-          path: ['terminalText'],
-
-          message: `${action} requires terminal text.`,
-        });
-      }
-    },
-  );
+        message: `${action} requires terminal text.`,
+      });
+    }
+  });
 
 export type ProductConsultantDecision = z.infer<
   typeof ProductConsultantDecisionSchema
 >;
 
-/**
- * Convenience для будущего loop.
- *
- * Функция сначала полностью
- * валидирует structured output.
- */
 export function parseProductConsultantDecision(
   value: unknown,
 ): ProductConsultantDecision {
@@ -239,8 +185,4 @@ export function productConsultantDecisionIsTerminal(
   );
 }
 
-/**
- * Только compile-time удобство
- * для application loop.
- */
 export type ProductConsultantProposal = ConsultationTurnProposal;

@@ -31,16 +31,6 @@ describe('CurrentStore SearchSpec execution contract', () => {
         },
 
         {
-          attributeId: 'type',
-
-          operator: 'eq',
-
-          value: 'SHOES',
-
-          unit: null,
-        },
-
-        {
           attributeId: 'brand',
 
           operator: 'eq',
@@ -122,6 +112,10 @@ describe('CurrentStore SearchSpec execution contract', () => {
           },
         },
 
+        /**
+         * Пришёл из SearchSpec.category,
+         * а не из отдельного type:eq.
+         */
         {
           key: 'type',
 
@@ -167,7 +161,39 @@ describe('CurrentStore SearchSpec execution contract', () => {
     });
   });
 
-  it('executes catalog category through resolved categoryId', () => {
+  it('always scopes specialized SHOES profile to SHOES at Qdrant execution boundary', () => {
+    const need = compileCurrentStoreSearchSpec({
+      version: 1,
+
+      semanticIntent: 'любая обувь',
+
+      category: 'SHOES',
+
+      constraints: [],
+    });
+
+    const filter = buildCurrentStoreQdrantFilter(
+      need,
+
+      {
+        brandId: null,
+
+        categoryId: null,
+
+        subcategoryId: null,
+      },
+    );
+
+    expect(filter.must).toContainEqual({
+      key: 'type',
+
+      match: {
+        value: 'SHOES',
+      },
+    });
+  });
+
+  it('executes catalog category through resolved categoryId while preserving profile type scope', () => {
     const need = compileCurrentStoreSearchSpec({
       version: 1,
 
@@ -201,6 +227,14 @@ describe('CurrentStore SearchSpec execution contract', () => {
     );
 
     expect(filter.must).toContainEqual({
+      key: 'type',
+
+      match: {
+        value: 'SHOES',
+      },
+    });
+
+    expect(filter.must).toContainEqual({
       key: 'categoryId',
 
       match: {
@@ -209,7 +243,7 @@ describe('CurrentStore SearchSpec execution contract', () => {
     });
   });
 
-  it('executes catalog subcategory through resolved subcategoryId', () => {
+  it('executes catalog subcategory through resolved subcategoryId while preserving profile type scope', () => {
     const need = compileCurrentStoreSearchSpec({
       version: 1,
 
@@ -243,6 +277,14 @@ describe('CurrentStore SearchSpec execution contract', () => {
     );
 
     expect(filter.must).toContainEqual({
+      key: 'type',
+
+      match: {
+        value: 'SHOES',
+      },
+    });
+
+    expect(filter.must).toContainEqual({
       key: 'subcategoryId',
 
       match: {
@@ -257,7 +299,7 @@ describe('CurrentStore SearchSpec execution contract', () => {
     );
   });
 
-  it('executes price:eq as an exact Qdrant numeric range', () => {
+  it('executes price:eq as an exact Qdrant numeric range inside profile scope', () => {
     const need = compileCurrentStoreSearchSpec({
       version: 1,
 
@@ -301,6 +343,14 @@ describe('CurrentStore SearchSpec execution contract', () => {
         },
 
         {
+          key: 'type',
+
+          match: {
+            value: 'SHOES',
+          },
+        },
+
+        {
           key: 'price',
 
           range: {
@@ -328,16 +378,6 @@ describe('CurrentStore SearchSpec execution contract', () => {
           operator: 'eq',
 
           value: 'MAN',
-
-          unit: null,
-        },
-
-        {
-          attributeId: 'type',
-
-          operator: 'eq',
-
-          value: 'SHOES',
 
           unit: null,
         },
@@ -432,6 +472,27 @@ describe('CurrentStore SearchSpec execution contract', () => {
       ),
     ).toBe(true);
 
+    /**
+     * Главное B3 regression:
+     *
+     * даже если остальные facets
+     * совпадают, CLOTHES не может
+     * пройти SHOES search scope.
+     */
+    expect(
+      matchesCurrentStoreHardFilters(
+        {
+          ...matching,
+
+          type: 'CLOTHES',
+        },
+
+        need,
+
+        catalog,
+      ),
+    ).toBe(false);
+
     expect(
       matchesCurrentStoreHardFilters(
         {
@@ -496,6 +557,55 @@ describe('CurrentStore SearchSpec execution contract', () => {
       semanticIntent: 'городские кроссовки',
 
       category: 'SHOES',
+
+      constraints: [],
+    });
+
+    const filter = buildCurrentStoreQdrantFilter(
+      need,
+
+      {
+        brandId: null,
+
+        categoryId: null,
+
+        subcategoryId: null,
+      },
+    );
+
+    expect(filter).toEqual({
+      must: [
+        {
+          key: 'inStock',
+
+          match: {
+            value: true,
+          },
+        },
+
+        /**
+         * Это search scope profile,
+         * не пользовательский
+         * availability filter.
+         */
+        {
+          key: 'type',
+
+          match: {
+            value: 'SHOES',
+          },
+        },
+      ],
+    });
+  });
+
+  it('keeps GENERIC profile unscoped when product type is still unknown', () => {
+    const need = compileCurrentStoreSearchSpec({
+      version: 1,
+
+      semanticIntent: 'что-нибудь в подарок',
+
+      category: 'GENERIC',
 
       constraints: [],
     });

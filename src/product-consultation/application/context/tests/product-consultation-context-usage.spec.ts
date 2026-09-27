@@ -232,14 +232,26 @@ describe('ProductConsultationContext usage knowledge', () => {
 
     expect(
       built.context.usage?.available.map((scenario) => scenario.id),
-    ).toEqual(['daily_walking', 'training', 'wet_weather', 'cold_weather']);
+    ).toEqual([
+      'daily_walking',
+
+      'long_walking_travel',
+
+      'casual_city',
+
+      'training',
+
+      'light_outdoor',
+
+      'hot_weather',
+
+      'wet_weather',
+
+      'cold_weather',
+    ]);
 
     expect(built.context.usage?.selected).toEqual([]);
 
-    /**
-     * Compact index не тащит
-     * тяжёлую instruction.
-     */
     expect(built.context.usage?.available[0]).not.toHaveProperty('instruction');
 
     expect(built.context.usage?.available[0]).not.toHaveProperty(
@@ -247,7 +259,7 @@ describe('ProductConsultationContext usage knowledge', () => {
     );
   });
 
-  it('loads full knowledge only for server-validated selected scenario IDs', () => {
+  it('loads full knowledge only for selected known scenario IDs', () => {
     const record = recordWithTaskMemory();
 
     const searchBefore = structuredClone(record.state?.search);
@@ -278,31 +290,41 @@ describe('ProductConsultationContext usage knowledge', () => {
       'повседневной ходьбы',
     );
 
-    /**
-     * Scenario knowledge ничего
-     * не мутирует в SearchSpec.
-     */
     expect(record.state?.search).toEqual(searchBefore);
 
     expect(built.context.task?.search).toEqual(searchBefore);
   });
 
-  it('rejects a scenario ID belonging to another category', () => {
-    expect(() =>
-      buildProductConsultationContext({
-        record: recordWithTaskMemory(),
+  it('drops an unknown or foreign optional scenario instead of failing context construction', () => {
+    const record = recordWithTaskMemory();
 
-        currentMessage: 'Нужны на свадьбу',
+    const built = buildProductConsultationContext({
+      record,
+
+      currentMessage: 'Нужны на каждый день',
+
+      usageScenarioIds: [
+        'daily_walking',
 
         /**
-         * formal_event зарегистрирован
-         * для CLOTHES, но не SHOES.
+         * CLOTHES scenario.
+         *
+         * Для SHOES это unknown
+         * optional enrichment.
          */
-        usageScenarioIds: ['formal_event'],
-      }),
-    ).toThrow(
-      'usage scenario formal_event is not registered for profile SHOES',
-    );
+        'formal_event',
+      ],
+    });
+
+    expect(
+      built.context.usage?.selected.map((scenario) => scenario.id),
+    ).toEqual(['daily_walking']);
+
+    expect(
+      built.context.usage?.available.some(
+        (scenario) => scenario.id === 'formal_event',
+      ),
+    ).toBe(false);
   });
 
   it('rejects duplicate or excessive selected usage scenarios', () => {
@@ -314,7 +336,7 @@ describe('ProductConsultationContext usage knowledge', () => {
 
         usageScenarioIds: ['daily_walking', 'daily_walking'],
       }),
-    ).toThrow('duplicate usage scenario ID');
+    ).toThrow('Duplicate usage scenario ID');
 
     expect(() =>
       buildProductConsultationContext({
@@ -332,7 +354,7 @@ describe('ProductConsultationContext usage knowledge', () => {
           'cold_weather',
         ],
       }),
-    ).toThrow('at most 3 usage scenarios may be selected');
+    ).toThrow('At most 3 usage scenarios may be selected');
   });
 
   it('does not expose feedback for a product outside the bound snapshot', () => {

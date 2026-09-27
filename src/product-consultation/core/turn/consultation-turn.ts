@@ -45,6 +45,28 @@ export type AppliedConsultationTurn = {
   feedback: TurnFeedback | null;
 };
 
+function applyMemoryOnly(
+  state: ProductConsultationState,
+
+  interpretation: ReturnType<typeof ConsultationTurnInterpretationSchema.parse>,
+
+  createId?: ConsultationMemoryIdFactory,
+): ProductConsultationState {
+  if (interpretation.delta.memory === undefined) {
+    return state;
+  }
+
+  return applyConsultationStateDelta(
+    state,
+
+    {
+      memory: interpretation.delta.memory,
+    },
+
+    createId,
+  );
+}
+
 export function applyConsultationTurn(
   current: ProductConsultationState | null,
 
@@ -57,6 +79,13 @@ export function applyConsultationTurn(
 
   const baseState = current ?? createEmptyProductConsultationState();
 
+  /**
+   * SEARCH:
+   *
+   * complete SearchSpec становится
+   * authoritative и сразу требует
+   * backend search execution.
+   */
   if (interpretation.action === 'SEARCH') {
     let state = replaceProductConsultationSearch(
       baseState,
@@ -68,17 +97,13 @@ export function applyConsultationTurn(
       },
     );
 
-    if (interpretation.delta.memory !== undefined) {
-      state = applyConsultationStateDelta(
-        state,
+    state = applyMemoryOnly(
+      state,
 
-        {
-          memory: interpretation.delta.memory,
-        },
+      interpretation,
 
-        createId,
-      );
-    }
+      createId,
+    );
 
     return {
       state,
@@ -86,6 +111,53 @@ export function applyConsultationTurn(
       action: interpretation.action,
 
       searchRequired: true,
+
+      selection: null,
+
+      feedback: null,
+    };
+  }
+
+  /**
+   * PRE-SEARCH CLARIFY:
+   *
+   * модель уже уверенно поняла
+   * executable часть запроса,
+   * но ей нужен ещё один ответ
+   * пользователя перед поиском.
+   *
+   * Поэтому SearchSpec сохраняется,
+   * однако searchRequired=false.
+   *
+   * Никакого DraftTask,
+   * clarification state или
+   * второго search object не создаём.
+   */
+  if (interpretation.action === 'CLARIFY' && interpretation.search !== null) {
+    let state = replaceProductConsultationSearch(
+      baseState,
+
+      interpretation.search,
+
+      {
+        resetMemory: false,
+      },
+    );
+
+    state = applyMemoryOnly(
+      state,
+
+      interpretation,
+
+      createId,
+    );
+
+    return {
+      state,
+
+      action: interpretation.action,
+
+      searchRequired: false,
 
       selection: null,
 
@@ -104,7 +176,9 @@ export function applyConsultationTurn(
 
   const state = applyConsultationStateDelta(
     baseState,
+
     interpretation.delta,
+
     createId,
   );
 
@@ -114,19 +188,13 @@ export function applyConsultationTurn(
    * REFINE запускает search
    * только если SearchSpec
    * действительно изменился.
-   *
-   * Пустой patch:
-   *
-   * {}
-   *
-   * или повтор:
-   *
-   * brand Nike → brand Nike
-   *
-   * больше не вызывают каталог зря.
    */
   if (interpretation.action === 'REFINE') {
-    searchRequired = !isDeepStrictEqual(baseState.search, state.search);
+    searchRequired = !isDeepStrictEqual(
+      baseState.search,
+
+      state.search,
+    );
   }
 
   return {

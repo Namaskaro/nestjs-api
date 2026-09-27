@@ -20,7 +20,21 @@ import {
   CanonicalRequirementSchema,
   ProductDetailsSchema,
   type ProductDetails,
+  type ProductFact,
 } from '@/src/product-consultation/core/consultation-core.schema';
+
+const FIXTURE_HIDDEN_FACT_ATTRIBUTES = new Set(['inStock', 'stock']);
+
+const FIXTURE_DISPLAY_VALUE_ATTRIBUTES = new Set([
+  'brand',
+
+  'category',
+
+  'subcategory',
+]);
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
 const CapturedSearchSchema = z.object({
   key: z.string().trim().min(1),
@@ -82,6 +96,117 @@ function normalizeQuery(value: string): string {
 
       'е',
     );
+}
+
+function semanticDisplayValue(displayValue: string | null): string | null {
+  if (displayValue === null) {
+    return null;
+  }
+
+  const normalized = displayValue.trim();
+
+  if (!normalized || UUID_PATTERN.test(normalized)) {
+    return null;
+  }
+
+  return normalized;
+}
+
+/**
+ * Captured fixture содержит исторические
+ * ProductFacts current store.
+ *
+ * Среди них есть две legacy особенности:
+ *
+ * 1. inStock / stock продублированы
+ *    как обычные ProductFacts;
+ *
+ * 2. brand/category/subcategory.value
+ *    может содержать DB UUID,
+ *    а semantic value лежит
+ *    в displayValue.
+ *
+ * Frozen catalog используется
+ * новым Product Consultation harness,
+ * поэтому на read boundary приводим
+ * эти facts к новому контракту.
+ *
+ * Исходный captured JSON не переписываем.
+ */
+function projectFixtureFact(fact: ProductFact): ProductFact | null {
+  if (FIXTURE_HIDDEN_FACT_ATTRIBUTES.has(fact.attributeId)) {
+    return null;
+  }
+
+  if (fact.status !== 'known') {
+    return fact;
+  }
+
+  const displayValue = semanticDisplayValue(fact.displayValue);
+
+  if (
+    FIXTURE_DISPLAY_VALUE_ATTRIBUTES.has(fact.attributeId) &&
+    displayValue !== null
+  ) {
+    return {
+      ...fact,
+
+      value: displayValue,
+    };
+  }
+
+  if (typeof fact.value === 'string' && UUID_PATTERN.test(fact.value)) {
+    if (displayValue === null) {
+      /**
+       * Не публикуем technical identity
+       * как semantic ProductFact.
+       *
+       * Provenance и canonical ProductDetails
+       * остаются backend concern.
+       */
+      return null;
+    }
+
+    return {
+      ...fact,
+
+      value: displayValue,
+    };
+  }
+
+  if (
+    Array.isArray(fact.value) &&
+    fact.value.some((value) => UUID_PATTERN.test(value))
+  ) {
+    return null;
+  }
+
+  return fact;
+}
+
+function projectFixtureProductDetails(
+  productRaw: ProductDetails,
+): ProductDetails {
+  const product = ProductDetailsSchema.parse(productRaw);
+
+  return ProductDetailsSchema.parse({
+    ...product,
+
+    /**
+     * Top-level availability сохраняется.
+     *
+     * Она нужна backend eligibility /
+     * future stock verification,
+     * но не становится LLM criterion.
+     */
+    availability: product.availability,
+
+    attributes: product.attributes.flatMap((fact) => {
+      const projected = projectFixtureFact(fact);
+
+      return projected ? [projected] : [];
+    }),
+  });
 }
 
 export async function loadCurrentProductConsultationFixture(
@@ -175,7 +300,7 @@ export class FrozenCurrentProductCatalog {
     return [...new Set(productIds)].flatMap((productId) => {
       const product = this.detailsById.get(productId);
 
-      return product ? [product] : [];
+      return product ? [projectFixtureProductDetails(product)] : [];
     });
   }
 

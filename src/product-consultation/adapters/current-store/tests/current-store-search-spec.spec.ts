@@ -109,6 +109,148 @@ describe('CurrentStore SearchSpec compiler', () => {
     });
   });
 
+  it('normalizes semantic English male value into current-store MAN', () => {
+    const result = compileCurrentStoreSearchSpec({
+      version: 1,
+
+      semanticIntent: 'мужские кроссовки Nike',
+
+      category: 'SHOES',
+
+      constraints: [
+        {
+          attributeId: 'gender',
+
+          operator: 'eq',
+
+          value: 'male',
+
+          unit: null,
+        },
+      ],
+    });
+
+    expect(result.filters.gender).toBe('MAN');
+  });
+
+  it('normalizes semantic Russian male value into current-store MAN', () => {
+    const result = compileCurrentStoreSearchSpec({
+      version: 1,
+
+      semanticIntent: 'мужские кроссовки',
+
+      category: 'SHOES',
+
+      constraints: [
+        {
+          attributeId: 'gender',
+
+          operator: 'eq',
+
+          value: 'мужской',
+
+          unit: null,
+        },
+      ],
+    });
+
+    expect(result.filters.gender).toBe('MAN');
+  });
+
+  it('normalizes semantic female values into current-store WOMAN', () => {
+    expect(
+      compileCurrentStoreSearchSpec({
+        version: 1,
+
+        semanticIntent: 'женское платье',
+
+        category: 'CLOTHES',
+
+        constraints: [
+          {
+            attributeId: 'gender',
+
+            operator: 'eq',
+
+            value: 'female',
+
+            unit: null,
+          },
+        ],
+      }).filters.gender,
+    ).toBe('WOMAN');
+
+    expect(
+      compileCurrentStoreSearchSpec({
+        version: 1,
+
+        semanticIntent: 'женские кроссовки',
+
+        category: 'SHOES',
+
+        constraints: [
+          {
+            attributeId: 'gender',
+
+            operator: 'eq',
+
+            value: 'женские',
+
+            unit: null,
+          },
+        ],
+      }).filters.gender,
+    ).toBe('WOMAN');
+  });
+
+  it('normalizes unisex semantic value into current-store UNISEX', () => {
+    const result = compileCurrentStoreSearchSpec({
+      version: 1,
+
+      semanticIntent: 'унисекс кроссовки',
+
+      category: 'SHOES',
+
+      constraints: [
+        {
+          attributeId: 'gender',
+
+          operator: 'eq',
+
+          value: 'унисекс',
+
+          unit: null,
+        },
+      ],
+    });
+
+    expect(result.filters.gender).toBe('UNISEX');
+  });
+
+  it('rejects unknown semantic gender instead of guessing', () => {
+    expect(() =>
+      compileCurrentStoreSearchSpec({
+        version: 1,
+
+        semanticIntent: 'кроссовки',
+
+        category: 'SHOES',
+
+        constraints: [
+          {
+            attributeId: 'gender',
+
+            operator: 'eq',
+
+            value: 'something-unknown',
+
+            unit: null,
+          },
+        ],
+      }),
+    ).toThrow('unsupported current-store gender something-unknown');
+  });
+
   it('compiles price:eq into exact legacy price range', () => {
     const result = compileCurrentStoreSearchSpec({
       version: 1,

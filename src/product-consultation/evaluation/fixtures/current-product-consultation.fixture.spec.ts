@@ -17,6 +17,9 @@ const fixturePath = resolve(
   'src/product-consultation/evaluation/fixtures/captured/e01-current-catalog.json',
 );
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+
 function createNeed({
   brand,
 
@@ -161,17 +164,6 @@ describe('FrozenCurrentProductCatalog', () => {
       daily: false,
     });
 
-    /**
-     * Filters полностью совпадают
-     * с captured nike-base.
-     *
-     * Но semantic query другой.
-     *
-     * Раньше fixture всё равно
-     * возвращал Nike products,
-     * потому что filter candidate
-     * был всего один.
-     */
     need.semanticQuery = 'совершенно другой semantic запрос';
 
     await expect(catalog.searchProducts(need)).rejects.toThrow(
@@ -216,6 +208,112 @@ describe('FrozenCurrentProductCatalog', () => {
     const details = await catalog.getProductDetails(ids);
 
     expect(details.map((product) => product.id)).toEqual(ids);
+  });
+
+  it('projects captured legacy facts without availability attributes or identity UUID values', async () => {
+    const {
+      catalog,
+
+      fixture,
+    } = await createFrozenCatalog();
+
+    const productId = fixture.productDetails[0]!.id;
+
+    const [details] = await catalog.getProductDetails([productId]);
+
+    expect(details).toBeDefined();
+
+    /**
+     * Availability остаётся backend data.
+     */
+    expect(details?.availability).toEqual({
+      inStock: true,
+
+      stock: 10,
+    });
+
+    const attributes = details?.attributes ?? [];
+
+    expect(attributes.some((fact) => fact.attributeId === 'inStock')).toBe(
+      false,
+    );
+
+    expect(attributes.some((fact) => fact.attributeId === 'stock')).toBe(false);
+
+    const brand = attributes.find((fact) => fact.attributeId === 'brand');
+
+    expect(brand?.status).toBe('known');
+
+    expect(brand?.value).toBe('Nike');
+
+    expect(brand?.displayValue).toBe('Nike');
+
+    const category = attributes.find((fact) => fact.attributeId === 'category');
+
+    expect(category?.value).toBe('Обувь');
+
+    const subcategory = attributes.find(
+      (fact) => fact.attributeId === 'subcategory',
+    );
+
+    expect(subcategory?.value).toBe('Кроссовки');
+
+    /**
+     * Проверяем только semantic fact values.
+     *
+     * Provenance намеренно может содержать
+     * backend record IDs — она server-side.
+     */
+    for (const fact of attributes) {
+      if (typeof fact.value === 'string') {
+        expect(fact.value).not.toMatch(UUID_PATTERN);
+      }
+
+      if (Array.isArray(fact.value)) {
+        for (const value of fact.value) {
+          expect(value).not.toMatch(UUID_PATTERN);
+        }
+      }
+    }
+  });
+
+  it('does not mutate the raw captured fixture while projecting product details', async () => {
+    const {
+      catalog,
+
+      fixture,
+    } = await createFrozenCatalog();
+
+    const raw = fixture.productDetails[0]!;
+
+    const rawBrandBefore = raw.attributes.find(
+      (fact) => fact.attributeId === 'brand',
+    );
+
+    expect(typeof rawBrandBefore?.value).toBe('string');
+
+    expect(
+      typeof rawBrandBefore?.value === 'string' &&
+        UUID_PATTERN.test(rawBrandBefore.value),
+    ).toBe(true);
+
+    await catalog.getProductDetails([raw.id]);
+
+    const rawBrandAfter = fixture.productDetails[0]!.attributes.find(
+      (fact) => fact.attributeId === 'brand',
+    );
+
+    /**
+     * Projection происходит на read boundary.
+     * Captured source остаётся историческим snapshot.
+     */
+    expect(rawBrandAfter?.value).toBe(rawBrandBefore?.value);
+
+    expect(
+      fixture.productDetails[0]!.attributes.some(
+        (fact) => fact.attributeId === 'inStock',
+      ),
+    ).toBe(true);
   });
 
   it('resolves known fixture brands without live catalog', async () => {

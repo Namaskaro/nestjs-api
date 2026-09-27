@@ -59,13 +59,6 @@ export const OFFLINE_PRODUCT_CONSULTANT_WAIT_FOR_ABORT = Object.freeze({
 export type OfflineProductConsultantLoopTargetOptions = {
   modelTimeoutMs?: number;
 
-  /**
-   * Нужен для offline cancellation
-   * regression.
-   *
-   * Production cancellation приходит
-   * в ProductConsultantLoop.run().
-   */
   signal?: AbortSignal;
 };
 
@@ -162,13 +155,6 @@ class OfflineProductConsultantModel implements ProductConsultantModelPort {
       throw new Error(message);
     }
 
-    /**
-     * Только evaluation control:
-     *
-     * модель висит,
-     * пока loop timeout/cancellation
-     * не оборвёт signal.
-     */
     if (isWaitForAbortControl(decision)) {
       return new Promise<never>((_resolve, reject) => {
         const rejectAbort = () => {
@@ -309,6 +295,18 @@ function evaluationOutcome(
     case 'completed':
       return 'answer';
 
+    /**
+     * Idempotent duplicate — успешный
+     * application no-op.
+     *
+     * Это не technical failure.
+     *
+     * Exact response replay появится
+     * на durable B2.
+     */
+    case 'duplicate_request':
+      return 'answer';
+
     case 'cancelled':
       return 'interrupt';
 
@@ -368,9 +366,9 @@ export class OfflineProductConsultantLoopTarget
 
     const store = new SingleRecordConsultationStore(initialRecord);
 
-    const baseSearch: ProductSearchPort = new CurrentStoreSearchSpecAdapter(
-      this.catalog,
-    );
+    const currentStoreSearch = new CurrentStoreSearchSpecAdapter(this.catalog);
+
+    const baseSearch: ProductSearchPort = currentStoreSearch;
 
     const productSearch = createEvaluationCapabilityProxy<ProductSearchPort>({
       target: baseSearch,
@@ -453,6 +451,8 @@ export class OfflineProductConsultantLoopTarget
 
       {
         modelTimeoutMs: this.options.modelTimeoutMs,
+
+        searchCapabilities: currentStoreSearch.capabilities(),
       },
     );
 

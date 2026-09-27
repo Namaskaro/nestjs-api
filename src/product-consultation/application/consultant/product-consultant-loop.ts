@@ -1,22 +1,33 @@
-import type {
-  AgentComparisonView,
-  ProductDetails,
+import {
+  DEFAULT_CONSULTATION_AGENT_BUDGET,
+  type AgentComparisonView,
+  type ProductDetails,
 } from '../../core/consultation-core.schema';
 
-import type { PublicConsultationAction } from '../../core/turn/consultation-turn.schema';
+import { CATEGORY_PROFILES } from '../../core/profiles';
+
+import {
+  resolveCategoryUsageScenarioSelection,
+  type UsageScenarioSelectionDiagnostic,
+} from '../../core/profiles/usage-scenarios';
 
 import type { SearchResultSnapshot } from '../../core/results/consultation-results.schema';
 
-import { compareConsultationProducts } from '../comparison/deterministic-product-comparison';
+import type { PublicConsultationAction } from '../../core/turn/consultation-turn.schema';
 
 import type { ProductDetailsPort } from '../catalog/product-details.port';
+
+import { compareConsultationProducts } from '../comparison/deterministic-product-comparison';
 
 import {
   buildProductConsultationContext,
   type ProductConsultationContextMessage,
 } from '../context/product-consultation-context';
 
+import type { ProductSearchCapabilities } from '../search/product-search-capabilities';
+
 import {
+  ConsultationRequestIdSchema,
   createConsultationApplicationRecord,
   type ConsultationApplicationRecord,
 } from '../runtime/consultation-application-record';
@@ -52,28 +63,15 @@ const CAPABILITY_ERROR_TEXT =
 const ROUND_BUDGET_ERROR_TEXT =
   'Не удалось завершить консультацию за этот ход. Попробуйте уточнить запрос.';
 
-/**
- * Пока deliberately жёсткий loop:
- *
- * максимум два model calls
- * и одна capability.
- */
 const MAX_MODEL_CALLS_PER_TURN = 2;
 
 const MAX_CAPABILITY_ROUNDS_PER_TURN = 1;
 
-/**
- * Первый безопасный production guardrail.
- *
- * Потом откалибруем по traces.
- */
 const DEFAULT_MODEL_TIMEOUT_MS = 15_000;
 
 const SECOND_ROUND_TERMINAL_ACTIONS = new Set<PublicConsultationAction>([
   'COMPLETE',
-
   'CLARIFY',
-
   'HANDOFF',
 ]);
 
@@ -96,6 +94,7 @@ export type ProductConsultantLoopArtifact =
 
 export type ProductConsultantLoopOutcome =
   | 'completed'
+  | 'duplicate_request'
   | 'interpretation_error'
   | 'model_error'
   | 'timeout'
@@ -112,20 +111,15 @@ export type ProductConsultantLoopInput = {
 
   recentMessages?: readonly ProductConsultationContextMessage[];
 
-  /**
-   * Внешняя отмена HTTP request /
-   * higher-level execution.
-   */
   signal?: AbortSignal;
 };
 
 export type ProductConsultantLoopOptions = {
-  /**
-   * Timeout одного model call.
-   *
-   * Не всего пользовательского turn.
-   */
   modelTimeoutMs?: number;
+
+  onDiagnostic?: (diagnostic: UsageScenarioSelectionDiagnostic) => void;
+
+  searchCapabilities?: ProductSearchCapabilities | null;
 };
 
 export type ProductConsultantLoopResult = {
@@ -152,6 +146,8 @@ type CapabilityExecution = {
   selectedProducts: ProductDetails[];
 
   comparison: AgentComparisonView | null;
+
+  factAttributeIds: string[];
 };
 
 type ModelCallResult =
@@ -195,6 +191,98 @@ function orderedProducts(
   });
 }
 
+function usageProfileIdForDecision(
+  decision: ProductConsultantDecision,
+
+  record: ConsultationApplicationRecord,
+): string | null {
+  if (decision.proposal.search !== null) {
+    return decision.proposal.search.category;
+  }
+
+  if (decision.proposal.taskTransition === 'start_new') {
+    return null;
+  }
+
+  if (decision.proposal.searchPatch?.category !== undefined) {
+    return decision.proposal.searchPatch.category;
+  }
+
+  return record.state?.search?.category ?? null;
+}
+
+function prioritizedFactAttributeIds(input: {
+  record: ConsultationApplicationRecord;
+
+  decision: ProductConsultantDecision;
+
+  usageScenarioIds: readonly string[];
+
+  limit: number;
+}): string[] {
+  const profileId = input.record.state?.search?.category ?? null;
+
+  if (profileId === null) {
+    return [];
+  }
+
+  const profile =
+    CATEGORY_PROFILES.find((candidate) => candidate.id === profileId) ?? null;
+
+  if (profile === null) {
+    return [];
+  }
+
+  const knownAttributes = new Set(
+    profile.attributes.map((attribute) => attribute.id),
+  );
+
+  const ordered: string[] = [];
+
+  const add = (attributeId: string) => {
+    if (!knownAttributes.has(attributeId)) {
+      return;
+    }
+
+    if (ordered.includes(attributeId)) {
+      return;
+    }
+
+    ordered.push(attributeId);
+  };
+
+  /**
+   * 1. Explicit focus текущего reasoning.
+   */
+  for (const attributeId of input.decision.factAttributeIds) {
+    add(attributeId);
+  }
+
+  /**
+   * 2. Usage Scenario facts.
+   */
+  const usage = resolveCategoryUsageScenarioSelection(
+    profile.id,
+
+    input.usageScenarioIds,
+  );
+
+  for (const scenario of usage.selected) {
+    for (const attributeId of scenario.attributeIds) {
+      add(attributeId);
+    }
+  }
+
+  /**
+   * 3. Profile defaults.
+   */
+  for (const attributeId of profile.defaultCriteria) {
+    add(attributeId);
+  }
+
+  return ordered.slice(0, input.limit);
+}
+
 function isSecondRoundTerminalDecision(
   decision: ProductConsultantDecision,
 ): boolean {
@@ -232,6 +320,12 @@ function isSecondRoundTerminalDecision(
 export class ProductConsultantLoop {
   private readonly modelTimeoutMs: number;
 
+  private readonly onDiagnostic:
+    | ((diagnostic: UsageScenarioSelectionDiagnostic) => void)
+    | undefined;
+
+  private readonly searchCapabilities: ProductSearchCapabilities | null;
+
   constructor(
     private readonly store: ConsultationApplicationStore,
 
@@ -244,6 +338,10 @@ export class ProductConsultantLoop {
     options: ProductConsultantLoopOptions = {},
   ) {
     this.modelTimeoutMs = options.modelTimeoutMs ?? DEFAULT_MODEL_TIMEOUT_MS;
+
+    this.onDiagnostic = options.onDiagnostic;
+
+    this.searchCapabilities = options.searchCapabilities ?? null;
 
     if (!Number.isFinite(this.modelTimeoutMs) || this.modelTimeoutMs <= 0) {
       throw new Error(
@@ -261,15 +359,80 @@ export class ProductConsultantLoop {
 
     const artifacts: ProductConsultantLoopArtifact[] = [];
 
+    /**
+     * Нормализуем requestId тем же schema,
+     * который использует WriteOwner.
+     *
+     * Иначе:
+     *
+     * "message-1"
+     *
+     * и
+     *
+     * " message-1 "
+     *
+     * могли бы по-разному вести себя
+     * на двух application boundaries.
+     */
+    const requestId = ConsultationRequestIdSchema.parse(input.requestId);
+
     const stored = await this.store.load(input.conversationId);
 
     let record = stored ?? createConsultationApplicationRecord();
 
     /**
-     * Уже отменённый request
-     * вообще не вызывает модель
-     * и ничего не пишет.
+     * B2 near-term.
+     *
+     * Idempotency проверяется ДО:
+     *
+     * - LLM;
+     * - SearchPort;
+     * - ProductDetailsPort;
+     * - WriteOwner.
+     *
+     * Пока мы НЕ сохраняем старый
+     * terminalText/artifacts,
+     * поэтому exact durable replay
+     * здесь невозможен.
+     *
+     * duplicate_request означает:
+     *
+     * "этот request уже был принят
+     * authoritative runtime;
+     * повторно ничего не выполнять".
+     *
+     * Важно:
+     *
+     * не публикуем active/lastConfirmed
+     * заново как artifacts.
+     *
+     * Старый request может быть повторён
+     * уже после более новых turn-ов,
+     * поэтому replay не имеет права
+     * реактивировать старую выдачу.
      */
+    if (record.processedRequestIds.includes(requestId)) {
+      return {
+        outcome: 'duplicate_request',
+
+        /**
+         * Near-term transport no-op.
+         *
+         * После durable replay здесь
+         * будет сохранённый прежний response.
+         */
+        text: '',
+
+        record,
+
+        artifacts,
+
+        modelCalls,
+
+        capabilityRounds,
+      };
+    }
+
     if (input.signal?.aborted) {
       return {
         outcome: 'cancelled',
@@ -292,6 +455,8 @@ export class ProductConsultantLoop {
       currentMessage: input.currentMessage,
 
       recentMessages: input.recentMessages ?? [],
+
+      searchCapabilities: this.searchCapabilities,
     });
 
     const firstDecisionResult = await this.callModel({
@@ -374,13 +539,40 @@ export class ProductConsultantLoop {
 
     const firstDecision = firstDecisionResult.decision;
 
-    /**
-     * Request могли отменить
-     * сразу после ответа модели.
-     *
-     * Тогда authoritative state
-     * ещё не трогаем.
-     */
+    let validatedUsageScenarioIds: readonly string[];
+
+    try {
+      const usageSelection = resolveCategoryUsageScenarioSelection(
+        usageProfileIdForDecision(
+          firstDecision,
+
+          record,
+        ),
+
+        firstDecision.usageScenarioIds,
+      );
+
+      validatedUsageScenarioIds = usageSelection.selectedIds;
+
+      for (const diagnostic of usageSelection.diagnostics) {
+        this.emitDiagnostic(diagnostic);
+      }
+    } catch {
+      return {
+        outcome: 'interpretation_error',
+
+        text: INTERPRETATION_ERROR_TEXT,
+
+        record,
+
+        artifacts,
+
+        modelCalls,
+
+        capabilityRounds,
+      };
+    }
+
     if (input.signal?.aborted) {
       return {
         outcome: 'cancelled',
@@ -400,16 +592,12 @@ export class ProductConsultantLoop {
     let execution: Awaited<ReturnType<ConsultationWriteOwner['execute']>>;
 
     try {
-      /**
-       * РОВНО ОДИН WriteOwner
-       * на пользовательский turn.
-       */
       execution = await this.writeOwner.execute({
         conversationId: input.conversationId,
 
         expectedRevision: initialContext.expectedRevision,
 
-        requestId: input.requestId,
+        requestId,
 
         proposal: firstDecision.proposal,
 
@@ -434,17 +622,36 @@ export class ProductConsultantLoop {
     record = execution.record;
 
     /**
-     * SearchPort сейчас не принимает
-     * AbortSignal.
+     * Race safety remains in WriteOwner.
      *
-     * Поэтому если cancellation
-     * произошёл ВО ВРЕМЯ WriteOwner /
-     * search, мы не откатываем уже
-     * успешно подтверждённый state.
+     * Между initial load и execute
+     * другой request мог успеть
+     * обработать тот же requestId.
      *
-     * Но новые действия после него
-     * не запускаем.
+     * В этом случае НЕ продолжаем
+     * capability/model round.
+     *
+     * Это уже не предотвращает
+     * первый LLM call конкурентной копии —
+     * полноценный in-flight join
+     * будет частью durable B2.
      */
+    if (execution.status === 'duplicate') {
+      return {
+        outcome: 'duplicate_request',
+
+        text: '',
+
+        record,
+
+        artifacts,
+
+        modelCalls,
+
+        capabilityRounds,
+      };
+    }
+
     if (input.signal?.aborted) {
       return {
         outcome: 'cancelled',
@@ -493,22 +700,6 @@ export class ProductConsultantLoop {
       };
     }
 
-    if (input.signal?.aborted) {
-      return {
-        outcome: 'cancelled',
-
-        text: CANCELLED_TEXT,
-
-        record,
-
-        artifacts,
-
-        modelCalls,
-
-        capabilityRounds,
-      };
-    }
-
     let capability: CapabilityExecution;
 
     try {
@@ -516,6 +707,8 @@ export class ProductConsultantLoop {
         firstDecision,
 
         execution,
+
+        validatedUsageScenarioIds,
       );
     } catch {
       return {
@@ -564,9 +757,13 @@ export class ProductConsultantLoop {
 
       selectedProducts: capability.selectedProducts,
 
+      factAttributeIds: capability.factAttributeIds,
+
       comparison: capability.comparison,
 
-      usageScenarioIds: firstDecision.usageScenarioIds,
+      usageScenarioIds: validatedUsageScenarioIds,
+
+      searchCapabilities: this.searchCapabilities,
     });
 
     if (modelCalls >= MAX_MODEL_CALLS_PER_TURN) {
@@ -663,17 +860,6 @@ export class ProductConsultantLoop {
 
     const secondDecision = secondDecisionResult.decision;
 
-    /**
-     * Call #2 только завершает turn.
-     *
-     * Никакого второго:
-     *
-     * - SEARCH;
-     * - REFINE;
-     * - Memory mutation;
-     * - feedback;
-     * - start_new.
-     */
     if (!isSecondRoundTerminalDecision(secondDecision)) {
       return {
         outcome: 'budget_exhausted',
@@ -703,6 +889,17 @@ export class ProductConsultantLoop {
 
       capabilityRounds,
     };
+  }
+
+  private emitDiagnostic(diagnostic: UsageScenarioSelectionDiagnostic): void {
+    try {
+      this.onDiagnostic?.(diagnostic);
+    } catch {
+      /**
+       * Observability не имеет права
+       * ломать пользовательский request.
+       */
+    }
   }
 
   private async callModel(input: {
@@ -801,10 +998,6 @@ export class ProductConsultantLoop {
         abortPromise,
       ]);
 
-      /**
-       * На случай почти
-       * одновременного resolve + abort.
-       */
       if (timedOut) {
         return {
           kind: 'timeout',
@@ -863,6 +1056,8 @@ export class ProductConsultantLoop {
     decision: ProductConsultantDecision,
 
     execution: Awaited<ReturnType<ConsultationWriteOwner['execute']>>,
+
+    usageScenarioIds: readonly string[],
   ): Promise<CapabilityExecution> {
     const action = decision.proposal.action;
 
@@ -886,6 +1081,8 @@ export class ProductConsultantLoop {
             selectedProducts: [],
 
             comparison: null,
+
+            factAttributeIds: [],
           };
         }
 
@@ -899,6 +1096,38 @@ export class ProductConsultantLoop {
           }
 
           const count = snapshot.products.length;
+
+          const factAttributeIds = prioritizedFactAttributeIds({
+            record: execution.record,
+
+            decision,
+
+            usageScenarioIds,
+
+            limit: DEFAULT_CONSULTATION_AGENT_BUDGET.initialFactAttributes,
+          });
+
+          const productIds = snapshot.products
+            .slice(
+              0,
+
+              DEFAULT_CONSULTATION_AGENT_BUDGET.initialFactProducts,
+            )
+            .map((product) => product.productId);
+
+          let selectedProducts: ProductDetails[] = [];
+
+          if (productIds.length > 0) {
+            const fresh = await this.productDetails.getProductDetails(
+              productIds,
+            );
+
+            selectedProducts = orderedProducts(
+              productIds,
+
+              fresh,
+            );
+          }
 
           return {
             record: execution.record,
@@ -919,9 +1148,11 @@ export class ProductConsultantLoop {
               },
             ],
 
-            selectedProducts: [],
+            selectedProducts,
 
             comparison: null,
+
+            factAttributeIds,
           };
         }
 
@@ -942,6 +1173,8 @@ export class ProductConsultantLoop {
             selectedProducts: [],
 
             comparison: null,
+
+            factAttributeIds: [],
           };
         }
 
@@ -976,6 +1209,8 @@ export class ProductConsultantLoop {
             selectedProducts: [],
 
             comparison: null,
+
+            factAttributeIds: [],
           };
         }
 
@@ -1001,6 +1236,8 @@ export class ProductConsultantLoop {
           selectedProducts: [],
 
           comparison: null,
+
+          factAttributeIds: [],
         };
       }
 
@@ -1044,8 +1281,20 @@ export class ProductConsultantLoop {
             selectedProducts: [],
 
             comparison: null,
+
+            factAttributeIds: [],
           };
         }
+
+        const factAttributeIds = prioritizedFactAttributeIds({
+          record: execution.record,
+
+          decision,
+
+          usageScenarioIds,
+
+          limit: DEFAULT_CONSULTATION_AGENT_BUDGET.detailFactAttributes,
+        });
 
         return {
           record: execution.record,
@@ -1067,6 +1316,8 @@ export class ProductConsultantLoop {
           selectedProducts: products,
 
           comparison: null,
+
+          factAttributeIds,
         };
       }
 
@@ -1110,6 +1361,8 @@ export class ProductConsultantLoop {
             selectedProducts: [],
 
             comparison: null,
+
+            factAttributeIds: [],
           };
         }
 
@@ -1121,6 +1374,16 @@ export class ProductConsultantLoop {
           );
         }
 
+        const factAttributeIds = prioritizedFactAttributeIds({
+          record: execution.record,
+
+          decision,
+
+          usageScenarioIds,
+
+          limit: DEFAULT_CONSULTATION_AGENT_BUDGET.detailFactAttributes,
+        });
+
         const compared = compareConsultationProducts({
           state,
 
@@ -1128,7 +1391,7 @@ export class ProductConsultantLoop {
 
           products,
 
-          attributeIds: null,
+          attributeIds: factAttributeIds.length > 0 ? factAttributeIds : null,
         });
 
         return {
@@ -1151,6 +1414,8 @@ export class ProductConsultantLoop {
           selectedProducts: products,
 
           comparison: compared,
+
+          factAttributeIds,
         };
       }
 
@@ -1194,8 +1459,20 @@ export class ProductConsultantLoop {
             selectedProducts: [],
 
             comparison: null,
+
+            factAttributeIds: [],
           };
         }
+
+        const factAttributeIds = prioritizedFactAttributeIds({
+          record: execution.record,
+
+          decision,
+
+          usageScenarioIds,
+
+          limit: DEFAULT_CONSULTATION_AGENT_BUDGET.detailFactAttributes,
+        });
 
         return {
           record: execution.record,
@@ -1206,15 +1483,13 @@ export class ProductConsultantLoop {
             status: 'context_ready',
           },
 
-          /**
-           * Совет сам по себе
-           * не создаёт UI cards.
-           */
           artifacts: [],
 
           selectedProducts: products,
 
           comparison: null,
+
+          factAttributeIds,
         };
       }
 

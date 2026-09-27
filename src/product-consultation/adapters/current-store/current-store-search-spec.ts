@@ -4,10 +4,101 @@ import {
 } from '../../application/search/product-need.schema';
 
 import {
+  ProductSearchCapabilitiesSchema,
+  type ProductSearchConstraintCapability,
+} from '../../application/search/product-search-capabilities';
+
+import {
   SearchSpecSchema,
   type SearchConstraint,
   type SearchSpec,
 } from '../../core/search/search-spec.schema';
+
+type CurrentStoreProductType = NonNullable<ProductNeed['filters']['type']>;
+
+type CurrentStoreGender = NonNullable<ProductNeed['filters']['gender']>;
+
+const CURRENT_STORE_CONSTRAINT_CAPABILITIES: ProductSearchConstraintCapability[] =
+  [
+    {
+      attributeId: 'brand',
+
+      operators: ['eq'],
+
+      modelVisible: true,
+    },
+
+    {
+      attributeId: 'category',
+
+      operators: ['eq'],
+
+      modelVisible: true,
+    },
+
+    {
+      attributeId: 'subcategory',
+
+      operators: ['eq'],
+
+      modelVisible: true,
+    },
+
+    {
+      attributeId: 'type',
+
+      operators: ['eq'],
+
+      modelVisible: false,
+    },
+
+    {
+      attributeId: 'gender',
+
+      operators: ['eq'],
+
+      modelVisible: true,
+    },
+
+    {
+      attributeId: 'color',
+
+      operators: ['eq'],
+
+      modelVisible: true,
+    },
+
+    {
+      attributeId: 'sizes',
+
+      operators: ['contains'],
+
+      modelVisible: true,
+    },
+
+    {
+      attributeId: 'price',
+
+      operators: ['eq', 'gte', 'lte'],
+
+      modelVisible: true,
+    },
+  ];
+
+export const CURRENT_STORE_SEARCH_CAPABILITIES =
+  ProductSearchCapabilitiesSchema.parse({
+    profileIds: ['SHOES', 'CLOTHES', 'ACCESSORIES'],
+
+    constraints: CURRENT_STORE_CONSTRAINT_CAPABILITIES,
+
+    maxConstraints: null,
+  });
+
+const CURRENT_STORE_CAPABILITY_BY_ATTRIBUTE = new Map(
+  CURRENT_STORE_SEARCH_CAPABILITIES.constraints.map(
+    (capability) => [capability.attributeId, capability] as const,
+  ),
+);
 
 function fail(message: string): never {
   throw new Error(`CurrentStoreSearchSpec: ${message}`);
@@ -19,18 +110,42 @@ function constraintKey(
   return `${constraint.attributeId}:${constraint.operator}`;
 }
 
-function requireOperator(
+function assertCurrentStoreConstraintCapability(
   constraint: SearchConstraint,
-
-  expected: SearchConstraint['operator'],
 ): void {
-  if (constraint.operator !== expected) {
+  const capability = CURRENT_STORE_CAPABILITY_BY_ATTRIBUTE.get(
+    constraint.attributeId,
+  );
+
+  if (!capability) {
+    fail(
+      `unsupported hard constraint ${constraintKey(
+        constraint,
+      )} for current store search.`,
+    );
+  }
+
+  if (capability.operators.includes(constraint.operator)) {
+    return;
+  }
+
+  if (capability.operators.length === 1) {
     fail(
       `constraint ${constraintKey(
         constraint,
-      )} is not executable by current store search; expected operator ${expected}.`,
+      )} is not executable by current store search; expected operator ${
+        capability.operators[0]
+      }.`,
     );
   }
+
+  fail(
+    `constraint ${constraintKey(
+      constraint,
+    )} is not executable by current store search; supported operators: ${capability.operators.join(
+      ', ',
+    )}.`,
+  );
 }
 
 function requireStringValue(constraint: SearchConstraint): string {
@@ -60,7 +175,7 @@ function requireNumberValue(constraint: SearchConstraint): number {
 
 function requireProductType(
   constraint: SearchConstraint,
-): NonNullable<ProductNeed['filters']['type']> {
+): CurrentStoreProductType {
   const value = requireStringValue(constraint);
 
   if (value !== 'SHOES' && value !== 'CLOTHES' && value !== 'ACCESSORIES') {
@@ -70,46 +185,160 @@ function requireProductType(
   return value;
 }
 
-function requireGender(
-  constraint: SearchConstraint,
-): NonNullable<ProductNeed['filters']['gender']> {
-  const value = requireStringValue(constraint);
+/**
+ * Нормализуем только семантические
+ * варианты пола в native enum
+ * текущего магазина.
+ *
+ * Это adapter concern.
+ *
+ * Product Consultant НЕ обязан знать,
+ * что current store хранит:
+ *
+ * MAN / WOMAN / UNISEX.
+ */
+function normalizeGenderValue(raw: string): string {
+  return raw
+    .trim()
+    .toLocaleLowerCase('ru-RU')
+    .replaceAll('ё', 'е')
+    .replace(
+      /[_-]+/gu,
 
-  if (value !== 'MAN' && value !== 'WOMAN' && value !== 'UNISEX') {
-    fail(`unsupported current-store gender ${value}.`);
+      ' ',
+    )
+    .replace(
+      /\s+/gu,
+
+      ' ',
+    );
+}
+
+function requireGender(constraint: SearchConstraint): CurrentStoreGender {
+  const original = requireStringValue(constraint);
+
+  const value = normalizeGenderValue(original);
+
+  const maleValues = new Set([
+    'man',
+
+    'male',
+
+    'men',
+
+    'mens',
+
+    "men's",
+
+    'мужской',
+
+    'мужские',
+
+    'мужская',
+
+    'мужское',
+
+    'мужчина',
+
+    'мужчины',
+
+    'для мужчин',
+  ]);
+
+  if (maleValues.has(value)) {
+    return 'MAN';
   }
 
-  return value;
+  const femaleValues = new Set([
+    'woman',
+
+    'female',
+
+    'women',
+
+    'womens',
+
+    "women's",
+
+    'женский',
+
+    'женские',
+
+    'женская',
+
+    'женское',
+
+    'женщина',
+
+    'женщины',
+
+    'для женщин',
+  ]);
+
+  if (femaleValues.has(value)) {
+    return 'WOMAN';
+  }
+
+  const unisexValues = new Set(['unisex', 'унисекс']);
+
+  if (unisexValues.has(value)) {
+    return 'UNISEX';
+  }
+
+  fail(`unsupported current-store gender ${original}.`);
+}
+
+function currentStoreTypeForProfile(
+  profileId: string | null,
+): CurrentStoreProductType | null {
+  switch (profileId) {
+    case null:
+    case 'GENERIC': {
+      return null;
+    }
+
+    case 'SHOES': {
+      return 'SHOES';
+    }
+
+    case 'CLOTHES': {
+      return 'CLOTHES';
+    }
+
+    case 'ACCESSORIES': {
+      return 'ACCESSORIES';
+    }
+
+    default: {
+      fail(`unsupported current-store category profile ${profileId}.`);
+    }
+  }
 }
 
 /**
- * Компилирует authoritative SearchSpec
- * в существующий current-store ProductNeed.
+ * Consultation SearchSpec
+ *                ↓
+ * current-store ProductNeed
  *
- * Это compatibility adapter.
- *
- * ProductNeed НЕ становится новым
- * application contract.
- *
- * Каждый SearchSpec constraint здесь
- * должен быть:
- *
- * 1. реально отображён в hard filter;
- * или
- * 2. явно отклонён как unsupported.
- *
- * Нельзя молча переносить hard constraint
- * только в semanticQuery.
+ * Здесь живут именно store-specific
+ * преобразования.
  */
 export function compileCurrentStoreSearchSpec(
   searchRaw: SearchSpec,
 ): ProductNeed {
   const search = SearchSpecSchema.parse(searchRaw);
 
+  const profileType = currentStoreTypeForProfile(search.category);
+
   const filters: ProductNeed['filters'] = {
     gender: null,
 
-    type: null,
+    /**
+     * Consultation category/profile
+     * deterministic задаёт
+     * current-store Product.type.
+     */
+    type: profileType,
 
     brand: null,
 
@@ -133,58 +362,59 @@ export function compileCurrentStoreSearchSpec(
   let maxPrice: number | null = null;
 
   for (const constraint of search.constraints) {
+    assertCurrentStoreConstraintCapability(constraint);
+
     switch (constraint.attributeId) {
       case 'brand': {
-        requireOperator(constraint, 'eq');
-
         filters.brand = requireStringValue(constraint);
 
         break;
       }
 
       case 'category': {
-        requireOperator(constraint, 'eq');
-
         filters.category = requireStringValue(constraint);
 
         break;
       }
 
       case 'subcategory': {
-        requireOperator(constraint, 'eq');
-
         filters.subcategory = requireStringValue(constraint);
 
         break;
       }
 
       case 'type': {
-        requireOperator(constraint, 'eq');
+        const requestedType = requireProductType(constraint);
 
-        filters.type = requireProductType(constraint);
+        if (profileType !== null && requestedType !== profileType) {
+          fail(
+            `category profile ${search.category} maps to current-store type ${profileType}, but type:eq requests ${requestedType}.`,
+          );
+        }
+
+        filters.type = requestedType;
 
         break;
       }
 
       case 'gender': {
-        requireOperator(constraint, 'eq');
-
+        /**
+         * Semantic value модели
+         * переводится в native enum
+         * магазина здесь.
+         */
         filters.gender = requireGender(constraint);
 
         break;
       }
 
       case 'color': {
-        requireOperator(constraint, 'eq');
-
         filters.color = requireStringValue(constraint);
 
         break;
       }
 
       case 'sizes': {
-        requireOperator(constraint, 'contains');
-
         filters.size = requireStringValue(constraint);
 
         break;
@@ -225,19 +455,6 @@ export function compileCurrentStoreSearchSpec(
       }
 
       default: {
-        /**
-         * Очень важный invariant.
-         *
-         * Например weight, material,
-         * purpose и waterProtection
-         * существуют в CategoryProfile,
-         * но текущий hybrid search
-         * не может гарантировать полный
-         * hard-filter search по ним.
-         *
-         * Поэтому не притворяемся,
-         * что constraint исполнен.
-         */
         fail(
           `unsupported hard constraint ${constraintKey(
             constraint,
@@ -248,13 +465,9 @@ export function compileCurrentStoreSearchSpec(
   }
 
   /**
-   * Legacy current-store resolver
-   * при наличии subcategory сейчас
-   * не исполняет category независимо.
-   *
-   * Поэтому до расширения store search
-   * нельзя обещать выполнение обоих
-   * hard constraints одновременно.
+   * Existing resolver пока
+   * не гарантирует simultaneous
+   * category + subcategory.
    */
   if (filters.category !== null && filters.subcategory !== null) {
     fail(
@@ -262,14 +475,6 @@ export function compileCurrentStoreSearchSpec(
     );
   }
 
-  /**
-   * price:eq — более сильное условие,
-   * чем gte/lte.
-   *
-   * SearchSpec semantic validation
-   * уже гарантирует совместимость
-   * numeric constraints.
-   */
   if (exactPrice !== null) {
     filters.minPrice = exactPrice;
 
@@ -281,12 +486,6 @@ export function compileCurrentStoreSearchSpec(
   }
 
   return ProductNeedSchema.parse({
-    /**
-     * semanticIntent остаётся semantic retrieval text.
-     *
-     * Hard facets НЕ кодируются здесь
-     * повторно — они находятся в filters.
-     */
     semanticQuery: search.semanticIntent,
 
     filters,

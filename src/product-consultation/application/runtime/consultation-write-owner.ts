@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
+import { isDeepStrictEqual } from 'node:util';
+
 import type { ProductSearchPort } from '../search/product-search.port';
 
 import { CATEGORY_PROFILES } from '../../core/profiles';
@@ -10,6 +12,11 @@ import {
   createConsultationResultsState,
   failSearchExecution,
 } from '../../core/results/consultation-results';
+
+import {
+  ConsultationResultsStateSchema,
+  type ConsultationResultsState,
+} from '../../core/results/consultation-results.schema';
 
 import type { ResolvedProductSelection } from '../../core/results/consultation-results';
 
@@ -46,39 +53,18 @@ export type ConsultationWriteOwnerIdFactories = {
 export type ExecuteConsultationTurnInput = {
   conversationId: string;
 
-  /**
-   * Revision context-а,
-   * на основе которого был создан proposal.
-   */
   expectedRevision: number;
 
   requestId: string;
 
   proposal: unknown;
 
-  /**
-   * Snapshot, который реально видел
-   * Consultant в context этого turn.
-   */
   expectedResultId: string | null;
 };
 
 type ResolvedTurnSelections = {
-  /**
-   * Server-owned product IDs
-   * главной операции.
-   *
-   * Например:
-   *
-   * DETAILS position 2
-   * → productId Campus.
-   */
   resolvedSelection: ResolvedProductSelection | null;
 
-  /**
-   * Отдельный resolved target
-   * semantic feedback.
-   */
   resolvedFeedbackSelection: ResolvedProductSelection | null;
 };
 
@@ -141,18 +127,28 @@ function nextRecord(
   });
 }
 
+/**
+ * Profile определяется:
+ *
+ * 1. новым complete SearchSpec,
+ *    если proposal его несёт;
+ *
+ * 2. иначе current task SearchSpec.
+ *
+ * Это позволяет CLARIFY
+ * сохранить условия новой задачи
+ * до первого поиска.
+ */
 function resolveProfile(
   current: ConsultationApplicationRecord,
 
   proposal: ConsultationTurnProposal,
 ) {
-  let category: string | null = null;
-
-  if (proposal.action === 'SEARCH') {
-    category = proposal.search?.category ?? null;
-  } else if (proposal.taskTransition !== 'start_new') {
-    category = current.state?.search?.category ?? null;
-  }
+  const category =
+    proposal.search?.category ??
+    (proposal.taskTransition === 'start_new'
+      ? null
+      : current.state?.search?.category ?? null);
 
   if (category === null) {
     return null;
@@ -179,6 +175,42 @@ function assertExpectedRevision(value: number): void {
       'ConsultationWriteOwner: expectedRevision must be a non-negative integer.',
     );
   }
+}
+
+/**
+ * SearchSpec изменился БЕЗ
+ * нового SearchExecution.
+ *
+ * Значит старая выдача
+ * больше не соответствует
+ * authoritative SearchSpec.
+ *
+ * active → null
+ *
+ * lastConfirmed сохраняем
+ * как последний исторически
+ * подтверждённый snapshot.
+ *
+ * pending/lastFailure относятся
+ * к предыдущему search lifecycle
+ * и больше не current.
+ */
+function detachResultsFromChangedSearch(
+  currentRaw: ConsultationResultsState,
+): ConsultationResultsState {
+  const current = ConsultationResultsStateSchema.parse(currentRaw);
+
+  return ConsultationResultsStateSchema.parse({
+    version: 1,
+
+    revision: current.revision + 1,
+
+    pendingSearch: null,
+
+    active: null,
+
+    lastConfirmed: current.lastConfirmed,
+  });
 }
 
 export class ConsultationWriteOwner {
@@ -221,10 +253,6 @@ export class ConsultationWriteOwner {
 
     const current = ConsultationApplicationRecordSchema.parse(loaded);
 
-    /**
-     * Idempotency идёт раньше
-     * stale revision.
-     */
     if (current.processedRequestIds.includes(requestId)) {
       return {
         status: 'duplicate',
@@ -281,6 +309,47 @@ export class ConsultationWriteOwner {
     let executionId: string | null = null;
 
     let search: SearchSpec | null = null;
+
+    /**
+     * PRE-SEARCH CLARIFY.
+     *
+     * SearchSpec не исполняется,
+     * но он всё равно обязан быть
+     * реально executable текущим
+     * Store adapter.
+     *
+     * SearchSpec = executable
+     * hard constraints only.
+     */
+    if (proposal.action === 'CLARIFY' && proposal.search !== null) {
+      const persistedSearch = prepared.turn.state.search;
+
+      if (persistedSearch === null) {
+        throw new Error(
+          'ConsultationWriteOwner: CLARIFY persisted SearchSpec is missing.',
+        );
+      }
+
+      this.productSearch.validate(persistedSearch);
+
+      /**
+       * Если SearchSpec действительно
+       * изменился, старая active выдача
+       * больше не current.
+       *
+       * start_new уже получил
+       * свежий empty ResultsState.
+       */
+      const searchChanged = !isDeepStrictEqual(
+        current.state?.search ?? null,
+
+        persistedSearch,
+      );
+
+      if (proposal.taskTransition !== 'start_new' && searchChanged) {
+        results = detachResultsFromChangedSearch(results);
+      }
+    }
 
     if (prepared.turn.searchRequired) {
       search = prepared.turn.state.search;
@@ -373,40 +442,16 @@ export class ConsultationWriteOwner {
       };
     }
 
+    /**
+     * S2:
+     *
+     * SearchPort failure отделён
+     * от persistence/finalization.
+     */
+    let products: Awaited<ReturnType<ProductSearchPort['search']>>;
+
     try {
-      const products = await this.productSearch.search(search);
-
-      const finalized = await this.finalizeSuccessfulSearch({
-        conversationId,
-
-        generation,
-
-        executionId,
-
-        products,
-      });
-
-      if (finalized.status === 'superseded') {
-        return {
-          status: 'superseded',
-
-          record: finalized.record,
-
-          resolvedSelection: prepared.resolvedSelection,
-
-          resolvedFeedbackSelection: prepared.resolvedFeedbackSelection,
-        };
-      }
-
-      return {
-        status: 'search_succeeded',
-
-        record: finalized.record,
-
-        resolvedSelection: prepared.resolvedSelection,
-
-        resolvedFeedbackSelection: prepared.resolvedFeedbackSelection,
-      };
+      products = await this.productSearch.search(search);
     } catch (error) {
       const finalized = await this.finalizeFailedSearch({
         conversationId,
@@ -440,6 +485,46 @@ export class ConsultationWriteOwner {
         resolvedFeedbackSelection: prepared.resolvedFeedbackSelection,
       };
     }
+
+    /**
+     * SearchPort уже успешно
+     * завершился.
+     *
+     * Ошибка здесь —
+     * persistence/finalization error,
+     * не search_failed.
+     */
+    const finalized = await this.finalizeSuccessfulSearch({
+      conversationId,
+
+      generation,
+
+      executionId,
+
+      products,
+    });
+
+    if (finalized.status === 'superseded') {
+      return {
+        status: 'superseded',
+
+        record: finalized.record,
+
+        resolvedSelection: prepared.resolvedSelection,
+
+        resolvedFeedbackSelection: prepared.resolvedFeedbackSelection,
+      };
+    }
+
+    return {
+      status: 'search_succeeded',
+
+      record: finalized.record,
+
+      resolvedSelection: prepared.resolvedSelection,
+
+      resolvedFeedbackSelection: prepared.resolvedFeedbackSelection,
+    };
   }
 
   private async finalizeSuccessfulSearch(input: {

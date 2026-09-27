@@ -27,16 +27,6 @@ export const ConsultationActionSchema = z.enum([
   'HANDOFF',
 ]);
 
-/**
- * Единственный набор actions,
- * который разрешено отдавать будущей LLM.
- *
- * Ослабление constraints = REFINE.
- *
- * ALTERNATIVES пока не имеет отдельной
- * deterministic backend semantics,
- * поэтому наружу его не выставляем.
- */
 export const PublicConsultationActionSchema = z.enum([
   'SEARCH',
   'REFINE',
@@ -61,19 +51,6 @@ export const ProductSelectionSchema = z.discriminatedUnion('kind', [
     .object({
       kind: z.literal('positions'),
 
-      /**
-       * Здесь только общий safety limit.
-       *
-       * DETAILS / COMPARE / RECOMMEND /
-       * FEEDBACK проверяют собственную
-       * cardinality уже после resolution.
-       *
-       * Благодаря этому здесь больше нет
-       * конфликта:
-       *
-       * generic max=4
-       * vs RECOMMEND max=5.
-       */
       positions: z
         .array(z.number().int().min(1).max(25))
         .min(1)
@@ -110,6 +87,19 @@ const ACTIONS_REQUIRING_SELECTION = new Set([
 
 const PATCH_SEARCH_ACTIONS = new Set(['REFINE', 'RELAX_CONSTRAINTS']);
 
+/**
+ * Полный SearchSpec может приходить:
+ *
+ * SEARCH
+ * → сохранить + выполнить;
+ *
+ * CLARIFY
+ * → только сохранить уже понятные
+ *   executable conditions,
+ *   но НЕ выполнять поиск.
+ */
+const COMPLETE_SEARCH_ACTIONS = new Set(['SEARCH', 'CLARIFY']);
+
 export const ConsultationTurnInterpretationSchema = z
   .object({
     action: ConsultationActionSchema,
@@ -120,22 +110,12 @@ export const ConsultationTurnInterpretationSchema = z
      * INTERNAL state delta.
      *
      * Public Product Consultant этот объект
-     * больше напрямую не контролирует.
+     * напрямую не контролирует.
      */
     delta: ConsultationStateDeltaSchema.default(() => ({})),
 
     selection: ProductSelectionSchema.nullable().default(null),
 
-    /**
-     * INTERNAL semantic feedback.
-     *
-     * Для mixed-operation public feedback
-     * boundary сама создаёт server-owned
-     * Memory mutation.
-     *
-     * Здесь feedback остаётся нужен
-     * для чистого action=FEEDBACK.
-     */
     feedback: TurnFeedbackSchema.nullable().default(null),
   })
   .strict()
@@ -150,7 +130,10 @@ export const ConsultationTurnInterpretationSchema = z
       });
     }
 
-    if (interpretation.action !== 'SEARCH' && interpretation.search !== null) {
+    if (
+      interpretation.search !== null &&
+      !COMPLETE_SEARCH_ACTIONS.has(interpretation.action)
+    ) {
       context.addIssue({
         code: 'custom',
 
@@ -173,6 +156,25 @@ export const ConsultationTurnInterpretationSchema = z
       });
     }
 
+    /**
+     * CLARIFY с complete SearchSpec
+     * сохраняет именно целый candidate.
+     *
+     * Patch одновременно с ним запрещён.
+     */
+    if (
+      interpretation.action === 'CLARIFY' &&
+      interpretation.delta.search !== undefined
+    ) {
+      context.addIssue({
+        code: 'custom',
+
+        path: ['delta', 'search'],
+
+        message: 'CLARIFY cannot contain SearchSpec patch.',
+      });
+    }
+
     if (
       interpretation.delta.search !== undefined &&
       !PATCH_SEARCH_ACTIONS.has(interpretation.action)
@@ -182,7 +184,7 @@ export const ConsultationTurnInterpretationSchema = z
 
         path: ['delta', 'search'],
 
-        message: `${interpretation.action} cannot mutate SearchSpec.`,
+        message: `${interpretation.action} cannot mutate SearchSpec through patch.`,
       });
     }
 
@@ -250,23 +252,6 @@ export const ConsultationTurnInterpretationSchema = z
         message: `${interpretation.action} cannot contain product selection.`,
       });
     }
-
-    /**
-     * ВАЖНО:
-     *
-     * Раньше здесь запрещался
-     * delta.memory.feedback.
-     *
-     * Это было нужно, пока interpretation
-     * могла приходить прямо от LLM.
-     *
-     * Теперь interpretation INTERNAL,
-     * а public boundary сама привязывает
-     * feedback к server-owned productId.
-     *
-     * Поэтому internal Memory feedback
-     * здесь разрешён.
-     */
 
     if (
       interpretation.action === 'FEEDBACK' &&
