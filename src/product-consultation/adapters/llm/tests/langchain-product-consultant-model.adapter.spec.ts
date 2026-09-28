@@ -48,13 +48,19 @@ function validDecision() {
   };
 }
 
-function modelInput(): ProductConsultantModelInput {
+function modelInput(round: 1 | 2 = 1): ProductConsultantModelInput {
   return {
-    round: 1,
+    round,
 
-    observation: {
-      kind: 'initial',
-    },
+    observation:
+      round === 1
+        ? {
+            kind: 'initial',
+          }
+        : {
+            kind: 'recommend',
+            status: 'context_ready',
+          },
 
     context: {
       version: 1,
@@ -173,6 +179,83 @@ describe('LangChainProductConsultantModelAdapter', () => {
     await expect(adapter.decide(modelInput())).resolves.toEqual(decision);
   });
 
+  it('normalizes round 2 terminal text into inert COMPLETE decision', async () => {
+    const invoke = jest.fn(async (_messages: unknown, _config?: unknown) => ({
+      content: JSON.stringify({
+        terminalText:
+          'По подтверждённым данным я пока не могу уверенно выбрать модель именно по комфорту.',
+      }),
+    }));
+
+    const aiService = {
+      getChatModel: () => ({
+        invoke,
+      }),
+    } as unknown as AiService;
+
+    const adapter = new LangChainProductConsultantModelAdapter(aiService);
+
+    await expect(adapter.decide(modelInput(2))).resolves.toEqual({
+      proposal: {
+        action: 'COMPLETE',
+        taskTransition: 'continue',
+        search: null,
+        searchPatch: null,
+        memoryObservations: [],
+        selection: null,
+        feedback: null,
+      },
+      usageScenarioIds: [],
+      factAttributeIds: [],
+      terminalText:
+        'По подтверждённым данным я пока не могу уверенно выбрать модель именно по комфорту.',
+    });
+  });
+
+  it('ignores accidental round 2 capability fields when terminal text is ready', async () => {
+    const invoke = jest.fn(async (_messages: unknown, _config?: unknown) => ({
+      content: JSON.stringify({
+        proposal: {
+          action: 'RECOMMEND',
+          taskTransition: 'continue',
+          search: null,
+          searchPatch: null,
+          memoryObservations: [],
+          selection: {
+            kind: 'active',
+          },
+          feedback: null,
+        },
+        usageScenarioIds: ['daily_walking'],
+        factAttributeIds: ['weight', 'upperMaterial'],
+        terminalText: 'Из подтверждённых данных варианты отличаются по цене.',
+      }),
+    }));
+
+    const aiService = {
+      getChatModel: () => ({
+        invoke,
+      }),
+    } as unknown as AiService;
+
+    const adapter = new LangChainProductConsultantModelAdapter(aiService);
+
+    await expect(adapter.decide(modelInput(2))).resolves.toEqual({
+      proposal: {
+        action: 'COMPLETE',
+        taskTransition: 'continue',
+        search: null,
+        searchPatch: null,
+        memoryObservations: [],
+        selection: null,
+        feedback: null,
+      },
+      usageScenarioIds: [],
+      factAttributeIds: [],
+      terminalText: 'Из подтверждённых данных варианты отличаются по цене.',
+    });
+  });
+
   it('throws a useful error when provider returns invalid json', async () => {
     const invoke = jest.fn(async (_messages: unknown, _config?: unknown) => ({
       content: 'Я думаю, нужно поискать кроссовки.',
@@ -220,9 +303,9 @@ describe('LangChainProductConsultantModelAdapter', () => {
 
     expect(systemText).toContain('Product Consultant интернет-магазина');
 
-    expect(systemText).toContain('ТОЛЬКО один JSON-объект');
-
     expect(systemText).toContain('ROUND 2');
+
+    expect(systemText).toContain('"terminalText": "..."');
 
     expect(userText).toContain('"round": 1');
 
