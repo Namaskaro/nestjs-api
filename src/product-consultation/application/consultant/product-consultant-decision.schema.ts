@@ -40,9 +40,7 @@ const UsageScenarioIdsSchema = z
     if (new Set(scenarioIds).size !== scenarioIds.length) {
       context.addIssue({
         code: 'custom',
-
         path: ['usageScenarioIds'],
-
         message:
           'Product Consultant decision contains duplicate usage scenario IDs.',
       });
@@ -51,21 +49,6 @@ const UsageScenarioIdsSchema = z
 
 const FactAttributeIdSchema = z.string().trim().min(1).max(160);
 
-/**
- * Ephemeral fact focus.
- *
- * Это НЕ:
- *
- * - SearchSpec;
- * - Memory;
- * - hard constraint;
- * - persisted comparison criteria.
- *
- * Consultant только сообщает application:
- *
- * "для следующего reasoning round
- * особенно полезны эти ProductFacts".
- */
 const FactAttributeIdsSchema = z
   .array(FactAttributeIdSchema)
   .max(16)
@@ -73,9 +56,7 @@ const FactAttributeIdsSchema = z
     if (new Set(attributeIds).size !== attributeIds.length) {
       context.addIssue({
         code: 'custom',
-
         path: ['factAttributeIds'],
-
         message:
           'Product Consultant decision contains duplicate fact attribute IDs.',
       });
@@ -84,36 +65,26 @@ const FactAttributeIdsSchema = z
 
 export const ProductConsultantDecisionSchema = z
   .object({
-    proposal: ConsultationTurnProposalSchema,
+    proposal: ConsultationTurnProposalSchema.describe(
+      'Semantic turn proposal. This object never contains usageScenarioIds, factAttributeIds or terminalText.',
+    ),
 
-    /**
-     * Ephemeral Usage Scenario selection.
-     *
-     * Scenario сам по себе
-     * SearchSpec не изменяет.
-     */
-    usageScenarioIds: UsageScenarioIdsSchema.default(() => []),
+    usageScenarioIds: UsageScenarioIdsSchema.describe(
+      'Root-level selected usage scenario IDs. Never place this field inside proposal.',
+    ),
 
-    /**
-     * S4:
-     *
-     * Ephemeral semantic focus
-     * для verified ProductFacts.
-     */
-    factAttributeIds: FactAttributeIdsSchema.default(() => []),
+    factAttributeIds: FactAttributeIdsSchema.describe(
+      'Root-level ephemeral ProductFact focus. Never place this field inside proposal.',
+    ),
 
-    /**
-     * null:
-     *
-     * backend capability ещё
-     * должен выполниться.
-     *
-     * string:
-     *
-     * текущий turn заканчивается
-     * пользовательским ответом.
-     */
-    terminalText: z.string().trim().min(1).max(6000).nullable(),
+    terminalText: z
+      .string()
+      .trim()
+      .min(1)
+      .max(6000)
+      .nullable()
+      .default(null)
+      .describe('Root-level terminal response. Null for capability actions.'),
   })
   .strict()
   .superRefine((decision, context) => {
@@ -126,9 +97,7 @@ export const ProductConsultantDecisionSchema = z
     if (!requiresCapability && !isTerminal) {
       context.addIssue({
         code: 'custom',
-
         path: ['proposal', 'action'],
-
         message: `Product Consultant action ${action} has no lifecycle classification.`,
       });
 
@@ -138,9 +107,7 @@ export const ProductConsultantDecisionSchema = z
     if (requiresCapability && decision.terminalText !== null) {
       context.addIssue({
         code: 'custom',
-
         path: ['terminalText'],
-
         message: `${action} requires backend capability execution before terminal response.`,
       });
     }
@@ -148,13 +115,14 @@ export const ProductConsultantDecisionSchema = z
     if (isTerminal && decision.terminalText === null) {
       context.addIssue({
         code: 'custom',
-
         path: ['terminalText'],
-
         message: `${action} requires terminal text.`,
       });
     }
-  });
+  })
+  .describe(
+    'Product Consultant decision. proposal, usageScenarioIds, factAttributeIds and terminalText are four separate root-level fields.',
+  );
 
 export type ProductConsultantDecision = z.infer<
   typeof ProductConsultantDecisionSchema

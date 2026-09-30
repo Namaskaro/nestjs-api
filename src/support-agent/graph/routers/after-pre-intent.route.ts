@@ -1,5 +1,3 @@
-import { readProductContext } from '../../../product-consultation/application/context/product-context.schema';
-
 import type { SupportAgentStateType } from '../support-agent.state';
 
 function normalizeQuery(query: string): string {
@@ -13,7 +11,7 @@ function normalizeQuery(query: string): string {
 const CUSTOMER_HELP_HINT_PATTERN =
   /(?:достав|оплат|возврат|обмен|скид|лояль|претенз|заказ|оператор)/iu;
 
-const PRODUCT_CONTEXT_FOLLOWUP_PATTERNS = [
+const PRODUCT_FOLLOWUP_PATTERNS = [
   /^(?:сравни|сравните)(?=$|[^\p{L}\p{N}_])/iu,
 
   /^(?:расскажи|расскажите|покажи|покажите|дай|дайте)(?=$|[^\p{L}\p{N}_]).{0,80}(?:^|[^\p{L}\p{N}_])(?:подробнее|детал)/iu,
@@ -50,20 +48,9 @@ const PRODUCT_COMPLETION_PATTERNS = [
 function shouldRouteDirectlyToProductAgent(
   state: SupportAgentStateType,
 ): boolean {
-  if (!state.productContext) {
-    return false;
-  }
+  const record = state.productConsultationRecord;
 
-  const context = readProductContext(state.productContext);
-
-  if (context.needs.length === 0) {
-    return false;
-  }
-
-  const hasActiveConsultation =
-    context.consultationSession?.status === 'ACTIVE';
-
-  if (state.activeAgent !== 'productAgent' && !hasActiveConsultation) {
+  if (!record || record.state === null) {
     return false;
   }
 
@@ -73,32 +60,22 @@ function shouldRouteDirectlyToProductAgent(
     return false;
   }
 
+  if (PRODUCT_COMPLETION_PATTERNS.some((pattern) => pattern.test(query))) {
+    return true;
+  }
+
+  const hasProducts =
+    (record.results.active?.products.length ?? 0) > 0 ||
+    (record.results.lastConfirmed?.products.length ?? 0) > 0;
+
   if (
-    hasActiveConsultation &&
-    PRODUCT_COMPLETION_PATTERNS.some((pattern) => pattern.test(query))
+    hasProducts &&
+    PRODUCT_FOLLOWUP_PATTERNS.some((pattern) => pattern.test(query))
   ) {
     return true;
   }
 
-  if (context.pendingClarification && query.length <= 40) {
-    return true;
-  }
-
-  const hasProductReferences =
-    context.referenceOrder.length > 0 ||
-    context.displayOrder.length > 0 ||
-    context.comparison.length > 0;
-
-  if (
-    hasProductReferences &&
-    PRODUCT_CONTEXT_FOLLOWUP_PATTERNS.some((pattern) => pattern.test(query))
-  ) {
-    return true;
-  }
-
-  if (
-    PRODUCT_CONTEXT_FOLLOWUP_PATTERNS.some((pattern) => pattern.test(query))
-  ) {
+  if (state.activeAgent === 'productAgent' && query.length <= 40) {
     return true;
   }
 

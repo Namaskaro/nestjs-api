@@ -1,5 +1,3 @@
-// START CHANGES — DOMAIN QUERY CONTRACTS
-
 import { z } from 'zod';
 
 import { HandoffRequestSchema } from '../agents/handoff-agent/schemas/handoff.schema';
@@ -10,7 +8,7 @@ export const RequestRouterWorkerSchema = z
   .enum(['productAgent', 'customerHelpAgent'])
   .describe(
     [
-      'productAgent — поиск, подбор, сравнение, рекомендации и продолжение товарной консультации.',
+      'productAgent — поиск, подбор, сравнение, детали, рекомендации и продолжение товарной консультации.',
       'customerHelpAgent — доставка, оплата, возврат, обмен, скидки, лояльность и правила магазина.',
     ].join(' '),
   );
@@ -23,9 +21,10 @@ export const RequestRouterWorkerQueriesSchema = z.object({
     .describe(
       [
         'Товарная часть текущей реплики пользователя.',
-        'Передавай её максимально близко к исходной формулировке.',
-        'Не восстанавливай старые filters из ProductContext: ProductAgent получает ProductContext отдельно.',
-        'Заполни для поиска, подбора, сравнения, рекомендаций, изменения текущего подбора или ответа на товарный clarification.',
+        'Передавай максимально близко к исходной формулировке.',
+        'Не восстанавливай сохранённые параметры товарной консультации.',
+        'ProductAgent получает authoritative consultation state отдельно.',
+        'Заполни для поиска, изменения поиска, сравнения, деталей, рекомендации или товарного follow-up.',
         'Иначе верни null.',
       ].join(' '),
     ),

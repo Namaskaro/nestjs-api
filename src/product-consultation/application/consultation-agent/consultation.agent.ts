@@ -3,41 +3,138 @@ import {
   SystemMessage,
   type BaseMessage,
 } from '@langchain/core/messages';
+
 import { createAgent } from 'langchain';
+
 import { AiService } from '@/src/ai/ai.service';
-import { logAggregatedLlmUsage, logLlmUsage } from '@/src/ai/llm-usage';
+
+import type { ProductConsultationLlmContext } from '@/src/product-consultation/application/context/product-consultation-context';
+
+import {
+  ProductConsultantDecisionSchema,
+  type ProductConsultantDecision,
+} from '@/src/product-consultation/application/consultant/product-consultant-decision.schema';
+
+import type { ProductConsultantRoundObservation } from '@/src/product-consultation/application/consultant/product-consultant-model.port';
+
 import { ConsultationCore } from '@/src/product-consultation/core/consultation-core';
+
 import type { AgentComparisonView } from '@/src/product-consultation/core/consultation-core.schema';
+
 import {
   consultationAgentPrompt,
   consultationCompletionPrompt,
 } from './prompts/consultation-agent.prompt';
+
+import {
+  productConsultantDecisionPrompt,
+  productConsultantResponsePrompt,
+} from './prompts/product-consultant.prompt';
+
 import {
   ConsultationAgentInputSchema,
   type ConsultationAgentInput,
 } from './schemas/consultation-agent.schema';
-import { createConsultationCoreTools } from './tools/consultation-core.tools';
+
 import { ConsultationCompletionOutputSchema } from './schemas/consultation-completion.schema';
+
+import { createConsultationCoreTools } from './tools/consultation-core.tools';
+
 import { finalizeConsultation } from './consultation-finalizer';
+
+export type ProductConsultantAgentInput = {
+  context: ProductConsultationLlmContext;
+
+  observation: ProductConsultantRoundObservation;
+
+  signal?: AbortSignal;
+};
+
+export type ProductConsultantResponse = {
+  terminalText: string;
+};
 
 export function createConsultationAgent(aiService: AiService) {
   const model = aiService.getChatModel('yandex');
+
+  const decisionModel = model
+    .withStructuredOutput(ProductConsultantDecisionSchema, {
+      name: 'product_consultant_decision',
+      method: 'functionCalling',
+      strict: false,
+    })
+    .withRetry({
+      stopAfterAttempt: 2,
+    });
 
   const completionModel = model.withStructuredOutput(
     ConsultationCompletionOutputSchema,
     {
       name: 'finalize_consultation',
-
+      method: 'functionCalling',
+      strict: false,
       includeRaw: true,
     },
   );
 
   return {
+    async decide(
+      input: ProductConsultantAgentInput,
+    ): Promise<ProductConsultantDecision> {
+      const decision = await decisionModel.invoke(
+        [
+          new SystemMessage(productConsultantDecisionPrompt),
+
+          new HumanMessage(
+            JSON.stringify({
+              observation: input.observation,
+              context: input.context,
+            }),
+          ),
+        ],
+        {
+          signal: input.signal,
+        },
+      );
+
+      return ProductConsultantDecisionSchema.parse(decision);
+    },
+
+    async respond(
+      input: ProductConsultantAgentInput,
+    ): Promise<ProductConsultantResponse> {
+      const response = await model.invoke(
+        [
+          new SystemMessage(productConsultantResponsePrompt),
+
+          new HumanMessage(
+            JSON.stringify({
+              observation: input.observation,
+              context: input.context,
+            }),
+          ),
+        ],
+        {
+          signal: input.signal,
+        },
+      );
+
+      const terminalText = response.text.trim();
+
+      if (!terminalText) {
+        throw new Error(
+          'ConsultationAgent: response model вернула пустой ответ',
+        );
+      }
+
+      return {
+        terminalText,
+      };
+    },
+
     async invoke(
       rawInput: ConsultationAgentInput,
-
       core: ConsultationCore,
-
       comparisons?: AgentComparisonView[],
     ) {
       const input = ConsultationAgentInputSchema.parse(rawInput);
@@ -57,21 +154,16 @@ export function createConsultationAgent(aiService: AiService) {
 
         const agent = createAgent({
           model,
-
           systemPrompt: consultationAgentPrompt,
-
           tools: [
             tools.updateMemory,
             tools.getProductDetails,
             tools.compareProducts,
           ],
-
           checkpointer: false,
         });
 
         try {
-          const startedAt = Date.now();
-
           const run = await agent.invoke(
             {
               messages,
@@ -80,16 +172,6 @@ export function createConsultationAgent(aiService: AiService) {
               recursionLimit: 24,
             },
           );
-
-          logAggregatedLlmUsage({
-            node: 'product_consultant_loop',
-            responses: run.messages,
-            durationMs: Date.now() - startedAt,
-
-            attributes: {
-              messagesCount: run.messages.length,
-            },
-          });
 
           messages = run.messages;
         } catch (error) {
@@ -104,8 +186,6 @@ export function createConsultationAgent(aiService: AiService) {
         }
       }
 
-      const completionStartedAt = Date.now();
-
       const completion = await completionModel.invoke([
         new SystemMessage(consultationCompletionPrompt),
 
@@ -113,17 +193,6 @@ export function createConsultationAgent(aiService: AiService) {
 
         new HumanMessage('Сформируй итоговый результат консультации.'),
       ]);
-
-      logLlmUsage({
-        node: 'product_consultation_completion',
-        response: completion,
-        durationMs: Date.now() - completionStartedAt,
-
-        attributes: {
-          transcriptMessages: messages.length,
-          preparedComparison: comparisons !== undefined,
-        },
-      });
 
       return finalizeConsultation(input, completion.parsed, core);
     },

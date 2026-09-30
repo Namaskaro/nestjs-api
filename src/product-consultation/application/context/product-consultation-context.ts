@@ -43,13 +43,13 @@ const MAX_CONTEXT_FACT_PRODUCTS = 5;
 
 const MAX_CONTEXT_FACT_ATTRIBUTES = 16;
 
+const MAX_DESCRIPTION_LENGTH = 6000;
+
 const MODEL_HIDDEN_FACT_ATTRIBUTES = new Set(['inStock', 'stock']);
 
 const MODEL_DISPLAY_VALUE_ATTRIBUTES = new Set([
   'brand',
-
   'category',
-
   'subcategory',
 ]);
 
@@ -70,7 +70,6 @@ const ContextGoalSchema = ConsultationGoalSchema.omit({
 
 const ContextCriterionSchema = CriterionSchema.omit({
   criterionId: true,
-
   required: true,
 }).strict();
 
@@ -123,6 +122,8 @@ const ContextProductFactsSchema = z
     position: z.number().int().positive(),
 
     title: z.string(),
+
+    description: z.string().max(MAX_DESCRIPTION_LENGTH),
 
     profileId: z.string().trim().min(1),
 
@@ -308,13 +309,6 @@ export type BuildProductConsultationContextInput = {
 
   selectedProducts?: readonly ProductDetails[];
 
-  /**
-   * Если массив указан,
-   * он одновременно является:
-   *
-   * - whitelist;
-   * - priority order.
-   */
   factAttributeIds?: readonly string[] | null;
 
   comparison?: AgentComparisonView | null;
@@ -435,21 +429,13 @@ function visibleMemory(
 
   const positionByProductId = new Map(
     (snapshot?.products ?? []).map(
-      (
-        product,
-
-        index,
-      ) => [product.productId, index + 1],
+      (product, index) => [product.productId, index + 1] as const,
     ),
   );
 
   return {
     goals: memory.goals
-      .slice(
-        0,
-
-        DEFAULT_CONSULTATION_AGENT_BUDGET.visibleGoals,
-      )
+      .slice(0, DEFAULT_CONSULTATION_AGENT_BUDGET.visibleGoals)
       .map((goal) => ({
         text: goal.text,
 
@@ -459,11 +445,7 @@ function visibleMemory(
       })),
 
     criteria: memory.criteria
-      .slice(
-        0,
-
-        DEFAULT_CONSULTATION_AGENT_BUDGET.visibleCriteria,
-      )
+      .slice(0, DEFAULT_CONSULTATION_AGENT_BUDGET.visibleCriteria)
       .map((criterion) => ({
         attributeId: criterion.attributeId,
 
@@ -500,11 +482,7 @@ function visibleMemory(
           },
         ];
       })
-      .slice(
-        0,
-
-        DEFAULT_CONSULTATION_AGENT_BUDGET.visibleFeedback,
-      ),
+      .slice(0, DEFAULT_CONSULTATION_AGENT_BUDGET.visibleFeedback),
   };
 }
 
@@ -595,7 +573,6 @@ function resolveUsageContext(
 ) {
   const resolved = resolveCategoryUsageScenarioSelection(
     profileId,
-
     rawScenarioIds,
   );
 
@@ -689,17 +666,6 @@ function searchCapabilitiesContext(
   };
 }
 
-/**
- * S4:
- *
- * Когда factAttributeIds переданы,
- * они задают именно ПОРЯДОК,
- * а не просто Set-filter.
- *
- * Иначе meaningful fact мог раньше
- * оказаться после первых 16 attributes
- * и исчезнуть из model context.
- */
 function orderedCandidateFacts(
   product: ProductDetails,
 
@@ -741,11 +707,7 @@ function selectedFacts(input: {
 
   const positionByProductId = new Map(
     (input.snapshot?.products ?? []).map(
-      (
-        product,
-
-        index,
-      ) => [product.productId, index + 1],
+      (product, index) => [product.productId, index + 1] as const,
     ),
   );
 
@@ -760,11 +722,7 @@ function selectedFacts(input: {
       );
     }
 
-    const facts = orderedCandidateFacts(
-      product,
-
-      input.attributeIds,
-    )
+    const facts = orderedCandidateFacts(product, input.attributeIds)
       .filter((fact) => !MODEL_HIDDEN_FACT_ATTRIBUTES.has(fact.attributeId))
       .flatMap((fact) => {
         const projected = modelSafeFactValue({
@@ -795,16 +753,14 @@ function selectedFacts(input: {
           }),
         ];
       })
-      .slice(
-        0,
-
-        MAX_CONTEXT_FACT_ATTRIBUTES,
-      );
+      .slice(0, MAX_CONTEXT_FACT_ATTRIBUTES);
 
     return {
       position,
 
       title: product.title,
+
+      description: product.description.slice(0, MAX_DESCRIPTION_LENGTH),
 
       profileId: product.profileId,
 
@@ -832,11 +788,7 @@ function comparisonContext(input: {
 
   const positionByProductId = new Map(
     input.snapshot.products.map(
-      (
-        product,
-
-        index,
-      ) => [product.productId, index + 1],
+      (product, index) => [product.productId, index + 1] as const,
     ),
   );
 
@@ -918,7 +870,6 @@ export function buildProductConsultationContext(
 
   const { resultId, snapshot } = resolveReferenceSnapshot(
     record,
-
     input.referenceResultId,
   );
 
@@ -930,7 +881,6 @@ export function buildProductConsultationContext(
 
   const usage = resolveUsageContext(
     profile?.id ?? null,
-
     input.usageScenarioIds ?? [],
   );
 
@@ -947,11 +897,7 @@ export function buildProductConsultationContext(
         : {
             search: record.state.search,
 
-            memory: visibleMemory(
-              record,
-
-              snapshot,
-            ),
+            memory: visibleMemory(record, snapshot),
           },
 
     searchCapabilities: searchCapabilitiesContext(
@@ -963,21 +909,15 @@ export function buildProductConsultationContext(
 
       hasLastConfirmed: record.results.lastConfirmed !== null,
 
-      shownProducts: (snapshot?.products ?? []).map(
-        (
-          product,
+      shownProducts: (snapshot?.products ?? []).map((product, index) => ({
+        position: index + 1,
 
-          index,
-        ) => ({
-          position: index + 1,
+        title: product.title,
 
-          title: product.title,
+        price: product.price,
 
-          price: product.price,
-
-          image: product.image,
-        }),
-      ),
+        image: product.image,
+      })),
     },
 
     productFacts: selectedFacts({

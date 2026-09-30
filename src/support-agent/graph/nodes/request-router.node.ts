@@ -1,7 +1,6 @@
 import type { GraphNode } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
-import { logLlmUsage } from '@/src/ai/llm-usage';
 
 import { requestRouterHistoryTrimmer } from '../../context/history-context';
 
@@ -13,7 +12,7 @@ import {
   RequestRouterWorkerSchema,
 } from '../../schemas/request-router.schema';
 
-import { readProductContext } from '../../../product-consultation/application/context/product-context.schema';
+import { ConsultationApplicationRecordSchema } from '@/src/product-consultation/application/runtime/consultation-application-record';
 
 import { SupportAgentState } from '../support-agent.state';
 
@@ -22,78 +21,58 @@ function createRouterProductContext(value: unknown) {
     return null;
   }
 
-  const context = readProductContext(value);
+  const record = ConsultationApplicationRecordSchema.parse(value);
 
-  if (context.needs.length === 0) {
+  if (
+    record.state === null &&
+    record.results.active === null &&
+    record.results.lastConfirmed === null
+  ) {
     return null;
   }
 
-  const indexOf = (needId: string) =>
-    context.needs.findIndex((need) => need.needId === needId) + 1;
-
-  const presentation = (refs: typeof context.displayOrder) =>
-    refs.map((ref, index) => ({
-      position: index + 1,
-
-      needIndex: indexOf(ref.needId),
-
-      productId: ref.productId,
-    }));
-
-  const activeReferences = context.referenceOrder.length
-    ? context.referenceOrder
-    : context.comparison.length
-    ? context.comparison
-    : context.displayOrder;
+  const snapshot = record.results.active ?? record.results.lastConfirmed;
 
   return {
-    version: context.version,
+    generation: record.generation,
 
-    needs: context.needs.map((need, index) => ({
-      needIndex: index + 1,
+    task:
+      record.state === null
+        ? null
+        : {
+            search:
+              record.state.search === null
+                ? null
+                : {
+                    semanticIntent: record.state.search.semanticIntent,
 
-      semanticQuery: need.semanticQuery,
+                    category: record.state.search.category,
 
-      filters: need.filters,
+                    constraints: record.state.search.constraints,
+                  },
 
-      preferences: need.preferences,
+            goals: record.state.memory.memory.goals.map((goal) => goal.text),
+          },
 
-      productsCount: need.shownProducts.length,
-    })),
+    results: {
+      status:
+        record.results.pendingSearch !== null
+          ? 'pending'
+          : record.results.active !== null
+          ? 'active'
+          : record.results.lastFailure !== undefined
+          ? 'failure'
+          : 'idle',
 
-    active: presentation(activeReferences),
+      shownProducts:
+        snapshot?.products.map((product, index) => ({
+          position: index + 1,
 
-    display: presentation(context.displayOrder),
+          title: product.title,
 
-    comparison: presentation(context.comparison),
-
-    consultationSession: context.consultationSession
-      ? {
-          status: context.consultationSession.status,
-
-          needIndexes: context.consultationSession.needIds
-            .map(indexOf)
-            .filter((index) => index > 0),
-
-          completionReason: context.consultationSession.completionReason,
-        }
-      : null,
-
-    pendingClarification: context.pendingClarification
-      ? {
-          kind: context.pendingClarification.kind,
-
-          question: context.pendingClarification.question,
-
-          fields: context.pendingClarification.fields,
-
-          proposal: context.pendingClarification.proposal,
-
-          needIndex: context.pendingClarification.needId
-            ? indexOf(context.pendingClarification.needId)
-            : null,
-        }
-      : null,
+          price: product.price,
+        })) ?? [],
+    },
   };
 }
 
@@ -106,6 +85,7 @@ export function createRequestRouterNode(
     RequestRouterModelSchema,
     {
       name: 'route_support_request',
+
       includeRaw: true,
     },
   );
@@ -118,14 +98,12 @@ export function createRequestRouterNode(
     );
 
     const routerProductContext = createRouterProductContext(
-      state.productContext,
+      state.productConsultationRecord,
     );
 
     const productContext = routerProductContext
       ? JSON.stringify(routerProductContext, null, 2)
       : 'null';
-
-    const startedAt = Date.now();
 
     const response = await chain.invoke({
       history,
@@ -133,17 +111,6 @@ export function createRequestRouterNode(
       query: state.query,
 
       productContext,
-    });
-
-    logLlmUsage({
-      node: 'request_router',
-      response,
-      durationMs: Date.now() - startedAt,
-
-      attributes: {
-        historyMessages: history.length,
-        hasProductContext: routerProductContext !== null,
-      },
     });
 
     const modelDecision = RequestRouterModelSchema.parse(response.parsed);
@@ -165,13 +132,7 @@ export function createRequestRouterNode(
     let reason = modelDecision.reason;
 
     if (workers.length === 0 && !fallbackRoute) {
-      const context = state.productContext
-        ? readProductContext(state.productContext)
-        : null;
-
-      const hasProductContext = Boolean(context && context.needs.length > 0);
-
-      if (hasProductContext) {
+      if (routerProductContext !== null) {
         workerQueries.productAgent = state.query;
 
         workers = ['productAgent'];
@@ -183,7 +144,7 @@ export function createRequestRouterNode(
         handoffRequest = null;
 
         reason =
-          'Deterministic fallback: сохранён ProductContext, запрос передан ProductAgent.';
+          'Deterministic fallback: сохранена активная товарная консультация.';
       } else {
         fallbackRoute = 'clarification';
 

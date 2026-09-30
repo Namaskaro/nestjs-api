@@ -18,20 +18,6 @@ export const ConsultationTaskTransitionSchema = z.enum([
   'start_new',
 ]);
 
-/**
- * Public semantic feedback observation.
- *
- * Здесь НЕТ productId.
- *
- * Вместо этого модель указывает
- * ordinal selection:
- *
- * "первый слишком массивный"
- *
- * Backend сам разрешает:
- *
- * first → productId.
- */
 export const TurnFeedbackObservationSchema = TurnFeedbackSchema.extend({
   selection: ProductSelectionSchema,
 }).strict();
@@ -40,12 +26,6 @@ const START_NEW_ACTIONS = new Set<string>(['SEARCH', 'CLARIFY']);
 
 export const ConsultationTurnProposalSchema = z
   .object({
-    /**
-     * Только публичные действия.
-     *
-     * RELAX_CONSTRAINTS / ALTERNATIVES
-     * будущая LLM здесь выбрать не может.
-     */
     action: PublicConsultationActionSchema,
 
     taskTransition: ConsultationTaskTransitionSchema,
@@ -56,31 +36,8 @@ export const ConsultationTurnProposalSchema = z
 
     memoryObservations: ConsultationMemoryObservationsSchema.default(() => []),
 
-    /**
-     * Selection главной операции.
-     *
-     * Например:
-     *
-     * RECOMMEND → [2, 3]
-     *
-     * При action=FEEDBACK selection
-     * главной операции не используется:
-     * target находится внутри feedback.
-     */
     selection: ProductSelectionSchema.nullable().default(null),
 
-    /**
-     * Feedback — observation,
-     * а не обязательно главный action.
-     *
-     * Поэтому допустимо:
-     *
-     * action = RECOMMEND
-     *
-     * selection = [2, 3]
-     *
-     * feedback.selection = [1]
-     */
     feedback: TurnFeedbackObservationSchema.nullable().default(null),
   })
   .strict()
@@ -95,6 +52,19 @@ export const ConsultationTurnProposalSchema = z
         path: ['taskTransition'],
 
         message: `start_new is not compatible with action ${proposal.action}.`,
+      });
+    }
+
+    if (
+      proposal.action === 'SEARCH' &&
+      proposal.taskTransition !== 'start_new'
+    ) {
+      context.addIssue({
+        code: 'custom',
+
+        path: ['taskTransition'],
+
+        message: 'SEARCH must start a new consultation task.',
       });
     }
 
@@ -121,15 +91,6 @@ export const ConsultationTurnProposalSchema = z
       });
     }
 
-    /**
-     * Pure FEEDBACK:
-     *
-     * target хранится только
-     * внутри feedback.selection.
-     *
-     * Не поддерживаем два независимых
-     * selection target одновременно.
-     */
     if (proposal.action === 'FEEDBACK' && proposal.selection !== null) {
       context.addIssue({
         code: 'custom',

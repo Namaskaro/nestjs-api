@@ -1,5 +1,7 @@
 import { HumanMessage } from '@langchain/core/messages';
+
 import { Send } from '@langchain/langgraph';
+
 import type { SupportAgentStateType } from '../support-agent.state';
 
 export function dispatchWorkers(state: SupportAgentStateType): Send[] {
@@ -19,8 +21,11 @@ export function dispatchWorkers(state: SupportAgentStateType): Send[] {
 
     return new Send(worker, {
       ...state,
+
       query,
-      messages: [new HumanMessage(query)],
+
+      messages:
+        worker === 'productAgent' ? state.messages : [new HumanMessage(query)],
     });
   });
 }

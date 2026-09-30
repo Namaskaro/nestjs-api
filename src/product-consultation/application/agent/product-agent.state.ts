@@ -1,4 +1,5 @@
 import { StateSchema } from '@langchain/langgraph';
+
 import { z } from 'zod';
 
 import {
@@ -19,6 +20,13 @@ import { ProductSearchResultSchema } from '@/src/product-consultation/applicatio
 
 import { ConsultationAgentResultSchema } from '@/src/product-consultation/application/consultation-agent/schemas/consultation-agent.schema';
 
+import {
+  ConsultationApplicationRecordSchema,
+  createConsultationApplicationRecord,
+} from '@/src/product-consultation/application/runtime/consultation-application-record';
+
+import { ProductConsultantDecisionSchema } from '@/src/product-consultation/application/consultant/product-consultant-decision.schema';
+
 export const ProductTurnSchema = z.object({
   action: ProductActionSchema,
 
@@ -37,6 +45,29 @@ export type ProductTurn = z.infer<typeof ProductTurnSchema>;
 
 export const ProductAgentState = new StateSchema({
   query: z.string().min(1),
+
+  conversationId: z.string().trim().min(1).nullable().default(null),
+
+  requestId: z.string().trim().min(1).max(200).nullable().default(null),
+
+  recentMessages: z
+    .array(
+      z
+        .object({
+          role: z.enum(['user', 'assistant']),
+
+          text: z.string().trim().min(1).max(4000),
+        })
+        .strict(),
+    )
+    .max(6)
+    .default(() => []),
+
+  consultationRecord: ConsultationApplicationRecordSchema.default(
+    createConsultationApplicationRecord,
+  ),
+
+  decision: ProductConsultantDecisionSchema.nullable().default(null),
 
   productContext: ProductContextSchema.nullable().default(null),
 
