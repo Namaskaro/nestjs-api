@@ -1,15 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
+
 import type {
   QdrantClient,
   Schemas,
 } from '@qdrant/js-client-rest' with {
   'resolution-mode': 'import',
 };
+
 import {
   QDRANT_CLIENT,
   QDRANT_DENSE_VECTOR,
   QDRANT_SPARSE_VECTOR,
 } from './qdrant.constants';
+
 import { QdrantCollections } from './qdrant.collections';
 
 export type QdrantPoint = Schemas['PointStruct'];
@@ -18,11 +21,11 @@ export type QdrantSearchPoint = Awaited<
   ReturnType<QdrantClient['query']>
 >['points'][number];
 
-// START ИЗМЕНЕНИЙ — EXPOSE NATIVE QDRANT FILTER TYPE
+export type QdrantRetrievedPoint = Awaited<
+  ReturnType<QdrantClient['retrieve']>
+>[number];
 
 export type QdrantFilter = Schemas['Filter'];
-
-// END ИЗМЕНЕНИЙ — EXPOSE NATIVE QDRANT FILTER TYPE
 
 export type QdrantCollectionName =
   (typeof QdrantCollections)[keyof typeof QdrantCollections];
@@ -87,17 +90,29 @@ export class QdrantService {
     });
   }
 
+  async retrievePoints(
+    collectionName: QdrantCollectionName,
+    ids: readonly string[],
+  ): Promise<QdrantRetrievedPoint[]> {
+    const uniqueIds = [...new Set(ids)];
+
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    return this.client.retrieve(collectionName, {
+      ids: uniqueIds,
+      with_payload: true,
+      with_vector: false,
+    });
+  }
+
   async hybridSearch(
     collectionName: QdrantCollectionName,
     denseEmbedding: number[],
     query: string,
     limit: number,
-
-    // START ИЗМЕНЕНИЙ — OPTIONAL SEARCH FILTER
-
     filter?: QdrantFilter,
-
-    // END ИЗМЕНЕНИЙ — OPTIONAL SEARCH FILTER
   ): Promise<QdrantSearchPoint[]> {
     const filterConfig = filter ? { filter } : {};
 
@@ -107,12 +122,7 @@ export class QdrantService {
           query: denseEmbedding,
           using: QDRANT_DENSE_VECTOR,
           limit,
-
-          // START ИЗМЕНЕНИЙ — FILTER DENSE CANDIDATES
-
           ...filterConfig,
-
-          // END ИЗМЕНЕНИЙ — FILTER DENSE CANDIDATES
         },
 
         {
@@ -122,14 +132,8 @@ export class QdrantService {
           },
 
           using: QDRANT_SPARSE_VECTOR,
-
           limit,
-
-          // START ИЗМЕНЕНИЙ — FILTER BM25 CANDIDATES
-
           ...filterConfig,
-
-          // END ИЗМЕНЕНИЙ — FILTER BM25 CANDIDATES
         },
       ],
 
@@ -141,11 +145,7 @@ export class QdrantService {
 
       with_payload: true,
 
-      // START ИЗМЕНЕНИЙ — FILTER FINAL QUERY
-
       ...filterConfig,
-
-      // END ИЗМЕНЕНИЙ — FILTER FINAL QUERY
     });
 
     return result.points;

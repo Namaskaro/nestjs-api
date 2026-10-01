@@ -16,8 +16,6 @@ import { buildProductConsultationContext } from '@/src/product-consultation/appl
 
 import { createConsultationAgent } from '@/src/product-consultation/application/consultation-agent/consultation.agent';
 
-import { createComparisonSynthesis } from '@/src/product-consultation/application/consultation-agent/comparison-synthesis';
-
 import { finalizeComparisonPresentation } from '@/src/product-consultation/application/presentation/comparison-presentation';
 
 import {
@@ -26,14 +24,33 @@ import {
   prepareProductConsultantComparisonPresentation,
 } from '@/src/product-consultation/application/presentation/product-consultant-presentation';
 
+function searchMessage(
+  action: 'SEARCH' | 'REFINE',
+  status: 'failed' | 'no_change' | 'zero_results' | 'succeeded',
+): string {
+  if (status === 'failed') {
+    return 'Не удалось выполнить поиск товаров.';
+  }
+
+  if (status === 'zero_results') {
+    return 'По вашему запросу ничего не нашёл.';
+  }
+
+  if (status === 'no_change') {
+    return 'Подборка не изменилась.';
+  }
+
+  return action === 'SEARCH'
+    ? 'Нашёл подходящие варианты.'
+    : 'Обновил подборку.';
+}
+
 export function createExecuteProductDecisionNode(
   aiService: AiService,
 
   productAgentService: ProductAgentService,
 ): GraphNode<typeof ProductAgentState> {
   const consultant = createConsultationAgent(aiService);
-
-  const comparisonSynthesis = createComparisonSynthesis(aiService);
 
   return async (state) => {
     const decision = state.decision;
@@ -96,6 +113,26 @@ export function createExecuteProductDecisionNode(
     });
 
     const action = decision.proposal.action;
+
+    if (action === 'SEARCH' || action === 'REFINE') {
+      if (capability.observation.kind !== 'search') {
+        throw new Error(
+          `ExecuteProductDecision: invalid ${action} observation.`,
+        );
+      }
+
+      return {
+        consultationRecord: record,
+
+        consultation: null,
+
+        consultationCompletion: null,
+
+        searchResults: [],
+
+        message: searchMessage(action, capability.observation.status),
+      };
+    }
 
     if (action === 'SHOW_RESULTS') {
       return {
@@ -208,15 +245,9 @@ export function createExecuteProductDecisionNode(
         state: consultationState,
 
         currentQuery: state.query,
-
-        requestedAttributeIds: decision.factAttributeIds,
       });
 
-      const synthesis = await comparisonSynthesis.summarizeComparison(
-        prepared.synthesisInput,
-      );
-
-      const presentation = finalizeComparisonPresentation(prepared, synthesis);
+      const presentation = finalizeComparisonPresentation(prepared, null);
 
       const message = 'Сравнил выбранные товары.';
 

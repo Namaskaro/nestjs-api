@@ -2,6 +2,14 @@ import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 
+import { QdrantCollections } from '@/src/core/qdrant/qdrant.collections';
+
+import { QdrantService } from '@/src/core/qdrant/qdrant.service';
+
+import { ProductQdrantPayloadSchema } from '@/src/ai/schemas/product-qdrant-payload.schema';
+
+import type { ProductSemanticRepresentation } from '@/src/ai/schemas/semantic-product-representation.schema';
+
 import type { ProductNeed } from '@/src/product-consultation/application/search/product-need.schema';
 
 import type { ProductDetails } from '@/src/product-consultation/core/consultation-core.schema';
@@ -32,20 +40,57 @@ export class CurrentStoreCatalogService {
     }
   >();
 
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+
+    private readonly qdrantService: QdrantService,
+  ) {}
 
   public async resolveBrandName(value: string): Promise<string | null> {
     return (await this.findExactBrand(value))?.name ?? null;
   }
 
+  public async getProductSemanticRepresentations(
+    productIds: readonly string[],
+  ): Promise<Map<string, ProductSemanticRepresentation>> {
+    const ids = [...new Set(productIds)];
+
+    if (!ids.length) {
+      return new Map();
+    }
+
+    const points = await this.qdrantService.retrievePoints(
+      QdrantCollections.products,
+      ids,
+    );
+
+    const semanticByProductId = new Map<
+      string,
+      ProductSemanticRepresentation
+    >();
+
+    for (const point of points) {
+      const parsed = ProductQdrantPayloadSchema.safeParse(point.payload);
+
+      if (!parsed.success) {
+        continue;
+      }
+
+      if (!ids.includes(parsed.data.productId)) {
+        continue;
+      }
+
+      semanticByProductId.set(
+        parsed.data.productId,
+        parsed.data.semanticRepresentation,
+      );
+    }
+
+    return semanticByProductId;
+  }
+
   public async getConsultationBinding(productNeed: ProductNeed) {
-    const {
-      brand,
-
-      category,
-
-      subcategory,
-    } = productNeed.filters;
+    const { brand, category, subcategory } = productNeed.filters;
 
     const [brandId, subcategoryId, categoryId] = await Promise.all([
       this.resolveBrandId(brand),
@@ -65,28 +110,9 @@ export class CurrentStoreCatalogService {
       subcategoryId,
     };
 
-    return buildCurrentStoreBinding(
-      productNeed.filters,
-
-      resolved,
-    );
+    return buildCurrentStoreBinding(productNeed.filters, resolved);
   }
 
-  /**
-   * Загружает ProductDetails только
-   * для товаров, которые ПРЯМО СЕЙЧАС
-   * остаются eligible в current-store.
-   *
-   * Это важно для:
-   *
-   * - DETAILS;
-   * - COMPARE;
-   * - RECOMMEND;
-   * - будущих purchase actions.
-   *
-   * Search snapshot не является
-   * гарантией текущего наличия.
-   */
   public async getProductDetails(
     productIds: readonly string[],
   ): Promise<ProductDetails[]> {
@@ -108,12 +134,6 @@ export class CurrentStoreCatalogService {
           in: ids,
         },
 
-        /**
-         * Server-owned eligibility.
-         *
-         * Availability не является
-         * consultation criterion.
-         */
         ...CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
       },
 
@@ -180,12 +200,6 @@ export class CurrentStoreCatalogService {
       ).map((product) => [product.id, product]),
     );
 
-    /**
-     * Возвращаем в исходном порядке IDs,
-     * но отсутствующие / unavailable
-     * товары просто не попадают
-     * в eligible details.
-     */
     return ids.flatMap((id) => {
       const product = byId.get(id);
 
@@ -196,13 +210,7 @@ export class CurrentStoreCatalogService {
   public async resolveCatalogFilters(
     productNeed: ProductNeed,
   ): Promise<ResolvedStoreCatalog | null> {
-    const {
-      brand,
-
-      category,
-
-      subcategory,
-    } = productNeed.filters;
+    const { brand, category, subcategory } = productNeed.filters;
 
     const [brandId, subcategoryId, categoryId] = await Promise.all([
       this.resolveBrandId(brand),
@@ -278,15 +286,11 @@ export class CurrentStoreCatalogService {
       this.exactBrands.delete(this.exactBrands.keys().next().value!);
     }
 
-    this.exactBrands.set(
-      key,
+    this.exactBrands.set(key, {
+      until: Date.now() + 30_000,
 
-      {
-        until: Date.now() + 30_000,
-
-        value: result,
-      },
-    );
+      value: result,
+    });
 
     return result;
   }

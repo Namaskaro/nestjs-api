@@ -80,8 +80,12 @@ function comparisonGoal(need: ProductNeedMemory): string {
     .map((goal) => goal.text)
     .filter(Boolean);
 
+  if (!storedGoals.length) {
+    return 'Сравнение выбранных товаров';
+  }
+
   return clip(
-    [need.semanticQuery, ...storedGoals]
+    storedGoals
       .filter((value, index, values) => values.indexOf(value) === index)
       .join('. '),
     1000,
@@ -157,15 +161,22 @@ function buildPresentationRows(
     })
     .map((row) => ({
       attributeId: row.attributeId,
+
       label: row.label,
+
       state: row.state,
+
       range: row.range,
 
       cells: row.cells.map((cell) => ({
         productId: cell.productId,
+
         status: cell.fact.status,
+
         value: cell.fact.value,
+
         unit: cell.fact.unit,
+
         displayValue: cell.fact.displayValue,
       })),
     }));
@@ -236,8 +247,11 @@ function buildSynthesisRows(
 
   return rows.map((row) => ({
     attributeId: row.attributeId,
+
     label: row.label,
+
     state: row.state,
+
     range: row.range,
 
     cells: row.cells.map((cell) => {
@@ -251,9 +265,13 @@ function buildSynthesisRows(
 
       return {
         position,
+
         status: cell.status,
+
         value: cell.value,
+
         unit: cell.unit,
+
         displayValue: cell.displayValue,
       };
     }),
@@ -314,7 +332,9 @@ export function prepareComparisonPresentation({
     .slice(0, 8)
     .map((rule) => ({
       when: rule.when,
+
       attributeIds: rule.attributeIds,
+
       instruction: rule.instruction,
     }));
 
@@ -331,6 +351,7 @@ export function prepareComparisonPresentation({
 
     products: presentationProducts.map((product) => ({
       position: product.position,
+
       title: product.title,
     })),
 
@@ -372,18 +393,13 @@ function fallbackRecommendation(
     .slice(0, MAX_KEY_DIFFERENCES);
 
   if (!labels.length) {
-    return clip(
-      `По доступным проверенным характеристикам существенных различий между вариантами не обнаружено. Для задачи «${prepared.goal}» явного лидера нет.`,
-      1200,
-    );
+    return 'По доступным данным существенных различий между вариантами не обнаружено. Явного лидера нет.';
   }
 
   return clip(
-    `По проверенным данным варианты различаются прежде всего по: ${labels.join(
+    `По доступным данным модели различаются по: ${labels.join(
       ', ',
-    )}. Для задачи «${
-      prepared.goal
-    }» явного лидера без дополнительной интерпретации нет — ориентируйтесь на эти различия.`,
+    )}. Без дополнительного критерия выбора явного лидера нет.`,
     1200,
   );
 }

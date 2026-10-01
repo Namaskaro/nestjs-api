@@ -81,15 +81,35 @@ function formatValue(input: {
 }
 
 function currentGoal(state: ProductConsultationState): string {
-  const searchText = state.search?.semanticIntent ?? '';
+  const goals = state.memory.memory.goals
+    .map((goal) => goal.text.trim())
+    .filter(Boolean);
 
-  const goals = state.memory.memory.goals.map((goal) => goal.text);
+  if (goals.length === 0) {
+    return 'Сравнение выбранных товаров';
+  }
 
-  const values = [searchText, ...goals].filter(
-    (value, index, all) => Boolean(value) && all.indexOf(value) === index,
+  return clip(
+    goals
+      .filter((value, index, all) => all.indexOf(value) === index)
+      .join('. '),
+    1000,
+  );
+}
+
+function hasSizeContext(state: ProductConsultationState): boolean {
+  const searchHasSize =
+    state.search?.constraints.some(
+      (constraint) =>
+        constraint.attributeId === 'sizes' || constraint.attributeId === 'size',
+    ) ?? false;
+
+  const memoryHasSize = state.memory.memory.criteria.some(
+    (criterion) =>
+      criterion.attributeId === 'sizes' || criterion.attributeId === 'size',
   );
 
-  return clip(values.join('. ') || 'Сравнение выбранных товаров', 1000);
+  return searchHasSize || memoryHasSize;
 }
 
 function orderedProducts(
@@ -117,7 +137,7 @@ function orderedProducts(
 function buildRows(input: {
   comparison: AgentComparisonView;
 
-  requestedAttributeIds: readonly string[];
+  state: ProductConsultationState;
 }): ComparisonPresentation['rows'] {
   const profile = getCategoryProfile(input.comparison.profileId);
 
@@ -125,12 +145,12 @@ function buildRows(input: {
     profile.attributes.map((attribute) => [attribute.id, attribute] as const),
   );
 
-  const requested = new Set(input.requestedAttributeIds);
+  const showSizes = hasSizeContext(input.state);
 
   return input.comparison.rows
     .filter((row) => {
-      if (requested.has(row.attributeId)) {
-        return true;
+      if (row.attributeId === 'sizes' && !showSizes) {
+        return false;
       }
 
       if (row.state === 'same') {
@@ -248,22 +268,6 @@ function buildSynthesisRows(
   }));
 }
 
-function unavailableRequestedLabels(
-  rows: ComparisonPresentation['rows'],
-
-  requestedAttributeIds: readonly string[],
-): string[] {
-  const requested = new Set(requestedAttributeIds);
-
-  return rows
-    .filter(
-      (row) =>
-        requested.has(row.attributeId) &&
-        row.cells.every((cell) => cell.status !== 'known'),
-    )
-    .map((row) => row.label);
-}
-
 export function prepareProductConsultantComparisonPresentation(input: {
   comparison: AgentComparisonView;
 
@@ -272,8 +276,6 @@ export function prepareProductConsultantComparisonPresentation(input: {
   state: ProductConsultationState;
 
   currentQuery: string;
-
-  requestedAttributeIds: readonly string[];
 }): PreparedComparisonPresentation {
   const profile = getCategoryProfile(input.comparison.profileId);
 
@@ -295,7 +297,7 @@ export function prepareProductConsultantComparisonPresentation(input: {
   const rows = buildRows({
     comparison: input.comparison,
 
-    requestedAttributeIds: input.requestedAttributeIds,
+    state: input.state,
   });
 
   const keyDifferences = buildKeyDifferences(rows, products);
@@ -368,10 +370,7 @@ export function prepareProductConsultantComparisonPresentation(input: {
       guidance,
     },
 
-    unavailableRequestedLabels: unavailableRequestedLabels(
-      rows,
-      input.requestedAttributeIds,
-    ),
+    unavailableRequestedLabels: [],
   };
 }
 
