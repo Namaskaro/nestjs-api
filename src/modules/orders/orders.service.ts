@@ -1,16 +1,22 @@
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
 import { DiscountType, OrderStatus, PaymentType } from '@/prisma/generated';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CheckoutOrderDto } from './dto/checkout-order-dto';
 import { DELIVERY_PRICES, PROMOCODES } from './constants/order.constants';
+import { ORDER_PORT, type OrderPort } from './ports/order.port';
 
 @Injectable()
 export class OrdersService {
-  public constructor(private readonly prismaService: PrismaService) {}
+  public constructor(
+    @Inject(ORDER_PORT)
+    private readonly orderPort: OrderPort,
+
+    private readonly prismaService: PrismaService,
+  ) {}
 
   public async getAllOrders() {
     return this.prismaService.order.findMany({
@@ -31,40 +37,15 @@ export class OrdersService {
   }
 
   public async getUserOrders(userId: string) {
-    return this.prismaService.order.findMany({
-      where: {
-        userId,
-      },
-
-      include: {
-        payments: {
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-      },
-
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    return this.orderPort.getUserOrders(userId);
   }
 
   public async getOrderById(userId: string, orderId: string) {
-    return this.prismaService.order.findFirstOrThrow({
-      where: {
-        id: orderId,
-        userId,
-      },
+    return this.orderPort.getOrderById(userId, orderId);
+  }
 
-      include: {
-        payments: {
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-      },
-    });
+  public async getLatestUserOrder(userId: string) {
+    return this.orderPort.getLatestUserOrder(userId);
   }
 
   public async createOrder(userId: string, data: CreateOrderDto) {
