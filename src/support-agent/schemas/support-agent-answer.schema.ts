@@ -1,10 +1,19 @@
 import { z } from 'zod';
+
 import { ProductAgentAnswerSchema } from '@/src/product-consultation/application/agent/agreagte-answer.schema';
 
 export const ProductSearchAnswerBlockSchema = z.object({
   worker: z.literal('product_search'),
 
   data: ProductAgentAnswerSchema,
+});
+
+export const OrderAnswerBlockSchema = z.object({
+  worker: z.literal('order'),
+
+  data: z.object({
+    message: z.string(),
+  }),
 });
 
 export const CustomerHelpAnswerBlockSchema = z.object({
@@ -17,6 +26,9 @@ export const CustomerHelpAnswerBlockSchema = z.object({
 
 export const SupportAgentAnswerBlockSchema = z.discriminatedUnion('worker', [
   ProductSearchAnswerBlockSchema,
+
+  OrderAnswerBlockSchema,
+
   CustomerHelpAnswerBlockSchema,
 ]);
 
@@ -25,16 +37,20 @@ const EmptyBlocksSchema = z
   .max(0)
   .default(() => []);
 
-// НОВОЕ:
-// Финальный ответ непосредственно от ProductAgent.
 export const ProductAgentFinalAnswerSchema = ProductAgentAnswerSchema.extend({
   type: z.literal('product_agent'),
 
   blocks: EmptyBlocksSchema,
 });
 
-// НОВОЕ:
-// Финальный ответ непосредственно от CustomerHelp.
+export const OrderAgentFinalAnswerSchema = z.object({
+  type: z.literal('order_agent'),
+
+  message: z.string(),
+
+  blocks: EmptyBlocksSchema,
+});
+
 export const CustomerHelpFinalAnswerSchema = z.object({
   type: z.literal('customer_help'),
 
@@ -43,8 +59,6 @@ export const CustomerHelpFinalAnswerSchema = z.object({
   blocks: EmptyBlocksSchema,
 });
 
-// НОВОЕ:
-// Финальный ответ после объединения нескольких agents/workers.
 export const AggregateFinalAnswerSchema = z.object({
   type: z.literal('aggregate'),
 
@@ -53,9 +67,6 @@ export const AggregateFinalAnswerSchema = z.object({
   blocks: z.array(SupportAgentAnswerBlockSchema).min(1),
 });
 
-// НОВОЕ:
-// Обычные системные ответы SupportAgent:
-// reject, handoff-result и подобные сообщения.
 export const SupportMessageAnswerSchema = z.object({
   type: z.literal('message').default('message'),
 
@@ -64,12 +75,15 @@ export const SupportMessageAnswerSchema = z.object({
   blocks: EmptyBlocksSchema,
 });
 
-// НОВОЕ:
-// state.answer теперь может содержать разные типы финального ответа.
 export const SupportAgentAnswerSchema = z.union([
   ProductAgentFinalAnswerSchema,
+
+  OrderAgentFinalAnswerSchema,
+
   CustomerHelpFinalAnswerSchema,
+
   AggregateFinalAnswerSchema,
+
   SupportMessageAnswerSchema,
 ]);
 
@@ -80,6 +94,8 @@ export const SupportAgentMessageSchema = z.object({
 export type ProductAgentFinalAnswer = z.infer<
   typeof ProductAgentFinalAnswerSchema
 >;
+
+export type OrderAgentFinalAnswer = z.infer<typeof OrderAgentFinalAnswerSchema>;
 
 export type CustomerHelpFinalAnswer = z.infer<
   typeof CustomerHelpFinalAnswerSchema

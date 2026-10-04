@@ -12,8 +12,7 @@ export function dispatchWorkers(state: SupportAgentStateType): Send[] {
   }
 
   return decision.workers.map((worker) => {
-    const query =
-      worker === 'productAgent' ? state.query : decision.workerQueries[worker];
+    const query = decision.workerQueries[worker];
 
     if (!query) {
       throw new Error('DispatchWorkers: отсутствует query для ' + worker);

@@ -278,12 +278,12 @@ describe('ProductConsultationContext usage knowledge', () => {
       expect.objectContaining({
         id: 'daily_walking',
 
-        attributeIds: ['purpose', 'upperMaterial', 'lining', 'sole'],
+        attributeIds: ['purpose', 'sole', 'upperMaterial', 'material'],
       }),
     );
 
     expect(built.context.usage?.selected[0]?.instruction).toContain(
-      'не скрытым hard filter',
+      'разумным осторожным выводом',
     );
 
     expect(built.context.usage?.selected[0]?.question?.question).toContain(

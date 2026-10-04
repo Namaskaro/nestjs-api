@@ -119,9 +119,41 @@ export function createRequestRouterNode(
       ...modelDecision.workerQueries,
     };
 
+    let orderRequest = modelDecision.orderRequest;
+
+    if (workerQueries.orderAgent !== null && orderRequest === null) {
+      orderRequest = {
+        action: 'RELEVANT',
+
+        orderId: null,
+      };
+    }
+
+    if (workerQueries.orderAgent === null) {
+      orderRequest = null;
+    }
+
     let workers = RequestRouterWorkerSchema.options.filter(
       (worker) => workerQueries[worker] !== null,
     );
+
+    /**
+     * Mutation с confirmation пока выполняем
+     * отдельным single flow.
+     *
+     * Не запускаем одновременно product/customer
+     * workers и CANCEL interrupt.
+     */
+    if (
+      orderRequest?.action === 'CANCEL' &&
+      workerQueries.orderAgent !== null
+    ) {
+      workerQueries.productAgent = null;
+
+      workerQueries.customerHelpAgent = null;
+
+      workers = ['orderAgent'];
+    }
 
     let fallbackRoute = modelDecision.fallbackRoute;
 
@@ -136,6 +168,8 @@ export function createRequestRouterNode(
         workerQueries.productAgent = state.query;
 
         workers = ['productAgent'];
+
+        orderRequest = null;
 
         fallbackRoute = null;
 
@@ -180,6 +214,8 @@ export function createRequestRouterNode(
       workers,
 
       workerQueries,
+
+      orderRequest,
 
       clarificationTopic: route === 'clarification' ? clarificationTopic : null,
 

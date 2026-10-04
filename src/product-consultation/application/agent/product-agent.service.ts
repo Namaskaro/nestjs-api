@@ -61,4 +61,10 @@ export class ProductAgentService implements ProductSearchPort {
   ): Promise<ProductDetails[]> {
     return this.currentStoreCatalogService.getProductDetails(productIds);
   }
+
+  public getProductSemanticRepresentations(productIds: readonly string[]) {
+    return this.currentStoreCatalogService.getProductSemanticRepresentations(
+      productIds,
+    );
+  }
 }

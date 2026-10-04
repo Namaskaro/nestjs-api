@@ -5,6 +5,9 @@ import { INTERRUPT, isInterrupted } from '@langchain/langgraph';
 import { SupportAgentGraph } from './graph/support-agent.graph';
 
 import type { AssistantStatus } from './schemas/support-agent-status.schema';
+
+import type { SupportAgentContext } from './context/support-agent-context.schema';
+
 import { ConsultationFeedbackReceipt } from '../product-consultation/application/session/consultation-lifecycle.schema';
 
 type SupportAgentGraphResult = Awaited<ReturnType<SupportAgentGraph['invoke']>>;
@@ -68,23 +71,31 @@ export class SupportAgentService {
 
     threadId: string,
 
+    context: SupportAgentContext,
+
     onEvent?: EventHandler,
 
     messageId?: string,
   ): Promise<SupportAgentRunResult> {
-    return this.withThreadLock(threadId, async () => {
-      const result = await this.supportAgentGraph.invoke(
-        query,
+    return this.withThreadLock(
+      threadId,
 
-        threadId,
+      async () => {
+        const result = await this.supportAgentGraph.invoke(
+          query,
 
-        this.createCustomEventHandler(onEvent),
+          threadId,
 
-        messageId,
-      );
+          context,
 
-      return this.toRunResult(result);
-    });
+          this.createCustomEventHandler(onEvent),
+
+          messageId,
+        );
+
+        return this.toRunResult(result);
+      },
+    );
   }
 
   async resume(
@@ -92,19 +103,27 @@ export class SupportAgentService {
 
     threadId: string,
 
+    context: SupportAgentContext,
+
     onEvent?: EventHandler,
   ): Promise<SupportAgentRunResult> {
-    return this.withThreadLock(threadId, async () => {
-      const result = await this.supportAgentGraph.resume(
-        value,
+    return this.withThreadLock(
+      threadId,
 
-        threadId,
+      async () => {
+        const result = await this.supportAgentGraph.resume(
+          value,
 
-        this.createCustomEventHandler(onEvent),
-      );
+          threadId,
 
-      return this.toRunResult(result);
-    });
+          context,
+
+          this.createCustomEventHandler(onEvent),
+        );
+
+        return this.toRunResult(result);
+      },
+    );
   }
 
   async submitConsultationFeedback(
@@ -114,14 +133,17 @@ export class SupportAgentService {
 
     helpful: boolean,
   ): Promise<ConsultationFeedbackReceipt> {
-    return this.withThreadLock(threadId, () =>
-      this.supportAgentGraph.submitConsultationFeedback(
-        threadId,
+    return this.withThreadLock(
+      threadId,
 
-        sessionId,
+      () =>
+        this.supportAgentGraph.submitConsultationFeedback(
+          threadId,
 
-        helpful,
-      ),
+          sessionId,
+
+          helpful,
+        ),
     );
   }
 
@@ -129,11 +151,15 @@ export class SupportAgentService {
     query: string,
 
     threadId: string,
+
+    context: SupportAgentContext,
   ) {
     return this.supportAgentGraph.streamEvents(
       query,
 
       threadId,
+
+      context,
     );
   }
 

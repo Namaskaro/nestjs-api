@@ -4,11 +4,14 @@ import { HandoffRequestSchema } from '../agents/handoff-agent/schemas/handoff.sc
 
 import { ClarificationTopicSchema } from './clarification-topic.schema';
 
+import { OrderRequestSchema } from './order-request.schema';
+
 export const RequestRouterWorkerSchema = z
-  .enum(['productAgent', 'customerHelpAgent'])
+  .enum(['productAgent', 'orderAgent', 'customerHelpAgent'])
   .describe(
     [
       'productAgent — поиск, подбор, сравнение, детали, рекомендации и продолжение товарной консультации.',
+      'orderAgent — информация о заказах пользователя, статус заказа, последний или актуальный заказ, отмена заказа.',
       'customerHelpAgent — доставка, оплата, возврат, обмен, скидки, лояльность и правила магазина.',
     ].join(' '),
   );
@@ -29,6 +32,19 @@ export const RequestRouterWorkerQueriesSchema = z.object({
       ].join(' '),
     ),
 
+  orderAgent: z
+    .string()
+    .min(1)
+    .nullable()
+    .describe(
+      [
+        'Запрос пользователя, относящийся к его конкретным заказам.',
+        'Используй для списка заказов, статуса заказа, последнего заказа, актуального заказа или отмены.',
+        'Не используй для общих правил доставки, оплаты или возврата.',
+        'Иначе верни null.',
+      ].join(' '),
+    ),
+
   customerHelpAgent: z
     .string()
     .min(1)
@@ -36,7 +52,7 @@ export const RequestRouterWorkerQueriesSchema = z.object({
     .describe(
       [
         'Самодостаточный запрос для customerHelpAgent.',
-        'Заполни для доставки, оплаты, возврата, обмена, скидок, лояльности или правил магазина.',
+        'Заполни для общих правил доставки, оплаты, возврата, обмена, скидок, лояльности или правил магазина.',
         'Можно добавить только явно известные релевантные факты из истории.',
         'Иначе верни null.',
       ].join(' '),
@@ -52,9 +68,22 @@ export const RequestRouterFallbackRouteSchema = z.enum([
 export const RequestRouterModelSchema = z.object({
   workerQueries: RequestRouterWorkerQueriesSchema,
 
+  orderRequest: OrderRequestSchema.nullable().describe(
+    [
+      'Заполняй только если workerQueries.orderAgent не null.',
+      'LIST — пользователь хочет список своих заказов.',
+      'GET — пользователь явно указал конкретный orderId.',
+      'LATEST — пользователь явно спрашивает последний заказ.',
+      'RELEVANT — пользователь говорит о своём заказе без конкретного id; нужен наиболее актуальный заказ.',
+      'CANCEL — пользователь хочет отменить заказ.',
+      'Для GET укажи orderId.',
+      'Для остальных action orderId может быть null.',
+    ].join(' '),
+  ),
+
   fallbackRoute: RequestRouterFallbackRouteSchema.nullable().describe(
     [
-      'Используется только если оба workerQueries равны null.',
+      'Используется только если все workerQueries равны null.',
       'clarification — задача магазина непонятна и не может быть передана domain agent.',
       'handoff — требуется оператор.',
       'unsupported — запрос не относится к магазину.',
@@ -86,6 +115,8 @@ export const RequestRouterSchema = z.object({
     .max(RequestRouterWorkerSchema.options.length),
 
   workerQueries: RequestRouterWorkerQueriesSchema,
+
+  orderRequest: OrderRequestSchema.nullable(),
 
   clarificationTopic: ClarificationTopicSchema.nullable(),
 

@@ -131,6 +131,22 @@ const ContextProductFactsSchema = z
   })
   .strict();
 
+const ContextSemanticEvidenceSchema = z
+  .object({
+    position: z.number().int().positive(),
+
+    summary: z.string().min(1).max(400),
+
+    targetAudience: z.array(z.string().min(1).max(120)).max(4),
+
+    styleAssociations: z.array(z.string().min(1).max(80)).max(5),
+
+    useCases: z.array(z.string().min(1).max(120)).max(5),
+
+    pricePositioning: z.string().min(1).max(120),
+  })
+  .strict();
+
 const ContextProfileSchema = z
   .object({
     id: z.string().trim().min(1),
@@ -282,6 +298,10 @@ export const ProductConsultationLlmContextSchema = z
       .array(ContextProductFactsSchema)
       .max(MAX_CONTEXT_FACT_PRODUCTS),
 
+    semanticEvidence: z
+      .array(ContextSemanticEvidenceSchema)
+      .max(MAX_CONTEXT_FACT_PRODUCTS),
+
     comparison: ContextComparisonSchema.nullable(),
 
     profile: ContextProfileSchema.nullable(),
@@ -298,6 +318,18 @@ export type ProductConsultationContextMessage = z.infer<
   typeof ContextMessageSchema
 >;
 
+export type ProductSemanticEvidenceSource = {
+  summary: string;
+
+  targetAudience: readonly string[];
+
+  styleAssociations: readonly string[];
+
+  useCases: readonly string[];
+
+  pricePositioning: string;
+};
+
 export type BuildProductConsultationContextInput = {
   record: ConsultationApplicationRecord;
 
@@ -308,6 +340,8 @@ export type BuildProductConsultationContextInput = {
   referenceResultId?: string | null;
 
   selectedProducts?: readonly ProductDetails[];
+
+  semanticRepresentations?: ReadonlyMap<string, ProductSemanticEvidenceSource>;
 
   factAttributeIds?: readonly string[] | null;
 
@@ -769,6 +803,62 @@ function selectedFacts(input: {
   });
 }
 
+function selectedSemanticEvidence(input: {
+  products: readonly ProductDetails[];
+
+  snapshot: SearchResultSnapshot | null;
+
+  representations: ReadonlyMap<string, ProductSemanticEvidenceSource>;
+}) {
+  if (input.products.length === 0 || input.representations.size === 0) {
+    return [];
+  }
+
+  if (input.snapshot === null) {
+    throw new Error(
+      'ProductConsultationContext: semantic evidence requires a bound result snapshot.',
+    );
+  }
+
+  const positionByProductId = new Map(
+    input.snapshot.products.map(
+      (product, index) => [product.productId, index + 1] as const,
+    ),
+  );
+
+  return input.products.flatMap((product) => {
+    const position = positionByProductId.get(product.id);
+
+    if (position === undefined) {
+      throw new Error(
+        `ProductConsultationContext: product ${product.id} does not belong to the bound result snapshot.`,
+      );
+    }
+
+    const representation = input.representations.get(product.id);
+
+    if (!representation) {
+      return [];
+    }
+
+    return [
+      {
+        position,
+
+        summary: representation.summary,
+
+        targetAudience: [...representation.targetAudience],
+
+        styleAssociations: [...representation.styleAssociations],
+
+        useCases: [...representation.useCases],
+
+        pricePositioning: representation.pricePositioning,
+      },
+    ];
+  });
+}
+
 function comparisonContext(input: {
   comparison: AgentComparisonView | null;
 
@@ -884,6 +974,8 @@ export function buildProductConsultationContext(
     input.usageScenarioIds ?? [],
   );
 
+  const selectedProducts = input.selectedProducts ?? [];
+
   const context = ProductConsultationLlmContextSchema.parse({
     version: 1,
 
@@ -921,11 +1013,19 @@ export function buildProductConsultationContext(
     },
 
     productFacts: selectedFacts({
-      products: input.selectedProducts ?? [],
+      products: selectedProducts,
 
       snapshot,
 
       attributeIds: input.factAttributeIds ?? null,
+    }),
+
+    semanticEvidence: selectedSemanticEvidence({
+      products: selectedProducts,
+
+      snapshot,
+
+      representations: input.semanticRepresentations ?? new Map(),
     }),
 
     comparison: comparisonContext({

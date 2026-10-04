@@ -129,12 +129,6 @@ function mixedFactProduct(): ProductDetails {
     subcategory: null,
 
     attributes: [
-      /**
-       * KNOWN:
-       *
-       * есть подтверждённое значение
-       * и provenance.
-       */
       {
         attributeId: 'purpose',
 
@@ -165,18 +159,6 @@ function mixedFactProduct(): ProductDetails {
         ],
       },
 
-      /**
-       * UNKNOWN:
-       *
-       * данных просто нет.
-       *
-       * Это НЕ:
-       *
-       * false
-       * ''
-       * 0
-       * "плохой материал"
-       */
       {
         attributeId: 'upperMaterial',
 
@@ -193,14 +175,6 @@ function mixedFactProduct(): ProductDetails {
         provenance: [],
       },
 
-      /**
-       * CONFLICTING:
-       *
-       * источники расходятся.
-       *
-       * Context Builder не должен
-       * выбирать одно значение сам.
-       */
       {
         attributeId: 'lining',
 
@@ -217,12 +191,6 @@ function mixedFactProduct(): ProductDetails {
         provenance: [],
       },
 
-      /**
-       * NOT_APPLICABLE:
-       *
-       * свойство в данном конкретном
-       * случае неприменимо.
-       */
       {
         attributeId: 'sole',
 
@@ -267,11 +235,6 @@ describe('ProductConsultationContext fact status boundary', () => {
 
       selectedProducts: [mixedFactProduct()],
 
-      /**
-       * Это ровно attributes,
-       * которые daily_walking
-       * считает полезными.
-       */
       factAttributeIds: ['purpose', 'upperMaterial', 'lining', 'sole'],
     });
 
@@ -281,7 +244,7 @@ describe('ProductConsultationContext fact status boundary', () => {
       expect.objectContaining({
         id: 'daily_walking',
 
-        attributeIds: ['purpose', 'upperMaterial', 'lining', 'sole'],
+        attributeIds: ['purpose', 'sole', 'upperMaterial', 'material'],
       }),
     );
 
@@ -339,31 +302,19 @@ describe('ProductConsultationContext fact status boundary', () => {
       },
     ]);
 
-    /**
-     * Отсутствие данных не должно
-     * превращаться в false / 0 /
-     * пустую строку.
-     */
     for (const fact of facts.filter((item) => item.status !== 'known')) {
       expect(fact.value).toBeNull();
 
       expect(fact.displayValue).toBeNull();
     }
 
-    /**
-     * Usage Scenario —
-     * только knowledge.
-     *
-     * Его attributeIds не становятся
-     * SearchSpec constraints.
-     */
     expect(record.state?.search).toEqual(searchBefore);
 
     expect(built.context.task?.search).toEqual(searchBefore);
 
     expect(
       built.context.task?.search?.constraints.some((constraint) =>
-        ['purpose', 'upperMaterial', 'lining', 'sole'].includes(
+        ['purpose', 'sole', 'upperMaterial', 'material'].includes(
           constraint.attributeId,
         ),
       ),

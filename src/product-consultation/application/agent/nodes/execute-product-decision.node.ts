@@ -275,6 +275,18 @@ export function createExecuteProductDecisionNode(
         ? []
         : state.recentMessages;
 
+    const semanticRepresentations =
+      action === 'RECOMMEND' &&
+      capability.observation.kind === 'recommend' &&
+      capability.observation.status === 'context_ready' &&
+      capability.selectedProducts.length > 0
+        ? await productAgentService
+            .getProductSemanticRepresentations(
+              capability.selectedProducts.map((product) => product.id),
+            )
+            .catch(() => undefined)
+        : undefined;
+
     const followup = buildProductConsultationContext({
       record,
 
@@ -289,6 +301,8 @@ export function createExecuteProductDecisionNode(
       comparison: capability.comparison,
 
       usageScenarioIds: capability.usageScenarioIds,
+
+      semanticRepresentations,
     });
 
     const response = await consultant.respond({

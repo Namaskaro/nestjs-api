@@ -155,12 +155,6 @@ function productDetails(input: {
       },
 
       {
-        /**
-         * Проверяем, что unknown
-         * передаётся модели именно
-         * как unknown, а не исчезает
-         * или превращается в догадку.
-         */
         attributeId: 'weight',
 
         kind: 'number',
@@ -299,11 +293,6 @@ describe('ProductConsultationContext', () => {
       ],
     });
 
-    /**
-     * Server metadata находится
-     * рядом с context, а не внутри
-     * модельного payload.
-     */
     expect(built.expectedRevision).toBe(4);
 
     expect(built.expectedResultId).toBe('result-adidas');
@@ -320,10 +309,6 @@ describe('ProductConsultationContext', () => {
 
     expect(built.context.results.status).toBe('active');
 
-    /**
-     * Модель видит order,
-     * но не реальные productIds.
-     */
     expect(built.context.results.shownProducts).toEqual([
       {
         position: 1,
@@ -384,6 +369,8 @@ describe('ProductConsultationContext', () => {
 
         title: 'Campus 00s',
 
+        description: 'Campus 00s description',
+
         profileId: 'SHOES',
 
         facts: [
@@ -414,11 +401,6 @@ describe('ProductConsultationContext', () => {
       },
     ]);
 
-    /**
-     * Никакой provenance,
-     * stock или internal ID
-     * в LLM fact projection нет.
-     */
     expect(built.context.productFacts[0]).not.toHaveProperty('id');
 
     expect(built.context.productFacts[0]).not.toHaveProperty('availability');
@@ -523,20 +505,10 @@ describe('ProductConsultationContext', () => {
 
     expect(built.context.results.hasLastConfirmed).toBe(true);
 
-    /**
-     * Failure не означает:
-     * "автоматически покажи старый
-     * Adidas snapshot".
-     */
     expect(built.expectedResultId).toBeNull();
 
     expect(built.context.results.shownProducts).toEqual([]);
 
-    /**
-     * Но application может явно
-     * вернуть старый snapshot
-     * в context отдельным решением.
-     */
     const withPrevious = buildProductConsultationContext({
       record: failedRecord,
 

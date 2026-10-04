@@ -1,17 +1,26 @@
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
+
 import { AIMessage } from '@langchain/core/messages';
+
 import type { GraphNode, LangGraphRunnableConfig } from '@langchain/langgraph';
+
 import { AiService } from '@/src/ai/ai.service';
+
 import { aggregateSupportAnswerPrompt } from '../../prompts/aggregate-support-answer.prompt';
+
 import {
   AggregateFinalAnswerSchema,
   type SupportAgentAnswerBlock,
 } from '../../schemas/support-agent-answer.schema';
+
 import { SupportAgentState } from '../support-agent.state';
 
 const blockOrder: Record<SupportAgentAnswerBlock['worker'], number> = {
-  customer_help: 0,
-  product_search: 1,
+  order: 0,
+
+  customer_help: 1,
+
+  product_search: 2,
 };
 
 export function createAggregateFinalAnswerNode(
@@ -19,7 +28,11 @@ export function createAggregateFinalAnswerNode(
 ): GraphNode<typeof SupportAgentState> {
   const model = aiService.getYandexLiteChatModel();
 
-  return async (state, config: LangGraphRunnableConfig) => {
+  return async (
+    state,
+
+    config: LangGraphRunnableConfig,
+  ) => {
     const blocks = [...state.workerResults].sort(
       (left, right) => blockOrder[left.worker] - blockOrder[right.worker],
     );
@@ -37,7 +50,20 @@ export function createAggregateFinalAnswerNode(
       if (block.worker === 'customer_help') {
         return {
           worker: block.worker,
-          data: { message: block.data.message },
+
+          data: {
+            message: block.data.message,
+          },
+        };
+      }
+
+      if (block.worker === 'order') {
+        return {
+          worker: block.worker,
+
+          data: {
+            message: block.data.message,
+          },
         };
       }
 
@@ -49,11 +75,15 @@ export function createAggregateFinalAnswerNode(
 
       return {
         worker: block.worker,
+
         data: {
           message: productMessage,
+
           groups: block.data.groups.map((group) => ({
             query: group.query,
+
             message: group.message,
+
             productsCount: group.products.length,
           })),
         },
@@ -62,26 +92,48 @@ export function createAggregateFinalAnswerNode(
 
     await dispatchCustomEvent(
       'assistant_status',
-      { status: 'GENERATING_ANSWER' },
+
+      {
+        status: 'GENERATING_ANSWER',
+      },
+
       config,
     );
 
     const prompt = await aggregateSupportAnswerPrompt.invoke({
       query: state.query,
-      workerResults: JSON.stringify(workerResultsForPrompt, null, 2),
+
+      workerResults: JSON.stringify(
+        workerResultsForPrompt,
+
+        null,
+
+        2,
+      ),
     });
 
     const stream = await model.stream(prompt);
+
     let message = '';
 
     for await (const chunk of stream) {
       const delta = chunk.text;
 
-      if (!delta) continue;
+      if (!delta) {
+        continue;
+      }
 
       message += delta;
 
-      await dispatchCustomEvent('assistant_delta', { delta }, config);
+      await dispatchCustomEvent(
+        'assistant_delta',
+
+        {
+          delta,
+        },
+
+        config,
+      );
     }
 
     if (!message.trim()) {
@@ -92,19 +144,31 @@ export function createAggregateFinalAnswerNode(
 
     if (pendingQuestion) {
       const delta = `\n\n${pendingQuestion}`;
+
       message += delta;
 
-      await dispatchCustomEvent('assistant_delta', { delta }, config);
+      await dispatchCustomEvent(
+        'assistant_delta',
+
+        {
+          delta,
+        },
+
+        config,
+      );
     }
 
     const answer = AggregateFinalAnswerSchema.parse({
       type: 'aggregate',
+
       message,
+
       blocks,
     });
 
     return {
       answer,
+
       messages: [new AIMessage(answer.message)],
     };
   };
