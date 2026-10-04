@@ -23,6 +23,26 @@ const blockOrder: Record<SupportAgentAnswerBlock['worker'], number> = {
   product_search: 2,
 };
 
+function uniqueMessages(values: Array<string | null | undefined>): string[] {
+  const result: string[] = [];
+
+  const seen = new Set<string>();
+
+  for (const value of values) {
+    const message = value?.trim();
+
+    if (!message || seen.has(message)) {
+      continue;
+    }
+
+    seen.add(message);
+
+    result.push(message);
+  }
+
+  return result;
+}
+
 export function createAggregateFinalAnswerNode(
   aiService: AiService,
 ): GraphNode<typeof SupportAgentState> {
@@ -43,16 +63,22 @@ export function createAggregateFinalAnswerNode(
       );
     }
 
-    const pendingQuestion =
-      blocks
-        .flatMap((block) =>
-          block.worker === 'product_search'
-            ? block.data.groups
-                .filter((group) => group.status === 'clarification')
-                .map((group) => group.message)
-            : [],
-        )
-        .join('\n') || null;
+    const workspaceQuestion =
+      state.productWorkspace?.pendingClarification?.question ?? null;
+
+    const groupQuestions = blocks.flatMap((block) =>
+      block.worker === 'product_search'
+        ? block.data.groups
+            .filter((group) => group.status === 'clarification')
+            .map((group) => group.message)
+        : [],
+    );
+
+    const pendingQuestions = uniqueMessages([
+      workspaceQuestion,
+
+      ...groupQuestions,
+    ]);
 
     const workerResultsForPrompt = blocks.map((block) => {
       if (block.worker === 'customer_help') {
@@ -75,9 +101,21 @@ export function createAggregateFinalAnswerNode(
         };
       }
 
+      const nonClarificationMessages = uniqueMessages(
+        block.data.groups
+          .filter((group) => group.status !== 'clarification')
+          .map((group) => group.message),
+      );
+
+      const requiresClarification =
+        workspaceQuestion !== null ||
+        block.data.groups.some((group) => group.status === 'clarification');
+
       const productMessage =
         block.data.consultation?.message ??
-        (pendingQuestion === block.data.message
+        (nonClarificationMessages.length > 0
+          ? nonClarificationMessages.join('\n')
+          : requiresClarification
           ? 'Для продолжения подбора требуется уточнение.'
           : block.data.message);
 
@@ -90,7 +128,10 @@ export function createAggregateFinalAnswerNode(
           groups: block.data.groups.map((group) => ({
             query: group.query,
 
-            message: group.message,
+            message:
+              group.status === 'clarification'
+                ? 'Для этой подборки требуется уточнение.'
+                : group.message,
 
             productsCount: group.products.length,
           })),
@@ -150,8 +191,12 @@ export function createAggregateFinalAnswerNode(
       );
     }
 
-    if (pendingQuestion) {
-      const delta = `\n\n${pendingQuestion}`;
+    const questionsToAppend = pendingQuestions.filter(
+      (question) => !message.includes(question),
+    );
+
+    if (questionsToAppend.length > 0) {
+      const delta = `\n\n${questionsToAppend.join('\n')}`;
 
       message += delta;
 
