@@ -1,3 +1,4 @@
+import { CurrentStoreSearchSpecAdapter } from '../../adapters/current-store/current-store-search-spec.adapter';
 import { AiService } from '@/src/ai/ai.service';
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
@@ -31,7 +32,22 @@ export class FrozenCurrentProductConsultationTarget
   ) {
     const frozenCatalog = new FrozenCurrentProductCatalog(fixture);
 
-    const frozenService = frozenCatalog.createServiceProxy(productAgentService);
+    const legacyFrozenService =
+      frozenCatalog.createServiceProxy(productAgentService);
+    const search = new CurrentStoreSearchSpecAdapter(legacyFrozenService);
+    const frozenService = new Proxy(legacyFrozenService, {
+      get(target, property, receiver) {
+        if (property === 'search') return search.search.bind(search);
+        if (property === 'validate') return search.validate.bind(search);
+        if (property === 'capabilities')
+          return search.capabilities.bind(search);
+        // Captured fixtures do not contain semantic representations; never fall through to live Qdrant.
+        if (property === 'getProductSemanticRepresentations')
+          return async () => new Map();
+        const value = Reflect.get(target, property, receiver);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    });
 
     this.delegate = new CurrentProductConsultationTarget(
       aiService,

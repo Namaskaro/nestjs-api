@@ -47,6 +47,8 @@ function complete(text: string) {
 
     usageScenarioIds: [],
 
+    factAttributeIds: [],
+
     terminalText: text,
   };
 }
@@ -303,6 +305,8 @@ const mainDecisions = {
 
       usageScenarioIds: ['daily_walking'],
 
+      factAttributeIds: [],
+
       terminalText: null,
     },
 
@@ -347,6 +351,8 @@ const mainDecisions = {
 
       usageScenarioIds: ['daily_walking'],
 
+      factAttributeIds: [],
+
       terminalText: null,
     },
 
@@ -374,6 +380,8 @@ const mainDecisions = {
       },
 
       usageScenarioIds: [],
+
+      factAttributeIds: [],
 
       terminalText: 'Хорошо. Что именно хотите подобрать в новой задаче?',
     },

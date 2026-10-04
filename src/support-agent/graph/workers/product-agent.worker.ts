@@ -16,23 +16,12 @@ import {
   ProductSearchAnswerBlockSchema,
 } from '@/src/support-agent/schemas/support-agent-answer.schema';
 
-import {
-  createConsultationApplicationRecord,
-  ConsultationRequestIdSchema,
-  type ConsultationApplicationRecord,
-} from '@/src/product-consultation/application/runtime/consultation-application-record';
-
-import type { PublicConsultationAction } from '@/src/product-consultation/core/turn/consultation-turn.schema';
+import { ConsultationRequestIdSchema } from '@/src/product-consultation/application/runtime/consultation-application-record';
+import { createProductWorkspace } from '@/src/product-consultation/application/workspace/product-workspace';
 
 import type { ProductConsultationContextMessage } from '@/src/product-consultation/application/context/product-consultation-context';
 
 import { ProductAgent } from '@/src/product-consultation/application/agent/product.agent';
-
-const GROUP_ACTIONS = new Set<PublicConsultationAction>([
-  'SEARCH',
-  'REFINE',
-  'SHOW_RESULTS',
-]);
 
 function conversationIdFromConfig(config: LangGraphRunnableConfig): string {
   const threadId = config.configurable?.thread_id;
@@ -88,43 +77,6 @@ function recentMessagesFromState(
   return result.slice(-6);
 }
 
-function answerGroups(input: {
-  record: ConsultationApplicationRecord;
-
-  action: PublicConsultationAction | null;
-}) {
-  if (input.action === null || !GROUP_ACTIONS.has(input.action)) {
-    return [];
-  }
-
-  const snapshot = input.record.results.active;
-
-  if (snapshot === null) {
-    return [];
-  }
-
-  return [
-    {
-      query: snapshot.search.semanticIntent,
-
-      message:
-        snapshot.products.length > 0
-          ? 'Найденные товары.'
-          : 'Товары не найдены.',
-
-      products: snapshot.products.map((product) => ({
-        id: product.productId,
-
-        title: product.title,
-
-        price: product.price,
-
-        image: product.image ?? '',
-      })),
-    },
-  ];
-}
-
 export function createProductAgentWorker(
   productAgent: ProductAgent,
 ): GraphNode<typeof SupportAgentState> {
@@ -146,23 +98,21 @@ export function createProductAgentWorker(
 
       recentMessages: recentMessagesFromState(state),
 
-      consultationRecord:
-        state.productConsultationRecord ??
-        createConsultationApplicationRecord(),
-
-      productContext: state.productContext,
+      workspace:
+        state.productWorkspace ??
+        createProductWorkspace(state.productConsultationRecord),
     });
 
-    const record = result.consultationRecord;
+    const workspace = result.workspace;
 
-    const decision = result.decision;
-
-    if (decision?.proposal.action === 'HANDOFF') {
+    if (result.handoffRequested) {
       return new Command({
         goto: 'handoffAgent',
 
         update: {
-          productConsultationRecord: record,
+          productWorkspace: workspace,
+
+          productConsultationRecord: null,
 
           handoffRequest: {
             reason: 'CUSTOMER_REQUEST',
@@ -179,16 +129,10 @@ export function createProductAgentWorker(
       throw new Error('ProductAgentWorker: ProductAgent не вернул message');
     }
 
-    const groups = answerGroups({
-      record,
-
-      action: decision?.proposal.action ?? null,
-    });
-
     const data = {
       message: result.message,
 
-      groups,
+      groups: result.groups,
 
       consultation: result.consultation,
 
@@ -206,7 +150,9 @@ export function createProductAgentWorker(
         goto: 'aggregateAnswer',
 
         update: {
-          productConsultationRecord: record,
+          productWorkspace: workspace,
+
+          productConsultationRecord: null,
 
           workerResults: [workerResult],
         },
@@ -225,7 +171,9 @@ export function createProductAgentWorker(
       update: {
         activeAgent: 'productAgent',
 
-        productConsultationRecord: record,
+        productWorkspace: workspace,
+
+        productConsultationRecord: null,
 
         answer,
 

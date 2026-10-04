@@ -57,6 +57,8 @@ describe('ProductConsultantDecision', () => {
 
       usageScenarioIds: ['daily_walking'],
 
+      factAttributeIds: [],
+
       terminalText: null,
     });
 
@@ -105,6 +107,8 @@ describe('ProductConsultantDecision', () => {
 
       usageScenarioIds: ['daily_walking'],
 
+      factAttributeIds: [],
+
       terminalText: null,
     });
 
@@ -132,6 +136,8 @@ describe('ProductConsultantDecision', () => {
       },
 
       usageScenarioIds: ['daily_walking'],
+
+      factAttributeIds: [],
 
       terminalText:
         'Для повседневной ходьбы второй вариант выглядит уместнее по подтверждённым характеристикам.',
@@ -173,6 +179,8 @@ describe('ProductConsultantDecision', () => {
       },
 
       usageScenarioIds: ['training'],
+
+      factAttributeIds: [],
 
       terminalText:
         'Для каких тренировок нужна обувь: бег, зал или другой тип нагрузки?',
@@ -217,6 +225,8 @@ describe('ProductConsultantDecision', () => {
 
       usageScenarioIds: [],
 
+      factAttributeIds: [],
+
       terminalText: 'Понял, первый вариант исключаем из текущего совета.',
     });
 
@@ -229,6 +239,8 @@ describe('ProductConsultantDecision', () => {
         proposal: nikeSearchProposal(),
 
         usageScenarioIds: [],
+
+        factAttributeIds: [],
 
         /**
          * Модель ещё не видела
@@ -264,6 +276,8 @@ describe('ProductConsultantDecision', () => {
 
         usageScenarioIds: [],
 
+        factAttributeIds: [],
+
         terminalText: null,
       }),
     ).toThrow('COMPLETE requires terminal text');
@@ -275,6 +289,8 @@ describe('ProductConsultantDecision', () => {
         proposal: nikeSearchProposal(),
 
         usageScenarioIds: ['daily_walking', 'daily_walking'],
+
+        factAttributeIds: [],
 
         terminalText: null,
       }),
@@ -306,6 +322,8 @@ describe('ProductConsultantDecision', () => {
 
         usageScenarioIds: [],
 
+        factAttributeIds: [],
+
         terminalText: null,
 
         artifacts: [
@@ -321,6 +339,8 @@ describe('ProductConsultantDecision', () => {
         proposal: nikeSearchProposal(),
 
         usageScenarioIds: [],
+
+        factAttributeIds: [],
 
         terminalText: null,
 

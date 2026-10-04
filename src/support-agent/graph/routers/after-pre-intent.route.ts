@@ -1,3 +1,4 @@
+import { workspaceRecords } from '@/src/product-consultation/application/workspace/product-workspace';
 import type { SupportAgentStateType } from '../support-agent.state';
 
 function normalizeQuery(query: string): string {
@@ -48,9 +49,15 @@ const PRODUCT_COMPLETION_PATTERNS = [
 function shouldRouteDirectlyToProductAgent(
   state: SupportAgentStateType,
 ): boolean {
-  const record = state.productConsultationRecord;
+  const records = workspaceRecords(
+    state.productWorkspace,
+    state.productConsultationRecord,
+  );
 
-  if (!record || record.state === null) {
+  if (
+    !records.some((record) => record.state !== null) &&
+    !state.productWorkspace?.pendingClarification
+  ) {
     return false;
   }
 
@@ -64,9 +71,9 @@ function shouldRouteDirectlyToProductAgent(
     return true;
   }
 
-  const hasProducts =
-    (record.results.active?.products.length ?? 0) > 0 ||
-    (record.results.lastConfirmed?.products.length ?? 0) > 0;
+  const hasProducts = records.some(
+    (record) => (record.results.active?.products.length ?? 0) > 0,
+  );
 
   if (
     hasProducts &&
@@ -75,7 +82,18 @@ function shouldRouteDirectlyToProductAgent(
     return true;
   }
 
-  if (state.activeAgent === 'productAgent' && query.length <= 40) {
+  if (
+    state.activeAgent === 'productAgent' &&
+    query.length <= 40 &&
+    (Boolean(state.productWorkspace?.pendingClarification) ||
+      state.productWorkspace?.tasks.filter(
+        (task) =>
+          task.question !== null &&
+          state.productWorkspace.focus.some(
+            (reference) => reference.taskId === task.taskId,
+          ),
+      ).length === 1)
+  ) {
     return true;
   }
 

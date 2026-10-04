@@ -572,6 +572,19 @@ export function prepareConsultationTurn(
 
   const proposal = ConsultationTurnProposalSchema.parse(input.proposal);
 
+  if (
+    proposal.action === 'SEARCH' &&
+    proposal.taskTransition === 'continue' &&
+    (currentResults.active !== null ||
+      currentResults.lastConfirmed !== null ||
+      currentResults.pendingSearch !== null ||
+      currentResults.lastFailure !== undefined)
+  ) {
+    fail(
+      'SEARCH continue is only allowed before the first search; use REFINE or start_new.',
+    );
+  }
+
   const taskBaseState = resolveTaskBaseState(
     currentState,
 

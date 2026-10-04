@@ -8,7 +8,7 @@ import { ProductAgentState } from '@/src/product-consultation/application/agent/
 
 import { createDecideProductNode } from './nodes/decide-product.node';
 
-import { createExecuteProductDecisionNode } from './nodes/execute-product-decision.node';
+import { createExecuteProductWorkspaceNode } from './nodes/execute-product-workspace.node';
 
 export function createProductAgent(
   aiService: AiService,
@@ -22,7 +22,7 @@ export function createProductAgent(
 
     .addNode(
       'executeProductDecision',
-      createExecuteProductDecisionNode(aiService, productAgentService),
+      createExecuteProductWorkspaceNode(aiService, productAgentService),
     )
 
     .addEdge(START, 'decideProduct')

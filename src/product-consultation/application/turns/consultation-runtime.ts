@@ -1,6 +1,9 @@
 import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
-import { CATEGORY_PROFILES, getCategoryProfile } from '@/src/product-consultation/core/profiles';
+import {
+  CATEGORY_PROFILES,
+  getCategoryProfile,
+} from '@/src/product-consultation/core/profiles';
 
 import {
   ConsultationCore,
@@ -11,7 +14,7 @@ import type { ProductDetails } from '@/src/product-consultation/core/consultatio
 
 import type { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
-import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/legacy-product-agent.state';
 
 import type { ComparisonPresentation } from '@/src/product-consultation/application/presentation/comparison-presentation.schema';
 

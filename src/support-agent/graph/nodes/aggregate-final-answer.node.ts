@@ -44,7 +44,15 @@ export function createAggregateFinalAnswerNode(
     }
 
     const pendingQuestion =
-      state.productContext?.pendingClarification?.question ?? null;
+      blocks
+        .flatMap((block) =>
+          block.worker === 'product_search'
+            ? block.data.groups
+                .filter((group) => group.status === 'clarification')
+                .map((group) => group.message)
+            : [],
+        )
+        .join('\n') || null;
 
     const workerResultsForPrompt = blocks.map((block) => {
       if (block.worker === 'customer_help') {

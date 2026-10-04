@@ -55,18 +55,8 @@ export const ConsultationTurnProposalSchema = z
       });
     }
 
-    if (
-      proposal.action === 'SEARCH' &&
-      proposal.taskTransition !== 'start_new'
-    ) {
-      context.addIssue({
-        code: 'custom',
-
-        path: ['taskTransition'],
-
-        message: 'SEARCH must start a new consultation task.',
-      });
-    }
+    // SEARCH may continue a task that has only clarified requirements so far.
+    // Whether a search has already run is checked at the state-aware boundary.
 
     if (
       proposal.taskTransition === 'start_new' &&

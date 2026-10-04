@@ -1,8 +1,27 @@
-import type { GraphNode } from '@langchain/langgraph';
+import type { LangGraphRunnableConfig } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
 
-import { ProductAgentState } from '@/src/product-consultation/application/agent/product-agent.state';
+import type { ConsultationApplicationRecord } from '../../runtime/consultation-application-record';
+import type { ProductConsultantDecision } from '../../consultant/product-consultant-decision.schema';
+import type { ProductConsultationContextMessage } from '../../context/product-consultation-context';
+import type { ProductAgentAnswer } from '../agreagte-answer.schema';
+
+export type ProductTaskExecutionInput = {
+  query: string;
+  conversationId: string;
+  requestId: string;
+  recentMessages: ProductConsultationContextMessage[];
+  consultationRecord: ConsultationApplicationRecord;
+  decision: ProductConsultantDecision;
+};
+export type ProductTaskExecutionResult = Pick<
+  ProductAgentAnswer,
+  'message' | 'consultation' | 'consultationCompletion'
+> & {
+  consultationRecord: ConsultationApplicationRecord;
+  failed?: true;
+};
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
@@ -49,10 +68,13 @@ export function createExecuteProductDecisionNode(
   aiService: AiService,
 
   productAgentService: ProductAgentService,
-): GraphNode<typeof ProductAgentState> {
+) {
   const consultant = createConsultationAgent(aiService);
 
-  return async (state) => {
+  return async (
+    state: ProductTaskExecutionInput,
+    _config?: LangGraphRunnableConfig,
+  ): Promise<ProductTaskExecutionResult> => {
     const decision = state.decision;
 
     if (decision === null) {
@@ -90,70 +112,20 @@ export function createExecuteProductDecisionNode(
 
     const record = execution.record;
 
-    if (decision.terminalText !== null) {
+    if (execution.status === 'duplicate' || execution.status === 'superseded') {
       return {
         consultationRecord: record,
-
         consultation: null,
-
         consultationCompletion: null,
-
-        searchResults: [],
-
-        message: decision.terminalText,
+        message:
+          execution.status === 'duplicate'
+            ? 'Этот запрос уже обработан.'
+            : 'Подборка уже обновлена другим запросом.',
       };
     }
 
-    const capability = await executeProductConsultantCapability({
-      decision,
-
-      execution,
-
-      productDetails: productAgentService,
-    });
-
-    const action = decision.proposal.action;
-
-    if (action === 'SEARCH' || action === 'REFINE') {
-      if (capability.observation.kind !== 'search') {
-        throw new Error(
-          `ExecuteProductDecision: invalid ${action} observation.`,
-        );
-      }
-
-      return {
-        consultationRecord: record,
-
-        consultation: null,
-
-        consultationCompletion: null,
-
-        searchResults: [],
-
-        message: searchMessage(action, capability.observation.status),
-      };
-    }
-
-    if (action === 'SHOW_RESULTS') {
-      return {
-        consultationRecord: record,
-
-        consultation: null,
-
-        consultationCompletion: null,
-
-        searchResults: [],
-
-        message: 'Показываю текущую подборку.',
-      };
-    }
-
-    if (action === 'DETAILS') {
-      if (capability.observation.kind !== 'details') {
-        throw new Error('ExecuteProductDecision: invalid DETAILS observation.');
-      }
-
-      if (capability.observation.status === 'product_unavailable') {
+    try {
+      if (decision.terminalText !== null) {
         return {
           consultationRecord: record,
 
@@ -161,166 +133,230 @@ export function createExecuteProductDecisionNode(
 
           consultationCompletion: null,
 
-          searchResults: [],
-
-          message:
-            'Выбранный товар сейчас недоступен для подробного просмотра.',
+          message: decision.terminalText,
         };
       }
 
-      const product = capability.selectedProducts[0];
+      const capability = await executeProductConsultantCapability({
+        decision,
 
-      if (!product) {
-        throw new Error('ExecuteProductDecision: DETAILS product is missing.');
-      }
+        execution,
 
-      const consultationState = record.state;
-
-      if (consultationState === null) {
-        throw new Error(
-          'ExecuteProductDecision: DETAILS consultation state is missing.',
-        );
-      }
-
-      const message = `Вот подробная информация о ${product.title}.`;
-
-      return {
-        consultationRecord: record,
-
-        consultation: buildProductDetailsConsultation({
-          state: consultationState,
-
-          product,
-
-          focusAttributeIds: decision.factAttributeIds,
-
-          message,
-        }),
-
-        consultationCompletion: null,
-
-        searchResults: [],
-
-        message,
-      };
-    }
-
-    if (action === 'COMPARE') {
-      if (capability.observation.kind !== 'compare') {
-        throw new Error('ExecuteProductDecision: invalid COMPARE observation.');
-      }
-
-      if (capability.observation.status === 'product_unavailable') {
-        return {
-          consultationRecord: record,
-
-          consultation: null,
-
-          consultationCompletion: null,
-
-          searchResults: [],
-
-          message:
-            'Не удалось сравнить выбранные товары: один из них сейчас недоступен.',
-        };
-      }
-
-      if (capability.comparison === null) {
-        throw new Error('ExecuteProductDecision: comparison is missing.');
-      }
-
-      const consultationState = record.state;
-
-      if (consultationState === null) {
-        throw new Error(
-          'ExecuteProductDecision: COMPARE consultation state is missing.',
-        );
-      }
-
-      const prepared = prepareProductConsultantComparisonPresentation({
-        comparison: capability.comparison,
-
-        products: capability.selectedProducts,
-
-        state: consultationState,
-
-        currentQuery: state.query,
+        productDetails: productAgentService,
       });
 
-      const presentation = finalizeComparisonPresentation(prepared, null);
+      const action = decision.proposal.action;
 
-      const message = 'Сравнил выбранные товары.';
+      if (action === 'SEARCH' || action === 'REFINE') {
+        if (capability.observation.kind !== 'search') {
+          throw new Error(
+            `ExecuteProductDecision: invalid ${action} observation.`,
+          );
+        }
+
+        return {
+          consultationRecord: record,
+
+          consultation: null,
+
+          consultationCompletion: null,
+
+          message: searchMessage(action, capability.observation.status),
+        };
+      }
+
+      if (action === 'SHOW_RESULTS') {
+        return {
+          consultationRecord: record,
+
+          consultation: null,
+
+          consultationCompletion: null,
+
+          message: 'Показываю текущую подборку.',
+        };
+      }
+
+      if (action === 'DETAILS') {
+        if (capability.observation.kind !== 'details') {
+          throw new Error(
+            'ExecuteProductDecision: invalid DETAILS observation.',
+          );
+        }
+
+        if (capability.observation.status === 'product_unavailable') {
+          return {
+            consultationRecord: record,
+
+            consultation: null,
+
+            consultationCompletion: null,
+
+            message:
+              'Выбранный товар сейчас недоступен для подробного просмотра.',
+          };
+        }
+
+        const product = capability.selectedProducts[0];
+
+        if (!product) {
+          throw new Error(
+            'ExecuteProductDecision: DETAILS product is missing.',
+          );
+        }
+
+        const consultationState = record.state;
+
+        if (consultationState === null) {
+          throw new Error(
+            'ExecuteProductDecision: DETAILS consultation state is missing.',
+          );
+        }
+
+        const message = `Вот подробная информация о ${product.title}.`;
+
+        return {
+          consultationRecord: record,
+
+          consultation: buildProductDetailsConsultation({
+            state: consultationState,
+
+            product,
+
+            focusAttributeIds: decision.factAttributeIds,
+
+            message,
+          }),
+
+          consultationCompletion: null,
+
+          message,
+        };
+      }
+
+      if (action === 'COMPARE') {
+        if (capability.observation.kind !== 'compare') {
+          throw new Error(
+            'ExecuteProductDecision: invalid COMPARE observation.',
+          );
+        }
+
+        if (capability.observation.status === 'product_unavailable') {
+          return {
+            consultationRecord: record,
+
+            consultation: null,
+
+            consultationCompletion: null,
+
+            message:
+              'Не удалось сравнить выбранные товары: один из них сейчас недоступен.',
+          };
+        }
+
+        if (capability.comparison === null) {
+          throw new Error('ExecuteProductDecision: comparison is missing.');
+        }
+
+        const consultationState = record.state;
+
+        if (consultationState === null) {
+          throw new Error(
+            'ExecuteProductDecision: COMPARE consultation state is missing.',
+          );
+        }
+
+        const prepared = prepareProductConsultantComparisonPresentation({
+          comparison: capability.comparison,
+
+          products: capability.selectedProducts,
+
+          state: consultationState,
+
+          currentQuery: state.query,
+        });
+
+        const presentation = finalizeComparisonPresentation(prepared, null);
+
+        const message = 'Сравнил выбранные товары.';
+
+        return {
+          consultationRecord: record,
+
+          consultation: buildComparisonConsultation({
+            state: consultationState,
+
+            presentation,
+
+            message,
+          }),
+
+          consultationCompletion: null,
+
+          message,
+        };
+      }
+
+      const recentMessages =
+        decision.proposal.taskTransition === 'start_new'
+          ? []
+          : state.recentMessages;
+
+      const semanticRepresentations =
+        action === 'RECOMMEND' &&
+        capability.observation.kind === 'recommend' &&
+        capability.observation.status === 'context_ready' &&
+        capability.selectedProducts.length > 0
+          ? await productAgentService
+              .getProductSemanticRepresentations(
+                capability.selectedProducts.map((product) => product.id),
+              )
+              .catch(() => undefined)
+          : undefined;
+
+      const followup = buildProductConsultationContext({
+        record,
+
+        currentMessage: state.query,
+
+        recentMessages,
+
+        selectedProducts: capability.selectedProducts,
+
+        factAttributeIds: capability.factAttributeIds,
+
+        comparison: capability.comparison,
+
+        usageScenarioIds: capability.usageScenarioIds,
+
+        semanticRepresentations,
+      });
+
+      const response = await consultant.respond({
+        context: followup.context,
+
+        observation: capability.observation,
+      });
 
       return {
         consultationRecord: record,
 
-        consultation: buildComparisonConsultation({
-          state: consultationState,
-
-          presentation,
-
-          message,
-        }),
+        consultation: null,
 
         consultationCompletion: null,
 
-        searchResults: [],
-
-        message,
+        message: response.terminalText,
+      };
+    } catch {
+      // A capability/read/synthesis failure must not roll back an accepted task.
+      return {
+        consultationRecord: await store.load(state.conversationId),
+        consultation: null,
+        consultationCompletion: null,
+        failed: true,
+        message:
+          'Не удалось завершить действие для этой подборки. Попробуйте ещё раз.',
       };
     }
-
-    const recentMessages =
-      decision.proposal.taskTransition === 'start_new'
-        ? []
-        : state.recentMessages;
-
-    const semanticRepresentations =
-      action === 'RECOMMEND' &&
-      capability.observation.kind === 'recommend' &&
-      capability.observation.status === 'context_ready' &&
-      capability.selectedProducts.length > 0
-        ? await productAgentService
-            .getProductSemanticRepresentations(
-              capability.selectedProducts.map((product) => product.id),
-            )
-            .catch(() => undefined)
-        : undefined;
-
-    const followup = buildProductConsultationContext({
-      record,
-
-      currentMessage: state.query,
-
-      recentMessages,
-
-      selectedProducts: capability.selectedProducts,
-
-      factAttributeIds: capability.factAttributeIds,
-
-      comparison: capability.comparison,
-
-      usageScenarioIds: capability.usageScenarioIds,
-
-      semanticRepresentations,
-    });
-
-    const response = await consultant.respond({
-      context: followup.context,
-
-      observation: capability.observation,
-    });
-
-    return {
-      consultationRecord: record,
-
-      consultation: null,
-
-      consultationCompletion: null,
-
-      searchResults: [],
-
-      message: response.terminalText,
-    };
   };
 }

@@ -1,6 +1,6 @@
 import { getCategoryProfile } from '@/src/product-consultation/core/profiles';
 
-import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/legacy-product-agent.state';
 
 import {
   finishDeterministicTurn,

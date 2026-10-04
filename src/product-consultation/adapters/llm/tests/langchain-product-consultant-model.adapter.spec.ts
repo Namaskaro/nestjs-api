@@ -83,6 +83,8 @@ function modelInput(round: 1 | 2 = 1): ProductConsultantModelInput {
 
       productFacts: [],
 
+      semanticEvidence: [],
+
       comparison: null,
 
       profile: null,

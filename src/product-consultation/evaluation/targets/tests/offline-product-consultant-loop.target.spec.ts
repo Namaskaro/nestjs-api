@@ -167,6 +167,8 @@ const decisions = {
 
       usageScenarioIds: ['daily_walking'],
 
+      factAttributeIds: [],
+
       terminalText: null,
     },
 
@@ -188,6 +190,8 @@ const decisions = {
       },
 
       usageScenarioIds: [],
+
+      factAttributeIds: [],
 
       terminalText: 'Нашёл три мужские модели Nike.',
     },

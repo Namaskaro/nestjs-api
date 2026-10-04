@@ -4,7 +4,7 @@ import { AiService } from '@/src/ai/ai.service';
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
-import { ProductAgentState } from '@/src/product-consultation/application/agent/product-agent.state';
+import { ProductAgentState } from '@/src/product-consultation/application/agent/legacy-product-agent.state';
 
 import { handleProductTurn } from '@/src/product-consultation/application/turns/product-turn';
 
