@@ -1,42 +1,43 @@
 import type { GraphNode } from '@langchain/langgraph';
-
 import { AiService } from '@/src/ai/ai.service';
-
-import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
-
-import { ProductAgentState } from '@/src/product-consultation/application/agent/product-agent.state';
-
-import { createConsultationAgent } from '@/src/product-consultation/application/consultation-agent/consultation.agent';
-
-import { buildProductConsultationContext } from '@/src/product-consultation/application/context/product-consultation-context';
+import { ProductAgentService } from '../product-agent.service';
+import { ProductAgentState } from '../product-agent.state';
+import { createConsultationAgent } from '../../consultation-agent/consultation.agent';
+import { buildProductConsultationContext } from '../../context/product-consultation-context';
+import { createConsultationApplicationRecord } from '../../runtime/consultation-application-record';
 
 export function createDecideProductNode(
   aiService: AiService,
   productAgentService: ProductAgentService,
 ): GraphNode<typeof ProductAgentState> {
   const consultant = createConsultationAgent(aiService);
-
   return async (state) => {
-    const context = buildProductConsultationContext({
-      record: state.consultationRecord,
-
+    if (state.workspace.processedRequestIds.includes(state.requestId))
+      return { plan: null };
+    const context = (
+      record: ReturnType<typeof createConsultationApplicationRecord>,
+    ) =>
+      buildProductConsultationContext({
+        record,
+        currentMessage: state.query,
+        recentMessages: [],
+        searchCapabilities: productAgentService.capabilities(),
+      }).context;
+    const plan = await consultant.decideWorkspace({
       currentMessage: state.query,
-
-      recentMessages: state.recentMessages,
-
-      searchCapabilities: productAgentService.capabilities(),
+      pendingClarification: state.workspace.pendingClarification,
+      tasks: state.workspace.tasks.map((task) => ({
+        taskId: task.taskId,
+        query: task.query,
+        question: task.question,
+        context: context(task.record),
+      })),
+      focus: state.workspace.focus.map((focus) => ({
+        taskId: focus.taskId,
+        positions: focus.positions,
+      })),
+      emptyTaskContext: context(createConsultationApplicationRecord()),
     });
-
-    const decision = await consultant.decide({
-      context: context.context,
-
-      observation: {
-        kind: 'initial',
-      },
-    });
-
-    return {
-      decision,
-    };
+    return { plan };
   };
 }

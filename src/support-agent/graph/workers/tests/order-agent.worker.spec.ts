@@ -117,6 +117,8 @@ function createState(
 
     productConsultationRecord: null,
 
+    productWorkspace: null,
+
     executionMode: 'single',
 
     workerResults: [],

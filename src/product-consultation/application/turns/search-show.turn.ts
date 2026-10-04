@@ -1,6 +1,6 @@
 import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
 
-import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/product-agent.state';
+import type { ProductAgentStateUpdate } from '@/src/product-consultation/application/agent/legacy-product-agent.state';
 import { findProductNeed, ProductTurnContext } from './product-turn.context';
 
 export function handleSearchShowTurn({

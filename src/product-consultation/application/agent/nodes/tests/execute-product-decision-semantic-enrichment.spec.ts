@@ -6,7 +6,7 @@ import type { AiService } from '@/src/ai/ai.service';
 
 import type { ProductAgentService } from '../../product-agent.service';
 
-import type { ProductAgentStateType } from '../../product-agent.state';
+import type { ProductTaskExecutionInput } from '../execute-product-decision.node';
 
 import { createExecuteProductDecisionNode } from '../execute-product-decision.node';
 
@@ -314,7 +314,7 @@ function agentState(input: {
   record: ConsultationApplicationRecord;
 
   decision: ProductConsultantDecision;
-}): ProductAgentStateType {
+}): ProductTaskExecutionInput {
   return {
     query: input.query,
 
@@ -327,34 +327,6 @@ function agentState(input: {
     consultationRecord: input.record,
 
     decision: input.decision,
-
-    productContext: null,
-
-    turn: {
-      action: 'CLARIFY',
-
-      products: [],
-
-      attributeIds: [],
-
-      reaction: null,
-
-      completionReason: null,
-
-      handoffRequest: null,
-    },
-
-    activeNeedIds: [],
-
-    searchNeedIds: [],
-
-    searchResults: [],
-
-    consultation: null,
-
-    consultationCompletion: null,
-
-    message: null,
   };
 }
 

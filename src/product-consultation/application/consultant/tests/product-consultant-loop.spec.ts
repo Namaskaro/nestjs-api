@@ -336,15 +336,13 @@ describe('ProductConsultantLoop', () => {
     ).toEqual([
       'purpose',
 
-      'upperMaterial',
-
-      'lining',
-
       'sole',
 
-      'price',
+      'upperMaterial',
 
       'material',
+
+      'price',
 
       'season',
 
@@ -390,17 +388,17 @@ describe('ProductConsultantLoop', () => {
 
       'purpose',
 
-      'upperMaterial',
-
-      'lining',
-
       'sole',
 
-      'price',
+      'upperMaterial',
 
       'material',
 
+      'price',
+
       'season',
+
+      'sizes',
     ]);
   });
 

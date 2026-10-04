@@ -161,14 +161,20 @@ describe('Category usage scenarios', () => {
     expect(dailyWalking?.attributeIds).not.toContain('weight');
   });
 
-  it('may use weight for the more specific long walking and travel scenario', () => {
+  it('prioritizes confirmed construction and season for long walking and travel in profile v3', () => {
     const longWalking = SHOES_USAGE_SCENARIOS.scenarios.find(
       (scenario) => scenario.id === 'long_walking_travel',
     );
 
     expect(longWalking).toBeDefined();
 
-    expect(longWalking?.attributeIds).toContain('weight');
+    expect(longWalking?.attributeIds).toEqual([
+      'purpose',
+      'sole',
+      'upperMaterial',
+      'material',
+      'season',
+    ]);
   });
 
   it('keeps accessory subcategory visible in every usage scenario', () => {

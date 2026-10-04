@@ -60,6 +60,8 @@ function createState(input: {
 
     productConsultationRecord: null,
 
+    productWorkspace: null,
+
     executionMode: input.workers.length > 1 ? 'multi' : 'single',
 
     workerResults: [],

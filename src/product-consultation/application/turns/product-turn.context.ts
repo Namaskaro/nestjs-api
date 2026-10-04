@@ -5,7 +5,7 @@ import {
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
-import type { ProductAgentStateType } from '@/src/product-consultation/application/agent/product-agent.state';
+import type { ProductAgentStateType } from '@/src/product-consultation/application/agent/legacy-product-agent.state';
 
 import type { ConsultationAgent } from '@/src/product-consultation/application/consultation-agent/consultation.agent';
 

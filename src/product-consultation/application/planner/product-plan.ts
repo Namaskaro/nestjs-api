@@ -15,7 +15,7 @@ import { touchConsultationSession } from '@/src/product-consultation/application
 
 import { emptyConsultationMemory } from '@/src/product-consultation/core/consultation-core.schema';
 
-import type { ProductTurn } from '@/src/product-consultation/application/agent/product-agent.state';
+import type { ProductTurn } from '@/src/product-consultation/application/agent/legacy-product-agent.state';
 
 import {
   ProductPlannerResultSchema,

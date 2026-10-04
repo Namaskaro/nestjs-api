@@ -1,82 +1,39 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { createProductWorkspace } from '@/src/product-consultation/application/workspace/product-workspace';
+import { createConsultationApplicationRecord } from '@/src/product-consultation/application/runtime/consultation-application-record';
+import { createProductConsultationState } from '@/src/product-consultation/core/state/consultation-state';
+import { createSearchSpec } from '@/src/product-consultation/core/search/search-spec';
 import {
-  emptyProductContext,
-  type ProductContext,
-} from '@/src/product-consultation/application/context/product-context.schema';
-
-import { emptyConsultationMemory } from '@/src/product-consultation/core/consultation-core.schema';
-
+  beginSearchExecution,
+  commitSearchExecution,
+} from '@/src/product-consultation/core/results/consultation-results';
 import { afterPreIntentRoute } from './after-pre-intent.route';
 
-function createProductContext(): ProductContext {
-  const context = emptyProductContext();
-
-  context.needs = [
+function activeWorkspace() {
+  const record = createConsultationApplicationRecord();
+  const search = createSearchSpec({
+    semanticIntent: 'мужские кроссовки Adidas',
+    category: 'SHOES',
+    constraints: [],
+  });
+  record.state = createProductConsultationState(search);
+  const started = beginSearchExecution(record.results, search);
+  record.results = commitSearchExecution(started.state, started.executionId, [
     {
-      needId: 'need-adidas',
-      semanticQuery: 'мужские кроссовки Adidas',
-
-      filters: {
-        gender: 'MAN',
-        type: 'SHOES',
-        brand: 'Adidas',
-        category: null,
-        subcategory: 'Кроссовки',
-        color: null,
-        size: null,
-        minPrice: null,
-        maxPrice: null,
-      },
-
-      preferences: [],
-
-      shownProducts: [
-        {
-          id: 'campus',
-          title: 'Campus 00s',
-          price: '12800',
-          image: 'campus.webp',
-        },
-
-        {
-          id: 'handball',
-          title: 'HANDBALL SPEZIAL SHOES',
-          price: '12500',
-          image: 'handball.webp',
-        },
-      ],
-
-      consultation: emptyConsultationMemory(),
-    },
-  ];
-
-  context.displayOrder = [
-    {
-      needId: 'need-adidas',
       productId: 'campus',
+      title: 'Campus 00s',
+      price: '12800',
+      image: 'campus.webp',
     },
     {
-      needId: 'need-adidas',
       productId: 'handball',
+      title: 'HANDBALL SPEZIAL SHOES',
+      price: '12500',
+      image: 'handball.webp',
     },
-  ];
-
-  context.referenceOrder = [...context.displayOrder];
-
-  context.consultationSession = {
-    sessionId: 'session-1',
-    status: 'ACTIVE',
-    needIds: ['need-adidas'],
-    startedAt: '2026-09-22T00:00:00.000Z',
-    lastActivityAt: '2026-09-22T00:00:00.000Z',
-    completedAt: null,
-    completionReason: null,
-    selectedProductIds: [],
-    feedback: null,
-  };
-
-  return context;
+  ]);
+  return createProductWorkspace(record);
 }
 
 function createState(query: string) {
@@ -84,7 +41,7 @@ function createState(query: string) {
     query,
     preIntentRoute: 'requestRouterNode',
     activeAgent: 'productAgent',
-    productContext: createProductContext(),
+    productWorkspace: activeWorkspace(),
   } as Parameters<typeof afterPreIntentRoute>[0];
 }
 

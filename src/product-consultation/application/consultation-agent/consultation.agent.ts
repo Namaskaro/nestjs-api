@@ -41,6 +41,8 @@ import { ConsultationCompletionOutputSchema } from './schemas/consultation-compl
 import { createConsultationCoreTools } from './tools/consultation-core.tools';
 
 import { finalizeConsultation } from './consultation-finalizer';
+import { ProductWorkspacePlanSchema } from '../workspace/product-workspace-plan';
+import { productWorkspacePrompt } from '../workspace/product-workspace.prompt';
 
 export type ProductConsultantAgentInput = {
   context: ProductConsultationLlmContext;
@@ -78,6 +80,21 @@ export function createConsultationAgent(aiService: AiService) {
   );
 
   return {
+    async decideWorkspace(context: unknown) {
+      const result = await model
+        .withStructuredOutput(ProductWorkspacePlanSchema, {
+          name: 'product_workspace_decision',
+          method: 'functionCalling',
+          strict: false,
+        })
+        .withRetry({ stopAfterAttempt: 2 })
+        .invoke([
+          new SystemMessage(productWorkspacePrompt),
+          new HumanMessage(JSON.stringify(context)),
+        ]);
+      return ProductWorkspacePlanSchema.parse(result);
+    },
+
     async decide(
       input: ProductConsultantAgentInput,
     ): Promise<ProductConsultantDecision> {

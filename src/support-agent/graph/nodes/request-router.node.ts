@@ -97,9 +97,22 @@ export function createRequestRouterNode(
       state.messages.slice(0, -1),
     );
 
-    const routerProductContext = createRouterProductContext(
-      state.productConsultationRecord,
-    );
+    const routerProductContext = state.productWorkspace
+      ? state.productWorkspace.tasks.length ||
+        state.productWorkspace.pendingClarification
+        ? {
+            pendingClarification: state.productWorkspace.pendingClarification,
+            tasks: state.productWorkspace.tasks.map((task) => ({
+              taskId: task.taskId,
+              question: task.question,
+              context: createRouterProductContext(task.record),
+            })),
+            focusTaskIds: state.productWorkspace.focus.map(
+              (focus) => focus.taskId,
+            ),
+          }
+        : null
+      : createRouterProductContext(state.productConsultationRecord);
 
     const productContext = routerProductContext
       ? JSON.stringify(routerProductContext, null, 2)

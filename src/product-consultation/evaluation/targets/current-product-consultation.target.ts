@@ -4,7 +4,11 @@ import { createProductAgent } from '@/src/product-consultation/application/agent
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
-import { ProductNeedSchema } from '@/src/product-consultation/application/search/product-need.schema';
+import { SearchSpecSchema } from '../../core/search/search-spec.schema';
+import {
+  ProductWorkspaceSchema,
+  createProductWorkspace,
+} from '../../application/workspace/product-workspace';
 
 import {
   EvaluationJsonValueSchema,
@@ -33,40 +37,11 @@ function toJson(value: unknown): EvaluationJsonValue | null {
 }
 
 function mapSearchArgs(args: readonly unknown[]): EvaluationJsonValue {
-  const parsed = ProductNeedSchema.safeParse(args[0]);
-
-  if (!parsed.success) {
-    return {
-      query: null,
-
-      constraints: null,
-    };
-  }
-
-  const need = parsed.data;
-
+  const spec = SearchSpecSchema.parse(args[0]);
   return {
-    query: need.semanticQuery,
-
-    constraints: {
-      gender: need.filters.gender,
-
-      type: need.filters.type,
-
-      brand: need.filters.brand,
-
-      category: need.filters.category,
-
-      subcategory: need.filters.subcategory,
-
-      color: need.filters.color,
-
-      size: need.filters.size,
-
-      minPrice: need.filters.minPrice,
-
-      maxPrice: need.filters.maxPrice,
-    },
+    query: spec.semanticIntent,
+    category: spec.category,
+    constraints: toJson(spec.constraints),
   };
 }
 
@@ -103,7 +78,7 @@ export class CurrentProductConsultationTarget
 
       definitions: [
         {
-          method: 'searchProducts',
+          method: 'search',
 
           name: 'search_products',
 
@@ -150,7 +125,12 @@ export class CurrentProductConsultationTarget
         {
           query: turn.message,
 
-          productContext: state,
+          workspace:
+            state === null
+              ? createProductWorkspace()
+              : ProductWorkspaceSchema.parse(state),
+          conversationId: 'product-consultation-evaluation',
+          requestId: turn.messageId ?? turn.id,
         },
         {
           callbacks,
@@ -161,7 +141,7 @@ export class CurrentProductConsultationTarget
         typeof result.message === 'string' ? result.message : null;
 
       return {
-        stateAfter: toJson(result.productContext),
+        stateAfter: toJson(result.workspace),
 
         outcome: finalText ? 'answer' : 'technical_failure',
 
@@ -170,9 +150,9 @@ export class CurrentProductConsultationTarget
         artifacts: this.collectArtifacts(result),
 
         resultMetadata: {
-          searchResultGroups: result.searchResults.length,
+          searchResultGroups: result.groups.length,
 
-          returnedProducts: result.searchResults.reduce(
+          returnedProducts: result.groups.reduce(
             (count, group) => count + group.products.length,
             0,
           ),
@@ -196,43 +176,32 @@ export class CurrentProductConsultationTarget
   ): EvaluationArtifact[] {
     const artifacts: EvaluationArtifact[] = [];
 
-    for (const searchResult of result.searchResults) {
-      artifacts.push({
-        id: null,
-
-        kind: 'search_results',
-
-        data: {
-          productIds: searchResult.products.map((product) => product.id),
-
-          count: searchResult.products.length,
-        },
-      });
-    }
-
-    const comparisonPresentation = result.consultation?.comparisonPresentation;
-
-    if (comparisonPresentation) {
-      artifacts.push({
-        id: null,
-
-        kind: 'comparison',
-
-        data: toJson(comparisonPresentation),
-      });
-    }
-
-    const productDetailsPresentation =
-      result.consultation?.productDetailsPresentation;
-
-    if (productDetailsPresentation) {
-      artifacts.push({
-        id: null,
-
-        kind: 'product_details',
-
-        data: toJson(productDetailsPresentation),
-      });
+    for (const group of result.groups) {
+      if (group.products.length || group.status === 'empty') {
+        artifacts.push({
+          id: group.taskId ?? null,
+          kind: 'search_results',
+          data: {
+            taskId: group.taskId ?? null,
+            productIds: group.products.map((product) => product.id),
+            count: group.products.length,
+          },
+        });
+      }
+      if (group.consultation?.comparisonPresentation) {
+        artifacts.push({
+          id: group.taskId ?? null,
+          kind: 'comparison',
+          data: toJson(group.consultation.comparisonPresentation),
+        });
+      }
+      if (group.consultation?.productDetailsPresentation) {
+        artifacts.push({
+          id: group.taskId ?? null,
+          kind: 'product_details',
+          data: toJson(group.consultation.productDetailsPresentation),
+        });
+      }
     }
 
     if (result.consultationCompletion) {

@@ -7,6 +7,14 @@ import { ConsultationAgentResultSchema } from '@/src/product-consultation/applic
 import { ConsultationCompletionPresentationSchema } from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
 
 export const ProductAnswerGroupSchema = z.object({
+  taskId: z.string().optional(),
+
+  status: z
+    .enum(['ready', 'empty', 'failed', 'clarification', 'closed'])
+    .optional(),
+
+  consultation: ConsultationAgentResultSchema.nullable().optional(),
+
   query: z.string(),
 
   message: z.string(),

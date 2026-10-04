@@ -23,6 +23,8 @@ import { ProductContextSchema } from '@/src/product-consultation/application/con
 
 import { ConsultationApplicationRecordSchema } from '@/src/product-consultation/application/runtime/consultation-application-record';
 
+import { ProductWorkspaceSchema } from '@/src/product-consultation/application/workspace/product-workspace';
+
 export const SupportAgentState = new StateSchema({
   query: z.string(),
 
@@ -43,6 +45,9 @@ export const SupportAgentState = new StateSchema({
 
   productContext: ProductContextSchema.nullable().default(null),
 
+  productWorkspace: ProductWorkspaceSchema.nullable().default(null),
+
+  // Read once to migrate already persisted single-task conversations.
   productConsultationRecord:
     ConsultationApplicationRecordSchema.nullable().default(null),
 
