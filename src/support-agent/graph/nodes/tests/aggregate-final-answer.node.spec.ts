@@ -18,25 +18,17 @@ jest.mock('@langchain/core/callbacks/dispatch', () => ({
   dispatchCustomEvent: jest.fn(async () => undefined),
 }));
 
-function createAiService(finalText: string) {
-  const stream = jest.fn((_prompt: unknown) =>
-    (async function* () {
-      yield {
-        text: finalText,
-      };
-    })(),
-  );
-
-  const aiService = {
-    getYandexLiteChatModel: jest.fn(() => ({
-      stream,
-    })),
-  } as unknown as AiService;
+function createAiService() {
+  const getYandexLiteChatModel = jest.fn(() => {
+    throw new Error('AggregateFinalAnswerNode must not call LLM.');
+  });
 
   return {
-    aiService,
+    aiService: {
+      getYandexLiteChatModel,
+    } as unknown as AiService,
 
-    stream,
+    getYandexLiteChatModel,
   };
 }
 
@@ -80,33 +72,90 @@ function createState(input: {
   };
 }
 
-function promptText(prompt: unknown): string {
-  const value = prompt as {
-    toChatMessages: () => Array<{
-      content: unknown;
-    }>;
-  };
-
-  return value
-    .toChatMessages()
-    .map((message) =>
-      typeof message.content === 'string'
-        ? message.content
-        : JSON.stringify(message.content),
-    )
-    .join('\n');
-}
-
 const config = {} as LangGraphRunnableConfig;
 
-describe('AggregateFinalAnswerNode product clarification', () => {
-  it('appends workspace-level clarification after a cross-domain answer', async () => {
+describe('AggregateFinalAnswerNode', () => {
+  it('keeps empty product search and customer help as separate semantic sections', async () => {
+    const workspace = createProductWorkspace();
+
+    const blocks: SupportAgentAnswerBlock[] = [
+      {
+        worker: 'product_search',
+
+        data: {
+          message: 'По вашему запросу подходящих товаров не найдено.',
+
+          groups: [
+            {
+              taskId: 'shoes',
+
+              status: 'empty',
+
+              query: 'зелёные Nike',
+
+              message: 'По вашему запросу подходящих товаров не найдено.',
+
+              products: [],
+
+              consultation: null,
+            },
+          ],
+
+          consultation: null,
+
+          consultationCompletion: null,
+        },
+      },
+      {
+        worker: 'customer_help',
+
+        data: {
+          message: 'Доставка курьером занимает от двух дней.',
+        },
+      },
+    ];
+
+    const {
+      aiService,
+
+      getYandexLiteChatModel,
+    } = createAiService();
+
+    const node = createAggregateFinalAnswerNode(aiService);
+
+    const result = (await node(
+      createState({
+        query: 'Найди зелёные Nike и расскажи про доставку',
+
+        workspace,
+
+        blocks,
+      }),
+
+      config,
+    )) as Partial<SupportAgentStateType>;
+
+    expect(result.answer?.message).toBe(
+      [
+        'Товары:',
+        'По вашему запросу подходящих товаров не найдено.',
+        '',
+        'Информация магазина:',
+        'Доставка курьером занимает от двух дней.',
+      ].join('\n'),
+    );
+
+    expect(getYandexLiteChatModel).not.toHaveBeenCalled();
+  });
+
+  it('appends a product clarification exactly once and keeps it separate from customer help', async () => {
     const question = 'Какую подборку вы имеете в виду?';
 
     const workspace = createProductWorkspace();
 
     workspace.pendingClarification = {
       query: 'Покажи второй подробнее',
+
       question,
     };
 
@@ -128,105 +177,25 @@ describe('AggregateFinalAnswerNode product clarification', () => {
         worker: 'customer_help',
 
         data: {
-          message: 'Доставка выполняется курьером.',
+          message: 'Доставка доступна.',
         },
       },
     ];
 
-    const { aiService, stream } = createAiService(
-      'Доставка выполняется курьером.',
-    );
+    const {
+      aiService,
+
+      getYandexLiteChatModel,
+    } = createAiService();
 
     const node = createAggregateFinalAnswerNode(aiService);
 
     const result = (await node(
       createState({
         query: 'Покажи второй подробнее и расскажи про доставку',
+
         workspace,
-        blocks,
-      }),
 
-      config,
-    )) as Partial<SupportAgentStateType>;
-
-    expect(result.answer?.message).toBe(
-      `Доставка выполняется курьером.\n\n${question}`,
-    );
-
-    const renderedPrompt = promptText(stream.mock.calls[0][0]);
-
-    expect(renderedPrompt).not.toContain(question);
-
-    expect(renderedPrompt).toContain(
-      'Для продолжения подбора требуется уточнение.',
-    );
-  });
-
-  it('does not leak or duplicate task-level clarification when another product group succeeded', async () => {
-    const question = 'Какое платье вам подобрать?';
-
-    const workspace = createProductWorkspace();
-
-    const blocks: SupportAgentAnswerBlock[] = [
-      {
-        worker: 'product_search',
-
-        data: {
-          message: `«Nike»: Найдены товары.\n\n` + `«Платье»: ${question}`,
-
-          groups: [
-            {
-              taskId: 'nike',
-
-              status: 'ready',
-
-              query: 'Nike',
-
-              message: 'Найдены товары.',
-
-              products: [],
-
-              consultation: null,
-            },
-            {
-              taskId: 'dress',
-
-              status: 'clarification',
-
-              query: 'платье',
-
-              message: question,
-
-              products: [],
-
-              consultation: null,
-            },
-          ],
-
-          consultation: null,
-
-          consultationCompletion: null,
-        },
-      },
-      {
-        worker: 'customer_help',
-
-        data: {
-          message: 'Доставка доступна.',
-        },
-      },
-    ];
-
-    const { aiService, stream } = createAiService(
-      'Нашёл варианты Nike. Доставка доступна.',
-    );
-
-    const node = createAggregateFinalAnswerNode(aiService);
-
-    const result = (await node(
-      createState({
-        query: 'Найди Nike и платье и расскажи про доставку',
-        workspace,
         blocks,
       }),
 
@@ -236,29 +205,43 @@ describe('AggregateFinalAnswerNode product clarification', () => {
     const message = result.answer?.message ?? '';
 
     expect(message).toBe(
-      `Нашёл варианты Nike. Доставка доступна.\n\n${question}`,
+      [
+        'Товары:',
+        question,
+        '',
+        'Информация магазина:',
+        'Доставка доступна.',
+      ].join('\n'),
     );
 
     expect(message.split(question)).toHaveLength(2);
 
-    const renderedPrompt = promptText(stream.mock.calls[0][0]);
-
-    expect(renderedPrompt).not.toContain(question);
-
-    expect(renderedPrompt).toContain('Найдены товары.');
-
-    expect(renderedPrompt).toContain('Для этой подборки требуется уточнение.');
+    expect(getYandexLiteChatModel).not.toHaveBeenCalled();
   });
 
-  it('does not append anything when ProductAgent is not waiting for clarification', async () => {
+  it('keeps product, order and store information in stable independent sections', async () => {
     const workspace = createProductWorkspace();
 
     const blocks: SupportAgentAnswerBlock[] = [
       {
+        worker: 'customer_help',
+
+        data: {
+          message: 'Оплата картой доступна.',
+        },
+      },
+      {
+        worker: 'order',
+
+        data: {
+          message: 'Заказ передан в доставку.',
+        },
+      },
+      {
         worker: 'product_search',
 
         data: {
-          message: 'Найдены товары.',
+          message: 'Нашёл подходящие варианты.',
 
           groups: [
             {
@@ -268,9 +251,19 @@ describe('AggregateFinalAnswerNode product clarification', () => {
 
               query: 'Nike',
 
-              message: 'Найдены товары.',
+              message: '',
 
-              products: [],
+              products: [
+                {
+                  id: 'nike-1',
+
+                  title: 'Nike',
+
+                  price: '1000',
+
+                  image: '',
+                },
+              ],
 
               consultation: null,
             },
@@ -281,25 +274,22 @@ describe('AggregateFinalAnswerNode product clarification', () => {
           consultationCompletion: null,
         },
       },
-      {
-        worker: 'customer_help',
-
-        data: {
-          message: 'Доставка доступна.',
-        },
-      },
     ];
 
-    const { aiService } = createAiService(
-      'Нашёл товары Nike. Доставка доступна.',
-    );
+    const {
+      aiService,
+
+      getYandexLiteChatModel,
+    } = createAiService();
 
     const node = createAggregateFinalAnswerNode(aiService);
 
     const result = (await node(
       createState({
-        query: 'Найди Nike и расскажи про доставку',
+        query: 'Найди Nike, расскажи про заказ и оплату',
+
         workspace,
+
         blocks,
       }),
 
@@ -307,7 +297,18 @@ describe('AggregateFinalAnswerNode product clarification', () => {
     )) as Partial<SupportAgentStateType>;
 
     expect(result.answer?.message).toBe(
-      'Нашёл товары Nike. Доставка доступна.',
+      [
+        'Товары:',
+        'Нашёл подходящие варианты.',
+        '',
+        'Заказ:',
+        'Заказ передан в доставку.',
+        '',
+        'Информация магазина:',
+        'Оплата картой доступна.',
+      ].join('\n'),
     );
+
+    expect(getYandexLiteChatModel).not.toHaveBeenCalled();
   });
 });

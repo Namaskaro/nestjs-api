@@ -17,6 +17,7 @@ import {
 } from '@/src/support-agent/schemas/support-agent-answer.schema';
 
 import { ConsultationRequestIdSchema } from '@/src/product-consultation/application/runtime/consultation-application-record';
+
 import { createProductWorkspace } from '@/src/product-consultation/application/workspace/product-workspace';
 
 import type { ProductConsultationContextMessage } from '@/src/product-consultation/application/context/product-consultation-context';
@@ -41,6 +42,20 @@ function requestIdFromState(state: typeof SupportAgentState.State): string {
   }
 
   return ConsultationRequestIdSchema.parse(`message-${state.messages.length}`);
+}
+
+function sourceQueryFromState(state: typeof SupportAgentState.State): string {
+  const message = state.messages.at(-1);
+
+  if (message && HumanMessage.isInstance(message)) {
+    const text = message.text.trim();
+
+    if (text) {
+      return text.slice(0, 4000);
+    }
+  }
+
+  return state.query.trim().slice(0, 4000);
 }
 
 function recentMessagesFromState(
@@ -77,20 +92,36 @@ function recentMessagesFromState(
   return result.slice(-6);
 }
 
+function groupsForPresentation<
+  T extends {
+    products: unknown[];
+  },
+>(groups: readonly T[]): T[] {
+  return groups.filter((group) => group.products.length > 0);
+}
+
 export function createProductAgentWorker(
   productAgent: ProductAgent,
 ): GraphNode<typeof SupportAgentState> {
-  return async (state, config: LangGraphRunnableConfig) => {
+  return async (
+    state,
+
+    config: LangGraphRunnableConfig,
+  ) => {
     await dispatchCustomEvent(
       'assistant_status',
+
       {
         status: 'SEARCHING_PRODUCTS',
       },
+
       config,
     );
 
     const result = await productAgent.invoke({
       query: state.query,
+
+      sourceQuery: sourceQueryFromState(state),
 
       conversationId: conversationIdFromConfig(config),
 
@@ -132,7 +163,7 @@ export function createProductAgentWorker(
     const data = {
       message: result.message,
 
-      groups: result.groups,
+      groups: groupsForPresentation(result.groups),
 
       consultation: result.consultation,
 

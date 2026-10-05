@@ -16,6 +16,49 @@ import { ConsultationApplicationRecordSchema } from '@/src/product-consultation/
 
 import { SupportAgentState } from '../support-agent.state';
 
+const CUSTOMER_HELP_TOPIC_PATTERN =
+  /(?:достав\p{L}*|оплат\p{L}*|возврат\p{L}*|обмен\p{L}*|скид\p{L}*|лояль\p{L}*|претенз\p{L}*)/iu;
+
+const CUSTOMER_HELP_REQUEST_CUE_PATTERN =
+  /(?:расскаж\p{L}*|подскаж\p{L}*|объясн\p{L}*|информац\p{L}*|услов\p{L}*|срок\p{L}*|стоим\p{L}*|способ\p{L}*|правил\p{L}*|можно\s+ли|есть\s+ли)/iu;
+
+export function inferCustomerHelpWorkerQuery(query: string): string | null {
+  const text = query.trim().slice(0, 4000);
+
+  if (
+    !CUSTOMER_HELP_TOPIC_PATTERN.test(text) ||
+    !CUSTOMER_HELP_REQUEST_CUE_PATTERN.test(text)
+  ) {
+    return null;
+  }
+
+  const topicMatch = text.match(CUSTOMER_HELP_TOPIC_PATTERN);
+
+  const cueMatch = text.match(CUSTOMER_HELP_REQUEST_CUE_PATTERN);
+
+  if (
+    !topicMatch ||
+    !cueMatch ||
+    topicMatch.index === undefined ||
+    cueMatch.index === undefined
+  ) {
+    return null;
+  }
+
+  const start = Math.min(
+    topicMatch.index,
+
+    cueMatch.index,
+  );
+
+  const candidate = text
+    .slice(start)
+    .replace(/^(?:и|а)\s+/iu, '')
+    .trim();
+
+  return candidate || null;
+}
+
 function createRouterProductContext(value: unknown) {
   if (value == null) {
     return null;
@@ -83,6 +126,7 @@ export function createRequestRouterNode(
 
   const structuredRouter = model.withStructuredOutput(
     RequestRouterModelSchema,
+
     {
       name: 'route_support_request',
 
@@ -102,11 +146,15 @@ export function createRequestRouterNode(
         state.productWorkspace.pendingClarification
         ? {
             pendingClarification: state.productWorkspace.pendingClarification,
+
             tasks: state.productWorkspace.tasks.map((task) => ({
               taskId: task.taskId,
+
               question: task.question,
+
               context: createRouterProductContext(task.record),
             })),
+
             focusTaskIds: state.productWorkspace.focus.map(
               (focus) => focus.taskId,
             ),
@@ -115,7 +163,13 @@ export function createRequestRouterNode(
       : createRouterProductContext(state.productConsultationRecord);
 
     const productContext = routerProductContext
-      ? JSON.stringify(routerProductContext, null, 2)
+      ? JSON.stringify(
+          routerProductContext,
+
+          null,
+
+          2,
+        )
       : 'null';
 
     const response = await chain.invoke({
@@ -131,6 +185,18 @@ export function createRequestRouterNode(
     const workerQueries = {
       ...modelDecision.workerQueries,
     };
+
+    let reason = modelDecision.reason;
+
+    if (workerQueries.customerHelpAgent === null) {
+      const inferredCustomerHelp = inferCustomerHelpWorkerQuery(state.query);
+
+      if (inferredCustomerHelp) {
+        workerQueries.customerHelpAgent = inferredCustomerHelp;
+
+        reason = `${reason} Deterministic customer-help recovery.`;
+      }
+    }
 
     let orderRequest = modelDecision.orderRequest;
 
@@ -150,13 +216,6 @@ export function createRequestRouterNode(
       (worker) => workerQueries[worker] !== null,
     );
 
-    /**
-     * Mutation с confirmation пока выполняем
-     * отдельным single flow.
-     *
-     * Не запускаем одновременно product/customer
-     * workers и CANCEL interrupt.
-     */
     if (
       orderRequest?.action === 'CANCEL' &&
       workerQueries.orderAgent !== null
@@ -173,8 +232,6 @@ export function createRequestRouterNode(
     let clarificationTopic = modelDecision.clarificationTopic;
 
     let handoffRequest = modelDecision.handoffRequest;
-
-    let reason = modelDecision.reason;
 
     if (workers.length === 0 && !fallbackRoute) {
       if (routerProductContext !== null) {
@@ -216,6 +273,14 @@ export function createRequestRouterNode(
 
       reason =
         'Deterministic fallback: модель выбрала handoff без handoffRequest.';
+    }
+
+    if (workers.length > 0) {
+      fallbackRoute = null;
+
+      clarificationTopic = null;
+
+      handoffRequest = null;
     }
 
     const route =

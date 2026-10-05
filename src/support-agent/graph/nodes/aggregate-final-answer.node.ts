@@ -6,8 +6,6 @@ import type { GraphNode, LangGraphRunnableConfig } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
 
-import { aggregateSupportAnswerPrompt } from '../../prompts/aggregate-support-answer.prompt';
-
 import {
   AggregateFinalAnswerSchema,
   type SupportAgentAnswerBlock,
@@ -16,11 +14,11 @@ import {
 import { SupportAgentState } from '../support-agent.state';
 
 const blockOrder: Record<SupportAgentAnswerBlock['worker'], number> = {
-  order: 0,
+  product_search: 0,
 
-  customer_help: 1,
+  order: 1,
 
-  product_search: 2,
+  customer_help: 2,
 };
 
 function uniqueMessages(values: Array<string | null | undefined>): string[] {
@@ -43,11 +41,75 @@ function uniqueMessages(values: Array<string | null | undefined>): string[] {
   return result;
 }
 
-export function createAggregateFinalAnswerNode(
-  aiService: AiService,
-): GraphNode<typeof SupportAgentState> {
-  const model = aiService.getYandexLiteChatModel();
+function stripMessages(
+  value: string,
 
+  removed: readonly string[],
+): string {
+  let result = value.trim();
+
+  for (const message of removed) {
+    result = result.split(message).join('');
+  }
+
+  return result
+    .replace(/\n{3,}/gu, '\n\n')
+    .replace(/[ \t]+\n/gu, '\n')
+    .trim();
+}
+
+function productMessage(
+  block: Extract<
+    SupportAgentAnswerBlock,
+    {
+      worker: 'product_search';
+    }
+  >,
+
+  workspaceQuestion: string | null,
+): string {
+  const groupQuestions = block.data.groups
+    .filter((group) => group.status === 'clarification')
+    .map((group) => group.message);
+
+  const questions = uniqueMessages([workspaceQuestion, ...groupQuestions]);
+
+  const base = stripMessages(
+    block.data.message,
+
+    questions,
+  );
+
+  const parts = uniqueMessages([base, ...questions]);
+
+  return parts.join('\n\n');
+}
+
+function sectionForBlock(
+  block: SupportAgentAnswerBlock,
+
+  workspaceQuestion: string | null,
+): string {
+  if (block.worker === 'product_search') {
+    const message = productMessage(
+      block,
+
+      workspaceQuestion,
+    );
+
+    return ['Товары:', message || 'Готово.'].join('\n');
+  }
+
+  if (block.worker === 'order') {
+    return ['Заказ:', block.data.message.trim()].join('\n');
+  }
+
+  return ['Информация магазина:', block.data.message.trim()].join('\n');
+}
+
+export function createAggregateFinalAnswerNode(
+  _aiService: AiService,
+): GraphNode<typeof SupportAgentState> {
   return async (
     state,
 
@@ -66,78 +128,21 @@ export function createAggregateFinalAnswerNode(
     const workspaceQuestion =
       state.productWorkspace?.pendingClarification?.question ?? null;
 
-    const groupQuestions = blocks.flatMap((block) =>
-      block.worker === 'product_search'
-        ? block.data.groups
-            .filter((group) => group.status === 'clarification')
-            .map((group) => group.message)
-        : [],
-    );
+    const message = blocks
+      .map((block) =>
+        sectionForBlock(
+          block,
 
-    const pendingQuestions = uniqueMessages([
-      workspaceQuestion,
+          workspaceQuestion,
+        ),
+      )
+      .join('\n\n');
 
-      ...groupQuestions,
-    ]);
-
-    const workerResultsForPrompt = blocks.map((block) => {
-      if (block.worker === 'customer_help') {
-        return {
-          worker: block.worker,
-
-          data: {
-            message: block.data.message,
-          },
-        };
-      }
-
-      if (block.worker === 'order') {
-        return {
-          worker: block.worker,
-
-          data: {
-            message: block.data.message,
-          },
-        };
-      }
-
-      const nonClarificationMessages = uniqueMessages(
-        block.data.groups
-          .filter((group) => group.status !== 'clarification')
-          .map((group) => group.message),
+    if (!message.trim()) {
+      throw new Error(
+        'AggregateFinalAnswerNode: не удалось собрать финальный текст',
       );
-
-      const requiresClarification =
-        workspaceQuestion !== null ||
-        block.data.groups.some((group) => group.status === 'clarification');
-
-      const productMessage =
-        block.data.consultation?.message ??
-        (nonClarificationMessages.length > 0
-          ? nonClarificationMessages.join('\n')
-          : requiresClarification
-          ? 'Для продолжения подбора требуется уточнение.'
-          : block.data.message);
-
-      return {
-        worker: block.worker,
-
-        data: {
-          message: productMessage,
-
-          groups: block.data.groups.map((group) => ({
-            query: group.query,
-
-            message:
-              group.status === 'clarification'
-                ? 'Для этой подборки требуется уточнение.'
-                : group.message,
-
-            productsCount: group.products.length,
-          })),
-        },
-      };
-    });
+    }
 
     await dispatchCustomEvent(
       'assistant_status',
@@ -149,67 +154,15 @@ export function createAggregateFinalAnswerNode(
       config,
     );
 
-    const prompt = await aggregateSupportAnswerPrompt.invoke({
-      query: state.query,
+    await dispatchCustomEvent(
+      'assistant_delta',
 
-      workerResults: JSON.stringify(
-        workerResultsForPrompt,
+      {
+        delta: message,
+      },
 
-        null,
-
-        2,
-      ),
-    });
-
-    const stream = await model.stream(prompt);
-
-    let message = '';
-
-    for await (const chunk of stream) {
-      const delta = chunk.text;
-
-      if (!delta) {
-        continue;
-      }
-
-      message += delta;
-
-      await dispatchCustomEvent(
-        'assistant_delta',
-
-        {
-          delta,
-        },
-
-        config,
-      );
-    }
-
-    if (!message.trim()) {
-      throw new Error(
-        'AggregateFinalAnswerNode: модель не вернула финальный текст',
-      );
-    }
-
-    const questionsToAppend = pendingQuestions.filter(
-      (question) => !message.includes(question),
+      config,
     );
-
-    if (questionsToAppend.length > 0) {
-      const delta = `\n\n${questionsToAppend.join('\n')}`;
-
-      message += delta;
-
-      await dispatchCustomEvent(
-        'assistant_delta',
-
-        {
-          delta,
-        },
-
-        config,
-      );
-    }
 
     const answer = AggregateFinalAnswerSchema.parse({
       type: 'aggregate',
