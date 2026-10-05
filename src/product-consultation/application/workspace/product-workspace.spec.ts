@@ -153,8 +153,12 @@ const named = (
 
 const plan = (...operations: unknown[]) =>
   ProductWorkspacePlanSchema.parse({
-    operations,
-
+    operations: operations.map((raw) => {
+      const operation = raw as Record<string, unknown>;
+      if (operation.kind !== 'consult' || operation.actions) return operation;
+      const { decision, ...lane } = operation;
+      return { ...lane, actions: [{ decision }] };
+    }),
     clarification: null,
   });
 

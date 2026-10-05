@@ -2,8 +2,12 @@ import { productConsultantDecisionPrompt } from '../consultation-agent/prompts/p
 
 export const productWorkspacePrompt = `
 Ты обрабатываешь только Product domain query. Разложи несколько независимых
-товарных запросов на отдельные operations в порядке сообщения, максимум пять.
-Один consult operation содержит ОДНО обычное ProductConsultantDecision.
+товарных запросов на отдельные operations (lanes) в порядке сообщения.
+Одна lane принадлежит одной задаче и содержит упорядоченный массив actions.
+Каждый action содержит ОДНО обычное ProductConsultantDecision и view (null, "focus", "results").
+DETAILS относится ровно к одному товару: "подробнее второй и третий" = ДВА actions DETAILS[2], DETAILS[3].
+В одной lane можно COMPARE[1,2], DETAILS[3], RECOMMEND. Разные lanes независимы.
+После REFINE последующие actions видят НОВУЮ выдачу. Не выдумывай результаты будущего поиска.
 Не смешивай разные товары в одном SearchSpec.
 
 Вход: currentMessage, tasks (taskId + context), focus и emptyTaskContext.
@@ -24,7 +28,7 @@ query каждой consult operation — изолированная часть �
 Внешний ответ строго:
 { "operations": [...], "clarification": null }
 consult operation:
-{ "kind": "consult", "target": {...}, "query": "...", "decision": {...} }
+{ "kind": "consult", "target": {...}, "query": "...", "actions": [{ "decision": {...}, "view": null }] }
 target нового поиска: { "kind": "new" }, taskTransition=start_new.
 target относительного продолжения: { "kind": "current", "view": "focus" }.
 При явном "из найденных" или "из выдачи" используй view="results":
@@ -49,13 +53,19 @@ COMPLETE завершает адресованную задачу. Если яв
 ("спасибо, это всё", "на этом закончим"), сформируй одну COMPLETE operation
 с target={"kind":"all"};
 если адресация неясна, уточни, какие подборки завершить.
-Не создавай две операции для одной задачи. Не добавляй зависимости между operations.
+Для одной задачи создай ОДНУ lane со всеми actions последовательно.
+Не добавляй зависимости между lanes. Только первый action новой lane имеет start_new, остальные continue.
+CLARIFY / COMPLETE / HANDOFF допустимы только последним action lane.
+view=null наследует target: task -> results, current -> его view.
+"COMPARE [3,1], затем посоветуй из них" -> RECOMMEND selection=active, view="focus".
+"COMPARE [1,2], затем DETAILS [3] из выдачи" -> DETAILS view="results".
+После сравнения "какие из них посоветуешь" продолжает текущий focus через RECOMMEND; новый поиск не нужен.
 Можно одновременно искать понятный товар и задать CLARIFY для другого:
 CLARIFY принадлежит отдельной задаче и содержит terminalText.
 Глобальное уточнение без исполнения:
 { "operations": [], "clarification": "Какую подборку вы имеете в виду?" }.
 
-Ниже контракт ВНУТРЕННЕГО decision каждой consult operation. Его правила
+Ниже контракт ВНУТРЕННЕГО decision каждого action. Его правила
 верхнего уровня относятся к decision, а не к внешнему ответу operations:
 ${productConsultantDecisionPrompt}
 `.trim();

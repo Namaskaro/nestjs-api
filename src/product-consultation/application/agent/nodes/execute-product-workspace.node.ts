@@ -1,3 +1,4 @@
+import { executeProductLane } from '../../workspace/execute-product-lane';
 import type { GraphNode } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
@@ -264,120 +265,55 @@ export function createExecuteProductWorkspaceNode(
 
     workspace.pendingClarification = null;
 
+    // Fan-out only across independent records; each lane owns its sequential loop.
     const outcomes = await Promise.all(
-      operations.map(async (operation) => {
-        if (operation.kind === 'remove') {
-          return {
-            operation,
-
-            result: null,
-          };
-        }
-
-        const result = await executeTask({
-          query: operation.query,
-
-          conversationId: `${state.conversationId}:${operation.task.taskId}`,
-
+      operations.map((lane) =>
+        executeProductLane({
+          lane,
+          focus: workspace.focus.find(
+            (reference) => reference.taskId === lane.task.taskId,
+          ),
+          conversationId: state.conversationId,
           requestId: state.requestId,
-
-          consultationRecord: operation.task.record,
-
-          decision: operation.decision!,
-
-          recentMessages: [],
-        });
-
-        return {
-          operation,
-
-          result,
-        };
-      }),
+          search: service,
+          executeAction: executeTask,
+        }),
+      ),
     );
-
     const groups: ProductAgentAnswer['groups'] = [];
-
     const focus: typeof workspace.focus = [];
-
     let handoffRequested = false;
-
-    for (const {
-      operation,
-
-      result,
-    } of outcomes) {
-      const task = {
-        ...operation.task,
-      };
-
-      const action = operation.decision?.proposal.action;
-
-      const closed = operation.kind === 'remove' || action === 'COMPLETE';
-
+    for (const outcome of outcomes) {
+      const { task, actions, closed } = outcome;
+      const last = actions.at(-1);
+      const action = last?.decision.proposal.action;
       if (closed) {
         workspace.tasks = workspace.tasks.filter(
           (current) => current.taskId !== task.taskId,
         );
-      } else if (result) {
-        task.record = result.consultationRecord;
-
-        task.question =
-          action === 'CLARIFY' ? userFacingClarification(result.message) : null;
-
+      } else {
         const index = workspace.tasks.findIndex(
           (current) => current.taskId === task.taskId,
         );
-
-        if (index < 0) {
-          workspace.tasks.push(task);
-        } else {
-          workspace.tasks[index] = task;
-        }
-
-        const snapshot = task.record.results.active;
-
-        const selection =
-          operation.decision?.proposal.selection ??
-          operation.decision?.proposal.feedback?.selection;
-
-        const positions =
-          selection?.kind === 'positions'
-            ? selection.positions
-            : snapshot?.products.map((_, index) => index + 1) ?? [];
-
-        focus.push({
-          taskId: task.taskId,
-
-          resultId: snapshot?.resultId ?? null,
-
-          positions: snapshot ? positions : [],
-        });
+        if (index < 0) workspace.tasks.push(task);
+        else workspace.tasks[index] = task;
+        if (outcome.focus) focus.push(outcome.focus);
       }
-
-      if (action === 'HANDOFF') {
-        handoffRequested = true;
-      }
-
+      handoffRequested ||= outcome.handoffRequested;
       const snapshot = task.record.results.active;
-
-      const showProducts =
-        action === 'SEARCH' || action === 'REFINE' || action === 'SHOW_RESULTS';
-
+      const showProducts = actions.some(({ decision }) =>
+        ['SEARCH', 'REFINE', 'SHOW_RESULTS'].includes(decision.proposal.action),
+      );
       const products =
         showProducts && snapshot
           ? snapshot.products.map((product) => ({
               id: product.productId,
-
               title: product.title,
-
               price: product.price,
-
               image: product.image ?? '',
             }))
           : [];
-
-      const status = result?.failed
+      const status = last?.result.failed
         ? 'failed'
         : closed
         ? 'closed'
@@ -388,55 +324,44 @@ export function createExecuteProductWorkspaceNode(
         : showProducts && snapshot.products.length === 0
         ? 'empty'
         : 'ready';
-
-      const rawMessage = result?.message ?? 'Готово.';
-
+      const rawMessage =
+        uniqueMessages(actions.map(({ result }) => result.message)).join(
+          '\n\n',
+        ) || 'Готово.';
       groups.push({
         taskId: task.taskId,
-
         query: task.record.state?.search?.semanticIntent ?? task.query,
-
         status,
-
         message: productWorkspaceGroupMessage({
           status,
-
           showProducts,
-
           productsCount: products.length,
-
           message:
             action === 'CLARIFY'
               ? userFacingClarification(rawMessage)
               : rawMessage,
         }),
-
         products,
-
-        consultation: result?.consultation ?? null,
+        consultation:
+          actions.length === 1 ? last?.result.consultation ?? null : null,
       });
     }
-
     workspace.focus =
       focus.length > 0
         ? focus
         : workspace.focus.filter((reference) =>
             workspace.tasks.some((task) => task.taskId === reference.taskId),
           );
-
-    const single = outcomes.length === 1 ? outcomes[0].result : null;
-
+    const single =
+      outcomes.length === 1 && outcomes[0].actions.length === 1
+        ? outcomes[0].actions[0].result
+        : null;
     return {
       workspace: acknowledge(),
-
       groups,
-
       handoffRequested,
-
       consultation: single?.consultation ?? null,
-
       consultationCompletion: single?.consultationCompletion ?? null,
-
       message: productWorkspaceMessage(groups),
     };
   };

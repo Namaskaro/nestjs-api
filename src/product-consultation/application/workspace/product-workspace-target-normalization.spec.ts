@@ -221,13 +221,26 @@ function twoTaskWorkspace() {
   });
 }
 
+function parseSingleActionPlan(input: {
+  operations: Array<Record<string, unknown>>;
+  clarification: null;
+}) {
+  return ProductWorkspacePlanSchema.parse({
+    ...input,
+    operations: input.operations.map((operation) => {
+      const { decision, ...lane } = operation;
+      return { ...lane, actions: [{ decision }] };
+    }),
+  });
+}
+
 describe('Product workspace target normalization', () => {
   it('treats SEARCH start_new as a new task even when the model incorrectly targets current', () => {
     const workspace = staleWorkspace();
 
     const oldTaskId = workspace.tasks[0].taskId;
 
-    const plan = ProductWorkspacePlanSchema.parse({
+    const plan = parseSingleActionPlan({
       operations: [
         {
           kind: 'consult',
@@ -306,7 +319,7 @@ describe('Product workspace target normalization', () => {
   it('does not guess an owner when target is new but the decision says continue', () => {
     const workspace = staleWorkspace();
 
-    const plan = ProductWorkspacePlanSchema.parse({
+    const plan = parseSingleActionPlan({
       operations: [
         {
           kind: 'consult',
@@ -358,7 +371,7 @@ describe('Product workspace target normalization', () => {
 
     const oldTaskId = workspace.tasks[0].taskId;
 
-    const plan = ProductWorkspacePlanSchema.parse({
+    const plan = parseSingleActionPlan({
       operations: [
         {
           kind: 'consult',
@@ -416,13 +429,15 @@ describe('Product workspace target normalization', () => {
 
     expect(operations[0].task.taskId).toBe(oldTaskId);
 
-    expect(operations[0].decision?.proposal.taskTransition).toBe('continue');
+    expect(operations[0].actions[0].decision?.proposal.taskTransition).toBe(
+      'continue',
+    );
   });
 
   it('resolves a short clarification answer to the uniquely named focused task', () => {
     const workspace = twoTaskWorkspace();
 
-    const plan = ProductWorkspacePlanSchema.parse({
+    const plan = parseSingleActionPlan({
       operations: [
         {
           kind: 'consult',
@@ -460,7 +475,7 @@ describe('Product workspace target normalization', () => {
 
     expect(operations[0].task.taskId).toBe('sneakers-task');
 
-    expect(operations[0].decision?.proposal.selection).toEqual({
+    expect(operations[0].actions[0].decision?.proposal.selection).toEqual({
       kind: 'positions',
 
       positions: [2],
@@ -470,7 +485,7 @@ describe('Product workspace target normalization', () => {
   it('resolves an inflected explicit task reference such as кроссовки versus кроссовок', () => {
     const workspace = twoTaskWorkspace();
 
-    const plan = ProductWorkspacePlanSchema.parse({
+    const plan = parseSingleActionPlan({
       operations: [
         {
           kind: 'consult',
@@ -514,7 +529,7 @@ describe('Product workspace target normalization', () => {
   it('still refuses an ambiguous ordinal without a task name', () => {
     const workspace = twoTaskWorkspace();
 
-    const plan = ProductWorkspacePlanSchema.parse({
+    const plan = parseSingleActionPlan({
       operations: [
         {
           kind: 'consult',
@@ -554,7 +569,7 @@ describe('Product workspace target normalization', () => {
   it('does not trust a fabricated task id even when the source text names another task', () => {
     const workspace = twoTaskWorkspace();
 
-    const plan = ProductWorkspacePlanSchema.parse({
+    const plan = parseSingleActionPlan({
       operations: [
         {
           kind: 'consult',

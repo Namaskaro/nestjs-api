@@ -98,33 +98,36 @@ export function createExecuteProductDecisionNode(
       state.consultationRecord.results.lastConfirmed?.resultId ??
       null;
 
-    const execution = await writeOwner.execute({
-      conversationId: state.conversationId,
-
-      expectedRevision: state.consultationRecord.revision,
-
-      requestId: state.requestId,
-
-      proposal: decision.proposal,
-
-      expectedResultId,
-    });
-
-    const record = execution.record;
-
-    if (execution.status === 'duplicate' || execution.status === 'superseded') {
-      return {
-        consultationRecord: record,
-        consultation: null,
-        consultationCompletion: null,
-        message:
-          execution.status === 'duplicate'
-            ? 'Этот запрос уже обработан.'
-            : 'Подборка уже обновлена другим запросом.',
-      };
-    }
-
     try {
+      const execution = await writeOwner.execute({
+        conversationId: state.conversationId,
+
+        expectedRevision: state.consultationRecord.revision,
+
+        requestId: state.requestId,
+
+        proposal: decision.proposal,
+
+        expectedResultId,
+      });
+
+      const record = execution.record;
+
+      if (
+        execution.status === 'duplicate' ||
+        execution.status === 'superseded'
+      ) {
+        return {
+          consultationRecord: record,
+          consultation: null,
+          consultationCompletion: null,
+          message:
+            execution.status === 'duplicate'
+              ? 'Этот запрос уже обработан.'
+              : 'Подборка уже обновлена другим запросом.',
+        };
+      }
+
       if (decision.terminalText !== null) {
         return {
           consultationRecord: record,
@@ -162,6 +165,9 @@ export function createExecuteProductDecisionNode(
           consultationCompletion: null,
 
           message: searchMessage(action, capability.observation.status),
+          ...(capability.observation.status === 'failed'
+            ? { failed: true as const }
+            : {}),
         };
       }
 
@@ -186,6 +192,7 @@ export function createExecuteProductDecisionNode(
 
         if (capability.observation.status === 'product_unavailable') {
           return {
+            failed: true,
             consultationRecord: record,
 
             consultation: null,
@@ -243,6 +250,7 @@ export function createExecuteProductDecisionNode(
 
         if (capability.observation.status === 'product_unavailable') {
           return {
+            failed: true,
             consultationRecord: record,
 
             consultation: null,

@@ -17,7 +17,13 @@ import type { ProductSearchPort } from '../search/product-search.port';
 
 import type { ProductTask, ProductWorkspace } from './product-workspace';
 
-export const MAX_PRODUCT_OPERATIONS_PER_TURN = 5;
+const ProductLaneActionSchema = z
+  .object({
+    decision: ProductConsultantDecisionSchema,
+    // null inherits the lane target's reference scope.
+    view: z.enum(['focus', 'results']).nullable().default(null),
+  })
+  .strict();
 
 const ExplicitTargetSchema = z
   .object({
@@ -55,36 +61,41 @@ const TargetSchema = z.discriminatedUnion('kind', [
 
 export const ProductWorkspacePlanSchema = z
   .object({
-    operations: z
-      .array(
-        z.discriminatedUnion('kind', [
-          z
-            .object({
-              kind: z.literal('consult'),
+    operations: z.array(
+      z.discriminatedUnion('kind', [
+        z
+          .object({
+            kind: z.literal('consult'),
 
-              target: TargetSchema,
+            target: TargetSchema,
 
-              query: z.string().trim().min(1).max(4000),
+            query: z.string().trim().min(1).max(4000),
 
-              decision: ProductConsultantDecisionSchema,
-            })
-            .strict(),
+            actions: z.array(ProductLaneActionSchema).min(1),
+          })
+          .strict(),
 
-          z
-            .object({
-              kind: z.literal('remove'),
+        z
+          .object({
+            kind: z.literal('remove'),
 
-              target: ExplicitTargetSchema,
-            })
-            .strict(),
-        ]),
-      )
-      .max(MAX_PRODUCT_OPERATIONS_PER_TURN),
+            target: ExplicitTargetSchema,
+          })
+          .strict(),
+      ]),
+    ),
 
     clarification: z.string().trim().min(1).max(6000).nullable(),
   })
   .strict()
   .superRefine((plan, context) => {
+    // Transport/resource guard, not a task or action capacity rule.
+    if (Buffer.byteLength(JSON.stringify(plan), 'utf8') > 256 * 1024) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Product plan payload exceeds 256 KiB.',
+      });
+    }
     if ((plan.operations.length === 0) === (plan.clarification === null)) {
       context.addIssue({
         code: 'custom',
@@ -100,14 +111,19 @@ type ProductWorkspaceOperation = ProductWorkspacePlan['operations'][number];
 
 export type ProductWorkspaceLifecycle = 'continue' | 'append' | 'replace';
 
-export type PreparedProductOperation = {
+export type PreparedProductAction = {
+  decision: ProductConsultantDecision;
+  view: 'focus' | 'results';
+};
+
+export type PreparedProductLane = {
   kind: 'consult' | 'remove';
 
   task: ProductTask;
 
   query: string;
 
-  decision: ProductConsultantDecision | null;
+  actions: PreparedProductAction[];
 };
 
 export class ProductWorkspaceClarification extends Error {}
@@ -311,9 +327,9 @@ function explicitTask(
 function startsIndependentTask(operation: ProductWorkspaceOperation): boolean {
   return (
     operation.kind === 'consult' &&
-    operation.decision.proposal.taskTransition === 'start_new' &&
-    (operation.decision.proposal.action === 'SEARCH' ||
-      operation.decision.proposal.action === 'CLARIFY')
+    operation.actions[0].decision.proposal.taskTransition === 'start_new' &&
+    (operation.actions[0].decision.proposal.action === 'SEARCH' ||
+      operation.actions[0].decision.proposal.action === 'CLARIFY')
   );
 }
 
@@ -357,8 +373,9 @@ export function prepareProductWorkspacePlan(input: {
   requestId: string;
 
   search: Pick<ProductSearchPort, 'validate'>;
-}): PreparedProductOperation[] {
-  const { workspace, plan } = input;
+}): PreparedProductLane[] {
+  const { workspace } = input;
+  const plan = ProductWorkspacePlanSchema.parse(input.plan);
 
   const touched = new Set<string>();
 
@@ -375,7 +392,8 @@ export function prepareProductWorkspacePlan(input: {
 
     if (
       operation.kind !== 'consult' ||
-      operation.decision.proposal.action !== 'COMPLETE' ||
+      operation.actions[0].decision.proposal.action !== 'COMPLETE' ||
+      operation.actions.length !== 1 ||
       plan.operations.length !== 1 ||
       !ALL_COMPLETION_PATTERN.test(input.sourceQuery ?? input.query)
     ) {
@@ -402,13 +420,13 @@ export function prepareProductWorkspacePlan(input: {
       },
 
       index,
-    ): PreparedProductOperation => {
+    ): PreparedProductLane => {
       const startsIndependent = startsIndependentTask(operation);
 
       if (
         operation.kind === 'consult' &&
         operation.target.kind === 'new' &&
-        operation.decision.proposal.taskTransition !== 'start_new'
+        operation.actions[0].decision.proposal.taskTransition !== 'start_new'
       ) {
         return clarify('Какой новый товар нужно подобрать?');
       }
@@ -450,7 +468,7 @@ export function prepareProductWorkspacePlan(input: {
         const answersQuestion =
           operation.kind === 'consult' &&
           ['SEARCH', 'REFINE', 'CLARIFY'].includes(
-            operation.decision.proposal.action,
+            operation.actions[0].decision.proposal.action,
           );
 
         const scopedTaskIds =
@@ -476,8 +494,8 @@ export function prepareProductWorkspacePlan(input: {
 
         const selection =
           operation.kind === 'consult'
-            ? operation.decision.proposal.selection ??
-              operation.decision.proposal.feedback?.selection
+            ? operation.actions[0].decision.proposal.selection ??
+              operation.actions[0].decision.proposal.feedback?.selection
             : null;
 
         if (selection) {
@@ -523,7 +541,7 @@ export function prepareProductWorkspacePlan(input: {
       }
 
       if (touched.has(task.taskId)) {
-        return clarify('Уточните одно действие для каждой подборки.');
+        return clarify('Уточните, что нужно сделать с выбранными товарами.');
       }
 
       touched.add(task.taskId);
@@ -536,92 +554,155 @@ export function prepareProductWorkspacePlan(input: {
 
           query: input.query,
 
-          decision: null,
+          actions: [],
         };
       }
 
-      const decision = structuredClone(operation.decision);
-
-      if (target.kind === 'current' && target.view === 'focus') {
-        const focus = workspace.focus.find(
-          (reference) => reference.taskId === task.taskId,
-        );
-
-        const remap = (selection: typeof decision.proposal.selection) => {
-          if (!selection || !focus) {
-            return selection;
-          }
-
-          if (focus.resultId !== task.record.results.active?.resultId) {
-            return clarify(
-              'Сначала покажем актуальную подборку. Какой товар вас интересует?',
-            );
-          }
-
-          const positions =
-            selection.kind === 'active'
-              ? focus.positions
-              : selection.positions.map(
-                  (position) => focus.positions[position - 1],
-                );
-
-          if (
-            !positions.length ||
-            positions.some((position) => position === undefined)
-          ) {
-            return clarify(
-              'В обсуждаемом наборе нет такого номера. Уточните товар.',
-            );
-          }
-
-          return {
-            kind: 'positions' as const,
-
-            positions,
-          };
-        };
-
-        decision.proposal.selection = remap(decision.proposal.selection);
-
-        if (decision.proposal.feedback) {
-          decision.proposal.feedback.selection = remap(
-            decision.proposal.feedback.selection,
-          )!;
-        }
-      }
-
-      const category =
-        decision.proposal.search?.category ??
-        task.record.state?.search?.category;
-
-      const prepared = prepareConsultationTurn({
-        currentState: task.record.state,
-
-        currentResults: task.record.results,
-
-        proposal: decision.proposal,
-
-        categoryProfile:
-          CATEGORY_PROFILES.find((profile) => profile.id === category) ?? null,
-
-        expectedResultId: task.record.results.active?.resultId ?? null,
-      });
-
-      if (prepared.turn.state.search) {
-        input.search.validate(prepared.turn.state.search);
-      }
-
-      return {
-        kind: 'consult',
-
+      const actions = operation.actions.map((action) => ({
+        decision: structuredClone(action.decision),
+        view:
+          action.view ?? (target.kind === 'current' ? target.view : 'results'),
+      }));
+      preflightLane(
         task,
-
-        query: operation.query,
-
-        decision,
-      };
+        actions,
+        workspace.focus.find((f) => f.taskId === task.taskId),
+        input.search,
+      );
+      return { kind: 'consult', task, query: operation.query, actions };
     },
   );
-
   return operations;
+}
+
+type TaskFocus = ProductWorkspace['focus'][number];
+
+/** Resolves references afresh against the record returned by the preceding action. */
+export function prepareProductTaskAction(
+  task: ProductTask,
+  action: PreparedProductAction,
+  focus: TaskFocus | undefined,
+  search: Pick<ProductSearchPort, 'validate'>,
+) {
+  const decision = structuredClone(action.decision);
+  if (action.view === 'focus' && focus) {
+    const remap = (selection: typeof decision.proposal.selection) => {
+      if (!selection) return selection;
+      if (focus.resultId !== task.record.results.active?.resultId) {
+        return clarify(
+          'Сначала покажем актуальную подборку. Какой товар вас интересует?',
+        );
+      }
+      const positions =
+        selection.kind === 'active'
+          ? focus.positions
+          : selection.positions.map(
+              (position) => focus.positions[position - 1],
+            );
+      if (
+        !positions.length ||
+        positions.some((position) => position === undefined)
+      ) {
+        return clarify(
+          'В обсуждаемом наборе нет такого номера. Уточните товар.',
+        );
+      }
+      return { kind: 'positions' as const, positions };
+    };
+    decision.proposal.selection = remap(decision.proposal.selection);
+    if (decision.proposal.feedback) {
+      decision.proposal.feedback.selection = remap(
+        decision.proposal.feedback.selection,
+      )!;
+    }
+  }
+  const category =
+    decision.proposal.search?.category ?? task.record.state?.search?.category;
+  const prepared = prepareConsultationTurn({
+    currentState: task.record.state,
+    currentResults: task.record.results,
+    proposal: decision.proposal,
+    categoryProfile:
+      CATEGORY_PROFILES.find((profile) => profile.id === category) ?? null,
+    expectedResultId: task.record.results.active?.resultId ?? null,
+  });
+  if (prepared.turn.state.search) search.validate(prepared.turn.state.search);
+  return { decision, prepared };
+}
+
+export function productTaskFocus(
+  task: ProductTask,
+  decision: ProductConsultantDecision,
+): TaskFocus {
+  const snapshot = task.record.results.active;
+  const selection =
+    decision.proposal.selection ?? decision.proposal.feedback?.selection;
+  return {
+    taskId: task.taskId,
+    resultId: snapshot?.resultId ?? null,
+    positions: !snapshot
+      ? []
+      : selection?.kind === 'positions'
+      ? selection.positions
+      : snapshot.products.map((_, index) => index + 1),
+  };
+}
+
+function preflightLane(
+  initialTask: ProductTask,
+  actions: PreparedProductAction[],
+  initialFocus: TaskFocus | undefined,
+  search: Pick<ProductSearchPort, 'validate'>,
+) {
+  const task = structuredClone(initialTask);
+  let focus = initialFocus;
+  let pendingResult = false;
+  for (const [index, action] of actions.entries()) {
+    const proposal = action.decision.proposal;
+    if (index > 0 && proposal.taskTransition !== 'continue') {
+      return clarify('Новый поиск должен принадлежать отдельной подборке.');
+    }
+    if (
+      index < actions.length - 1 &&
+      ['COMPLETE', 'CLARIFY', 'HANDOFF'].includes(proposal.action)
+    ) {
+      return clarify(
+        'После завершения или уточняющего вопроса нужно дождаться ответа.',
+      );
+    }
+    // Cardinality is structural even when the preceding search has not run yet.
+    if (proposal.selection?.kind === 'positions') {
+      const count = proposal.selection.positions.length;
+      if (
+        (proposal.action === 'DETAILS' && count !== 1) ||
+        (proposal.action === 'COMPARE' && count < 2)
+      ) {
+        return clarify(
+          'Подробности относятся к одному товару, сравнение - минимум к двум.',
+        );
+      }
+    }
+    if (proposal.search) search.validate({ version: 1, ...proposal.search });
+    if (pendingResult) continue;
+    const { decision, prepared } = prepareProductTaskAction(
+      task,
+      action,
+      focus,
+      search,
+    );
+    // This temporary preflight state is discarded; only WriteOwner accepts state.
+    task.record.state = prepared.turn.state;
+    pendingResult = prepared.turn.searchRequired;
+    if (!pendingResult) focus = productTaskFocus(task, decision);
+  }
+}
+
+export function productActionRequestId(
+  parentRequestId: string,
+  taskId: string,
+  actionOrdinal: number,
+): string {
+  return `product-action-${createHash('sha256')
+    .update(JSON.stringify([parentRequestId, taskId, actionOrdinal]))
+    .digest('hex')}`;
 }
