@@ -62,7 +62,7 @@ export const ProductNeedMemorySchema = z.object({
 const ProductContextV2Schema = z.object({
   version: z.literal(2),
 
-  needs: z.array(ProductNeedMemorySchema).max(5),
+  needs: z.array(ProductNeedMemorySchema),
 
   displayOrder: z.array(ProductReferenceSchema).max(25),
 
@@ -79,7 +79,7 @@ const ProductContextV2Schema = z.object({
 });
 
 const LegacyProductContextSchema = z.object({
-  needs: z.array(ProductNeedSchema).min(1).max(5),
+  needs: z.array(ProductNeedSchema).min(1),
 });
 
 export type ProductContext = z.infer<typeof ProductContextV2Schema>;

@@ -291,6 +291,80 @@ describe('Product ordered action lanes: real graph and offline model', () => {
     expect(result.workspace.pendingClarification).not.toBeNull();
   });
 
+  it.each([
+    action('DETAILS'),
+    action('DETAILS', { ...positions(1), searchPatch: { set: [], clear: [] } }),
+    action('COMPARE', positions(1)),
+    action('REFINE', {
+      searchPatch: { category: 'CLOTHES', set: [], clear: [] },
+    }),
+    action('SEARCH', {
+      taskTransition: 'continue',
+      search: {
+        category: 'SHOES',
+        semanticIntent: 'другая обувь',
+        constraints: [],
+      },
+    }),
+  ])(
+    'preflights invalid action combinations after a pending search using Core rules',
+    async (invalid) => {
+      const h = harness(
+        plan(
+          lane('кроссовки', [newSearch('кроссовки').actions[0], invalid], {
+            kind: 'new',
+          }),
+        ),
+      );
+      const result = await h.run();
+      expect(result.workspace.tasks).toEqual([]);
+      expect(result.workspace.pendingClarification).not.toBeNull();
+      expect(h.service.search).not.toHaveBeenCalled();
+      expect(h.service.getProductDetails).not.toHaveBeenCalled();
+    },
+  );
+
+  it('allows more than five lanes and more than five atomic actions without evicting explicitly appended tasks', async () => {
+    const queries = Array.from(
+      { length: 7 },
+      (_, n) => `кроссовки бренда ${String.fromCharCode(65 + n)}`,
+    );
+    const h = harness(plan(...queries.map((query) => newSearch(query))));
+    const initial = await h.run(`Найди ${queries.join(', ')}`);
+    expect(initial.workspace.tasks).toHaveLength(7);
+    expect(h.service.search).toHaveBeenCalledTimes(7);
+    h.setPlan(plan(newSearch('рюкзак', 'ACCESSORIES')));
+    const appended = await h.run('А ещё найди рюкзак', initial.workspace);
+    expect(appended.workspace.tasks).toHaveLength(8);
+    expect(appended.workspace.tasks.slice(0, 7)).toEqual(
+      initial.workspace.tasks,
+    );
+    h.setPlan(
+      plan(
+        lane(
+          'Подробности рюкзака',
+          Array.from({ length: 7 }, (_, n) =>
+            action('DETAILS', positions((n % 3) + 1)),
+          ),
+        ),
+      ),
+    );
+    const detailed = await h.run(
+      'Покажи подробности товаров из рюкзаков',
+      appended.workspace,
+    );
+    expect(detailed.groups[0].presentations).toHaveLength(7);
+    expect(
+      new Set(detailed.workspace.tasks[7].record.processedRequestIds).size,
+    ).toBe(8);
+    h.setPlan(plan(newSearch('платье', 'CLOTHES')));
+    const replaced = await h.run('Найди платье', detailed.workspace);
+    expect(replaced.workspace.tasks).toHaveLength(1);
+    expect(replaced.workspace.tasks[0].record.state!.search!.category).toBe(
+      'CLOTHES',
+    );
+  });
+
   it('grounds same-turn COMPARE then RECOMMEND in comparison order without searching again', async () => {
     const h = harness();
     const first = await h.run();

@@ -313,4 +313,83 @@ describe('applyProductPlan regression', () => {
 
     expect(sessionNeedIds).toContain(newNeed?.needId);
   });
+  it('appends beyond five historical needs without silent eviction', () => {
+    const context = createContextWithFiveActiveNeeds();
+
+    const previousNeedIds = context.needs.map((need) => need.needId);
+
+    const plan = {
+      action: 'SEARCH',
+
+      updates: [
+        {
+          needIndex: null,
+          semanticQuery: 'женские платья',
+
+          filterPatch: {
+            gender: 'WOMAN',
+            type: 'CLOTHES',
+            subcategory: 'Платья',
+          },
+
+          brandMode: 'keep',
+          brandValue: null,
+          brandSource: null,
+
+          addPreferences: [],
+          removePreferences: [],
+        },
+      ],
+
+      removeNeedIndexes: [],
+
+      reuseNeedIndexes: [],
+
+      referenceSource: 'active',
+
+      positions: [],
+
+      attributeIds: [],
+
+      reaction: null,
+
+      completionReason: null,
+
+      handoffReason: null,
+
+      question: null,
+
+      clarificationNeedIndex: null,
+
+      clarificationFields: [],
+    };
+
+    const result = applyProductPlan(context, plan, 'найди женские платья');
+
+    expect(result.productContext.needs).toHaveLength(6);
+
+    const session = result.productContext.consultationSession;
+
+    expect(session).not.toBeNull();
+
+    const sessionNeedIds = session?.needIds ?? [];
+
+    expect(sessionNeedIds).toHaveLength(6);
+
+    expect(sessionNeedIds).toContain('need-1');
+
+    expect(sessionNeedIds).toEqual(
+      expect.arrayContaining(['need-2', 'need-3', 'need-4', 'need-5']),
+    );
+
+    const newNeed = result.productContext.needs.find(
+      (need) => !previousNeedIds.includes(need.needId),
+    );
+
+    expect(newNeed).toBeDefined();
+
+    expect(newNeed?.semanticQuery).toBe('женские платья');
+
+    expect(sessionNeedIds).toContain(newNeed?.needId);
+  });
 });

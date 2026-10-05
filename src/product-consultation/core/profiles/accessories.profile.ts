@@ -139,6 +139,8 @@ export const ACCESSORIES_PROFILE = CategoryProfileSchema.parse({
 
   criticalAttributes: ['subcategory'],
 
+  searchRelaxationAttributeIds: ['color', 'brand', 'price'],
+
   guidance: [
     {
       id: 'accessories.subcategory',

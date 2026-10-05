@@ -79,6 +79,8 @@ export const CLOTHES_PROFILE = CategoryProfileSchema.parse({
 
   criticalAttributes: ['sizes'],
 
+  searchRelaxationAttributeIds: ['color', 'brand', 'price'],
+
   guidance: [
     {
       id: 'clothes.occasion',

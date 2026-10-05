@@ -19,8 +19,7 @@ export const ConsultationCompletionOutputSchema = z.object({
         question: z.string().trim().min(1).nullable(),
       }),
     )
-    .min(1)
-    .max(5),
+    .min(1),
   recommendations: z
     .array(
       z.object({

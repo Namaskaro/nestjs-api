@@ -59,12 +59,12 @@ export const ProductAgentState = new StateSchema({
 
   activeNeedIds: z
     .array(z.string().min(1))
-    .max(5)
+
     .default(() => []),
 
   searchNeedIds: z
     .array(z.string().min(1))
-    .max(5)
+
     .default(() => []),
 
   searchResults: z
@@ -73,7 +73,7 @@ export const ProductAgentState = new StateSchema({
         needId: z.string().min(1),
       }),
     )
-    .max(5)
+
     .default(() => []),
 
   consultation: ConsultationAgentResultSchema.nullable().default(null),

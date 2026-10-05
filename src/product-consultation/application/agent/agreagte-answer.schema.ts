@@ -7,6 +7,7 @@ import { ConsultationAgentResultSchema } from '@/src/product-consultation/applic
 import { ConsultationCompletionPresentationSchema } from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
 import { ComparisonPresentationSchema } from '../presentation/comparison-presentation.schema';
 import { ProductDetailsPresentationSchema } from '../presentation/product-presentation.schema';
+import { ZeroResultRecoverySchema } from '../search/zero-result-recovery';
 
 const ActionPresentationBaseSchema = z.object({
   actionOrdinal: z.number().int().nonnegative(),
@@ -40,6 +41,8 @@ export const ProductAnswerGroupSchema = z.object({
   consultation: ConsultationAgentResultSchema.nullable().optional(),
 
   presentations: z.array(ProductActionPresentationSchema).optional(),
+
+  recovery: ZeroResultRecoverySchema.optional(),
 
   query: z.string(),
 

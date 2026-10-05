@@ -675,35 +675,6 @@ export function applyProductPlan(
       }
     }
 
-    if (context.needs.length > 5) {
-      const overflow = context.needs.length - 5;
-
-      const protectedNeedIds = new Set(searchNeedIds);
-
-      const evictionCandidates = context.needs.filter(
-        (need) => !protectedNeedIds.has(need.needId),
-      );
-
-      const evictedNeedIds = new Set(
-        evictionCandidates.slice(0, overflow).map((need) => need.needId),
-      );
-
-      if (evictedNeedIds.size !== overflow) {
-        reject('В одном запросе слишком много независимых товарных задач.');
-      }
-
-      context.needs = context.needs.filter(
-        (need) => !evictedNeedIds.has(need.needId),
-      );
-
-      if (context.consultationSession?.status === 'ACTIVE') {
-        context.consultationSession.needIds =
-          context.consultationSession.needIds.filter(
-            (needId) => !evictedNeedIds.has(needId),
-          );
-      }
-    }
-
     const reuse = plan.reuseNeedIndexes.map((index) => {
       const need = byIndex(index);
 

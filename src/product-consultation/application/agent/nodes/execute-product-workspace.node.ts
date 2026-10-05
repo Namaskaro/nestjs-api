@@ -71,7 +71,7 @@ export function productWorkspaceMessage(
 
   if (
     groups.length > 1 &&
-    groups.some((group) => group.presentations?.length)
+    groups.some((group) => group.presentations?.length || group.recovery)
   ) {
     return groups
       .map(
@@ -346,6 +346,12 @@ export function createExecuteProductWorkspaceNode(
           '\n\n',
         ) || 'Готово.';
       const presentations = productActionPresentations(actions);
+      const recovery = actions
+        .map(({ result }) => result.recovery)
+        .reverse()
+        .find(
+          (candidate) => candidate && candidate.resultId === snapshot?.resultId,
+        );
       groups.push({
         taskId: task.taskId,
         query: task.record.state?.search?.semanticIntent ?? task.query,
@@ -363,6 +369,7 @@ export function createExecuteProductWorkspaceNode(
             }),
         products,
         presentations,
+        ...(recovery ? { recovery } : {}),
         consultation:
           actions.length === 1 ? last?.result.consultation ?? null : null,
       });

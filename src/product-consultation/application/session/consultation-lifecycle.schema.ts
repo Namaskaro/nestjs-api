@@ -35,7 +35,7 @@ export const ConsultationSessionSchema = z
 
     status: ConsultationSessionStatusSchema,
 
-    needIds: z.array(z.string().min(1)).max(5),
+    needIds: z.array(z.string().min(1)),
 
     startedAt: z.string().datetime(),
 

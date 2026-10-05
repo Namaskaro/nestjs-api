@@ -337,6 +337,16 @@ function buildInternalInterpretation(
   });
 }
 
+/** Uses the same Core action rules before a preceding search has a snapshot. */
+export function assertConsultationProposalStructure(raw: unknown): void {
+  const proposal = ConsultationTurnProposalSchema.parse(raw);
+  const emptyMemoryPatch = compileConsultationMemoryObservations(
+    createConsultationMemoryState(),
+    [],
+  );
+  buildInternalInterpretation(proposal, emptyMemoryPatch);
+}
+
 function assertSearchSemantics(
   currentState: ProductConsultationState | null,
 

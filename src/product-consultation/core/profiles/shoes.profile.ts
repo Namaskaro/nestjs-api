@@ -60,6 +60,8 @@ export const SHOES_PROFILE = CategoryProfileSchema.parse({
 
   criticalAttributes: ['sizes', 'purpose'],
 
+  searchRelaxationAttributeIds: ['color', 'brand', 'price'],
+
   guidance: [
     {
       id: 'shoes.purpose',

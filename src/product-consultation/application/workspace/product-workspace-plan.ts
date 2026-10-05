@@ -9,7 +9,10 @@ import {
 
 import { createConsultationApplicationRecord } from '../runtime/consultation-application-record';
 
-import { prepareConsultationTurn } from '../../core/turn/consultation-turn-boundary';
+import {
+  prepareConsultationTurn,
+  assertConsultationProposalStructure,
+} from '../../core/turn/consultation-turn-boundary';
 
 import { CATEGORY_PROFILES } from '../../core/profiles';
 
@@ -659,6 +662,7 @@ function preflightLane(
   let pendingResult = false;
   for (const [index, action] of actions.entries()) {
     const proposal = action.decision.proposal;
+    assertConsultationProposalStructure(proposal);
     if (index > 0 && proposal.taskTransition !== 'continue') {
       return clarify('Новый поиск должен принадлежать отдельной подборке.');
     }
@@ -670,20 +674,15 @@ function preflightLane(
         'После завершения или уточняющего вопроса нужно дождаться ответа.',
       );
     }
-    // Cardinality is structural even when the preceding search has not run yet.
-    if (proposal.selection?.kind === 'positions') {
-      const count = proposal.selection.positions.length;
-      if (
-        (proposal.action === 'DETAILS' && count !== 1) ||
-        (proposal.action === 'COMPARE' && count < 2)
-      ) {
-        return clarify(
-          'Подробности относятся к одному товару, сравнение - минимум к двум.',
-        );
-      }
-    }
     if (proposal.search) search.validate({ version: 1, ...proposal.search });
-    if (pendingResult) continue;
+    if (pendingResult && proposal.action === 'SEARCH') {
+      return clarify(
+        'После поиска изменяйте условия текущей подборки через уточнение.',
+      );
+    }
+    // Search/Memory changes without product references can still be preflighted.
+    // Defer only actions whose selection requires the future result snapshot.
+    if (pendingResult && (proposal.selection || proposal.feedback)) continue;
     const { decision, prepared } = prepareProductTaskAction(
       task,
       action,
@@ -692,7 +691,7 @@ function preflightLane(
     );
     // This temporary preflight state is discarded; only WriteOwner accepts state.
     task.record.state = prepared.turn.state;
-    pendingResult = prepared.turn.searchRequired;
+    pendingResult ||= prepared.turn.searchRequired;
     if (!pendingResult) focus = productTaskFocus(task, decision);
   }
 }

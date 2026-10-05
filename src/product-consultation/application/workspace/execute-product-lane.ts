@@ -70,7 +70,8 @@ export async function executeProductLane(input: {
     actions.push({ decision, result });
     if (result.failed) break;
     task.question =
-      decision.proposal.action === 'CLARIFY' ? result.message : null;
+      result.recovery?.question ??
+      (decision.proposal.action === 'CLARIFY' ? result.message : null);
     focus = productTaskFocus(task, decision);
     closed = decision.proposal.action === 'COMPLETE';
     handoffRequested = decision.proposal.action === 'HANDOFF';

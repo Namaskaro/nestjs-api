@@ -4,7 +4,7 @@ import { ProductClarificationFieldSchema } from '@/src/product-consultation/appl
 
 import { ConsultationUserCompletionReasonSchema } from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
 
-const NeedIndexSchema = z.number().int().min(1).max(5);
+const NeedIndexSchema = z.number().int().min(1);
 
 export const ProductActionSchema = z.enum([
   'SEARCH',
@@ -78,11 +78,11 @@ export const ProductPlannerHandoffReasonSchema = z.enum([
 export const ProductPlannerResultSchema = z.object({
   action: ProductActionSchema,
 
-  updates: z.array(ProductNeedPatchSchema).max(5),
+  updates: z.array(ProductNeedPatchSchema),
 
-  removeNeedIndexes: z.array(NeedIndexSchema).max(5),
+  removeNeedIndexes: z.array(NeedIndexSchema),
 
-  reuseNeedIndexes: z.array(NeedIndexSchema).max(5),
+  reuseNeedIndexes: z.array(NeedIndexSchema),
 
   referenceSource: z.enum(['active', 'display', 'comparison']),
 

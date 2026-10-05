@@ -6,6 +6,10 @@ import type { ConsultationApplicationRecord } from '../../runtime/consultation-a
 import type { ProductConsultantDecision } from '../../consultant/product-consultant-decision.schema';
 import type { ProductConsultationContextMessage } from '../../context/product-consultation-context';
 import type { ProductAgentAnswer } from '../agreagte-answer.schema';
+import {
+  recoverZeroResults,
+  type ZeroResultRecovery,
+} from '../../search/zero-result-recovery';
 
 export type ProductTaskExecutionInput = {
   query: string;
@@ -22,6 +26,7 @@ export type ProductTaskExecutionResult = Pick<
   consultationRecord: ConsultationApplicationRecord;
   failed?: true;
   recommendationProductIds?: string[];
+  recovery?: ZeroResultRecovery;
 };
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
@@ -172,14 +177,24 @@ export function createExecuteProductDecisionNode(
           );
         }
 
+        const recovery =
+          capability.observation.status === 'zero_results' &&
+          record.state?.search &&
+          record.results.active
+            ? await recoverZeroResults({
+                search: record.state.search,
+                resultId: record.results.active.resultId,
+                port: productAgentService,
+              })
+            : undefined;
         return {
           consultationRecord: record,
-
           consultation: null,
-
           consultationCompletion: null,
-
-          message: searchMessage(action, capability.observation.status),
+          ...(recovery ? { recovery } : {}),
+          message:
+            recovery?.question ??
+            searchMessage(action, capability.observation.status),
           ...(capability.observation.status === 'failed'
             ? { failed: true as const }
             : {}),

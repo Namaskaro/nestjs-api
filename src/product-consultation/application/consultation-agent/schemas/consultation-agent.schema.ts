@@ -117,7 +117,7 @@ export const ConsultationAgentInputSchema = z.object({
 
   pendingClarification: PendingProductClarificationSchema.nullable(),
 
-  searches: z.array(ConsultationSearchContextSchema).min(1).max(5),
+  searches: z.array(ConsultationSearchContextSchema).min(1),
 });
 
 const ConsultationDecisionBaseSchema = z.object({
@@ -171,7 +171,7 @@ export const ConsultationAgentResultSchema = z
   .object({
     message: z.string().trim().min(1),
 
-    decisions: z.array(ConsultationDecisionSchema).min(1).max(5),
+    decisions: z.array(ConsultationDecisionSchema).min(1),
 
     recommendations: z
       .array(RecommendationSchema)

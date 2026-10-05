@@ -186,6 +186,9 @@ export const CategoryProfileSchema = z
 
     criticalAttributes: z.array(IdSchema).max(32),
 
+    // Ordered, opt-in diagnostic relaxations; never automatic user state changes.
+    searchRelaxationAttributeIds: z.array(IdSchema).optional(),
+
     guidance: z
       .array(GuidanceRuleSchema)
       .max(CONSULTATION_SAFETY_LIMITS.profileGuidanceRules),
@@ -216,6 +219,8 @@ export const CategoryProfileSchema = z
       ...profile.defaultCriteria,
 
       ...profile.criticalAttributes,
+
+      ...(profile.searchRelaxationAttributeIds ?? []),
 
       ...profile.guidance.flatMap((rule) => rule.attributeIds),
 
