@@ -165,6 +165,8 @@ export function createProductAgentWorker(
 
       groups: groupsForPresentation(result.groups),
 
+      resultGroups: result.groups,
+
       consultation: result.consultation,
 
       consultationCompletion: result.consultationCompletion,

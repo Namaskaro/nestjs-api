@@ -21,6 +21,7 @@ export type ProductTaskExecutionResult = Pick<
 > & {
   consultationRecord: ConsultationApplicationRecord;
   failed?: true;
+  recommendationProductIds?: string[];
 };
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
@@ -149,6 +150,20 @@ export function createExecuteProductDecisionNode(
       });
 
       const action = decision.proposal.action;
+
+      if (
+        capability.observation.kind === 'recommend' &&
+        capability.observation.status === 'product_unavailable'
+      ) {
+        return {
+          consultationRecord: record,
+          consultation: null,
+          consultationCompletion: null,
+          failed: true,
+          message:
+            'Не удалось рекомендовать выбранные товары: один из них сейчас недоступен.',
+        };
+      }
 
       if (action === 'SEARCH' || action === 'REFINE') {
         if (capability.observation.kind !== 'search') {
@@ -354,6 +369,13 @@ export function createExecuteProductDecisionNode(
         consultationCompletion: null,
 
         message: response.terminalText,
+        ...(action === 'RECOMMEND'
+          ? {
+              recommendationProductIds: capability.selectedProducts.map(
+                (product) => product.id,
+              ),
+            }
+          : {}),
       };
     } catch {
       // A capability/read/synthesis failure must not roll back an accepted task.

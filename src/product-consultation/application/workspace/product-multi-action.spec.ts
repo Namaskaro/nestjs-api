@@ -122,6 +122,15 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         input.conversationId.endsWith(first.workspace.tasks[2].taskId),
       );
     expect(shortsWrites).toHaveLength(2);
+    expect(result.groups[2].presentations?.map((p) => p.kind)).toEqual([
+      'details',
+      'details',
+    ]);
+    expect(
+      result.groups[2].presentations?.map((p) =>
+        p.kind === 'details' ? p.data.product.id : null,
+      ),
+    ).toEqual(['шорты-2', 'шорты-3']);
     expect(shortsWrites[1].expectedRevision).toBeGreaterThan(
       shortsWrites[0].expectedRevision,
     );
@@ -244,6 +253,8 @@ describe('Product ordered action lanes: real graph and offline model', () => {
       first.workspace,
     );
     expect(result.groups.map((g) => g.status)).toEqual(['failed', 'ready']);
+    expect(result.groups[0].presentations).toHaveLength(1);
+    expect(result.groups[1].presentations).toHaveLength(1);
     expect(
       h.service.getProductDetails.mock.calls.map(([ids]) => ids),
     ).not.toContainEqual(['кроссовки-3']);
@@ -307,5 +318,86 @@ describe('Product ordered action lanes: real graph and offline model', () => {
     expect(h.respond).toHaveBeenCalledTimes(1);
     expect(h.service.search).toHaveBeenCalledTimes(1);
     expect(result.workspace.focus[0].positions).toEqual([3, 1]);
+    expect(result.groups[0].presentations?.map((p) => p.kind)).toEqual([
+      'comparison',
+      'recommendation',
+    ]);
+    expect(result.groups[0].presentations?.[1]).toMatchObject({
+      kind: 'recommendation',
+      productIds: ['кроссовки-3', 'кроссовки-1'],
+    });
+  });
+
+  it('preserves COMPARE then DETAILS presentations in action order', async () => {
+    const h = harness();
+    const first = await h.run();
+    h.setPlan(
+      plan(
+        lane('Сравни и покажи подробнее', [
+          action('COMPARE', positions(1, 2)),
+          action('DETAILS', positions(3)),
+        ]),
+      ),
+    );
+    const result = await h.run(
+      'Сравни первый и второй, покажи третий',
+      first.workspace,
+    );
+    expect(
+      result.groups[0].presentations?.map((p) => [p.actionOrdinal, p.kind]),
+    ).toEqual([
+      [0, 'comparison'],
+      [1, 'details'],
+    ]);
+    expect(result.groups[0].presentations?.[1]).toMatchObject({
+      kind: 'details',
+      data: { product: { id: 'кроссовки-3' } },
+    });
+    expect(result.consultation).toBeNull();
+    expect(result.groups[0].consultation).toBeNull();
+    expect(h.respond).not.toHaveBeenCalled();
+  });
+
+  it('continues RECOMMEND after a comparison turn in the sneakers focus while preserving other tasks', async () => {
+    const h = harness(
+      plan(newSearch('кроссовки'), newSearch('платье', 'CLOTHES')),
+    );
+    const first = await h.run('кроссовки и платье');
+    h.setPlan(
+      plan(
+        lane(
+          'Сравни кроссовки',
+          [action('COMPARE', positions(3, 1))],
+          named(first.workspace, 0, 'кроссовки'),
+        ),
+      ),
+    );
+    const compared = await h.run(
+      'Сравни третий и первый из кроссовок',
+      first.workspace,
+    );
+    h.service.getProductDetails.mockClear();
+    h.setPlan(
+      plan(
+        lane(
+          'Какие из них посоветуешь?',
+          [action('RECOMMEND', { selection: { kind: 'active' } })],
+          { kind: 'current', view: 'focus' },
+        ),
+      ),
+    );
+    const result = await h.run('Какие из них посоветуешь?', compared.workspace);
+    expect(h.service.getProductDetails).toHaveBeenCalledWith([
+      'кроссовки-3',
+      'кроссовки-1',
+    ]);
+    expect(h.service.getProductSemanticRepresentations).toHaveBeenCalledWith([
+      'кроссовки-3',
+      'кроссовки-1',
+    ]);
+    expect(h.service.search).toHaveBeenCalledTimes(2);
+    expect(result.workspace.tasks[1]).toEqual(first.workspace.tasks[1]);
+    expect(result.groups[0].taskId).toBe(first.workspace.tasks[0].taskId);
+    expect(result.groups[0].presentations?.[0].kind).toBe('recommendation');
   });
 });

@@ -68,7 +68,7 @@ function productMessage(
 
   workspaceQuestion: string | null,
 ): string {
-  const groupQuestions = block.data.groups
+  const groupQuestions = (block.data.resultGroups ?? block.data.groups)
     .filter((group) => group.status === 'clarification')
     .map((group) => group.message);
 

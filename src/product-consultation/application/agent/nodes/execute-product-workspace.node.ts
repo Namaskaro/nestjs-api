@@ -1,4 +1,5 @@
 import { executeProductLane } from '../../workspace/execute-product-lane';
+import { productActionPresentations } from '../../presentation/product-action-presentations';
 import type { GraphNode } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
@@ -68,10 +69,26 @@ export function productWorkspaceMessage(
     return 'Готово.';
   }
 
+  if (
+    groups.length > 1 &&
+    groups.some((group) => group.presentations?.length)
+  ) {
+    return groups
+      .map(
+        (group) =>
+          `«${group.query}»: ${group.message || 'Нашёл подходящие варианты.'}`,
+      )
+      .join('\n\n');
+  }
+
   if (groups.length === 1) {
     const group = groups[0];
 
-    if (group.status === 'ready' && group.products.length > 0) {
+    if (
+      group.status === 'ready' &&
+      group.products.length > 0 &&
+      !group.presentations?.length
+    ) {
       return 'Нашёл подходящие варианты.';
     }
 
@@ -328,20 +345,24 @@ export function createExecuteProductWorkspaceNode(
         uniqueMessages(actions.map(({ result }) => result.message)).join(
           '\n\n',
         ) || 'Готово.';
+      const presentations = productActionPresentations(actions);
       groups.push({
         taskId: task.taskId,
         query: task.record.state?.search?.semanticIntent ?? task.query,
         status,
-        message: productWorkspaceGroupMessage({
-          status,
-          showProducts,
-          productsCount: products.length,
-          message:
-            action === 'CLARIFY'
-              ? userFacingClarification(rawMessage)
-              : rawMessage,
-        }),
+        message: presentations.length
+          ? rawMessage
+          : productWorkspaceGroupMessage({
+              status,
+              showProducts,
+              productsCount: products.length,
+              message:
+                action === 'CLARIFY'
+                  ? userFacingClarification(rawMessage)
+                  : rawMessage,
+            }),
         products,
+        presentations,
         consultation:
           actions.length === 1 ? last?.result.consultation ?? null : null,
       });

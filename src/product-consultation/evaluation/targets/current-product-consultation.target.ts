@@ -157,7 +157,9 @@ export class CurrentProductConsultationTarget
             0,
           ),
 
-          hasConsultationResult: result.consultation !== null,
+          hasConsultationResult:
+            result.groups.some((group) => group.presentations?.length) ||
+            result.consultation !== null,
 
           hasCompletionPresentation: result.consultationCompletion !== null,
         },
@@ -188,18 +190,20 @@ export class CurrentProductConsultationTarget
           },
         });
       }
-      if (group.consultation?.comparisonPresentation) {
+      for (const presentation of group.presentations ?? []) {
         artifacts.push({
-          id: group.taskId ?? null,
-          kind: 'comparison',
-          data: toJson(group.consultation.comparisonPresentation),
-        });
-      }
-      if (group.consultation?.productDetailsPresentation) {
-        artifacts.push({
-          id: group.taskId ?? null,
-          kind: 'product_details',
-          data: toJson(group.consultation.productDetailsPresentation),
+          id: group.taskId
+            ? `${group.taskId}:${presentation.actionOrdinal}`
+            : null,
+          kind:
+            presentation.kind === 'details'
+              ? 'product_details'
+              : presentation.kind,
+          data: toJson(
+            presentation.kind === 'recommendation'
+              ? presentation
+              : presentation.data,
+          ),
         });
       }
     }

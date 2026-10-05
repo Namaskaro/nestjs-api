@@ -7,6 +7,13 @@ import type { LangGraphRunnableConfig } from '@langchain/langgraph';
 import type { ProductAgent } from '@/src/product-consultation/application/agent/product.agent';
 
 import { createProductWorkspace } from '@/src/product-consultation/application/workspace/product-workspace';
+import {
+  action,
+  harness,
+  lane,
+  plan,
+  positions,
+} from '@/src/product-consultation/application/workspace/product-workspace.test-fixtures';
 
 import type { SupportAgentStateType } from '../../support-agent.state';
 
@@ -63,6 +70,46 @@ const config = {
 } as LangGraphRunnableConfig;
 
 describe('ProductAgentWorker presentation groups', () => {
+  it('preserves ordered task presentations through the real Product graph without empty search cards', async () => {
+    const h = harness();
+    const initial = await h.run();
+    h.setPlan(
+      plan(
+        lane('кроссовки', [
+          action('COMPARE', positions(1, 2)),
+          action('DETAILS', positions(3)),
+        ]),
+      ),
+    );
+    const input = state();
+    input.productWorkspace = initial.workspace;
+    input.query = 'Сравни первые два кроссовка и покажи третий подробнее';
+    const worker = createProductAgentWorker(h.agent);
+    const result = await worker(input, config);
+    const update = (
+      result as {
+        update: {
+          answer: {
+            groups: unknown[];
+            resultGroups: Array<{
+              presentations: Array<{ kind: string; actionOrdinal: number }>;
+            }>;
+          };
+        };
+      }
+    ).update;
+    expect(update.answer.groups).toEqual([]);
+    expect(update.answer.resultGroups).toHaveLength(1);
+    expect(
+      update.answer.resultGroups[0].presentations.map(
+        ({ kind, actionOrdinal }) => [kind, actionOrdinal],
+      ),
+    ).toEqual([
+      ['comparison', 0],
+      ['details', 1],
+    ]);
+    expect(h.respond).not.toHaveBeenCalled();
+  });
   it('does not expose an empty search group to UI', async () => {
     const workspace = createProductWorkspace();
 
