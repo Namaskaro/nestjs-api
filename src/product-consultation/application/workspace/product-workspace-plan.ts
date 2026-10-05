@@ -23,7 +23,7 @@ import type { ProductTask, ProductWorkspace } from './product-workspace';
 const ProductLaneActionSchema = z
   .object({
     decision: ProductConsultantDecisionSchema,
-    // null inherits the lane target's reference scope.
+
     view: z.enum(['focus', 'results', 'comparison']).nullable().default(null),
   })
   .strict();
@@ -92,13 +92,14 @@ export const ProductWorkspacePlanSchema = z
   })
   .strict()
   .superRefine((plan, context) => {
-    // Transport/resource guard, not a task or action capacity rule.
     if (Buffer.byteLength(JSON.stringify(plan), 'utf8') > 256 * 1024) {
       context.addIssue({
         code: 'custom',
+
         message: 'Product plan payload exceeds 256 KiB.',
       });
     }
+
     if ((plan.operations.length === 0) === (plan.clarification === null)) {
       context.addIssue({
         code: 'custom',
@@ -116,6 +117,7 @@ export type ProductWorkspaceLifecycle = 'continue' | 'append' | 'replace';
 
 export type PreparedProductAction = {
   decision: ProductConsultantDecision;
+
   view: 'focus' | 'results' | 'comparison';
 };
 
@@ -378,6 +380,7 @@ export function prepareProductWorkspacePlan(input: {
   search: Pick<ProductSearchPort, 'validate'>;
 }): PreparedProductLane[] {
   const { workspace } = input;
+
   const plan = ProductWorkspacePlanSchema.parse(input.plan);
 
   const touched = new Set<string>();
@@ -463,6 +466,7 @@ export function prepareProductWorkspacePlan(input: {
           operation.kind === 'consult'
             ? operation.actions[0].view ?? target.view
             : target.view;
+
         const comparisonTaskIds = workspace.tasks
           .filter(
             (candidate) =>
@@ -471,6 +475,7 @@ export function prepareProductWorkspacePlan(input: {
                 candidate.record.results.active?.resultId,
           )
           .map((candidate) => candidate.taskId);
+
         const pending = workspace.tasks.filter(
           (task) =>
             task.question !== null &&
@@ -494,13 +499,26 @@ export function prepareProductWorkspacePlan(input: {
             ? workspace.focus.map((reference) => reference.taskId)
             : workspace.tasks.map((candidate) => candidate.taskId);
 
-        const namedTask = uniqueTaskFromText(
-          workspace,
+        const operationQuery =
+          operation.kind === 'consult' ? operation.query : input.query;
 
-          input.query,
+        const namedTask =
+          uniqueTaskFromText(
+            workspace,
 
-          scopedTaskIds,
-        );
+            operationQuery,
+
+            scopedTaskIds,
+          ) ??
+          (operationQuery === input.query
+            ? null
+            : uniqueTaskFromText(
+                workspace,
+
+                input.query,
+
+                scopedTaskIds,
+              ));
 
         let ids = namedTask
           ? [namedTask.taskId]
@@ -582,56 +600,81 @@ export function prepareProductWorkspacePlan(input: {
 
       const actions = operation.actions.map((action) => ({
         decision: structuredClone(action.decision),
+
         view:
           action.view ?? (target.kind === 'current' ? target.view : 'results'),
       }));
+
       preflightLane(
         task,
+
         actions,
-        workspace.focus.find((f) => f.taskId === task.taskId),
+
+        workspace.focus.find((focus) => focus.taskId === task.taskId),
+
         input.search,
       );
-      return { kind: 'consult', task, query: operation.query, actions };
+
+      return {
+        kind: 'consult',
+
+        task,
+
+        query: operation.query,
+
+        actions,
+      };
     },
   );
+
   return operations;
 }
 
 type TaskFocus = ProductWorkspace['focus'][number];
 
-/** Resolves references afresh against the record returned by the preceding action. */
 export function prepareProductTaskAction(
   task: ProductTask,
+
   action: PreparedProductAction,
+
   focus: TaskFocus | undefined,
+
   search: Pick<ProductSearchPort, 'validate'>,
 ) {
   const decision = structuredClone(action.decision);
+
   const reference =
     action.view === 'comparison'
       ? task.lastComparison
       : action.view === 'focus'
       ? focus
       : undefined;
+
   if (action.view === 'comparison' && !reference) {
     return clarify(
       'В текущей подборке нет сохранённого сравнения. Какие товары сравнить?',
     );
   }
+
   if (reference) {
     const remap = (selection: typeof decision.proposal.selection) => {
-      if (!selection) return selection;
+      if (!selection) {
+        return selection;
+      }
+
       if (reference.resultId !== task.record.results.active?.resultId) {
         return clarify(
           'Сначала покажем актуальную подборку. Какой товар вас интересует?',
         );
       }
+
       const positions =
         selection.kind === 'active'
           ? reference.positions
           : selection.positions.map(
               (position) => reference.positions[position - 1],
             );
+
       if (
         !positions.length ||
         positions.some((position) => position === undefined)
@@ -640,39 +683,65 @@ export function prepareProductTaskAction(
           'В обсуждаемом наборе нет такого номера. Уточните товар.',
         );
       }
-      return { kind: 'positions' as const, positions };
+
+      return {
+        kind: 'positions' as const,
+
+        positions,
+      };
     };
+
     decision.proposal.selection = remap(decision.proposal.selection);
+
     if (decision.proposal.feedback) {
       decision.proposal.feedback.selection = remap(
         decision.proposal.feedback.selection,
       )!;
     }
   }
+
   const category =
     decision.proposal.search?.category ?? task.record.state?.search?.category;
+
   const prepared = prepareConsultationTurn({
     currentState: task.record.state,
+
     currentResults: task.record.results,
+
     proposal: decision.proposal,
+
     categoryProfile:
       CATEGORY_PROFILES.find((profile) => profile.id === category) ?? null,
+
     expectedResultId: task.record.results.active?.resultId ?? null,
   });
-  if (prepared.turn.state.search) search.validate(prepared.turn.state.search);
-  return { decision, prepared };
+
+  if (prepared.turn.state.search) {
+    search.validate(prepared.turn.state.search);
+  }
+
+  return {
+    decision,
+
+    prepared,
+  };
 }
 
 export function productTaskFocus(
   task: ProductTask,
+
   decision: ProductConsultantDecision,
 ): TaskFocus {
   const snapshot = task.record.results.active;
+
   const selection =
     decision.proposal.selection ?? decision.proposal.feedback?.selection;
+
   return {
     taskId: task.taskId,
+
     resultId: snapshot?.resultId ?? null,
+
     positions: !snapshot
       ? []
       : selection?.kind === 'positions'
@@ -683,19 +752,28 @@ export function productTaskFocus(
 
 function preflightLane(
   initialTask: ProductTask,
+
   actions: PreparedProductAction[],
+
   initialFocus: TaskFocus | undefined,
+
   search: Pick<ProductSearchPort, 'validate'>,
 ) {
   const task = structuredClone(initialTask);
+
   let focus = initialFocus;
+
   let pendingResult = false;
+
   for (const [index, action] of actions.entries()) {
     const proposal = action.decision.proposal;
+
     assertConsultationProposalStructure(proposal);
+
     if (index > 0 && proposal.taskTransition !== 'continue') {
       return clarify('Новый поиск должен принадлежать отдельной подборке.');
     }
+
     if (
       index < actions.length - 1 &&
       ['COMPLETE', 'CLARIFY', 'HANDOFF'].includes(proposal.action)
@@ -704,29 +782,54 @@ function preflightLane(
         'После завершения или уточняющего вопроса нужно дождаться ответа.',
       );
     }
-    if (proposal.search) search.validate({ version: 1, ...proposal.search });
+
+    if (proposal.search) {
+      search.validate({
+        version: 1,
+
+        ...proposal.search,
+      });
+    }
+
     if (pendingResult && proposal.action === 'SEARCH') {
       return clarify(
         'После поиска изменяйте условия текущей подборки через уточнение.',
       );
     }
-    // Search/Memory changes without product references can still be preflighted.
-    // Defer only actions whose selection requires the future result snapshot.
-    if (pendingResult && (proposal.selection || proposal.feedback)) continue;
-    const { decision, prepared } = prepareProductTaskAction(
+
+    if (pendingResult && (proposal.selection || proposal.feedback)) {
+      continue;
+    }
+
+    const {
+      decision,
+
+      prepared,
+    } = prepareProductTaskAction(
       task,
+
       action,
+
       focus,
+
       search,
     );
-    // This temporary preflight state is discarded; only WriteOwner accepts state.
+
     task.record.state = prepared.turn.state;
+
     pendingResult ||= prepared.turn.searchRequired;
+
     if (!pendingResult) {
-      focus = productTaskFocus(task, decision);
+      focus = productTaskFocus(
+        task,
+
+        decision,
+      );
+
       if (decision.proposal.action === 'COMPARE') {
         task.lastComparison = {
           resultId: focus.resultId!,
+
           positions: [...focus.positions],
         };
       }
@@ -736,7 +839,9 @@ function preflightLane(
 
 export function productActionRequestId(
   parentRequestId: string,
+
   taskId: string,
+
   actionOrdinal: number,
 ): string {
   return `product-action-${createHash('sha256')

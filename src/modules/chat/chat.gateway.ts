@@ -501,6 +501,12 @@ export class ChatGateway {
 
                 groups: result.answer.groups,
 
+                ...(result.answer.resultGroups
+                  ? {
+                      resultGroups: result.answer.resultGroups,
+                    }
+                  : {}),
+
                 consultation: result.answer.consultation,
 
                 consultationCompletion: result.answer.consultationCompletion,

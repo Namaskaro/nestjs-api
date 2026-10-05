@@ -1,5 +1,3 @@
-// START CHANGES — SHARED CANONICAL PRODUCT ATTRIBUTES
-
 import {
   AttributeDefinitionSchema,
   type AttributeDefinition,
@@ -96,7 +94,7 @@ export const typeAttribute = defineAttribute(
 export const genderAttribute = defineAttribute(
   'gender',
 
-  'Маркировка пола',
+  'Пол',
 );
 
 export const colorAttribute = defineAttribute(
@@ -215,29 +213,6 @@ export const compatibilityAttribute = defineAttribute(
   },
 );
 
-/**
- * Generic attributes,
- * доступные Product Consultation
- * для всех категорий.
- *
- * ВАЖНО:
- *
- * availability здесь отсутствует намеренно.
- *
- * inStock / stock являются
- * server-owned catalog eligibility data.
- *
- * До Product Consultation должны доходить
- * только товары, которые уже разрешено
- * показывать пользователю.
- *
- * Поэтому наличие товара:
- *
- * - не SearchSpec constraint;
- * - не Memory criterion;
- * - не recommendation preference;
- * - не CategoryProfile attribute.
- */
 export const GENERIC_ATTRIBUTES: AttributeDefinition[] = [
   priceAttribute,
 

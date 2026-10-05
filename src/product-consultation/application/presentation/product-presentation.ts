@@ -10,6 +10,8 @@ import {
   type ProductSnapshot,
 } from '@/src/product-consultation/application/presentation/product-presentation.schema';
 
+import { productPresentationDisplayValue } from './product-presentation-value';
+
 const PRODUCT_ENVELOPE_ATTRIBUTE_IDS = new Set([
   'price',
   'brand',
@@ -22,7 +24,9 @@ const PRODUCT_ENVELOPE_ATTRIBUTE_IDS = new Set([
 
 export function buildProductSnapshot({
   product,
+
   profile,
+
   focusAttributeIds = [],
 }: {
   product: ProductDetails;
@@ -55,12 +59,26 @@ export function buildProductSnapshot({
     return [
       {
         attributeId: definition.id,
+
         label: definition.label,
+
         kind: definition.kind,
+
         status: fact.status,
+
         value: fact.value,
+
         unit: fact.unit,
-        displayValue: fact.displayValue,
+
+        displayValue: productPresentationDisplayValue({
+          attributeId: definition.id,
+
+          status: fact.status,
+
+          value: fact.value,
+
+          displayValue: fact.displayValue,
+        }),
       },
     ];
   });
@@ -98,8 +116,11 @@ export function buildProductSnapshot({
 
 export function buildProductDetailsPresentation({
   needId,
+
   product,
+
   profile,
+
   focusAttributeIds = [],
 }: {
   needId: string;
@@ -115,7 +136,9 @@ export function buildProductDetailsPresentation({
 
     product: buildProductSnapshot({
       product,
+
       profile,
+
       focusAttributeIds,
     }),
 

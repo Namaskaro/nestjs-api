@@ -634,10 +634,54 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     expect(ai.responseInvoke).not.toHaveBeenCalled();
   });
 
-  it('does not read semantic representations for COMPARE', async () => {
+  it('reads semantic representations for COMPARE and uses them without a second response LLM call', async () => {
     const ai = createAiService();
 
     const productAgent = createProductAgentService();
+
+    productAgent.getProductSemanticRepresentations.mockResolvedValueOnce(
+      new Map([
+        [
+          'adidas-1',
+
+          {
+            summary: 'Ретро-модель для повседневных городских образов.',
+
+            targetAudience: ['Любители уличной моды'],
+
+            styleAssociations: ['спортивный', 'винтажный', 'уличный стиль'],
+
+            useCases: [
+              'повседневная носка',
+
+              'создание яркого современного образа',
+            ],
+
+            pricePositioning: 'средний ценовой сегмент',
+
+            searchTags: ['retrieval-only-adidas-1'],
+          },
+        ],
+
+        [
+          'adidas-2',
+
+          {
+            summary: 'Повседневная модель с элементами скейтбординга.',
+
+            targetAudience: ['Поклонники скейтбординга'],
+
+            styleAssociations: ['скейтбординг', 'университетские цвета'],
+
+            useCases: ['повседневная носка', 'занятия скейтбордингом'],
+
+            pricePositioning: 'средний ценовой сегмент',
+
+            searchTags: ['retrieval-only-adidas-2'],
+          },
+        ],
+      ]),
+    );
 
     const node = createExecuteProductDecisionNode(
       ai.aiService,
@@ -645,7 +689,7 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
       productAgent.service,
     );
 
-    await node(
+    const result = await node(
       agentState({
         query: 'Сравни первый и второй',
 
@@ -665,9 +709,87 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
 
     expect(
       productAgent.getProductSemanticRepresentations,
-    ).not.toHaveBeenCalled();
+    ).toHaveBeenCalledTimes(1);
+
+    expect(productAgent.getProductSemanticRepresentations).toHaveBeenCalledWith(
+      ['adidas-1', 'adidas-2'],
+    );
 
     expect(ai.responseInvoke).not.toHaveBeenCalled();
+
+    const presentation = result.consultation?.comparisonPresentation;
+
+    expect(presentation).not.toBeNull();
+
+    expect(
+      presentation?.keyDifferences.some((difference) =>
+        difference.startsWith('Стиль по описанию:'),
+      ),
+    ).toBe(true);
+
+    expect(
+      presentation?.keyDifferences.some((difference) =>
+        difference.startsWith('Сценарии использования по описанию:'),
+      ),
+    ).toBe(true);
+
+    expect(
+      presentation?.keyDifferences.some((difference) =>
+        difference.startsWith('Целевая аудитория по описанию:'),
+      ),
+    ).toBe(true);
+
+    expect(JSON.stringify(presentation)).not.toContain('retrieval-only');
+  });
+
+  it('continues COMPARE with factual differences when semantic reader fails', async () => {
+    const ai = createAiService();
+
+    const productAgent = createProductAgentService();
+
+    productAgent.getProductSemanticRepresentations.mockRejectedValueOnce(
+      new Error('Qdrant unavailable'),
+    );
+
+    const node = createExecuteProductDecisionNode(
+      ai.aiService,
+
+      productAgent.service,
+    );
+
+    const result = await node(
+      agentState({
+        query: 'Сравни первый и второй',
+
+        requestId: 'request-compare-semantic-failure',
+
+        record: activeRecord(),
+
+        decision: capabilityDecision({
+          action: 'COMPARE',
+
+          positions: [1, 2],
+        }),
+      }),
+
+      nodeConfig,
+    );
+
+    expect(
+      productAgent.getProductSemanticRepresentations,
+    ).toHaveBeenCalledTimes(1);
+
+    expect(ai.responseInvoke).not.toHaveBeenCalled();
+
+    const presentation = result.consultation?.comparisonPresentation;
+
+    expect(presentation).not.toBeNull();
+
+    expect(
+      presentation?.keyDifferences.some((difference) =>
+        difference.startsWith('Цена:'),
+      ),
+    ).toBe(true);
   });
 
   it('does not read semantic representations for SEARCH', async () => {

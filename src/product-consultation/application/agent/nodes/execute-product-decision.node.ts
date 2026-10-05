@@ -3,31 +3,17 @@ import type { LangGraphRunnableConfig } from '@langchain/langgraph';
 import { AiService } from '@/src/ai/ai.service';
 
 import type { ConsultationApplicationRecord } from '../../runtime/consultation-application-record';
+
 import type { ProductConsultantDecision } from '../../consultant/product-consultant-decision.schema';
+
 import type { ProductConsultationContextMessage } from '../../context/product-consultation-context';
+
 import type { ProductAgentAnswer } from '../agreagte-answer.schema';
+
 import {
   recoverZeroResults,
   type ZeroResultRecovery,
 } from '../../search/zero-result-recovery';
-
-export type ProductTaskExecutionInput = {
-  query: string;
-  conversationId: string;
-  requestId: string;
-  recentMessages: ProductConsultationContextMessage[];
-  consultationRecord: ConsultationApplicationRecord;
-  decision: ProductConsultantDecision;
-};
-export type ProductTaskExecutionResult = Pick<
-  ProductAgentAnswer,
-  'message' | 'consultation' | 'consultationCompletion'
-> & {
-  consultationRecord: ConsultationApplicationRecord;
-  failed?: true;
-  recommendationProductIds?: string[];
-  recovery?: ZeroResultRecovery;
-};
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 
@@ -45,12 +31,41 @@ import { finalizeComparisonPresentation } from '@/src/product-consultation/appli
 
 import {
   buildComparisonConsultation,
+  buildNeutralComparisonRecommendation,
   buildProductDetailsConsultation,
   prepareProductConsultantComparisonPresentation,
 } from '@/src/product-consultation/application/presentation/product-consultant-presentation';
 
+export type ProductTaskExecutionInput = {
+  query: string;
+
+  conversationId: string;
+
+  requestId: string;
+
+  recentMessages: ProductConsultationContextMessage[];
+
+  consultationRecord: ConsultationApplicationRecord;
+
+  decision: ProductConsultantDecision;
+};
+
+export type ProductTaskExecutionResult = Pick<
+  ProductAgentAnswer,
+  'message' | 'consultation' | 'consultationCompletion'
+> & {
+  consultationRecord: ConsultationApplicationRecord;
+
+  failed?: true;
+
+  recommendationProductIds?: string[];
+
+  recovery?: ZeroResultRecovery;
+};
+
 function searchMessage(
   action: 'SEARCH' | 'REFINE',
+
   status: 'failed' | 'no_change' | 'zero_results' | 'succeeded',
 ): string {
   if (status === 'failed') {
@@ -79,6 +94,7 @@ export function createExecuteProductDecisionNode(
 
   return async (
     state: ProductTaskExecutionInput,
+
     _config?: LangGraphRunnableConfig,
   ): Promise<ProductTaskExecutionResult> => {
     const decision = state.decision;
@@ -97,7 +113,11 @@ export function createExecuteProductDecisionNode(
 
     const store = new StateConsultationStore(state.consultationRecord);
 
-    const writeOwner = new ConsultationWriteOwner(store, productAgentService);
+    const writeOwner = new ConsultationWriteOwner(
+      store,
+
+      productAgentService,
+    );
 
     const expectedResultId =
       state.consultationRecord.results.active?.resultId ??
@@ -125,8 +145,11 @@ export function createExecuteProductDecisionNode(
       ) {
         return {
           consultationRecord: record,
+
           consultation: null,
+
           consultationCompletion: null,
+
           message:
             execution.status === 'duplicate'
               ? 'Этот запрос уже обработан.'
@@ -162,9 +185,13 @@ export function createExecuteProductDecisionNode(
       ) {
         return {
           consultationRecord: record,
+
           consultation: null,
+
           consultationCompletion: null,
+
           failed: true,
+
           message:
             'Не удалось рекомендовать выбранные товары: один из них сейчас недоступен.',
         };
@@ -183,20 +210,38 @@ export function createExecuteProductDecisionNode(
           record.results.active
             ? await recoverZeroResults({
                 search: record.state.search,
+
                 resultId: record.results.active.resultId,
+
                 port: productAgentService,
               })
             : undefined;
+
         return {
           consultationRecord: record,
+
           consultation: null,
+
           consultationCompletion: null,
-          ...(recovery ? { recovery } : {}),
+
+          ...(recovery
+            ? {
+                recovery,
+              }
+            : {}),
+
           message:
             recovery?.question ??
-            searchMessage(action, capability.observation.status),
+            searchMessage(
+              action,
+
+              capability.observation.status,
+            ),
+
           ...(capability.observation.status === 'failed'
-            ? { failed: true as const }
+            ? {
+                failed: true as const,
+              }
             : {}),
         };
       }
@@ -223,6 +268,7 @@ export function createExecuteProductDecisionNode(
         if (capability.observation.status === 'product_unavailable') {
           return {
             failed: true,
+
             consultationRecord: record,
 
             consultation: null,
@@ -281,6 +327,7 @@ export function createExecuteProductDecisionNode(
         if (capability.observation.status === 'product_unavailable') {
           return {
             failed: true,
+
             consultationRecord: record,
 
             consultation: null,
@@ -304,6 +351,12 @@ export function createExecuteProductDecisionNode(
           );
         }
 
+        const semanticRepresentations = await productAgentService
+          .getProductSemanticRepresentations(
+            capability.selectedProducts.map((product) => product.id),
+          )
+          .catch(() => new Map());
+
         const prepared = prepareProductConsultantComparisonPresentation({
           comparison: capability.comparison,
 
@@ -312,9 +365,19 @@ export function createExecuteProductDecisionNode(
           state: consultationState,
 
           currentQuery: state.query,
+
+          semanticRepresentations,
         });
 
-        const presentation = finalizeComparisonPresentation(prepared, null);
+        const presentation = finalizeComparisonPresentation(
+          prepared,
+
+          {
+            recommendation: buildNeutralComparisonRecommendation(prepared),
+
+            preferredPosition: null,
+          },
+        );
 
         const message = 'Сравнил выбранные товары.';
 
@@ -384,6 +447,7 @@ export function createExecuteProductDecisionNode(
         consultationCompletion: null,
 
         message: response.terminalText,
+
         ...(action === 'RECOMMEND'
           ? {
               recommendationProductIds: capability.selectedProducts.map(
@@ -393,12 +457,15 @@ export function createExecuteProductDecisionNode(
           : {}),
       };
     } catch {
-      // A capability/read/synthesis failure must not roll back an accepted task.
       return {
         consultationRecord: await store.load(state.conversationId),
+
         consultation: null,
+
         consultationCompletion: null,
+
         failed: true,
+
         message:
           'Не удалось завершить действие для этой подборки. Попробуйте ещё раз.',
       };

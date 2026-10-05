@@ -34,6 +34,7 @@ export type ProductConsultantCapabilityResult = {
 
 function orderedProducts(
   productIds: readonly string[],
+
   products: readonly ProductDetails[],
 ): ProductDetails[] {
   const byId = new Map(
@@ -49,12 +50,14 @@ function orderedProducts(
 
 function selectedUsageScenarioIds(
   record: ConsultationApplicationRecord,
+
   decision: ProductConsultantDecision,
 ): string[] {
   const profileId = record.state?.search?.category ?? null;
 
   const selection = resolveCategoryUsageScenarioSelection(
     profileId,
+
     decision.usageScenarioIds,
   );
 
@@ -107,6 +110,7 @@ function prioritizedFactAttributeIds(input: {
 
   const usage = resolveCategoryUsageScenarioSelection(
     profile.id,
+
     input.usageScenarioIds,
   );
 
@@ -130,7 +134,13 @@ export async function executeProductConsultantCapability(input: {
 
   productDetails: Pick<ProductDetailsPort, 'getProductDetails'>;
 }): Promise<ProductConsultantCapabilityResult> {
-  const { decision, execution, productDetails } = input;
+  const {
+    decision,
+
+    execution,
+
+    productDetails,
+  } = input;
 
   if (execution.status === 'duplicate' || execution.status === 'superseded') {
     throw new Error(
@@ -140,7 +150,11 @@ export async function executeProductConsultantCapability(input: {
 
   const record = execution.record;
 
-  const usageScenarioIds = selectedUsageScenarioIds(record, decision);
+  const usageScenarioIds = selectedUsageScenarioIds(
+    record,
+
+    decision,
+  );
 
   const action = decision.proposal.action;
 
@@ -151,7 +165,9 @@ export async function executeProductConsultantCapability(input: {
         return {
           observation: {
             kind: 'search',
+
             status: 'failed',
+
             count: null,
           },
 
@@ -169,7 +185,9 @@ export async function executeProductConsultantCapability(input: {
         return {
           observation: {
             kind: 'search',
+
             status: 'no_change',
+
             count: record.results.active?.products.length ?? null,
           },
 
@@ -208,7 +226,11 @@ export async function executeProductConsultantCapability(input: {
       });
 
       const productIds = snapshot.products
-        .slice(0, DEFAULT_CONSULTATION_AGENT_BUDGET.initialFactProducts)
+        .slice(
+          0,
+
+          DEFAULT_CONSULTATION_AGENT_BUDGET.initialFactProducts,
+        )
         .map((product) => product.productId);
 
       const fresh =
@@ -225,7 +247,11 @@ export async function executeProductConsultantCapability(input: {
           count: snapshot.products.length,
         },
 
-        selectedProducts: orderedProducts(productIds, fresh),
+        selectedProducts: orderedProducts(
+          productIds,
+
+          fresh,
+        ),
 
         comparison: null,
 
@@ -292,7 +318,11 @@ export async function executeProductConsultantCapability(input: {
         selection.productIds,
       );
 
-      const products = orderedProducts(selection.productIds, fresh);
+      const products = orderedProducts(
+        selection.productIds,
+
+        fresh,
+      );
 
       if (products.length !== selection.productIds.length) {
         return {
@@ -358,7 +388,11 @@ export async function executeProductConsultantCapability(input: {
         selection.productIds,
       );
 
-      const products = orderedProducts(selection.productIds, fresh);
+      const products = orderedProducts(
+        selection.productIds,
+
+        fresh,
+      );
 
       if (products.length !== selection.productIds.length) {
         return {
@@ -393,7 +427,7 @@ export async function executeProductConsultantCapability(input: {
 
         products,
 
-        attributeIds: factAttributeIds.length > 0 ? factAttributeIds : null,
+        attributeIds: null,
       });
 
       return {
@@ -442,7 +476,11 @@ export async function executeProductConsultantCapability(input: {
         selection.productIds,
       );
 
-      const products = orderedProducts(selection.productIds, fresh);
+      const products = orderedProducts(
+        selection.productIds,
+
+        fresh,
+      );
 
       if (products.length !== selection.productIds.length) {
         return {

@@ -1,3 +1,5 @@
+import type { ProductSemanticRepresentation } from '@/src/ai/schemas/semantic-product-representation.schema';
+
 import type {
   AgentComparisonView,
   ProductDetails,
@@ -11,6 +13,8 @@ import {
   buildProductDetailsPresentation,
   buildProductSnapshot,
 } from '@/src/product-consultation/application/presentation/product-presentation';
+
+import { productPresentationDisplayValue } from '@/src/product-consultation/application/presentation/product-presentation-value';
 
 import type {
   ComparisonPresentation,
@@ -28,12 +32,22 @@ const NEED_ID = 'current-consultation-task';
 
 const MAX_KEY_DIFFERENCES = 4;
 
-function clip(value: string, maxLength: number): string {
+function clip(
+  value: string,
+
+  maxLength: number,
+): string {
   if (value.length <= maxLength) {
     return value;
   }
 
-  return value.slice(0, Math.max(0, maxLength - 1)) + '…';
+  return (
+    value.slice(
+      0,
+
+      Math.max(0, maxLength - 1),
+    ) + '…'
+  );
 }
 
 function formatNumber(value: number): string {
@@ -93,6 +107,7 @@ function currentGoal(state: ProductConsultationState): string {
     goals
       .filter((value, index, all) => all.indexOf(value) === index)
       .join('. '),
+
     1000,
   );
 }
@@ -185,45 +200,218 @@ function buildRows(input: {
 
             unit: cell.unit,
 
-            displayValue: cell.displayValue,
+            displayValue: productPresentationDisplayValue({
+              attributeId: row.attributeId,
+
+              status: cell.status,
+
+              value: cell.value,
+
+              displayValue: cell.displayValue,
+            }),
           })),
         },
       ];
     });
 }
 
-function buildKeyDifferences(
-  rows: ComparisonPresentation['rows'],
+function deterministicFactDifference(
+  row: ComparisonPresentation['rows'][number],
 
   products: ComparisonPresentation['products'],
-): string[] {
+): string {
   const titleById = new Map(
     products.map((product) => [product.id, product.title] as const),
   );
 
-  return rows
+  const values = row.cells.map((cell) => {
+    const title = titleById.get(cell.productId) ?? 'Товар';
+
+    return `${title} — ${formatValue(cell)}`;
+  });
+
+  const range =
+    row.state === 'numeric_difference' && row.range
+      ? ` Разница — ${formatNumber(row.range.spread)}${
+          row.range.unit ? ` ${row.range.unit}` : ''
+        }.`
+      : '';
+
+  return clip(
+    `${row.label}: ${values.join('; ')}.${range}`,
+
+    500,
+  );
+}
+
+function normalizedStringSet(values: readonly string[]): string {
+  return JSON.stringify(
+    [
+      ...new Set(
+        values
+          .map((value) => value.trim())
+          .filter(Boolean)
+          .map((value) => value.toLocaleLowerCase('ru-RU')),
+      ),
+    ].sort(),
+  );
+}
+
+function semanticDifference(input: {
+  label: string;
+
+  products: ComparisonPresentation['products'];
+
+  representations: ReadonlyMap<string, ProductSemanticRepresentation>;
+
+  read: (representation: ProductSemanticRepresentation) => readonly string[];
+}): string | null {
+  const values = input.products.map((product) => {
+    const representation = input.representations.get(product.id);
+
+    if (!representation) {
+      return null;
+    }
+
+    const items = [
+      ...new Set(
+        input
+          .read(representation)
+          .map((value) => value.trim())
+          .filter(Boolean),
+      ),
+    ];
+
+    return items.length > 0
+      ? {
+          title: product.title,
+
+          items,
+        }
+      : null;
+  });
+
+  if (values.some((value) => value === null)) {
+    return null;
+  }
+
+  const complete = values.filter(
+    (
+      value,
+    ): value is {
+      title: string;
+
+      items: string[];
+    } => value !== null,
+  );
+
+  const signatures = complete.map((value) => normalizedStringSet(value.items));
+
+  if (new Set(signatures).size <= 1) {
+    return null;
+  }
+
+  return clip(
+    `${input.label}: ${complete
+      .map((value) => `${value.title} — ${value.items.join(', ')}`)
+      .join('; ')}.`,
+
+    500,
+  );
+}
+
+function buildSemanticDifferences(
+  products: ComparisonPresentation['products'],
+
+  representations: ReadonlyMap<string, ProductSemanticRepresentation>,
+): string[] {
+  return [
+    semanticDifference({
+      label: 'Стиль по описанию',
+
+      products,
+
+      representations,
+
+      read: (representation) => representation.styleAssociations,
+    }),
+
+    semanticDifference({
+      label: 'Сценарии использования по описанию',
+
+      products,
+
+      representations,
+
+      read: (representation) => representation.useCases,
+    }),
+
+    semanticDifference({
+      label: 'Целевая аудитория по описанию',
+
+      products,
+
+      representations,
+
+      read: (representation) => representation.targetAudience,
+    }),
+  ].filter((value): value is string => value !== null);
+}
+
+function buildKeyDifferences(
+  rows: ComparisonPresentation['rows'],
+
+  products: ComparisonPresentation['products'],
+
+  semanticRepresentations: ReadonlyMap<string, ProductSemanticRepresentation>,
+): string[] {
+  const factDifferences = rows
     .filter(
       (row) =>
         row.state !== 'same' &&
         row.cells.some((cell) => cell.status === 'known'),
     )
-    .slice(0, MAX_KEY_DIFFERENCES)
-    .map((row) => {
-      const values = row.cells.map((cell) => {
-        const title = titleById.get(cell.productId) ?? 'Товар';
+    .map((row) => ({
+      attributeId: row.attributeId,
 
-        return `${title} — ${formatValue(cell)}`;
-      });
+      text: deterministicFactDifference(
+        row,
 
-      const range =
-        row.state === 'numeric_difference' && row.range
-          ? ` Разница — ${formatNumber(row.range.spread)}${
-              row.range.unit ? ` ${row.range.unit}` : ''
-            }.`
-          : '';
+        products,
+      ),
+    }));
 
-      return clip(`${row.label}: ${values.join('; ')}.${range}`, 500);
-    });
+  const nonPriceFacts = factDifferences.filter(
+    (difference) => difference.attributeId !== 'price',
+  );
+
+  const priceFacts = factDifferences.filter(
+    (difference) => difference.attributeId === 'price',
+  );
+
+  const semanticDifferences = buildSemanticDifferences(
+    products,
+
+    semanticRepresentations,
+  );
+
+  const ordered = [
+    ...nonPriceFacts.slice(0, 2).map((difference) => difference.text),
+
+    ...semanticDifferences.slice(0, 2),
+
+    ...nonPriceFacts.slice(2).map((difference) => difference.text),
+
+    ...semanticDifferences.slice(2),
+
+    ...priceFacts.map((difference) => difference.text),
+  ];
+
+  return [...new Set(ordered)].slice(
+    0,
+
+    MAX_KEY_DIFFERENCES,
+  );
 }
 
 function buildSynthesisRows(
@@ -268,6 +456,62 @@ function buildSynthesisRows(
   }));
 }
 
+function comparisonAspects(keyDifferences: readonly string[]): string[] {
+  return [
+    ...new Set(
+      keyDifferences
+        .map((difference) => {
+          const separator = difference.indexOf(':');
+
+          if (separator < 0) {
+            return null;
+          }
+
+          const label = difference
+            .slice(
+              0,
+
+              separator,
+            )
+            .trim();
+
+          if (!label) {
+            return null;
+          }
+
+          return label.charAt(0).toLocaleLowerCase('ru-RU') + label.slice(1);
+        })
+        .filter((value): value is string => value !== null),
+    ),
+  ];
+}
+
+function joinNatural(values: readonly string[]): string {
+  if (values.length === 0) {
+    return '';
+  }
+
+  if (values.length === 1) {
+    return values[0];
+  }
+
+  return `${values.slice(0, -1).join(', ')} и ${values.at(-1)}`;
+}
+
+export function buildNeutralComparisonRecommendation(
+  prepared: PreparedComparisonPresentation,
+): string {
+  const aspects = comparisonAspects(prepared.keyDifferences);
+
+  if (aspects.length === 0) {
+    return 'По имеющимся данным заметных различий, которые дают одному варианту явное преимущество, нет. Если назовёте главный критерий выбора, помогу определиться.';
+  }
+
+  return `Основные различия — ${joinNatural(
+    aspects,
+  )}. Без вашего приоритета явного лидера нет; если скажете, что для вас важнее, помогу выбрать.`;
+}
+
 export function prepareProductConsultantComparisonPresentation(input: {
   comparison: AgentComparisonView;
 
@@ -276,10 +520,16 @@ export function prepareProductConsultantComparisonPresentation(input: {
   state: ProductConsultationState;
 
   currentQuery: string;
+
+  semanticRepresentations?: ReadonlyMap<string, ProductSemanticRepresentation>;
 }): PreparedComparisonPresentation {
   const profile = getCategoryProfile(input.comparison.profileId);
 
-  const ordered = orderedProducts(input.comparison, input.products);
+  const ordered = orderedProducts(
+    input.comparison,
+
+    input.products,
+  );
 
   const goal = currentGoal(input.state);
 
@@ -287,6 +537,7 @@ export function prepareProductConsultantComparisonPresentation(input: {
     (product, index) => ({
       ...buildProductSnapshot({
         product,
+
         profile,
       }),
 
@@ -300,9 +551,19 @@ export function prepareProductConsultantComparisonPresentation(input: {
     state: input.state,
   });
 
-  const keyDifferences = buildKeyDifferences(rows, products);
+  const keyDifferences = buildKeyDifferences(
+    rows,
 
-  const synthesisRows = buildSynthesisRows(rows, input.comparison.productIds);
+    products,
+
+    input.semanticRepresentations ?? new Map(),
+  );
+
+  const synthesisRows = buildSynthesisRows(
+    rows,
+
+    input.comparison.productIds,
+  );
 
   const synthesisAttributeIds = new Set(
     synthesisRows.map((row) => row.attributeId),
@@ -351,7 +612,11 @@ export function prepareProductConsultantComparisonPresentation(input: {
     synthesisInput: {
       goal,
 
-      currentQuery: clip(input.currentQuery, 500),
+      currentQuery: clip(
+        input.currentQuery,
+
+        500,
+      ),
 
       preferences,
 
