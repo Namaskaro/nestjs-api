@@ -119,7 +119,9 @@ describe('grounded zero-result recovery', () => {
     expect(result.groups[0].recovery?.options).toEqual([]);
     expect(result.groups[1].products).toHaveLength(3);
     expect(result.message).toContain('Подтверждённых вариантов');
-    expect(result.message).toContain('платье');
+    // Structured groups carry the successful task; the summary keeps only the question.
+    expect(result.message).not.toContain('платье');
+    expect(result.message).toContain(result.groups[0].recovery!.question);
   });
 
   it('applies only the chosen relaxation in a later REFINE and retains task identity', async () => {

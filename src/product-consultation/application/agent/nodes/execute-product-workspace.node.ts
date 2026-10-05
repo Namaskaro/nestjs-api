@@ -69,18 +69,6 @@ export function productWorkspaceMessage(
     return 'Готово.';
   }
 
-  if (
-    groups.length > 1 &&
-    groups.some((group) => group.presentations?.length || group.recovery)
-  ) {
-    return groups
-      .map(
-        (group) =>
-          `«${group.query}»: ${group.message || 'Нашёл подходящие варианты.'}`,
-      )
-      .join('\n\n');
-  }
-
   if (groups.length === 1) {
     const group = groups[0];
 
@@ -99,27 +87,32 @@ export function productWorkspaceMessage(
     (group) => group.status === 'ready' && group.products.length > 0,
   );
 
-  const clarification = groups.filter(
-    (group) => group.status === 'clarification',
+  const questions = uniqueMessages(
+    groups.flatMap((group) => [
+      group.recovery?.question,
+      group.status === 'clarification'
+        ? userFacingClarification(group.message)
+        : null,
+    ]),
   );
 
   const empty = groups.filter((group) => group.status === 'empty');
 
   const failed = groups.filter((group) => group.status === 'failed');
 
-  if (clarification.length > 0) {
-    const questions = uniqueMessages(
-      clarification.map((group) => userFacingClarification(group.message)),
-    );
-
+  if (questions.length > 0) {
     return uniqueMessages([
       ready.length > 0 ? 'Часть вариантов нашёл.' : null,
+      failed.length > 0 ? 'Часть действий выполнить не удалось.' : null,
 
       ...questions,
     ]).join('\n\n');
   }
 
   if (failed.length > 0) {
+    if (groups.some((group) => group.presentations?.length)) {
+      return 'Часть действий выполнена. Не все действия удалось завершить.';
+    }
     return ready.length > 0
       ? 'Часть вариантов нашёл. Часть поиска выполнить не удалось.'
       : 'Не удалось завершить поиск товаров.';

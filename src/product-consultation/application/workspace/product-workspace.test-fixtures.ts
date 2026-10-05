@@ -27,7 +27,7 @@ export const constraint = (
 export function action(
   name: string,
   extra: Record<string, unknown> = {},
-  view: 'focus' | 'results' | null = null,
+  view: 'focus' | 'results' | 'comparison' | null = null,
 ) {
   return {
     view,

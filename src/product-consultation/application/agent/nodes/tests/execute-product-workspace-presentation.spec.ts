@@ -6,6 +6,97 @@ import {
 } from '../execute-product-workspace.node';
 
 describe('Product workspace presentation', () => {
+  const presented = (query: string) => ({
+    taskId: query,
+    query,
+    status: 'ready' as const,
+    products: [],
+    message: `Рекомендация для ${query}`,
+    presentations: [
+      {
+        actionOrdinal: 0,
+        kind: 'recommendation' as const,
+        message: 'Рекомендация',
+        productIds: ['product-1'],
+      },
+    ],
+    consultation: null,
+  });
+
+  it('uses one compact message for several successful structured action groups', () => {
+    expect(
+      productWorkspaceMessage([
+        presented('кроссовки'),
+        presented('платье'),
+        presented('шорты'),
+      ]),
+    ).toBe('Готово.');
+  });
+
+  it('does not repeat task names or presentation text when cards and actions coexist', () => {
+    const shoes = {
+      ...presented('кроссовки'),
+      products: [
+        { id: 'shoe-1', title: 'Кроссовки', price: '1000', image: '' },
+      ],
+    };
+    expect(productWorkspaceMessage([shoes, presented('платье')])).toBe(
+      'Нашёл подходящие варианты.',
+    );
+  });
+
+  it('retains necessary recovery and clarification questions without describing every result group', () => {
+    const question = 'Можно снять ограничение по цвету?';
+    const recovery = {
+      ...presented('зелёные Nike'),
+      status: 'empty' as const,
+      presentations: [],
+      message: question,
+      recovery: {
+        resultId: 'empty-result',
+        options: [
+          {
+            clear: { attributeId: 'color', operator: 'eq' as const },
+            label: 'Цвет = зелёные',
+          },
+        ],
+        question,
+      },
+    };
+    const clarification = {
+      ...presented('шорты'),
+      status: 'clarification' as const,
+      presentations: [],
+      message: 'Какой размер вам нужен?',
+    };
+    expect(
+      productWorkspaceMessage([presented('платье'), recovery, clarification]),
+    ).toBe(`${question}\n\nКакой размер вам нужен?`);
+  });
+
+  it('keeps a technical failure visible alongside recovery without listing successful groups', () => {
+    const question = 'Какое условие можно изменить?';
+    const recovery = {
+      ...presented('кроссовки'),
+      status: 'empty' as const,
+      presentations: [],
+      message: question,
+      recovery: { resultId: 'empty-result', options: [], question },
+    };
+    const failed = {
+      ...presented('шорты'),
+      status: 'failed' as const,
+      presentations: [],
+      message: 'Ошибка поиска',
+    };
+    const result = productWorkspaceMessage([
+      presented('платье'),
+      recovery,
+      failed,
+    ]);
+    expect(result).toBe(`Часть действий выполнить не удалось.\n\n${question}`);
+  });
+
   it('shows one generic success message for several successful product groups', () => {
     const groups = [
       {

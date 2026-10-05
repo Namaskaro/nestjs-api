@@ -67,14 +67,30 @@ export async function executeProductLane(input: {
     }
     // Always keep the accepted state, including a failed capability after a write.
     task.record = result.consultationRecord;
+    if (
+      task.lastComparison?.resultId !== task.record.results.active?.resultId
+    ) {
+      delete task.lastComparison;
+    }
     actions.push({ decision, result });
     if (result.failed) break;
     task.question =
       result.recovery?.question ??
       (decision.proposal.action === 'CLARIFY' ? result.message : null);
     focus = productTaskFocus(task, decision);
+    if (
+      decision.proposal.action === 'COMPARE' &&
+      result.consultation?.comparisonPresentation
+    ) {
+      task.lastComparison = {
+        resultId: focus.resultId!,
+        positions: [...focus.positions],
+      };
+    }
     closed = decision.proposal.action === 'COMPLETE';
     handoffRequested = decision.proposal.action === 'HANDOFF';
+    // Recovery awaits the user's choice; it is a successful pause, not a failure.
+    if (result.recovery) break;
   }
   // A failed search may clear active results; never retain a stale focus reference.
   if (focus?.resultId !== (task.record.results.active?.resultId ?? null)) {

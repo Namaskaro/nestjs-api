@@ -24,7 +24,7 @@ const ProductLaneActionSchema = z
   .object({
     decision: ProductConsultantDecisionSchema,
     // null inherits the lane target's reference scope.
-    view: z.enum(['focus', 'results']).nullable().default(null),
+    view: z.enum(['focus', 'results', 'comparison']).nullable().default(null),
   })
   .strict();
 
@@ -49,7 +49,7 @@ const TargetSchema = z.discriminatedUnion('kind', [
     .object({
       kind: z.literal('current'),
 
-      view: z.enum(['focus', 'results']).default('focus'),
+      view: z.enum(['focus', 'results', 'comparison']).default('focus'),
     })
     .strict(),
 
@@ -116,7 +116,7 @@ export type ProductWorkspaceLifecycle = 'continue' | 'append' | 'replace';
 
 export type PreparedProductAction = {
   decision: ProductConsultantDecision;
-  view: 'focus' | 'results';
+  view: 'focus' | 'results' | 'comparison';
 };
 
 export type PreparedProductLane = {
@@ -459,6 +459,18 @@ export function prepareProductWorkspacePlan(input: {
           question: null,
         };
       } else if (target.kind === 'current') {
+        const view =
+          operation.kind === 'consult'
+            ? operation.actions[0].view ?? target.view
+            : target.view;
+        const comparisonTaskIds = workspace.tasks
+          .filter(
+            (candidate) =>
+              candidate.lastComparison &&
+              candidate.lastComparison.resultId ===
+                candidate.record.results.active?.resultId,
+          )
+          .map((candidate) => candidate.taskId);
         const pending = workspace.tasks.filter(
           (task) =>
             task.question !== null &&
@@ -469,13 +481,16 @@ export function prepareProductWorkspacePlan(input: {
         );
 
         const answersQuestion =
+          view !== 'comparison' &&
           operation.kind === 'consult' &&
           ['SEARCH', 'REFINE', 'CLARIFY'].includes(
             operation.actions[0].decision.proposal.action,
           );
 
         const scopedTaskIds =
-          workspace.focus.length > 0
+          view === 'comparison'
+            ? workspace.tasks.map((candidate) => candidate.taskId)
+            : workspace.focus.length > 0
             ? workspace.focus.map((reference) => reference.taskId)
             : workspace.tasks.map((candidate) => candidate.taskId);
 
@@ -491,6 +506,8 @@ export function prepareProductWorkspacePlan(input: {
           ? [namedTask.taskId]
           : answersQuestion && pending.length === 1
           ? [pending[0].taskId]
+          : view === 'comparison'
+          ? comparisonTaskIds
           : workspace.focus.length
           ? workspace.focus.map((focus) => focus.taskId)
           : workspace.tasks.map((candidate) => candidate.taskId);
@@ -512,7 +529,9 @@ export function prepareProductWorkspacePlan(input: {
             );
 
             const count =
-              target.view === 'focus' && reference
+              view === 'comparison'
+                ? candidate.lastComparison?.positions.length ?? 0
+                : view === 'focus' && reference
                 ? reference.positions.length
                 : candidate.record.results.active?.products.length ?? 0;
 
@@ -588,19 +607,30 @@ export function prepareProductTaskAction(
   search: Pick<ProductSearchPort, 'validate'>,
 ) {
   const decision = structuredClone(action.decision);
-  if (action.view === 'focus' && focus) {
+  const reference =
+    action.view === 'comparison'
+      ? task.lastComparison
+      : action.view === 'focus'
+      ? focus
+      : undefined;
+  if (action.view === 'comparison' && !reference) {
+    return clarify(
+      'В текущей подборке нет сохранённого сравнения. Какие товары сравнить?',
+    );
+  }
+  if (reference) {
     const remap = (selection: typeof decision.proposal.selection) => {
       if (!selection) return selection;
-      if (focus.resultId !== task.record.results.active?.resultId) {
+      if (reference.resultId !== task.record.results.active?.resultId) {
         return clarify(
           'Сначала покажем актуальную подборку. Какой товар вас интересует?',
         );
       }
       const positions =
         selection.kind === 'active'
-          ? focus.positions
+          ? reference.positions
           : selection.positions.map(
-              (position) => focus.positions[position - 1],
+              (position) => reference.positions[position - 1],
             );
       if (
         !positions.length ||
@@ -692,7 +722,15 @@ function preflightLane(
     // This temporary preflight state is discarded; only WriteOwner accepts state.
     task.record.state = prepared.turn.state;
     pendingResult ||= prepared.turn.searchRequired;
-    if (!pendingResult) focus = productTaskFocus(task, decision);
+    if (!pendingResult) {
+      focus = productTaskFocus(task, decision);
+      if (decision.proposal.action === 'COMPARE') {
+        task.lastComparison = {
+          resultId: focus.resultId!,
+          positions: [...focus.positions],
+        };
+      }
+    }
   }
 }
 

@@ -4,7 +4,7 @@ export const productWorkspacePrompt = `
 Ты обрабатываешь только Product domain query. Разложи несколько независимых
 товарных запросов на отдельные operations (lanes) в порядке сообщения.
 Одна lane принадлежит одной задаче и содержит упорядоченный массив actions.
-Каждый action содержит ОДНО обычное ProductConsultantDecision и view (null, "focus", "results").
+Каждый action содержит ОДНО обычное ProductConsultantDecision и view (null, "focus", "results", "comparison").
 DETAILS относится ровно к одному товару: "подробнее второй и третий" = ДВА actions DETAILS[2], DETAILS[3].
 В одной lane можно COMPARE[1,2], DETAILS[3], RECOMMEND. Разные lanes независимы.
 После REFINE последующие actions видят НОВУЮ выдачу. Не выдумывай результаты будущего поиска.
@@ -60,6 +60,14 @@ view=null наследует target: task -> results, current -> его view.
 "COMPARE [3,1], затем посоветуй из них" -> RECOMMEND selection=active, view="focus".
 "COMPARE [1,2], затем DETAILS [3] из выдачи" -> DETAILS view="results".
 После сравнения "какие из них посоветуешь" продолжает текущий focus через RECOMMEND; новый поиск не нужен.
+У tasks есть lastComparison — позиции последнего успешного сравнения в актуальной выдаче.
+DETAILS меняет обычный focus, но не стирает lastComparison.
+Явные ссылки "из тех, которые сравнивали", "из сравниваемых", "какой из них после сравнения"
+используют view="comparison" и selection=active для RECOMMEND или повторного COMPARE.
+Для такой ссылки target=current может иметь view="comparison"; при нескольких подходящих задачах уточни владельца.
+В одной lane COMPARE[1,2] → DETAILS[3] → RECOMMEND из сравниваемых задавай последнему action view="comparison".
+Позиции при view="comparison" относятся к порядку сохранённого сравнения, не полной выдачи.
+Не выдумывай comparison resultId и не подменяй отсутствующее сравнение обычным focus.
 При пустом результате backend сам проверяет допустимые варианты снятия одного ограничения.
 Не обещай альтернативы до этой проверки и не ослабляй условия без согласия пользователя.
 В question задачи сохранён вопрос с подтверждёнными вариантами. Ответ пользователя на него

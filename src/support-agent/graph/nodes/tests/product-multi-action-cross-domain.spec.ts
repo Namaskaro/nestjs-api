@@ -25,12 +25,17 @@ import { dispatchWorkers } from '../../routers/dispatch-workers';
 import { createProductAgentWorker } from '../../workers/product-agent.worker';
 import { createCustomerHelpAgentWorker } from '../../workers/customer-help-agent.worker';
 import { createAggregateFinalAnswerNode } from '../aggregate-final-answer.node';
+import { preIntentNode } from '../pre-intent.node';
+import { afterPreIntentRoute } from '../../routers/after-pre-intent.route';
 
 jest.mock('@langchain/core/callbacks/dispatch', () => ({
   dispatchCustomEvent: jest.fn(async () => undefined),
 }));
 
-function supportHarness(h: ReturnType<typeof harness>) {
+function supportHarness(
+  h: ReturnType<typeof harness>,
+  throughPreIntent = false,
+) {
   let productQuery: string | null = null;
   let helpQuery: string | null = null;
   const route = jest.fn(async () => ({
@@ -57,6 +62,7 @@ function supportHarness(h: ReturnType<typeof harness>) {
   }));
   const invoke = jest.spyOn(h.agent, 'invoke');
   const graph = new StateGraph(SupportAgentState)
+    .addNode('preIntentNode', preIntentNode)
     .addNode('requestRouterNode', createRequestRouterNode(ai))
     .addNode('productAgent', createProductAgentWorker(h.agent), {
       ends: [END, 'aggregateAnswer'],
@@ -69,7 +75,21 @@ function supportHarness(h: ReturnType<typeof harness>) {
       { ends: [END, 'aggregateAnswer'] },
     )
     .addNode('aggregateAnswer', createAggregateFinalAnswerNode(ai))
-    .addEdge(START, 'requestRouterNode')
+    .addConditionalEdges(
+      START,
+      () => (throughPreIntent ? 'preIntentNode' : 'requestRouterNode'),
+      ['preIntentNode', 'requestRouterNode'],
+    )
+    .addConditionalEdges(
+      'preIntentNode',
+      (state) => {
+        const next = afterPreIntentRoute(state);
+        if (next !== 'productAgent' && next !== 'requestRouterNode')
+          throw new Error(`Unexpected test route: ${next}`);
+        return next;
+      },
+      ['productAgent', 'requestRouterNode'],
+    )
     .addConditionalEdges('requestRouterNode', dispatchWorkers, [
       'productAgent',
       'customerHelpAgent',
@@ -102,6 +122,48 @@ function supportHarness(h: ReturnType<typeof harness>) {
 }
 
 describe('Product multi-action across real Support routing, workers, aggregation and checkpoints', () => {
+  it('preserves Product context through production preIntent/afterPreIntent on a delivery detour', async () => {
+    const h = harness();
+    const s = supportHarness(h, true);
+    const initial = await s.run('Найди кроссовки', 'Найди кроссовки');
+    expect(s.route).toHaveBeenCalledTimes(1);
+    h.setPlan(
+      plan(lane('Сравни первые два', [action('COMPARE', positions(1, 2))])),
+    );
+    const compared = await s.run('Сравни первые два кроссовка', null);
+    // The actual preIntent route bypasses RequestRouter for this Product follow-up.
+    expect(s.route).toHaveBeenCalledTimes(1);
+    const saved = structuredClone(compared.productWorkspace);
+    const delivery = await s.run(
+      'А что у вас с доставкой?',
+      null,
+      'Какие условия доставки?',
+    );
+    expect(delivery.productWorkspace).toEqual(saved);
+    expect(delivery.activeAgent).toBe('customerHelpAgent');
+    expect(s.route).toHaveBeenCalledTimes(2);
+    h.setPlan(
+      plan(
+        lane('Сравни второй и третий', [action('COMPARE', positions(2, 3))]),
+      ),
+    );
+    const resumed = await s.run(
+      'Сравни второй и третий кроссовки из выдачи',
+      null,
+    );
+    expect(s.route).toHaveBeenCalledTimes(2);
+    expect(s.invoke).toHaveBeenCalledTimes(3);
+    expect(s.help).toHaveBeenCalledTimes(1);
+    expect(resumed.answer!.type).toBe('product_agent');
+    expect(resumed.productWorkspace!.tasks[0].taskId).toBe(
+      initial.productWorkspace!.tasks[0].taskId,
+    );
+    expect(
+      resumed.productWorkspace!.tasks[0].lastComparison!.positions,
+    ).toEqual([2, 3]);
+    expect(h.service.search).toHaveBeenCalledTimes(1);
+  });
+
   it('recovers omitted delivery intent with zero products and grounded recovery, preserving isolated worker queries', async () => {
     const productQuery = 'Найди зелёные мужские кроссовки Nike';
     const h = harness(

@@ -30,6 +30,9 @@ export function createDecideProductNode(
         taskId: task.taskId,
         query: task.query,
         question: task.question,
+        lastComparison: task.lastComparison
+          ? { positions: task.lastComparison.positions }
+          : null,
         context: context(task.record),
       })),
       focus: state.workspace.focus.map((focus) => ({

@@ -22,6 +22,18 @@ export const ProductWorkspaceSchema = z
           record: ConsultationApplicationRecordSchema,
 
           question: z.string().trim().min(1).max(6000).nullable(),
+
+          // Separate from ordinary focus; older persisted tasks may omit it.
+          lastComparison: z
+            .object({
+              resultId: TaskIdSchema,
+              positions: z
+                .array(z.number().int().min(1).max(25))
+                .min(2)
+                .max(25),
+            })
+            .strict()
+            .optional(),
         })
         .strict(),
     ),
@@ -67,6 +79,25 @@ export const ProductWorkspaceSchema = z
 
         message: 'Duplicate workspace identity.',
       });
+    }
+
+    for (const task of workspace.tasks) {
+      const reference = task.lastComparison;
+      const snapshot = task.record.results.active;
+      if (
+        reference &&
+        (!snapshot ||
+          reference.resultId !== snapshot.resultId ||
+          new Set(reference.positions).size !== reference.positions.length ||
+          reference.positions.some(
+            (position) => position > snapshot.products.length,
+          ))
+      ) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Stale or invalid task comparison reference.',
+        });
+      }
     }
 
     for (const focus of workspace.focus) {
