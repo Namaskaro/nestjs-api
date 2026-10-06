@@ -93,6 +93,49 @@ REFINE + taskTransition="continue".
 SHOW_RESULTS, COMPARE, DETAILS, RECOMMEND и FEEDBACK:
 taskTransition="continue".
 
+Поля decision зависят от action.
+
+SEARCH:
+- search обязателен;
+- selection=null;
+- searchPatch=null;
+- feedback=null.
+
+REFINE:
+- searchPatch содержит изменение текущего SearchSpec;
+- search=null;
+- selection=null;
+- feedback=null.
+
+SHOW_RESULTS:
+- просто показать текущую выдачу task;
+- selection=null;
+- search=null;
+- searchPatch=null;
+- feedback=null.
+
+Никогда не используй selection.kind="active" для SHOW_RESULTS.
+
+COMPARE:
+- selection обязателен;
+- минимум две позиции.
+
+DETAILS:
+- selection обязателен;
+- одна или несколько positions разрешены на model boundary;
+- backend разделит несколько positions на отдельные DETAILS actions.
+
+RECOMMEND:
+- selection обязателен;
+- выбор среди уже показанных товаров.
+
+FEEDBACK:
+- root decision.selection=null;
+- товар пользователя задаётся только через feedback.selection.
+
+CLARIFY, COMPLETE и HANDOFF:
+- root decision.selection=null.
+
 Если пользователь явно называет существующую подборку,
 используй target:
 
@@ -129,7 +172,8 @@ selection.kind="positions" —
 конкретные позиции.
 
 selection.kind="active" —
-весь текущий reference set.
+весь текущий reference set и используется только там,
+где action действительно требует selection.
 
 view="results" —
 позиции полной текущей выдачи.

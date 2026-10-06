@@ -159,6 +159,8 @@ type ProductWorkspaceAction =
 
 type JsonRecord = Record<string, unknown>;
 
+const ROOT_SELECTION_ACTIONS = new Set(['COMPARE', 'DETAILS', 'RECOMMEND']);
+
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -414,6 +416,10 @@ function canonicalizeProductWorkspaceModelPlan(
   };
 }
 
+function normalizeRootSelection(raw: ProductWorkspaceModelAction['decision']) {
+  return ROOT_SELECTION_ACTIONS.has(raw.action) ? raw.selection : null;
+}
+
 function normalizeDecision(raw: ProductWorkspaceModelAction['decision']) {
   return ProductConsultantDecisionSchema.parse({
     proposal: {
@@ -427,7 +433,7 @@ function normalizeDecision(raw: ProductWorkspaceModelAction['decision']) {
 
       memoryObservations: raw.memoryObservations,
 
-      selection: raw.selection,
+      selection: normalizeRootSelection(raw),
 
       feedback: raw.feedback,
     },

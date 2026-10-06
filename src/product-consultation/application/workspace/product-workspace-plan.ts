@@ -248,29 +248,32 @@ function taskIdentityWords(task: ProductTask): string[] {
   );
 }
 
-function taskMatchesTerms(
+function taskMatchScore(
   task: ProductTask,
 
   terms: readonly string[],
-): boolean {
+): number {
   if (terms.length === 0) {
-    return false;
+    return 0;
   }
 
   const identity = taskIdentityWords(task);
 
-  return terms.some((term) => identity.some((word) => sameLexeme(word, term)));
+  return [...new Set(terms)].reduce(
+    (score, term) =>
+      score + (identity.some((word) => sameLexeme(word, term)) ? 1 : 0),
+
+    0,
+  );
 }
 
-function uniqueTaskFromText(
+function uniqueTaskFromTerms(
   workspace: ProductWorkspace,
 
-  text: string,
+  terms: readonly string[],
 
   allowedTaskIds?: readonly string[],
 ): ProductTask | null {
-  const terms = referenceTerms(text);
-
   if (terms.length === 0) {
     return null;
   }
@@ -280,12 +283,44 @@ function uniqueTaskFromText(
       ? new Set(allowedTaskIds)
       : null;
 
-  const candidates = workspace.tasks.filter(
-    (task) =>
-      (!allowed || allowed.has(task.taskId)) && taskMatchesTerms(task, terms),
-  );
+  const scored = workspace.tasks
+    .filter((task) => !allowed || allowed.has(task.taskId))
+    .map((task) => ({
+      task,
 
-  return candidates.length === 1 ? candidates[0] : null;
+      score: taskMatchScore(
+        task,
+
+        terms,
+      ),
+    }))
+    .filter(({ score }) => score > 0);
+
+  if (scored.length === 0) {
+    return null;
+  }
+
+  const bestScore = Math.max(...scored.map(({ score }) => score));
+
+  const best = scored.filter(({ score }) => score === bestScore);
+
+  return best.length === 1 ? best[0].task : null;
+}
+
+function uniqueTaskFromText(
+  workspace: ProductWorkspace,
+
+  text: string,
+
+  allowedTaskIds?: readonly string[],
+): ProductTask | null {
+  return uniqueTaskFromTerms(
+    workspace,
+
+    referenceTerms(text),
+
+    allowedTaskIds,
+  );
 }
 
 function explicitTask(
@@ -314,19 +349,17 @@ function explicitTask(
     return clarify('Уточните, о какой подборке идёт речь.');
   }
 
-  const candidates = workspace.tasks.filter((task) =>
-    taskMatchesTerms(
-      task,
+  const task = uniqueTaskFromTerms(
+    workspace,
 
-      sourceTerms,
-    ),
+    sourceTerms,
   );
 
-  if (candidates.length !== 1 || candidates[0].taskId !== target.taskId) {
+  if (!task || task.taskId !== target.taskId) {
     return clarify('Уточните, какую именно подборку вы имеете в виду.');
   }
 
-  return candidates[0];
+  return task;
 }
 
 function startsIndependentTask(operation: ProductWorkspaceOperation): boolean {
