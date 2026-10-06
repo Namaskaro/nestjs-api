@@ -22,6 +22,14 @@ import { createProductWorkspace } from '@/src/product-consultation/application/w
 
 import type { ProductConsultationContextMessage } from '@/src/product-consultation/application/context/product-consultation-context';
 
+import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
+
+import {
+  buildConsultationCompletionPresentation,
+  completeConsultationSession,
+  touchConsultationSession,
+} from '@/src/product-consultation/application/session/consultation-session';
+
 import { ProductAgent } from '@/src/product-consultation/application/agent/product.agent';
 
 function conversationIdFromConfig(config: LangGraphRunnableConfig): string {
@@ -51,11 +59,19 @@ function sourceQueryFromState(state: typeof SupportAgentState.State): string {
     const text = message.text.trim();
 
     if (text) {
-      return text.slice(0, 4000);
+      return text.slice(
+        0,
+
+        4000,
+      );
     }
   }
 
-  return state.query.trim().slice(0, 4000);
+  return state.query.trim().slice(
+    0,
+
+    4000,
+  );
 }
 
 function recentMessagesFromState(
@@ -63,8 +79,16 @@ function recentMessagesFromState(
 ): ProductConsultationContextMessage[] {
   const result: ProductConsultationContextMessage[] = [];
 
-  for (const message of state.messages.slice(0, -1)) {
-    const text = message.text.trim().slice(0, 4000);
+  for (const message of state.messages.slice(
+    0,
+
+    -1,
+  )) {
+    const text = message.text.trim().slice(
+      0,
+
+      4000,
+    );
 
     if (!text) {
       continue;
@@ -118,6 +142,14 @@ export function createProductAgentWorker(
       config,
     );
 
+    const productContext = readProductContext(state.productContext);
+
+    touchConsultationSession(
+      productContext,
+
+      [],
+    );
+
     const result = await productAgent.invoke({
       query: state.query,
 
@@ -136,11 +168,28 @@ export function createProductAgentWorker(
 
     const workspace = result.workspace;
 
+    let consultationCompletion = result.consultationCompletion;
+
+    if (result.completionRequested) {
+      const completed = completeConsultationSession(
+        productContext,
+
+        {
+          reason: 'USER_DONE',
+        },
+      );
+
+      consultationCompletion =
+        buildConsultationCompletionPresentation(completed);
+    }
+
     if (result.handoffRequested) {
       return new Command({
         goto: 'handoffAgent',
 
         update: {
+          productContext,
+
           productWorkspace: workspace,
 
           productConsultationRecord: null,
@@ -169,7 +218,7 @@ export function createProductAgentWorker(
 
       consultation: result.consultation,
 
-      consultationCompletion: result.consultationCompletion,
+      consultationCompletion,
     };
 
     if (state.executionMode === 'multi') {
@@ -183,6 +232,8 @@ export function createProductAgentWorker(
         goto: 'aggregateAnswer',
 
         update: {
+          productContext,
+
           productWorkspace: workspace,
 
           productConsultationRecord: null,
@@ -203,6 +254,8 @@ export function createProductAgentWorker(
 
       update: {
         activeAgent: 'productAgent',
+
+        productContext,
 
         productWorkspace: workspace,
 

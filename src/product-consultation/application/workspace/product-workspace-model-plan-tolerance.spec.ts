@@ -23,8 +23,6 @@ describe('Product Workspace model plan tolerance', () => {
               decision: {
                 action: 'SEARCH',
 
-                taskTransition: 'start_new',
-
                 search: {
                   semanticIntent: 'мужские кроссовки Adidas',
 
@@ -377,6 +375,8 @@ describe('Product Workspace model plan tolerance', () => {
 
         'Покажи Adidas и Nike',
       ),
-    ).toThrow();
+    ).toThrow(
+      'ProductWorkspaceModelPlan: one lane cannot contain conflicting targets.',
+    );
   });
 });

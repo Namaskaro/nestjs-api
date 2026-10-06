@@ -134,7 +134,7 @@ export function productWorkspaceMessage(
   }
 
   if (groups.every((group) => group.status === 'closed')) {
-    return 'Готово.';
+    return 'Спасибо за консультацию. Если понадобится помощь с выбором — обращайтесь.';
   }
 
   if (ready.length > 0) {
@@ -187,6 +187,8 @@ export function createExecuteProductWorkspaceNode(
 
       consultationCompletion: null,
 
+      completionRequested: false,
+
       handoffRequested: false,
     };
 
@@ -218,7 +220,11 @@ export function createExecuteProductWorkspaceNode(
       const question = userFacingClarification(state.plan.clarification);
 
       workspace.pendingClarification = {
-        query: state.query.slice(0, 4000),
+        query: state.query.slice(
+          0,
+
+          4000,
+        ),
 
         question,
       };
@@ -267,7 +273,11 @@ export function createExecuteProductWorkspaceNode(
       }
 
       workspace.pendingClarification = {
-        query: state.query.slice(0, 4000),
+        query: state.query.slice(
+          0,
+
+          4000,
+        ),
 
         question: message,
       };
@@ -319,6 +329,8 @@ export function createExecuteProductWorkspaceNode(
 
     let handoffRequested = false;
 
+    let completionRequested = false;
+
     for (const outcome of outcomes) {
       const {
         task,
@@ -331,6 +343,10 @@ export function createExecuteProductWorkspaceNode(
       const last = actions.at(-1);
 
       const action = last?.decision.proposal.action;
+
+      completionRequested ||= Boolean(
+        last && !last.result.failed && action === 'COMPLETE',
+      );
 
       if (closed) {
         workspace.tasks = workspace.tasks.filter(
@@ -452,6 +468,8 @@ export function createExecuteProductWorkspaceNode(
       workspace: acknowledge(),
 
       groups,
+
+      completionRequested,
 
       handoffRequested,
 

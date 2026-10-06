@@ -14,10 +14,7 @@ import {
   PublicConsultationActionSchema,
 } from '../../core/turn/consultation-turn.schema';
 
-import {
-  ConsultationTaskTransitionSchema,
-  TurnFeedbackObservationSchema,
-} from '../../core/turn/consultation-turn-proposal.schema';
+import { TurnFeedbackObservationSchema } from '../../core/turn/consultation-turn-proposal.schema';
 
 import {
   ProductWorkspacePlanSchema,
@@ -63,8 +60,6 @@ const ProductWorkspaceModelTargetSchema = z.discriminatedUnion('kind', [
 const ProductWorkspaceModelDecisionSchema = z
   .object({
     action: PublicConsultationActionSchema,
-
-    taskTransition: ConsultationTaskTransitionSchema,
 
     search: SearchSpecDraftSchema.nullable().default(null),
 
@@ -147,6 +142,10 @@ type ProductWorkspaceModelAction = z.infer<
   typeof ProductWorkspaceModelActionSchema
 >;
 
+type ProductWorkspaceModelTarget = z.infer<
+  typeof ProductWorkspaceModelTargetSchema
+>;
+
 type ProductWorkspaceConsultOperation = Extract<
   ProductWorkspacePlan['operations'][number],
   {
@@ -174,6 +173,8 @@ function stripTransportDecisionFields(raw: unknown): unknown {
     view: _view,
 
     target: _target,
+
+    taskTransition: _taskTransition,
 
     ...decision
   } = raw;
@@ -205,11 +206,7 @@ function actionTarget(action: JsonRecord): unknown | null {
   return null;
 }
 
-function sameJson(
-  left: unknown,
-
-  right: unknown,
-): boolean {
+function sameJson(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
@@ -225,20 +222,21 @@ function sharedActionTarget(actions: readonly unknown[]): unknown | null {
 
   const first = targets[0];
 
-  if (
-    targets.some(
-      (target) =>
-        !sameJson(
-          target,
-
-          first,
-        ),
-    )
-  ) {
-    return null;
+  if (targets.some((target) => !sameJson(target, first))) {
+    throw new Error(
+      'ProductWorkspaceModelPlan: one lane cannot contain conflicting targets.',
+    );
   }
 
   return first;
+}
+
+function decisionAction(decision: unknown): string | null {
+  if (!isRecord(decision) || typeof decision.action !== 'string') {
+    return null;
+  }
+
+  return decision.action;
 }
 
 function decisionSearchSemanticIntent(decision: unknown): string | null {
@@ -261,6 +259,56 @@ function targetSourceText(target: unknown): string | null {
   return typeof target.sourceText === 'string' && target.sourceText.trim()
     ? target.sourceText.trim()
     : null;
+}
+
+function currentView(
+  actions: readonly unknown[],
+): 'focus' | 'results' | 'comparison' {
+  const first = actions.find(isRecord);
+
+  if (!first) {
+    return 'focus';
+  }
+
+  const view = actionView(first);
+
+  return view === 'results' || view === 'comparison' || view === 'focus'
+    ? view
+    : 'focus';
+}
+
+function inferOperationTarget(
+  operation: JsonRecord,
+
+  actions: readonly unknown[],
+): unknown {
+  if (operation.target !== null && operation.target !== undefined) {
+    return operation.target;
+  }
+
+  const shared = sharedActionTarget(actions);
+
+  if (shared !== null) {
+    return shared;
+  }
+
+  const first = actions.find(isRecord);
+
+  const decision = first?.decision !== undefined ? first.decision : first;
+
+  const action = decisionAction(decision);
+
+  if (action === 'SEARCH' || action === 'CLARIFY') {
+    return {
+      kind: 'new',
+    };
+  }
+
+  return {
+    kind: 'current',
+
+    view: currentView(actions),
+  };
 }
 
 function inferOperationQuery(input: {
@@ -321,18 +369,42 @@ function canonicalizeOperation(
     return raw;
   }
 
+  if (
+    Array.isArray(raw.operations) &&
+    raw.operations.length === 1 &&
+    isRecord(raw.operations[0])
+  ) {
+    const nested = raw.operations[0];
+
+    return canonicalizeOperation(
+      {
+        ...nested,
+
+        target: raw.target ?? nested.target,
+
+        query: raw.query ?? nested.query,
+      },
+
+      fallbackQuery,
+    );
+  }
+
   if (raw.kind === 'remove') {
     return raw;
   }
 
   if (Array.isArray(raw.actions)) {
-    const target = raw.target ?? sharedActionTarget(raw.actions);
-
     const decisions = raw.actions
       .filter(isRecord)
       .map((action) =>
         action.decision !== undefined ? action.decision : action,
       );
+
+    const target = inferOperationTarget(
+      raw,
+
+      raw.actions,
+    );
 
     const query = inferOperationQuery({
       operation: raw,
@@ -356,7 +428,13 @@ function canonicalizeOperation(
   }
 
   if (raw.decision !== undefined) {
-    const target = raw.target;
+    const actions = [raw];
+
+    const target = inferOperationTarget(
+      raw,
+
+      actions,
+    );
 
     const query = inferOperationQuery({
       operation: raw,
@@ -375,15 +453,7 @@ function canonicalizeOperation(
 
       query,
 
-      actions: [
-        {
-          decision: stripTransportDecisionFields(raw.decision),
-
-          view:
-            raw.view ??
-            (isRecord(raw.decision) ? raw.decision.view ?? null : null),
-        },
-      ],
+      actions: [canonicalizeAction(raw)],
     };
   }
 
@@ -420,12 +490,56 @@ function normalizeRootSelection(raw: ProductWorkspaceModelAction['decision']) {
   return ROOT_SELECTION_ACTIONS.has(raw.action) ? raw.selection : null;
 }
 
-function normalizeDecision(raw: ProductWorkspaceModelAction['decision']) {
+function taskTransition(
+  action: ProductWorkspaceModelAction['decision']['action'],
+
+  target: ProductWorkspaceModelTarget,
+
+  actionOrdinal: number,
+): 'continue' | 'start_new' {
+  if (
+    actionOrdinal === 0 &&
+    target.kind === 'new' &&
+    (action === 'SEARCH' || action === 'CLARIFY')
+  ) {
+    return 'start_new';
+  }
+
+  return 'continue';
+}
+
+function terminalText(
+  raw: ProductWorkspaceModelAction['decision'],
+): string | null {
+  if (raw.terminalText !== null) {
+    return raw.terminalText;
+  }
+
+  if (raw.action === 'COMPLETE') {
+    return 'Спасибо за консультацию. Если понадобится помощь с выбором — обращайтесь.';
+  }
+
+  return null;
+}
+
+function normalizeDecision(
+  raw: ProductWorkspaceModelAction['decision'],
+
+  target: ProductWorkspaceModelTarget,
+
+  actionOrdinal: number,
+) {
   return ProductConsultantDecisionSchema.parse({
     proposal: {
       action: raw.action,
 
-      taskTransition: raw.taskTransition,
+      taskTransition: taskTransition(
+        raw.action,
+
+        target,
+
+        actionOrdinal,
+      ),
 
       search: raw.search,
 
@@ -442,12 +556,16 @@ function normalizeDecision(raw: ProductWorkspaceModelAction['decision']) {
 
     factAttributeIds: raw.factAttributeIds,
 
-    terminalText: raw.terminalText,
+    terminalText: terminalText(raw),
   });
 }
 
 function normalizeAction(
   action: ProductWorkspaceModelAction,
+
+  target: ProductWorkspaceModelTarget,
+
+  actionOrdinal: number,
 ): ProductWorkspaceAction[] {
   const decision = action.decision;
 
@@ -459,7 +577,13 @@ function normalizeAction(
   if (!positions || positions.length <= 1) {
     return [
       {
-        decision: normalizeDecision(decision),
+        decision: normalizeDecision(
+          decision,
+
+          target,
+
+          actionOrdinal,
+        ),
 
         view: action.view,
       },
@@ -468,15 +592,21 @@ function normalizeAction(
 
   return positions.map(
     (position): ProductWorkspaceAction => ({
-      decision: normalizeDecision({
-        ...decision,
+      decision: normalizeDecision(
+        {
+          ...decision,
 
-        selection: {
-          kind: 'positions',
+          selection: {
+            kind: 'positions',
 
-          positions: [position],
+            positions: [position],
+          },
         },
-      }),
+
+        target,
+
+        actionOrdinal,
+      ),
 
       view: action.view,
     }),
@@ -514,7 +644,20 @@ export function normalizeProductWorkspaceModelPlan(
 
         query: operation.query,
 
-        actions: operation.actions.flatMap(normalizeAction),
+        actions: operation.actions.flatMap(
+          (
+            action,
+
+            actionOrdinal,
+          ) =>
+            normalizeAction(
+              action,
+
+              operation.target,
+
+              actionOrdinal,
+            ),
+        ),
       };
     }),
 

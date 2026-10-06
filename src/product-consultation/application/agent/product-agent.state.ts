@@ -43,6 +43,8 @@ export const ProductAgentState = new StateSchema({
 
   consultationCompletion: ProductAgentAnswerSchema.shape.consultationCompletion,
 
+  completionRequested: z.boolean().default(false),
+
   handoffRequested: z.boolean().default(false),
 
   message: z.string().min(1).nullable().default(null),
