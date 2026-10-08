@@ -21,8 +21,6 @@ import type {
   ComparisonSynthesisInput,
 } from '@/src/product-consultation/application/presentation/comparison-presentation.schema';
 
-import type { PreparedComparisonPresentation } from '@/src/product-consultation/application/presentation/comparison-presentation';
-
 import {
   ConsultationAgentResultSchema,
   type ConsultationAgentResult,
@@ -230,15 +228,8 @@ function deterministicFactDifference(
     return `${title} — ${formatValue(cell)}`;
   });
 
-  const range =
-    row.state === 'numeric_difference' && row.range
-      ? ` Разница — ${formatNumber(row.range.spread)}${
-          row.range.unit ? ` ${row.range.unit}` : ''
-        }.`
-      : '';
-
   return clip(
-    `${row.label}: ${values.join('; ')}.${range}`,
+    `${row.label}: ${values.join('; ')}.`,
 
     500,
   );
@@ -327,7 +318,7 @@ function buildSemanticDifferences(
 ): string[] {
   return [
     semanticDifference({
-      label: 'Стиль по описанию',
+      label: 'Стиль',
 
       products,
 
@@ -337,23 +328,13 @@ function buildSemanticDifferences(
     }),
 
     semanticDifference({
-      label: 'Сценарии использования по описанию',
+      label: 'Для чего подойдут',
 
       products,
 
       representations,
 
       read: (representation) => representation.useCases,
-    }),
-
-    semanticDifference({
-      label: 'Целевая аудитория по описанию',
-
-      products,
-
-      representations,
-
-      read: (representation) => representation.targetAudience,
     }),
   ].filter((value): value is string => value !== null);
 }
@@ -381,12 +362,12 @@ function buildKeyDifferences(
       ),
     }));
 
-  const nonPriceFacts = factDifferences.filter(
-    (difference) => difference.attributeId !== 'price',
-  );
-
   const priceFacts = factDifferences.filter(
     (difference) => difference.attributeId === 'price',
+  );
+
+  const nonPriceFacts = factDifferences.filter(
+    (difference) => difference.attributeId !== 'price',
   );
 
   const semanticDifferences = buildSemanticDifferences(
@@ -396,15 +377,11 @@ function buildKeyDifferences(
   );
 
   const ordered = [
-    ...nonPriceFacts.slice(0, 2).map((difference) => difference.text),
-
-    ...semanticDifferences.slice(0, 2),
-
-    ...nonPriceFacts.slice(2).map((difference) => difference.text),
-
-    ...semanticDifferences.slice(2),
-
     ...priceFacts.map((difference) => difference.text),
+
+    ...semanticDifferences,
+
+    ...nonPriceFacts.map((difference) => difference.text),
   ];
 
   return [...new Set(ordered)].slice(
@@ -456,62 +433,6 @@ function buildSynthesisRows(
   }));
 }
 
-function comparisonAspects(keyDifferences: readonly string[]): string[] {
-  return [
-    ...new Set(
-      keyDifferences
-        .map((difference) => {
-          const separator = difference.indexOf(':');
-
-          if (separator < 0) {
-            return null;
-          }
-
-          const label = difference
-            .slice(
-              0,
-
-              separator,
-            )
-            .trim();
-
-          if (!label) {
-            return null;
-          }
-
-          return label.charAt(0).toLocaleLowerCase('ru-RU') + label.slice(1);
-        })
-        .filter((value): value is string => value !== null),
-    ),
-  ];
-}
-
-function joinNatural(values: readonly string[]): string {
-  if (values.length === 0) {
-    return '';
-  }
-
-  if (values.length === 1) {
-    return values[0];
-  }
-
-  return `${values.slice(0, -1).join(', ')} и ${values.at(-1)}`;
-}
-
-export function buildNeutralComparisonRecommendation(
-  prepared: PreparedComparisonPresentation,
-): string {
-  const aspects = comparisonAspects(prepared.keyDifferences);
-
-  if (aspects.length === 0) {
-    return 'По имеющимся данным заметных различий, которые дают одному варианту явное преимущество, нет. Если назовёте главный критерий выбора, помогу определиться.';
-  }
-
-  return `Основные различия — ${joinNatural(
-    aspects,
-  )}. Без вашего приоритета явного лидера нет; если скажете, что для вас важнее, помогу выбрать.`;
-}
-
 export function prepareProductConsultantComparisonPresentation(input: {
   comparison: AgentComparisonView;
 
@@ -522,7 +443,7 @@ export function prepareProductConsultantComparisonPresentation(input: {
   currentQuery: string;
 
   semanticRepresentations?: ReadonlyMap<string, ProductSemanticRepresentation>;
-}): PreparedComparisonPresentation {
+}) {
   const profile = getCategoryProfile(input.comparison.profileId);
 
   const ordered = orderedProducts(

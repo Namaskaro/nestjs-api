@@ -525,13 +525,6 @@ export function prepareProductWorkspacePlan(input: {
             operation.actions[0].decision.proposal.action,
           );
 
-        const scopedTaskIds =
-          view === 'comparison'
-            ? workspace.tasks.map((candidate) => candidate.taskId)
-            : workspace.focus.length > 0
-            ? workspace.focus.map((reference) => reference.taskId)
-            : workspace.tasks.map((candidate) => candidate.taskId);
-
         const operationQuery =
           operation.kind === 'consult' ? operation.query : input.query;
 
@@ -540,8 +533,6 @@ export function prepareProductWorkspacePlan(input: {
             workspace,
 
             operationQuery,
-
-            scopedTaskIds,
           ) ??
           (operationQuery === input.query
             ? null
@@ -549,8 +540,6 @@ export function prepareProductWorkspacePlan(input: {
                 workspace,
 
                 input.query,
-
-                scopedTaskIds,
               ));
 
         let ids = namedTask

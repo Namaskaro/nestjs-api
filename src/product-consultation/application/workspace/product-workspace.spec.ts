@@ -155,10 +155,24 @@ const plan = (...operations: unknown[]) =>
   ProductWorkspacePlanSchema.parse({
     operations: operations.map((raw) => {
       const operation = raw as Record<string, unknown>;
-      if (operation.kind !== 'consult' || operation.actions) return operation;
+
+      if (operation.kind !== 'consult' || operation.actions) {
+        return operation;
+      }
+
       const { decision, ...lane } = operation;
-      return { ...lane, actions: [{ decision }] };
+
+      return {
+        ...lane,
+
+        actions: [
+          {
+            decision,
+          },
+        ],
+      };
     }),
+
     clarification: null,
   });
 
@@ -257,17 +271,58 @@ function details(id: string): ProductDetails {
   };
 }
 
+function recommendationPositionFromMessages(messages: unknown): number {
+  if (!Array.isArray(messages)) {
+    return 1;
+  }
+
+  const last = messages.at(-1);
+
+  if (
+    typeof last !== 'object' ||
+    last === null ||
+    !('content' in last) ||
+    typeof last.content !== 'string'
+  ) {
+    return 1;
+  }
+
+  try {
+    const payload = JSON.parse(last.content) as {
+      context?: {
+        productFacts?: Array<{
+          position?: number;
+        }>;
+      };
+    };
+
+    const position = payload.context?.productFacts?.[0]?.position;
+
+    return typeof position === 'number' && Number.isInteger(position)
+      ? position
+      : 1;
+  } catch {
+    return 1;
+  }
+}
+
 function harness(initialPlan = pair()) {
   let nextPlan = initialPlan;
 
   const decide = jest.fn(async (_messages: unknown) => nextPlan);
 
-  const respond = jest.fn(async (_messages: unknown) => ({
+  const respond = jest.fn(async (messages: unknown) => ({
+    message: 'Рекомендация по данным каталога.',
+
+    recommendedPosition: recommendationPositionFromMessages(messages),
+  }));
+
+  const invoke = jest.fn(async () => ({
     text: 'Рекомендация по данным каталога.',
   }));
 
   const model = {
-    invoke: respond,
+    invoke,
 
     withStructuredOutput: (
       _schema: unknown,
@@ -280,6 +335,8 @@ function harness(initialPlan = pair()) {
         invoke:
           options.name === 'product_workspace_decision'
             ? decide
+            : options.name === 'product_recommendation_response'
+            ? respond
             : jest.fn(async () => null),
 
         withRetry: () => runnable,

@@ -11,7 +11,6 @@ import {
   ComparisonPresentationSchema,
   type ComparisonPresentation,
   type ComparisonSynthesisInput,
-  type ComparisonSynthesisOutput,
 } from '@/src/product-consultation/application/presentation/comparison-presentation.schema';
 
 import { buildProductSnapshot } from '@/src/product-consultation/application/presentation/product-presentation';
@@ -211,21 +210,14 @@ function deterministicDifference(
     return `${title} — ${formatFact(cell)}`;
   });
 
-  const range =
-    row.state === 'numeric_difference' && row.range
-      ? ` Разница — ${formatNumber(row.range.spread)}${
-          row.range.unit ? ` ${row.range.unit}` : ''
-        }.`
-      : '';
-
-  return clip(`${row.label}: ${values.join('; ')}.${range}`, 500);
+  return clip(`${row.label}: ${values.join('; ')}.`, 500);
 }
 
 function buildKeyDifferences(
   rows: ComparisonPresentation['rows'],
   products: ComparisonPresentation['products'],
 ): string[] {
-  return rows
+  const differences = rows
     .filter((row) => {
       if (row.state === 'same') {
         return false;
@@ -233,8 +225,23 @@ function buildKeyDifferences(
 
       return row.cells.some((cell) => cell.status === 'known');
     })
+    .map((row) => ({
+      attributeId: row.attributeId,
+
+      text: deterministicDifference(row, products),
+    }));
+
+  const price = differences.filter(
+    (difference) => difference.attributeId === 'price',
+  );
+
+  const rest = differences.filter(
+    (difference) => difference.attributeId !== 'price',
+  );
+
+  return [...price, ...rest]
     .slice(0, MAX_KEY_DIFFERENCES)
-    .map((row) => deterministicDifference(row, products));
+    .map((difference) => difference.text);
 }
 
 function buildSynthesisRows(
@@ -384,26 +391,6 @@ export function prepareComparisonPresentation({
   };
 }
 
-function fallbackRecommendation(
-  prepared: PreparedComparisonPresentation,
-): string {
-  const labels = prepared.rows
-    .filter((row) => row.state !== 'same')
-    .map((row) => row.label)
-    .slice(0, MAX_KEY_DIFFERENCES);
-
-  if (!labels.length) {
-    return 'По доступным данным существенных различий между вариантами не обнаружено. Явного лидера нет.';
-  }
-
-  return clip(
-    `По доступным данным модели различаются по: ${labels.join(
-      ', ',
-    )}. Без дополнительного критерия выбора явного лидера нет.`,
-    1200,
-  );
-}
-
 function deterministicNote(
   prepared: PreparedComparisonPresentation,
 ): string | null {
@@ -421,15 +408,7 @@ function deterministicNote(
 
 export function finalizeComparisonPresentation(
   prepared: PreparedComparisonPresentation,
-  synthesis: ComparisonSynthesisOutput | null,
 ): ComparisonPresentation {
-  const recommendedProductId =
-    synthesis?.preferredPosition == null
-      ? null
-      : prepared.products.find(
-          (product) => product.position === synthesis.preferredPosition,
-        )?.id ?? null;
-
   return ComparisonPresentationSchema.parse({
     comparisonId: prepared.comparisonId,
 
@@ -442,11 +421,6 @@ export function finalizeComparisonPresentation(
     rows: prepared.rows,
 
     keyDifferences: prepared.keyDifferences,
-
-    recommendation:
-      synthesis?.recommendation ?? fallbackRecommendation(prepared),
-
-    recommendedProductId,
 
     note: deterministicNote(prepared),
   });
@@ -464,8 +438,6 @@ export function buildComparisonMessage(
       ...presentation.keyDifferences.map((difference) => `— ${difference}`),
     );
   }
-
-  lines.push('', `Что выбрать: ${presentation.recommendation}`);
 
   if (presentation.note) {
     lines.push('', presentation.note);

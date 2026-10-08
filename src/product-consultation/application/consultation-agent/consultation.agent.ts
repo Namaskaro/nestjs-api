@@ -28,10 +28,7 @@ import {
   consultationCompletionPrompt,
 } from './prompts/consultation-agent.prompt';
 
-import {
-  productConsultantDecisionPrompt,
-  productConsultantResponsePrompt,
-} from './prompts/product-consultant.prompt';
+import { productConsultantDecisionPrompt } from './prompts/product-consultant.prompt';
 
 import {
   ConsultationAgentInputSchema,
@@ -59,10 +56,6 @@ export type ProductConsultantAgentInput = {
   observation: ProductConsultantRoundObservation;
 
   signal?: AbortSignal;
-};
-
-export type ProductConsultantResponse = {
-  terminalText: string;
 };
 
 const workspaceLogger = new Logger('ProductWorkspacePlanner');
@@ -255,8 +248,7 @@ export function createConsultationAgent(aiService: AiService) {
             workspaceLogger.warn(
               `Workspace structured output is empty on attempt ${
                 attempt + 1
-              }. ` +
-                `Parsing error: ${String(workspaceParsingError(response))}`,
+              }. Parsing error: ${String(workspaceParsingError(response))}`,
             );
 
             continue;
@@ -276,19 +268,18 @@ export function createConsultationAgent(aiService: AiService) {
             );
           } catch (error) {
             workspaceLogger.warn(
-              `Workspace plan normalization failed on attempt ${
-                attempt + 1
-              }: ` +
-                `${error instanceof Error ? error.message : String(error)}. ` +
-                `Candidate: ${JSON.stringify(candidate)}`,
+              `Workspace plan normalization failed on attempt ${attempt + 1}: ${
+                error instanceof Error ? error.message : String(error)
+              }. Candidate: ${JSON.stringify(candidate)}`,
             );
 
             continue;
           }
         } catch (error) {
           workspaceLogger.warn(
-            `Workspace planner failed on attempt ${attempt + 1}: ` +
-              `${error instanceof Error ? error.message : String(error)}`,
+            `Workspace planner failed on attempt ${attempt + 1}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
           );
         }
       }
@@ -322,39 +313,6 @@ export function createConsultationAgent(aiService: AiService) {
       );
 
       return ProductConsultantDecisionSchema.parse(decision);
-    },
-
-    async respond(
-      input: ProductConsultantAgentInput,
-    ): Promise<ProductConsultantResponse> {
-      const response = await model.invoke(
-        [
-          new SystemMessage(productConsultantResponsePrompt),
-
-          new HumanMessage(
-            JSON.stringify({
-              observation: input.observation,
-
-              context: input.context,
-            }),
-          ),
-        ],
-        {
-          signal: input.signal,
-        },
-      );
-
-      const terminalText = response.text.trim();
-
-      if (!terminalText) {
-        throw new Error(
-          'ConsultationAgent: response model вернула пустой ответ',
-        );
-      }
-
-      return {
-        terminalText,
-      };
     },
 
     async invoke(

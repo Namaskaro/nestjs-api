@@ -5,28 +5,45 @@ import { ProductItemSchema } from '@/src/product-consultation/application/agent/
 import { ConsultationAgentResultSchema } from '@/src/product-consultation/application/consultation-agent/schemas/consultation-agent.schema';
 
 import { ConsultationCompletionPresentationSchema } from '@/src/product-consultation/application/session/consultation-lifecycle.schema';
+
 import { ComparisonPresentationSchema } from '../presentation/comparison-presentation.schema';
+
 import { ProductDetailsPresentationSchema } from '../presentation/product-presentation.schema';
+
 import { ZeroResultRecoverySchema } from '../search/zero-result-recovery';
 
 const ActionPresentationBaseSchema = z.object({
   actionOrdinal: z.number().int().nonnegative(),
 });
-export const ProductActionPresentationSchema = z.discriminatedUnion('kind', [
-  ActionPresentationBaseSchema.extend({
-    kind: z.literal('comparison'),
-    data: ComparisonPresentationSchema,
-  }),
-  ActionPresentationBaseSchema.extend({
-    kind: z.literal('details'),
-    data: ProductDetailsPresentationSchema,
-  }),
-  ActionPresentationBaseSchema.extend({
-    kind: z.literal('recommendation'),
-    message: z.string().min(1),
-    productIds: z.array(z.string().min(1)).min(1),
-  }),
-]);
+
+export const ProductActionPresentationSchema = z.discriminatedUnion(
+  'kind',
+
+  [
+    ActionPresentationBaseSchema.extend({
+      kind: z.literal('comparison'),
+
+      data: ComparisonPresentationSchema,
+    }),
+
+    ActionPresentationBaseSchema.extend({
+      kind: z.literal('details'),
+
+      data: ProductDetailsPresentationSchema,
+    }),
+
+    ActionPresentationBaseSchema.extend({
+      kind: z.literal('recommendation'),
+
+      message: z.string().min(1),
+
+      productIds: z.array(z.string().min(1)).min(1),
+
+      product: ProductItemSchema,
+    }),
+  ],
+);
+
 export type ProductActionPresentation = z.infer<
   typeof ProductActionPresentationSchema
 >;
@@ -68,8 +85,6 @@ export const ProductAgentAnswerSchema = z.object({
 
   groups: z.array(ProductAnswerGroupSchema),
 
-  // Authoritative task results on the public Support boundary. `groups` there
-  // remains a derived search-card-only projection for existing clients.
   resultGroups: z.array(ProductAnswerGroupSchema).optional(),
 
   consultation: ConsultationAgentResultSchema.nullable().default(null),

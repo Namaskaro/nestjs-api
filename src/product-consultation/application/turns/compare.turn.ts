@@ -24,7 +24,7 @@ export async function handleCompareTurn(
 
   runtime: ConsultationRuntime,
 ): Promise<ProductAgentStateUpdate> {
-  const { state, context, comparisonSynthesis } = turn;
+  const { state, context } = turn;
 
   const { core, products } = runtime;
 
@@ -138,11 +138,7 @@ export async function handleCompareTurn(
     requestedAttributeIds: state.turn.attributeIds,
   });
 
-  const synthesis = await comparisonSynthesis.summarizeComparison(
-    prepared.synthesisInput,
-  );
-
-  const presentation = finalizeComparisonPresentation(prepared, synthesis);
+  const presentation = finalizeComparisonPresentation(prepared);
 
   const message = buildComparisonMessage(presentation);
 

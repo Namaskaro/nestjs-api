@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+
 import { ConsultationWriteOwner } from '../runtime/consultation-write-owner';
+
 import { productActionRequestId } from './product-workspace-plan';
+
 import {
   action,
   constraint,
@@ -26,33 +29,53 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         newSearch('детские шорты', 'CLOTHES'),
       ),
     );
+
     const gates = [deferred(), deferred(), deferred()];
+
     const started = deferred();
+
     let calls = 0;
+
     h.service.search.mockImplementation(async (spec) => {
       const index = calls++;
-      if (calls === 3) started.resolve();
+
+      if (calls === 3) {
+        started.resolve();
+      }
+
       await gates[index].promise;
+
       return products(spec);
     });
+
     const running = h.run('Найди кроссовки, платье и шорты');
+
     await started.promise;
+
     expect(h.service.search).toHaveBeenCalledTimes(3);
+
     gates[2].resolve();
     gates[1].resolve();
     gates[0].resolve();
+
     const result = await running;
-    expect(result.groups.map((g) => g.query)).toEqual([
+
+    expect(result.groups.map((group) => group.query)).toEqual([
       'кроссовки',
       'платье',
       'детские шорты',
     ]);
+
     expect(
-      result.workspace.tasks.map((t) =>
-        t.record.state!.search!.constraints.map((c) => c.value),
+      result.workspace.tasks.map((task) =>
+        task.record.state!.search!.constraints.map(
+          (constraintValue) => constraintValue.value,
+        ),
       ),
     ).toEqual([['MAN'], ['WOMAN'], []]);
+
     expect(h.decide).toHaveBeenCalledTimes(1);
+
     expect(h.respond).not.toHaveBeenCalled();
   });
 
@@ -64,8 +87,11 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         newSearch('шорты', 'CLOTHES'),
       ),
     );
+
     const first = await h.run('Найди кроссовки, платье и шорты');
+
     h.service.getProductDetails.mockClear();
+
     h.setPlan(
       plan(
         lane(
@@ -85,55 +111,79 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         ),
       ),
     );
+
     const writes = jest.spyOn(ConsultationWriteOwner.prototype, 'execute');
+
     const release = deferred();
+
     const started = deferred();
+
     let starts = 0;
+
     h.service.getProductDetails.mockImplementation(async (ids) => {
       starts++;
-      if (starts === 3) started.resolve();
-      if (ids[0] === 'шорты-2') await release.promise;
+
+      if (starts === 3) {
+        started.resolve();
+      }
+
+      if (ids[0] === 'шорты-2') {
+        await release.promise;
+      }
+
       return ids.map(details);
     });
+
     const running = h.run(
       'Сравни кроссовки, покажи платье и шорты подробнее',
       first.workspace,
     );
+
     await started.promise;
+
     expect(
       h.service.getProductDetails.mock.calls.map(([ids]) => ids),
     ).not.toContainEqual(['шорты-3']);
+
     release.resolve();
+
     const result = await running;
-    expect(result.groups.map((g) => g.query)).toEqual([
+
+    expect(result.groups.map((group) => group.query)).toEqual([
       'кроссовки',
       'платье',
       'шорты',
     ]);
+
     expect(h.service.getProductDetails.mock.calls.map(([ids]) => ids)).toEqual([
       ['кроссовки-1', 'кроссовки-2'],
       ['платье-3'],
       ['шорты-2'],
       ['шорты-3'],
     ]);
+
     const shortsWrites = writes.mock.calls
       .map(([input]) => input)
       .filter((input) =>
         input.conversationId.endsWith(first.workspace.tasks[2].taskId),
       );
+
     expect(shortsWrites).toHaveLength(2);
-    expect(result.groups[2].presentations?.map((p) => p.kind)).toEqual([
-      'details',
-      'details',
-    ]);
+
     expect(
-      result.groups[2].presentations?.map((p) =>
-        p.kind === 'details' ? p.data.product.id : null,
+      result.groups[2].presentations?.map((presentation) => presentation.kind),
+    ).toEqual(['details', 'details']);
+
+    expect(
+      result.groups[2].presentations?.map((presentation) =>
+        presentation.kind === 'details' ? presentation.data.product.id : null,
       ),
     ).toEqual(['шорты-2', 'шорты-3']);
+
     expect(shortsWrites[1].expectedRevision).toBeGreaterThan(
       shortsWrites[0].expectedRevision,
     );
+
     expect(result.workspace.tasks[2].record.revision).toBeGreaterThan(
       shortsWrites[1].expectedRevision,
     );
@@ -141,8 +191,11 @@ describe('Product ordered action lanes: real graph and offline model', () => {
 
   it('uses stable distinct child IDs and skips the entire replay before planning or capabilities', async () => {
     const h = harness();
+
     const first = await h.run();
+
     h.service.getProductDetails.mockClear();
+
     h.setPlan(
       plan(
         lane('Подробности и сравнение', [
@@ -152,14 +205,19 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         ]),
       ),
     );
+
     const writes = jest.spyOn(ConsultationWriteOwner.prototype, 'execute');
+
     const result = await h.run(
       'Покажи второй и третий, сравни первый и третий',
       first.workspace,
       'same-parent',
     );
+
     const ids = writes.mock.calls.map(([input]) => input.requestId);
+
     expect(new Set(ids).size).toBe(3);
+
     expect(ids).toEqual(
       [0, 1, 2].map((index) =>
         productActionRequestId(
@@ -169,55 +227,81 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         ),
       ),
     );
+
     expect(result.workspace.tasks[0].record.processedRequestIds).toEqual(
       expect.arrayContaining(ids),
     );
+
     const replay = await h.run(
       'Покажи второй и третий, сравни первый и третий',
       result.workspace,
       'same-parent',
     );
+
     expect(replay.workspace).toEqual(result.workspace);
+
     expect(replay.groups).toEqual([]);
+
     expect(writes).toHaveBeenCalledTimes(3);
+
     expect(h.service.getProductDetails).toHaveBeenCalledTimes(3);
+
     expect(h.service.search).toHaveBeenCalledTimes(1);
+
     expect(h.decide).toHaveBeenCalledTimes(2);
   });
 
   it('resolves DETAILS against the new result after REFINE instead of pre-binding the old snapshot', async () => {
     const h = harness();
+
     const first = await h.run();
+
     h.setPlan(
       plan(
         lane('Уточни цену и покажи второй', [
           action('REFINE', {
-            searchPatch: { set: [constraint('price', 2000, 'lte')], clear: [] },
+            searchPatch: {
+              set: [constraint('price', 2000, 'lte')],
+              clear: [],
+            },
           }),
           action('DETAILS', positions(2)),
         ]),
       ),
     );
+
     h.service.search.mockResolvedValue(
-      products(first.workspace.tasks[0].record.state!.search!).map((p) => ({
-        ...p,
-        productId: `new-${p.productId}`,
-      })),
+      products(first.workspace.tasks[0].record.state!.search!).map(
+        (product) => ({
+          ...product,
+
+          productId: `new-${product.productId}`,
+        }),
+      ),
     );
+
     const result = await h.run('До 2000 и подробнее второй', first.workspace);
+
     expect(h.service.getProductDetails).toHaveBeenCalledWith([
       'new-кроссовки-2',
     ]);
+
     expect(result.groups[0].status).toBe('ready');
   });
 
   it('supports a new SEARCH followed by DETAILS in one lane', async () => {
     const search = newSearch('кроссовки');
+
     search.actions.push(action('DETAILS', positions(2)));
+
     const h = harness(plan(search));
+
     const result = await h.run('Найди кроссовки и покажи второй');
+
     expect(result.workspace.tasks).toHaveLength(1);
+
     expect(h.service.search).toHaveBeenCalledTimes(1);
+
     expect(h.service.getProductDetails).toHaveBeenCalledWith(['кроссовки-2']);
   });
 
@@ -225,7 +309,9 @@ describe('Product ordered action lanes: real graph and offline model', () => {
     const h = harness(
       plan(newSearch('кроссовки'), newSearch('платье', 'CLOTHES')),
     );
+
     const first = await h.run('кроссовки и платье');
+
     h.setPlan(
       plan(
         lane(
@@ -244,23 +330,37 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         ),
       ),
     );
+
     h.service.getProductDetails.mockImplementation(async (ids) => {
-      if (ids[0] === 'кроссовки-2') throw new Error('offline failure');
+      if (ids[0] === 'кроссовки-2') {
+        throw new Error('offline failure');
+      }
+
       return ids.map(details);
     });
+
     const result = await h.run(
       'Подробности кроссовки и платье',
       first.workspace,
     );
-    expect(result.groups.map((g) => g.status)).toEqual(['failed', 'ready']);
+
+    expect(result.groups.map((group) => group.status)).toEqual([
+      'failed',
+      'ready',
+    ]);
+
     expect(result.groups[0].presentations).toHaveLength(1);
+
     expect(result.groups[1].presentations).toHaveLength(1);
+
     expect(
       h.service.getProductDetails.mock.calls.map(([ids]) => ids),
     ).not.toContainEqual(['кроссовки-3']);
+
     expect(result.workspace.tasks[0].record.revision).toBeGreaterThan(
       first.workspace.tasks[0].record.revision,
     );
+
     expect(result.workspace.tasks[0].record.processedRequestIds).toContain(
       productActionRequestId('turn-2', first.workspace.tasks[0].taskId, 0),
     );
@@ -268,41 +368,69 @@ describe('Product ordered action lanes: real graph and offline model', () => {
 
   it('validates an obviously invalid dependent DETAILS before executing any lane', async () => {
     const h = harness();
+
     const first = await h.run();
+
     h.service.getProductDetails.mockClear();
+
     h.setPlan(
       plan(
         newSearch('платье', 'CLOTHES'),
         lane('кроссовки', [
           action('REFINE', {
-            searchPatch: { set: [constraint('price', 2000, 'lte')], clear: [] },
+            searchPatch: {
+              set: [constraint('price', 2000, 'lte')],
+              clear: [],
+            },
           }),
           action('DETAILS', positions(1, 2)),
         ]),
       ),
     );
+
     const result = await h.run(
       'Найди платье и уточни кроссовки',
       first.workspace,
     );
+
     expect(result.workspace.tasks).toEqual(first.workspace.tasks);
+
     expect(h.service.search).toHaveBeenCalledTimes(1);
+
     expect(h.service.getProductDetails).not.toHaveBeenCalled();
+
     expect(result.workspace.pendingClarification).not.toBeNull();
   });
 
   it.each([
     action('DETAILS'),
-    action('DETAILS', { ...positions(1), searchPatch: { set: [], clear: [] } }),
+    action('DETAILS', {
+      ...positions(1),
+
+      searchPatch: {
+        set: [],
+
+        clear: [],
+      },
+    }),
     action('COMPARE', positions(1)),
     action('REFINE', {
-      searchPatch: { category: 'CLOTHES', set: [], clear: [] },
+      searchPatch: {
+        category: 'CLOTHES',
+
+        set: [],
+
+        clear: [],
+      },
     }),
     action('SEARCH', {
       taskTransition: 'continue',
+
       search: {
         category: 'SHOES',
+
         semanticIntent: 'другая обувь',
+
         constraints: [],
       },
     }),
@@ -316,50 +444,76 @@ describe('Product ordered action lanes: real graph and offline model', () => {
           }),
         ),
       );
+
       const result = await h.run();
+
       expect(result.workspace.tasks).toEqual([]);
+
       expect(result.workspace.pendingClarification).not.toBeNull();
+
       expect(h.service.search).not.toHaveBeenCalled();
+
       expect(h.service.getProductDetails).not.toHaveBeenCalled();
     },
   );
 
   it('allows more than five lanes and more than five atomic actions without evicting explicitly appended tasks', async () => {
     const queries = Array.from(
-      { length: 7 },
-      (_, n) => `кроссовки бренда ${String.fromCharCode(65 + n)}`,
+      {
+        length: 7,
+      },
+      (_, index) => `кроссовки бренда ${String.fromCharCode(65 + index)}`,
     );
+
     const h = harness(plan(...queries.map((query) => newSearch(query))));
+
     const initial = await h.run(`Найди ${queries.join(', ')}`);
+
     expect(initial.workspace.tasks).toHaveLength(7);
+
     expect(h.service.search).toHaveBeenCalledTimes(7);
+
     h.setPlan(plan(newSearch('рюкзак', 'ACCESSORIES')));
+
     const appended = await h.run('А ещё найди рюкзак', initial.workspace);
+
     expect(appended.workspace.tasks).toHaveLength(8);
+
     expect(appended.workspace.tasks.slice(0, 7)).toEqual(
       initial.workspace.tasks,
     );
+
     h.setPlan(
       plan(
         lane(
           'Подробности рюкзака',
-          Array.from({ length: 7 }, (_, n) =>
-            action('DETAILS', positions((n % 3) + 1)),
+          Array.from(
+            {
+              length: 7,
+            },
+            (_, index) => action('DETAILS', positions((index % 3) + 1)),
           ),
         ),
       ),
     );
+
     const detailed = await h.run(
       'Покажи подробности товаров из рюкзаков',
       appended.workspace,
     );
+
     expect(detailed.groups[0].presentations).toHaveLength(7);
+
     expect(
       new Set(detailed.workspace.tasks[7].record.processedRequestIds).size,
     ).toBe(8);
+
     h.setPlan(plan(newSearch('платье', 'CLOTHES')));
+
     const replaced = await h.run('Найди платье', detailed.workspace);
+
     expect(replaced.workspace.tasks).toHaveLength(1);
+
     expect(replaced.workspace.tasks[0].record.state!.search!.category).toBe(
       'CLOTHES',
     );
@@ -367,44 +521,65 @@ describe('Product ordered action lanes: real graph and offline model', () => {
 
   it('grounds same-turn COMPARE then RECOMMEND in comparison order without searching again', async () => {
     const h = harness();
+
     const first = await h.run();
+
     h.service.getProductDetails.mockClear();
+
     h.setPlan(
       plan(
         lane('Сравни и посоветуй из них', [
           action('COMPARE', positions(3, 1)),
-          action('RECOMMEND', { selection: { kind: 'active' } }, 'focus'),
+          action(
+            'RECOMMEND',
+            {
+              selection: {
+                kind: 'active',
+              },
+            },
+            'focus',
+          ),
         ]),
       ),
     );
+
     const result = await h.run(
       'Сравни третий и первый, потом посоветуй из них',
       first.workspace,
     );
+
     expect(h.service.getProductDetails.mock.calls.map(([ids]) => ids)).toEqual([
       ['кроссовки-3', 'кроссовки-1'],
       ['кроссовки-3', 'кроссовки-1'],
     ]);
+
     expect(h.service.getProductSemanticRepresentations).toHaveBeenCalledWith([
       'кроссовки-3',
       'кроссовки-1',
     ]);
+
     expect(h.respond).toHaveBeenCalledTimes(1);
+
     expect(h.service.search).toHaveBeenCalledTimes(1);
+
     expect(result.workspace.focus[0].positions).toEqual([3, 1]);
-    expect(result.groups[0].presentations?.map((p) => p.kind)).toEqual([
-      'comparison',
-      'recommendation',
-    ]);
+
+    expect(
+      result.groups[0].presentations?.map((presentation) => presentation.kind),
+    ).toEqual(['comparison', 'recommendation']);
+
     expect(result.groups[0].presentations?.[1]).toMatchObject({
       kind: 'recommendation',
-      productIds: ['кроссовки-3', 'кроссовки-1'],
+
+      productIds: ['кроссовки-3'],
     });
   });
 
   it('preserves COMPARE then DETAILS presentations in action order', async () => {
     const h = harness();
+
     const first = await h.run();
+
     h.setPlan(
       plan(
         lane('Сравни и покажи подробнее', [
@@ -413,22 +588,36 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         ]),
       ),
     );
+
     const result = await h.run(
       'Сравни первый и второй, покажи третий',
       first.workspace,
     );
+
     expect(
-      result.groups[0].presentations?.map((p) => [p.actionOrdinal, p.kind]),
+      result.groups[0].presentations?.map((presentation) => [
+        presentation.actionOrdinal,
+        presentation.kind,
+      ]),
     ).toEqual([
       [0, 'comparison'],
       [1, 'details'],
     ]);
+
     expect(result.groups[0].presentations?.[1]).toMatchObject({
       kind: 'details',
-      data: { product: { id: 'кроссовки-3' } },
+
+      data: {
+        product: {
+          id: 'кроссовки-3',
+        },
+      },
     });
+
     expect(result.consultation).toBeNull();
+
     expect(result.groups[0].consultation).toBeNull();
+
     expect(h.respond).not.toHaveBeenCalled();
   });
 
@@ -436,7 +625,9 @@ describe('Product ordered action lanes: real graph and offline model', () => {
     const h = harness(
       plan(newSearch('кроссовки'), newSearch('платье', 'CLOTHES')),
     );
+
     const first = await h.run('кроссовки и платье');
+
     h.setPlan(
       plan(
         lane(
@@ -446,32 +637,52 @@ describe('Product ordered action lanes: real graph and offline model', () => {
         ),
       ),
     );
+
     const compared = await h.run(
       'Сравни третий и первый из кроссовок',
       first.workspace,
     );
+
     h.service.getProductDetails.mockClear();
+
     h.setPlan(
       plan(
         lane(
           'Какие из них посоветуешь?',
-          [action('RECOMMEND', { selection: { kind: 'active' } })],
-          { kind: 'current', view: 'focus' },
+          [
+            action('RECOMMEND', {
+              selection: {
+                kind: 'active',
+              },
+            }),
+          ],
+          {
+            kind: 'current',
+
+            view: 'focus',
+          },
         ),
       ),
     );
+
     const result = await h.run('Какие из них посоветуешь?', compared.workspace);
+
     expect(h.service.getProductDetails).toHaveBeenCalledWith([
       'кроссовки-3',
       'кроссовки-1',
     ]);
+
     expect(h.service.getProductSemanticRepresentations).toHaveBeenCalledWith([
       'кроссовки-3',
       'кроссовки-1',
     ]);
+
     expect(h.service.search).toHaveBeenCalledTimes(2);
+
     expect(result.workspace.tasks[1]).toEqual(first.workspace.tasks[1]);
+
     expect(result.groups[0].taskId).toBe(first.workspace.tasks[0].taskId);
+
     expect(result.groups[0].presentations?.[0].kind).toBe('recommendation');
   });
 });

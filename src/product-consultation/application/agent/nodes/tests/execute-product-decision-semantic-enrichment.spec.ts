@@ -331,32 +331,18 @@ function agentState(input: {
 }
 
 function createAiService() {
-  const responseInvoke = jest.fn(
+  const recommendationInvoke = jest.fn(
     async (_messages: unknown, _config?: unknown) => ({
-      text: 'Для этой задачи лучше подходит второй вариант.',
+      message: 'Для этой задачи лучше подходит Campus 00s.',
+
+      recommendedPosition: 2,
     }),
   );
 
-  let structuredOutputCall = 0;
-
   const model = {
-    invoke: responseInvoke,
-
-    withStructuredOutput: () => {
-      structuredOutputCall += 1;
-
-      if (structuredOutputCall === 1) {
-        return {
-          withRetry: () => ({
-            invoke: jest.fn(async () => null),
-          }),
-        };
-      }
-
-      return {
-        invoke: jest.fn(async () => null),
-      };
-    },
+    withStructuredOutput: jest.fn(() => ({
+      invoke: recommendationInvoke,
+    })),
   };
 
   const aiService = {
@@ -366,7 +352,27 @@ function createAiService() {
   return {
     aiService,
 
-    responseInvoke,
+    recommendationInvoke,
+  };
+}
+
+function recommendationPayload(
+  recommendationInvoke: ReturnType<
+    typeof createAiService
+  >['recommendationInvoke'],
+) {
+  const responseCall = recommendationInvoke.mock.calls[0];
+
+  const messages = responseCall?.[0] as Array<{
+    content: unknown;
+  }>;
+
+  return JSON.parse(String(messages[1]?.content)) as {
+    context: {
+      semanticEvidence: unknown[];
+
+      productFacts: unknown[];
+    };
   };
 }
 
@@ -443,26 +449,8 @@ function createProductAgentService() {
   };
 }
 
-function responsePayload(
-  responseInvoke: ReturnType<typeof createAiService>['responseInvoke'],
-) {
-  const responseCall = responseInvoke.mock.calls[0];
-
-  const messages = responseCall?.[0] as Array<{
-    content: unknown;
-  }>;
-
-  return JSON.parse(String(messages[1]?.content)) as {
-    context: {
-      semanticEvidence: unknown[];
-
-      productFacts: unknown[];
-    };
-  };
-}
-
 describe('ExecuteProductDecision semantic enrichment wiring', () => {
-  it('reads semantic representations for RECOMMEND and passes semantic evidence to response model', async () => {
+  it('reads semantic representations for RECOMMEND and passes semantic evidence to recommendation synthesizer', async () => {
     const ai = createAiService();
 
     const productAgent = createProductAgentService();
@@ -505,9 +493,9 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
       'adidas-2',
     ]);
 
-    expect(ai.responseInvoke).toHaveBeenCalledTimes(1);
+    expect(ai.recommendationInvoke).toHaveBeenCalledTimes(1);
 
-    const payload = responsePayload(ai.responseInvoke);
+    const payload = recommendationPayload(ai.recommendationInvoke);
 
     expect(payload.context.semanticEvidence).toEqual([
       {
@@ -543,9 +531,19 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
       'internal-search-tag',
     );
 
-    expect(result.message).toBe(
-      'Для этой задачи лучше подходит второй вариант.',
-    );
+    expect(result.message).toBe('Для этой задачи лучше подходит Campus 00s.');
+
+    expect(result.recommendationProductIds).toEqual(['adidas-2']);
+
+    expect(result.recommendationProduct).toEqual({
+      id: 'adidas-2',
+
+      title: 'Campus 00s',
+
+      price: '12800',
+
+      image: '',
+    });
   });
 
   it('continues RECOMMEND without semantic evidence when semantic reader fails', async () => {
@@ -585,17 +583,19 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
       productAgent.getProductSemanticRepresentations,
     ).toHaveBeenCalledTimes(1);
 
-    expect(ai.responseInvoke).toHaveBeenCalledTimes(1);
+    expect(ai.recommendationInvoke).toHaveBeenCalledTimes(1);
 
-    const payload = responsePayload(ai.responseInvoke);
+    const payload = recommendationPayload(ai.recommendationInvoke);
 
     expect(payload.context.semanticEvidence).toEqual([]);
 
     expect(payload.context.productFacts).toHaveLength(2);
 
-    expect(result.message).toBe(
-      'Для этой задачи лучше подходит второй вариант.',
-    );
+    expect(result.message).toBe('Для этой задачи лучше подходит Campus 00s.');
+
+    expect(result.recommendationProductIds).toEqual(['adidas-2']);
+
+    expect(result.recommendationProduct?.id).toBe('adidas-2');
   });
 
   it('does not read semantic representations for DETAILS', async () => {
@@ -631,10 +631,10 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
       productAgent.getProductSemanticRepresentations,
     ).not.toHaveBeenCalled();
 
-    expect(ai.responseInvoke).not.toHaveBeenCalled();
+    expect(ai.recommendationInvoke).not.toHaveBeenCalled();
   });
 
-  it('reads semantic representations for COMPARE and uses them without a second response LLM call', async () => {
+  it('reads semantic representations for COMPARE and builds grounded comparison differences without a response LLM call', async () => {
     const ai = createAiService();
 
     const productAgent = createProductAgentService();
@@ -715,29 +715,35 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
       ['adidas-1', 'adidas-2'],
     );
 
-    expect(ai.responseInvoke).not.toHaveBeenCalled();
+    expect(ai.recommendationInvoke).not.toHaveBeenCalled();
 
     const presentation = result.consultation?.comparisonPresentation;
 
     expect(presentation).not.toBeNull();
 
+    expect(presentation?.keyDifferences[0]).toMatch(/^Цена:/);
+
     expect(
       presentation?.keyDifferences.some((difference) =>
-        difference.startsWith('Стиль по описанию:'),
+        difference.startsWith('Стиль:'),
       ),
     ).toBe(true);
 
     expect(
       presentation?.keyDifferences.some((difference) =>
-        difference.startsWith('Сценарии использования по описанию:'),
+        difference.startsWith('Для чего подойдут:'),
       ),
     ).toBe(true);
 
     expect(
       presentation?.keyDifferences.some((difference) =>
-        difference.startsWith('Целевая аудитория по описанию:'),
+        difference.includes('Целевая аудитория'),
       ),
-    ).toBe(true);
+    ).toBe(false);
+
+    expect(presentation).not.toHaveProperty('recommendation');
+
+    expect(presentation).not.toHaveProperty('recommendedProductId');
 
     expect(JSON.stringify(presentation)).not.toContain('retrieval-only');
   });
@@ -779,7 +785,7 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
       productAgent.getProductSemanticRepresentations,
     ).toHaveBeenCalledTimes(1);
 
-    expect(ai.responseInvoke).not.toHaveBeenCalled();
+    expect(ai.recommendationInvoke).not.toHaveBeenCalled();
 
     const presentation = result.consultation?.comparisonPresentation;
 
@@ -790,6 +796,10 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
         difference.startsWith('Цена:'),
       ),
     ).toBe(true);
+
+    expect(presentation).not.toHaveProperty('recommendation');
+
+    expect(presentation).not.toHaveProperty('recommendedProductId');
   });
 
   it('does not read semantic representations for SEARCH', async () => {
@@ -825,6 +835,6 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
       productAgent.getProductSemanticRepresentations,
     ).not.toHaveBeenCalled();
 
-    expect(ai.responseInvoke).not.toHaveBeenCalled();
+    expect(ai.recommendationInvoke).not.toHaveBeenCalled();
   });
 });

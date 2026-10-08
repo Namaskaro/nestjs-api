@@ -10,6 +10,8 @@ import type { ProductConsultationContextMessage } from '../../context/product-co
 
 import type { ProductAgentAnswer } from '../agreagte-answer.schema';
 
+import type { ProductItem } from '../product-agent-result.schema';
+
 import {
   recoverZeroResults,
   type ZeroResultRecovery,
@@ -25,13 +27,12 @@ import { executeProductConsultantCapability } from '@/src/product-consultation/a
 
 import { buildProductConsultationContext } from '@/src/product-consultation/application/context/product-consultation-context';
 
-import { createConsultationAgent } from '@/src/product-consultation/application/consultation-agent/consultation.agent';
+import { createProductRecommendationSynthesizer } from '@/src/product-consultation/application/recommendation/product-recommendation-synthesizer';
 
 import { finalizeComparisonPresentation } from '@/src/product-consultation/application/presentation/comparison-presentation';
 
 import {
   buildComparisonConsultation,
-  buildNeutralComparisonRecommendation,
   buildProductDetailsConsultation,
   prepareProductConsultantComparisonPresentation,
 } from '@/src/product-consultation/application/presentation/product-consultant-presentation';
@@ -60,6 +61,8 @@ export type ProductTaskExecutionResult = Pick<
 
   recommendationProductIds?: string[];
 
+  recommendationProduct?: ProductItem;
+
   recovery?: ZeroResultRecovery;
 };
 
@@ -85,12 +88,52 @@ function searchMessage(
     : 'Обновил подборку.';
 }
 
+function resolveRecommendationProduct(input: {
+  record: ConsultationApplicationRecord;
+
+  selectedProductIds: readonly string[];
+
+  recommendedPosition: number | null;
+}): ProductItem | null {
+  const snapshot = input.record.results.active;
+
+  if (snapshot === null || input.selectedProductIds.length === 0) {
+    return null;
+  }
+
+  const selectedProductIds = new Set(input.selectedProductIds);
+
+  const candidate =
+    input.selectedProductIds.length === 1
+      ? snapshot.products.find(
+          (product) => product.productId === input.selectedProductIds[0],
+        )
+      : input.recommendedPosition === null
+      ? undefined
+      : snapshot.products[input.recommendedPosition - 1];
+
+  if (!candidate || !selectedProductIds.has(candidate.productId)) {
+    return null;
+  }
+
+  return {
+    id: candidate.productId,
+
+    title: candidate.title,
+
+    price: candidate.price,
+
+    image: candidate.image ?? '',
+  };
+}
+
 export function createExecuteProductDecisionNode(
   aiService: AiService,
 
   productAgentService: ProductAgentService,
 ) {
-  const consultant = createConsultationAgent(aiService);
+  const recommendationSynthesizer =
+    createProductRecommendationSynthesizer(aiService);
 
   return async (
     state: ProductTaskExecutionInput,
@@ -369,15 +412,7 @@ export function createExecuteProductDecisionNode(
           semanticRepresentations,
         });
 
-        const presentation = finalizeComparisonPresentation(
-          prepared,
-
-          {
-            recommendation: buildNeutralComparisonRecommendation(prepared),
-
-            preferredPosition: null,
-          },
-        );
+        const presentation = finalizeComparisonPresentation(prepared);
 
         const message = 'Сравнил выбранные товары.';
 
@@ -398,15 +433,22 @@ export function createExecuteProductDecisionNode(
         };
       }
 
+      if (
+        action !== 'RECOMMEND' ||
+        capability.observation.kind !== 'recommend' ||
+        capability.observation.status !== 'context_ready'
+      ) {
+        throw new Error(
+          `ExecuteProductDecision: unsupported capability action ${action}.`,
+        );
+      }
+
       const recentMessages =
         decision.proposal.taskTransition === 'start_new'
           ? []
           : state.recentMessages;
 
       const semanticRepresentations =
-        action === 'RECOMMEND' &&
-        capability.observation.kind === 'recommend' &&
-        capability.observation.status === 'context_ready' &&
         capability.selectedProducts.length > 0
           ? await productAgentService
               .getProductSemanticRepresentations(
@@ -433,11 +475,29 @@ export function createExecuteProductDecisionNode(
         semanticRepresentations,
       });
 
-      const response = await consultant.respond({
+      const synthesis = await recommendationSynthesizer.synthesize({
         context: followup.context,
 
         observation: capability.observation,
       });
+
+      const selectedProductIds = capability.selectedProducts.map(
+        (product) => product.id,
+      );
+
+      const recommendationProduct = resolveRecommendationProduct({
+        record,
+
+        selectedProductIds,
+
+        recommendedPosition: synthesis.recommendedPosition,
+      });
+
+      if (recommendationProduct === null) {
+        throw new Error(
+          'ExecuteProductDecision: RECOMMEND did not resolve one selected product.',
+        );
+      }
 
       return {
         consultationRecord: record,
@@ -446,15 +506,11 @@ export function createExecuteProductDecisionNode(
 
         consultationCompletion: null,
 
-        message: response.terminalText,
+        message: synthesis.message,
 
-        ...(action === 'RECOMMEND'
-          ? {
-              recommendationProductIds: capability.selectedProducts.map(
-                (product) => product.id,
-              ),
-            }
-          : {}),
+        recommendationProductIds: [recommendationProduct.id],
+
+        recommendationProduct,
       };
     } catch {
       return {
