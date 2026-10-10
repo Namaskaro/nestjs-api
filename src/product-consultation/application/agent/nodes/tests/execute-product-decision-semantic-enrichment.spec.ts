@@ -634,7 +634,7 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     expect(ai.recommendationInvoke).not.toHaveBeenCalled();
   });
 
-  it('reads semantic representations for COMPARE and builds grounded comparison differences without a response LLM call', async () => {
+  it('builds COMPARE as one structured matrix and does not expose semantic use-cases as product claims', async () => {
     const ai = createAiService();
 
     const productAgent = createProductAgentService();
@@ -691,7 +691,7 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
 
     const result = await node(
       agentState({
-        query: 'Сравни первый и второй',
+        query: 'Сравни первый и второй по цене',
 
         requestId: 'request-compare',
 
@@ -721,34 +721,45 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
 
     expect(presentation).not.toBeNull();
 
-    expect(presentation?.keyDifferences[0]).toMatch(/^Цена:/);
+    expect(presentation?.rows.map((row) => row.attributeId)).toEqual([
+      'price',
 
-    expect(
-      presentation?.keyDifferences.some((difference) =>
-        difference.startsWith('Стиль:'),
-      ),
-    ).toBe(true);
+      'semantic.styleAssociations',
+    ]);
 
-    expect(
-      presentation?.keyDifferences.some((difference) =>
-        difference.startsWith('Для чего подойдут:'),
-      ),
-    ).toBe(true);
+    const styleRow = presentation?.rows.find(
+      (row) => row.attributeId === 'semantic.styleAssociations',
+    );
 
-    expect(
-      presentation?.keyDifferences.some((difference) =>
-        difference.includes('Целевая аудитория'),
-      ),
-    ).toBe(false);
+    expect(styleRow?.label).toBe('Стиль / ассоциации');
+
+    expect(styleRow?.cells[0]?.value).toEqual([
+      'спортивный',
+      'винтажный',
+      'уличный стиль',
+    ]);
+
+    expect(styleRow?.cells[1]?.value).toEqual([
+      'скейтбординг',
+      'университетские цвета',
+    ]);
+
+    expect(presentation?.keyDifferences).toEqual([]);
+
+    expect(JSON.stringify(presentation)).not.toContain(
+      'занятия скейтбордингом',
+    );
+
+    expect(JSON.stringify(presentation)).not.toContain('целевая аудитория');
+
+    expect(JSON.stringify(presentation)).not.toContain('retrieval-only');
 
     expect(presentation).not.toHaveProperty('recommendation');
 
     expect(presentation).not.toHaveProperty('recommendedProductId');
-
-    expect(JSON.stringify(presentation)).not.toContain('retrieval-only');
   });
 
-  it('continues COMPARE with factual differences when semantic reader fails', async () => {
+  it('continues COMPARE with factual rows when semantic reader fails', async () => {
     const ai = createAiService();
 
     const productAgent = createProductAgentService();
@@ -765,7 +776,7 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
 
     const result = await node(
       agentState({
-        query: 'Сравни первый и второй',
+        query: 'Сравни первый и второй по цене',
 
         requestId: 'request-compare-semantic-failure',
 
@@ -791,11 +802,9 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
 
     expect(presentation).not.toBeNull();
 
-    expect(
-      presentation?.keyDifferences.some((difference) =>
-        difference.startsWith('Цена:'),
-      ),
-    ).toBe(true);
+    expect(presentation?.rows.map((row) => row.attributeId)).toEqual(['price']);
+
+    expect(presentation?.keyDifferences).toEqual([]);
 
     expect(presentation).not.toHaveProperty('recommendation');
 

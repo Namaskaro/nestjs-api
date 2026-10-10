@@ -1,0 +1,2853 @@
+
+===== src/product-consultation/application/workspace/product-workspace-model-plan.ts =====
+
+import { z } from 'zod';
+
+import { ProductConsultantDecisionSchema } from '../consultant/product-consultant-decision.schema';
+
+import { ConsultationMemoryObservationsSchema } from '../../core/memory/consultation-memory-observation.schema';
+
+import {
+  SearchSpecDraftSchema,
+  SearchSpecPatchSchema,
+} from '../../core/search/search-spec.schema';
+
+import {
+  CATEGORY_USAGE_KNOWLEDGE,
+  getCategoryUsageKnowledge,
+} from '../../core/profiles/usage-scenarios';
+
+import {
+  ProductSelectionSchema,
+  PublicConsultationActionSchema,
+} from '../../core/turn/consultation-turn.schema';
+
+import { TurnFeedbackObservationSchema } from '../../core/turn/consultation-turn-proposal.schema';
+
+import {
+  ProductWorkspacePlanSchema,
+  type ProductWorkspacePlan,
+} from './product-workspace-plan';
+
+const ProductWorkspaceViewSchema = z.enum(['focus', 'results', 'comparison']);
+
+const ProductWorkspaceModelExplicitTargetSchema = z
+  .object({
+    kind: z.literal('task'),
+
+    taskId: z.string().trim().min(1).max(160),
+
+    sourceText: z.string().trim().min(1).max(500),
+  })
+  .strict();
+
+const ProductWorkspaceModelTargetSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('new'),
+    })
+    .strict(),
+
+  z
+    .object({
+      kind: z.literal('current'),
+
+      view: ProductWorkspaceViewSchema.default('focus'),
+    })
+    .strict(),
+
+  z
+    .object({
+      kind: z.literal('all'),
+    })
+    .strict(),
+
+  ProductWorkspaceModelExplicitTargetSchema,
+]);
+
+const ProductWorkspaceModelDecisionSchema = z
+  .object({
+    action: PublicConsultationActionSchema,
+
+    search: SearchSpecDraftSchema.nullable().default(null),
+
+    searchPatch: SearchSpecPatchSchema.nullable().default(null),
+
+    memoryObservations: ConsultationMemoryObservationsSchema.default(() => []),
+
+    selection: ProductSelectionSchema.nullable().default(null),
+
+    feedback: TurnFeedbackObservationSchema.nullable().default(null),
+
+    usageScenarioIds: z
+      .array(z.string().trim().min(1).max(160))
+      .max(3)
+      .default(() => []),
+
+    factAttributeIds: z
+      .array(z.string().trim().min(1).max(160))
+      .max(16)
+      .default(() => []),
+
+    terminalText: z.string().trim().min(1).max(6000).nullable().default(null),
+  })
+  .strict();
+
+const ProductWorkspaceModelActionSchema = z
+  .object({
+    decision: ProductWorkspaceModelDecisionSchema,
+
+    view: ProductWorkspaceViewSchema.nullable().default(null),
+  })
+  .strict();
+
+export const ProductWorkspaceModelPlanSchema = z
+  .object({
+    operations: z
+      .array(
+        z.discriminatedUnion('kind', [
+          z
+            .object({
+              kind: z.literal('consult'),
+
+              target: ProductWorkspaceModelTargetSchema,
+
+              query: z.string().trim().min(1).max(4000),
+
+              actions: z.array(ProductWorkspaceModelActionSchema).min(1),
+            })
+            .strict(),
+
+          z
+            .object({
+              kind: z.literal('remove'),
+
+              target: ProductWorkspaceModelExplicitTargetSchema,
+            })
+            .strict(),
+        ]),
+      )
+      .default(() => []),
+
+    clarification: z.string().trim().min(1).max(6000).nullable().default(null),
+  })
+  .strict()
+  .superRefine((plan, context) => {
+    if ((plan.operations.length === 0) === (plan.clarification === null)) {
+      context.addIssue({
+        code: 'custom',
+
+        message: 'Choose operations or workspace clarification.',
+      });
+    }
+  });
+
+type ProductWorkspaceModelPlan = z.infer<
+  typeof ProductWorkspaceModelPlanSchema
+>;
+
+type ProductWorkspaceModelAction = z.infer<
+  typeof ProductWorkspaceModelActionSchema
+>;
+
+type ProductWorkspaceModelTarget = z.infer<
+  typeof ProductWorkspaceModelTargetSchema
+>;
+
+type ProductWorkspaceConsultOperation = Extract<
+  ProductWorkspacePlan['operations'][number],
+  {
+    kind: 'consult';
+  }
+>;
+
+type ProductWorkspaceAction =
+  ProductWorkspaceConsultOperation['actions'][number];
+
+type JsonRecord = Record<string, unknown>;
+
+const ROOT_SELECTION_ACTIONS = new Set(['COMPARE', 'DETAILS', 'RECOMMEND']);
+
+function isRecord(value: unknown): value is JsonRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function normalizeSemanticText(value: string): string {
+  return value
+    .trim()
+    .toLocaleLowerCase('ru-RU')
+    .replaceAll('ё', 'е')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/gu, ' ')
+    .trim();
+}
+
+function normalizeAttributeId(value: string): string {
+  return value
+    .trim()
+    .toLocaleLowerCase('ru-RU')
+    .replace(/[_\-\s]+/gu, '');
+}
+
+function constraintKey(raw: unknown): string | null {
+  if (!isRecord(raw)) {
+    return null;
+  }
+
+  if (typeof raw.attributeId !== 'string' || typeof raw.operator !== 'string') {
+    return null;
+  }
+
+  return `${raw.attributeId}:${raw.operator}`;
+}
+
+function isUsageScenarioConstraint(raw: unknown): boolean {
+  if (!isRecord(raw) || typeof raw.attributeId !== 'string') {
+    return false;
+  }
+
+  const attributeId = normalizeAttributeId(raw.attributeId);
+
+  return attributeId === 'usagescenario' || attributeId === 'usecase';
+}
+
+function usageScenarioValue(raw: unknown): string | null {
+  if (
+    !isUsageScenarioConstraint(raw) ||
+    !isRecord(raw) ||
+    typeof raw.value !== 'string'
+  ) {
+    return null;
+  }
+
+  const value = raw.value.trim();
+
+  return value || null;
+}
+
+function scenarioMatches(
+  rawValue: string,
+
+  candidate: string,
+): boolean {
+  const value = normalizeSemanticText(rawValue);
+
+  const normalizedCandidate = normalizeSemanticText(candidate);
+
+  if (value.length < 3 || normalizedCandidate.length < 3) {
+    return false;
+  }
+
+  return (
+    value === normalizedCandidate ||
+    normalizedCandidate.includes(value) ||
+    value.includes(normalizedCandidate)
+  );
+}
+
+function inferUsageScenarioIds(input: {
+  values: readonly string[];
+
+  category: string | null;
+}): string[] {
+  if (input.values.length === 0) {
+    return [];
+  }
+
+  const knowledge = input.category
+    ? getCategoryUsageKnowledge(input.category)
+    : null;
+
+  const sources = knowledge ? [knowledge] : CATEGORY_USAGE_KNOWLEDGE;
+
+  const matchedIds = new Set<string>();
+
+  for (const value of input.values) {
+    for (const source of sources) {
+      for (const scenario of source.scenarios) {
+        const candidates = [scenario.id, scenario.title, ...scenario.signals];
+
+        if (
+          candidates.some((candidate) =>
+            scenarioMatches(
+              value,
+
+              candidate,
+            ),
+          )
+        ) {
+          matchedIds.add(scenario.id);
+        }
+      }
+    }
+  }
+
+  /*
+   * Автоматически мигрируем legacy/ошибочный
+   * usageScenario constraint только тогда,
+   * когда значение однозначно соответствует
+   * одному Usage Scenario.
+   *
+   * Неоднозначность не угадываем.
+   */
+  return matchedIds.size === 1 ? [...matchedIds] : [];
+}
+
+function stripTransportDecisionFields(raw: unknown): unknown {
+  if (!isRecord(raw)) {
+    return raw;
+  }
+
+  const {
+    view: _view,
+
+    target: _target,
+
+    taskTransition: _taskTransition,
+
+    ...decision
+  } = raw;
+
+  return decision;
+}
+
+function canonicalizeSearchDraft(raw: unknown): {
+  value: unknown;
+
+  usageScenarioValues: string[];
+} {
+  if (!isRecord(raw)) {
+    return {
+      value: raw,
+
+      usageScenarioValues: [],
+    };
+  }
+
+  if (!Array.isArray(raw.constraints)) {
+    return {
+      value: raw,
+
+      usageScenarioValues: [],
+    };
+  }
+
+  const usageScenarioValues = raw.constraints.flatMap((constraint) => {
+    const value = usageScenarioValue(constraint);
+
+    return value ? [value] : [];
+  });
+
+  return {
+    value: {
+      ...raw,
+
+      constraints: raw.constraints.filter(
+        (constraint) => !isUsageScenarioConstraint(constraint),
+      ),
+    },
+
+    usageScenarioValues,
+  };
+}
+
+function canonicalizeSearchPatch(
+  raw: unknown,
+
+  fallbackQuery?: string | null,
+): {
+  value: unknown;
+
+  usageScenarioValues: string[];
+} {
+  if (!isRecord(raw)) {
+    return {
+      value: raw,
+
+      usageScenarioValues: [],
+    };
+  }
+
+  const rawSet = Array.isArray(raw.set) ? raw.set : [];
+
+  const rawClear = Array.isArray(raw.clear) ? raw.clear : [];
+
+  const usageScenarioValues = rawSet.flatMap((constraint) => {
+    const value = usageScenarioValue(constraint);
+
+    return value ? [value] : [];
+  });
+
+  const set = rawSet.filter(
+    (constraint) => !isUsageScenarioConstraint(constraint),
+  );
+
+  const setKeys = new Set(
+    set.flatMap((constraint) => {
+      const key = constraintKey(constraint);
+
+      return key ? [key] : [];
+    }),
+  );
+
+  /*
+   * Model-boundary tolerance.
+   *
+   * Для замены:
+   *
+   * color=white -> color=black
+   *
+   * достаточно:
+   *
+   * set color=black
+   *
+   * Если модель одновременно выдала
+   * set + clear одного slot,
+   * set является однозначным намерением
+   * заменить значение и побеждает clear.
+   *
+   * Core schema при этом остаётся строгой.
+   */
+  const clear = rawClear.filter((selector) => {
+    if (isUsageScenarioConstraint(selector)) {
+      return false;
+    }
+
+    const key = constraintKey(selector);
+
+    if (key && setKeys.has(key)) {
+      return false;
+    }
+
+    return true;
+  });
+
+  const fallback = fallbackQuery?.trim();
+
+  const hasSemanticIntent =
+    typeof raw.semanticIntent === 'string' &&
+    raw.semanticIntent.trim().length > 0;
+
+  return {
+    value: {
+      ...raw,
+
+      /*
+       * Если модель ошибочно пыталась
+       * выразить soft goal через
+       * usageScenario constraint,
+       * сохраняем пользовательский смысл
+       * в semantic retrieval query.
+       */
+      ...(usageScenarioValues.length > 0 && !hasSemanticIntent && fallback
+        ? {
+            semanticIntent: fallback,
+          }
+        : {}),
+
+      set,
+
+      clear,
+    },
+
+    usageScenarioValues,
+  };
+}
+
+function canonicalizeModelDecision(
+  raw: unknown,
+
+  fallbackQuery?: string | null,
+): unknown {
+  const stripped = stripTransportDecisionFields(raw);
+
+  if (!isRecord(stripped)) {
+    return stripped;
+  }
+
+  const search = canonicalizeSearchDraft(stripped.search);
+
+  const searchPatch = canonicalizeSearchPatch(
+    stripped.searchPatch,
+
+    fallbackQuery,
+  );
+
+  const category =
+    isRecord(search.value) && typeof search.value.category === 'string'
+      ? search.value.category
+      : isRecord(searchPatch.value) &&
+        typeof searchPatch.value.category === 'string'
+      ? searchPatch.value.category
+      : null;
+
+  const existingScenarioIds = Array.isArray(stripped.usageScenarioIds)
+    ? stripped.usageScenarioIds.filter(
+        (value): value is string =>
+          typeof value === 'string' && value.trim().length > 0,
+      )
+    : [];
+
+  const inferredScenarioIds =
+    existingScenarioIds.length > 0
+      ? []
+      : inferUsageScenarioIds({
+          values: [
+            ...search.usageScenarioValues,
+
+            ...searchPatch.usageScenarioValues,
+          ],
+
+          category,
+        });
+
+  return {
+    ...stripped,
+
+    search: search.value,
+
+    searchPatch: searchPatch.value,
+
+    ...(existingScenarioIds.length > 0 || inferredScenarioIds.length > 0
+      ? {
+          usageScenarioIds: [
+            ...new Set([...existingScenarioIds, ...inferredScenarioIds]),
+          ].slice(
+            0,
+
+            3,
+          ),
+        }
+      : {}),
+  };
+}
+
+function actionView(action: JsonRecord): unknown {
+  if (action.view !== undefined) {
+    return action.view;
+  }
+
+  if (isRecord(action.decision) && action.decision.view !== undefined) {
+    return action.decision.view;
+  }
+
+  return null;
+}
+
+function actionTarget(action: JsonRecord): unknown | null {
+  if (action.target !== undefined) {
+    return action.target;
+  }
+
+  if (isRecord(action.decision) && action.decision.target !== undefined) {
+    return action.decision.target;
+  }
+
+  return null;
+}
+
+function sameJson(
+  left: unknown,
+
+  right: unknown,
+): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function sharedActionTarget(actions: readonly unknown[]): unknown | null {
+  const targets = actions
+    .filter(isRecord)
+    .map(actionTarget)
+    .filter((target): target is unknown => target !== null);
+
+  if (targets.length === 0) {
+    return null;
+  }
+
+  const first = targets[0];
+
+  if (
+    targets.some(
+      (target) =>
+        !sameJson(
+          target,
+
+          first,
+        ),
+    )
+  ) {
+    throw new Error(
+      'ProductWorkspaceModelPlan: one lane cannot contain conflicting targets.',
+    );
+  }
+
+  return first;
+}
+
+function decisionAction(decision: unknown): string | null {
+  if (!isRecord(decision) || typeof decision.action !== 'string') {
+    return null;
+  }
+
+  return decision.action;
+}
+
+function decisionSearchSemanticIntent(decision: unknown): string | null {
+  if (!isRecord(decision) || !isRecord(decision.search)) {
+    return null;
+  }
+
+  const semanticIntent = decision.search.semanticIntent;
+
+  return typeof semanticIntent === 'string' && semanticIntent.trim()
+    ? semanticIntent.trim()
+    : null;
+}
+
+function targetSourceText(target: unknown): string | null {
+  if (!isRecord(target)) {
+    return null;
+  }
+
+  return typeof target.sourceText === 'string' && target.sourceText.trim()
+    ? target.sourceText.trim()
+    : null;
+}
+
+function currentView(
+  actions: readonly unknown[],
+): 'focus' | 'results' | 'comparison' {
+  const first = actions.find(isRecord);
+
+  if (!first) {
+    return 'focus';
+  }
+
+  const view = actionView(first);
+
+  return view === 'results' || view === 'comparison' || view === 'focus'
+    ? view
+    : 'focus';
+}
+
+function inferOperationTarget(
+  operation: JsonRecord,
+
+  actions: readonly unknown[],
+): unknown {
+  if (operation.target !== null && operation.target !== undefined) {
+    return operation.target;
+  }
+
+  const shared = sharedActionTarget(actions);
+
+  if (shared !== null) {
+    return shared;
+  }
+
+  const first = actions.find(isRecord);
+
+  const decision = first?.decision !== undefined ? first.decision : first;
+
+  const action = decisionAction(decision);
+
+  if (action === 'SEARCH' || action === 'CLARIFY') {
+    return {
+      kind: 'new',
+    };
+  }
+
+  return {
+    kind: 'current',
+
+    view: currentView(actions),
+  };
+}
+
+function inferOperationQuery(input: {
+  operation: JsonRecord;
+
+  target: unknown;
+
+  decisions: readonly unknown[];
+
+  fallbackQuery?: string | null;
+}): string | null {
+  if (
+    typeof input.operation.query === 'string' &&
+    input.operation.query.trim()
+  ) {
+    return input.operation.query.trim();
+  }
+
+  for (const decision of input.decisions) {
+    const semanticIntent = decisionSearchSemanticIntent(decision);
+
+    if (semanticIntent) {
+      return semanticIntent;
+    }
+  }
+
+  const sourceText = targetSourceText(input.target);
+
+  if (sourceText) {
+    return sourceText;
+  }
+
+  const fallback = input.fallbackQuery?.trim();
+
+  return fallback || null;
+}
+
+function canonicalizeAction(
+  raw: unknown,
+
+  fallbackQuery?: string | null,
+): unknown {
+  if (!isRecord(raw)) {
+    return raw;
+  }
+
+  const decision = raw.decision !== undefined ? raw.decision : raw;
+
+  return {
+    decision: canonicalizeModelDecision(
+      decision,
+
+      fallbackQuery,
+    ),
+
+    view: actionView(raw),
+  };
+}
+
+function canonicalizeOperation(
+  raw: unknown,
+
+  fallbackQuery?: string | null,
+): unknown {
+  if (!isRecord(raw)) {
+    return raw;
+  }
+
+  if (
+    Array.isArray(raw.operations) &&
+    raw.operations.length === 1 &&
+    isRecord(raw.operations[0])
+  ) {
+    const nested = raw.operations[0];
+
+    return canonicalizeOperation(
+      {
+        ...nested,
+
+        target: raw.target ?? nested.target,
+
+        query: raw.query ?? nested.query,
+      },
+
+      fallbackQuery,
+    );
+  }
+
+  if (raw.kind === 'remove') {
+    return raw;
+  }
+
+  if (Array.isArray(raw.actions)) {
+    const decisions = raw.actions
+      .filter(isRecord)
+      .map((action) =>
+        action.decision !== undefined ? action.decision : action,
+      );
+
+    const target = inferOperationTarget(
+      raw,
+
+      raw.actions,
+    );
+
+    const query = inferOperationQuery({
+      operation: raw,
+
+      target,
+
+      decisions,
+
+      fallbackQuery,
+    });
+
+    return {
+      kind: 'consult',
+
+      target,
+
+      query,
+
+      actions: raw.actions.map((action) =>
+        canonicalizeAction(
+          action,
+
+          query ?? fallbackQuery,
+        ),
+      ),
+    };
+  }
+
+  if (raw.decision !== undefined) {
+    const actions = [raw];
+
+    const target = inferOperationTarget(
+      raw,
+
+      actions,
+    );
+
+    const query = inferOperationQuery({
+      operation: raw,
+
+      target,
+
+      decisions: [raw.decision],
+
+      fallbackQuery,
+    });
+
+    return {
+      kind: 'consult',
+
+      target,
+
+      query,
+
+      actions: [
+        canonicalizeAction(
+          raw,
+
+          query ?? fallbackQuery,
+        ),
+      ],
+    };
+  }
+
+  return raw;
+}
+
+function canonicalizeProductWorkspaceModelPlan(
+  raw: unknown,
+
+  fallbackQuery?: string | null,
+): unknown {
+  if (!isRecord(raw)) {
+    return raw;
+  }
+
+  if (!Array.isArray(raw.operations)) {
+    return raw;
+  }
+
+  return {
+    ...raw,
+
+    operations: raw.operations.map((operation) =>
+      canonicalizeOperation(
+        operation,
+
+        fallbackQuery,
+      ),
+    ),
+  };
+}
+
+function normalizeRootSelection(raw: ProductWorkspaceModelAction['decision']) {
+  return ROOT_SELECTION_ACTIONS.has(raw.action) ? raw.selection : null;
+}
+
+function taskTransition(
+  action: ProductWorkspaceModelAction['decision']['action'],
+
+  target: ProductWorkspaceModelTarget,
+
+  actionOrdinal: number,
+): 'continue' | 'start_new' {
+  if (
+    actionOrdinal === 0 &&
+    target.kind === 'new' &&
+    (action === 'SEARCH' || action === 'CLARIFY')
+  ) {
+    return 'start_new';
+  }
+
+  return 'continue';
+}
+
+function terminalText(
+  raw: ProductWorkspaceModelAction['decision'],
+): string | null {
+  if (raw.terminalText !== null) {
+    return raw.terminalText;
+  }
+
+  if (raw.action === 'COMPLETE') {
+    return 'Спасибо за консультацию. Если понадобится помощь с выбором — обращайтесь.';
+  }
+
+  return null;
+}
+
+function normalizeDecision(
+  raw: ProductWorkspaceModelAction['decision'],
+
+  target: ProductWorkspaceModelTarget,
+
+  actionOrdinal: number,
+) {
+  return ProductConsultantDecisionSchema.parse({
+    proposal: {
+      action: raw.action,
+
+      taskTransition: taskTransition(
+        raw.action,
+
+        target,
+
+        actionOrdinal,
+      ),
+
+      search: raw.search,
+
+      searchPatch: raw.searchPatch,
+
+      memoryObservations: raw.memoryObservations,
+
+      selection: normalizeRootSelection(raw),
+
+      feedback: raw.feedback,
+    },
+
+    usageScenarioIds: raw.usageScenarioIds,
+
+    factAttributeIds: raw.factAttributeIds,
+
+    terminalText: terminalText(raw),
+  });
+}
+
+function normalizeAction(
+  action: ProductWorkspaceModelAction,
+
+  target: ProductWorkspaceModelTarget,
+
+  actionOrdinal: number,
+): ProductWorkspaceAction[] {
+  const decision = action.decision;
+
+  const positions =
+    decision.action === 'DETAILS' && decision.selection?.kind === 'positions'
+      ? decision.selection.positions
+      : null;
+
+  if (!positions || positions.length <= 1) {
+    return [
+      {
+        decision: normalizeDecision(
+          decision,
+
+          target,
+
+          actionOrdinal,
+        ),
+
+        view: action.view,
+      },
+    ];
+  }
+
+  return positions.map(
+    (position): ProductWorkspaceAction => ({
+      decision: normalizeDecision(
+        {
+          ...decision,
+
+          selection: {
+            kind: 'positions',
+
+            positions: [position],
+          },
+        },
+
+        target,
+
+        actionOrdinal,
+      ),
+
+      view: action.view,
+    }),
+  );
+}
+
+export function normalizeProductWorkspaceModelPlan(
+  raw: unknown,
+
+  fallbackQuery?: string | null,
+): ProductWorkspacePlan {
+  const canonical = canonicalizeProductWorkspaceModelPlan(
+    raw,
+
+    fallbackQuery,
+  );
+
+  const modelPlan: ProductWorkspaceModelPlan =
+    ProductWorkspaceModelPlanSchema.parse(canonical);
+
+  const normalized = {
+    operations: modelPlan.operations.map((operation) => {
+      if (operation.kind === 'remove') {
+        return {
+          kind: 'remove' as const,
+
+          target: operation.target,
+        };
+      }
+
+      return {
+        kind: 'consult' as const,
+
+        target: operation.target,
+
+        query: operation.query,
+
+        actions: operation.actions.flatMap(
+          (
+            action,
+
+            actionOrdinal,
+          ) =>
+            normalizeAction(
+              action,
+
+              operation.target,
+
+              actionOrdinal,
+            ),
+        ),
+      };
+    }),
+
+    clarification: modelPlan.clarification,
+  };
+
+  return ProductWorkspacePlanSchema.parse(normalized);
+}
+
+
+===== src/product-consultation/application/workspace/product-workspace.prompt.ts =====
+
+export const productWorkspacePrompt = `
+Ты — Product Workspace Planner интернет-магазина.
+
+Определи:
+- к какой товарной задаче относится запрос;
+- какое действие хочет пользователь;
+- какие товары он имеет в виду.
+
+Backend сам:
+- определяет taskTransition;
+- исполняет поиск;
+- разрешает позиции товаров;
+- проверяет SearchSpec;
+- хранит состояние;
+- управляет concurrency и idempotency.
+
+Не выводи taskTransition.
+Не придумывай Product IDs, результаты поиска или характеристики.
+
+Если currentMessage содержит несколько независимых товарных задач,
+создай отдельную operation для каждой задачи.
+
+Если одна задача содержит несколько последовательных действий,
+оставь их в одной operation в правильном порядке.
+
+Пример:
+
+"Сравни первый и второй Adidas, покажи второй Nike подробнее,
+а у платьев покажи подробно первое и второе"
+
+Adidas:
+COMPARE positions=[1,2]
+
+Nike:
+DETAILS positions=[2]
+
+Платья:
+DETAILS positions=[1,2]
+
+Backend сам разделит multi-position DETAILS
+на несколько atomic DETAILS actions.
+
+Ключевая семантика действий.
+
+SEARCH:
+пользователь просит найти новую самостоятельную подборку.
+
+REFINE:
+пользователь меняет условия существующей подборки.
+
+SHOW_RESULTS:
+пользователь просит снова показать уже найденные товары.
+
+COMPARE:
+используй только когда пользователь действительно хочет сравнение:
+"сравни",
+"чем отличаются",
+"в чём разница",
+"сопоставь".
+
+Не создавай COMPARE только потому,
+что пользователь выбирает между несколькими товарами.
+
+RECOMMEND:
+используй когда пользователь хочет решение или совет:
+"что выбрать",
+"какой лучше",
+"что посоветуешь",
+"какой больше подойдёт",
+"подойдёт ли этот товар для ...".
+
+RECOMMEND может относиться и к одному товару.
+
+Примеры:
+
+"Из первого и второго платья какое лучше для ужина в ресторане?"
+→ RECOMMEND positions=[1,2]
+→ НЕ COMPARE.
+
+"Nike Mind 002 подойдёт для ежедневной ходьбы?"
+→ RECOMMEND с выбранным Nike Mind 002
+→ НЕ DETAILS.
+
+DETAILS:
+используй только когда пользователь действительно просит
+подробности или характеристики товара:
+"расскажи подробнее",
+"покажи характеристики",
+"из чего сделан",
+"покажи второй подробнее".
+
+COMPLETE:
+используй когда пользователь завершает консультацию:
+"спасибо, всё",
+"на этом закончим",
+"беру этот",
+"беру рекомендуемый товар",
+"отлично, определился".
+
+Backend сам завершит консультацию
+и сформирует финальное сообщение.
+Для COMPLETE terminalText=null.
+
+CLARIFY:
+только когда без уточнения невозможно понять,
+с какой товарной задачей или каким товаром работать.
+
+HANDOFF:
+когда пользователь прямо просит оператора
+внутри товарной консультации.
+
+FEEDBACK:
+когда пользователь оценивает конкретный товар
+или предыдущую рекомендацию.
+
+Поля decision.
+
+SEARCH:
+- search обязателен;
+- selection=null;
+- searchPatch=null;
+- feedback=null.
+
+REFINE:
+- searchPatch содержит изменение текущего SearchSpec;
+- search=null;
+- selection=null;
+- feedback=null.
+
+SHOW_RESULTS:
+- selection=null;
+- search=null;
+- searchPatch=null;
+- feedback=null.
+
+COMPARE:
+- selection обязателен;
+- минимум две позиции.
+
+DETAILS:
+- selection обязателен;
+- одна или несколько positions допустимы на model boundary.
+
+RECOMMEND:
+- selection обязателен;
+- один или несколько уже показанных товаров.
+
+FEEDBACK:
+- root selection=null;
+- товар задаётся через feedback.selection.
+
+COMPLETE, CLARIFY, HANDOFF:
+- root selection=null.
+
+Если пользователь явно называет существующую подборку,
+используй target.kind="task"
+с реальным taskId из tasks
+и короткой точной цитатой currentMessage в sourceText.
+
+Не выдумывай taskId.
+
+Если пользователь говорит:
+"покажи второй",
+"сравни первый и второй"
+
+и владельца действия нельзя определить однозначно —
+верни workspace clarification.
+
+Если пользователь говорит:
+"какое из этих платьев лучше",
+"что из Nike подойдёт для ходьбы"
+
+и operation.query однозначно указывает задачу,
+используй эту задачу.
+
+Позиции начинаются с 1.
+
+view="results":
+позиции текущей выдачи.
+
+view="focus":
+текущий выбранный набор.
+
+view="comparison":
+последнее сохранённое сравнение.
+
+Фразы:
+"из тех, которые сравнивали",
+"из сравниваемых",
+"какой из них после сравнения"
+
+означают view="comparison".
+
+Не подменяй отсутствующее comparison обычной выдачей.
+
+Если task.question содержит zero-result recovery,
+ответ пользователя продолжает ту же task.
+
+Не ослабляй поисковые условия без согласия пользователя.
+
+SearchSpec содержит только executable hard constraints.
+
+Hard constraints — только поля,
+которые реально поддержаны searchCapabilities.
+
+Soft preferences и цели пользователя
+не помещай в SearchSpec constraints.
+
+Никогда не создавай hard constraint:
+
+usageScenario
+usage_scenario
+useCase
+use_case
+
+Цель использования товара
+не является SearchSpec constraint.
+
+Для явно выраженной цели использования
+используй usageScenarioIds.
+
+Если цель использования должна влиять
+на семантический поиск,
+обнови searchPatch.semanticIntent.
+
+Пример текущей подборки:
+
+мужские кроссовки Nike
+
+Пользователь:
+
+"чёрные, которые подойдут для бега"
+
+Это REFINE текущей задачи.
+
+Правильная структура:
+
+searchPatch.semanticIntent =
+"чёрные кроссовки для бега"
+
+searchPatch.set =
+[
+  {
+    attributeId: "color",
+    operator: "eq",
+    value: "чёрный",
+    unit: null
+  }
+]
+
+searchPatch.clear = []
+
+usageScenarioIds = ["training"]
+
+Существующие brand=Nike,
+gender=MAN и category=SHOES
+Backend сохранит сам.
+
+Не повторяй их без необходимости.
+
+ВАЖНО для SearchSpecPatch:
+
+set заменяет существующее значение
+того же attributeId + operator.
+
+Чтобы заменить:
+
+color=белый
+
+на:
+
+color=чёрный
+
+используй только:
+
+set color:eq=чёрный
+
+НЕ добавляй одновременно:
+
+clear color:eq
+
+Один target запрещено одновременно
+set и clear в одном patch.
+
+clear используй только тогда,
+когда пользователь явно хочет убрать условие
+и не задаёт ему новое значение.
+
+Пример:
+
+"цвет не важен"
+
+→ clear color:eq
+
+Пример:
+
+"теперь чёрные"
+
+→ set color:eq=чёрный
+→ clear=[]
+
+usageScenarioIds используй только
+при явно выраженной цели использования.
+
+factAttributeIds —
+только временный semantic/fact focus.
+
+Для SEARCH, REFINE, SHOW_RESULTS, COMPARE, DETAILS,
+RECOMMEND и COMPLETE:
+terminalText=null.
+
+Для CLARIFY, HANDOFF и FEEDBACK:
+terminalText содержит готовый plain-text ответ.
+
+Не используй Markdown.
+Не употребляй внутренние термины системы
+в пользовательском тексте.
+`.trim();
+
+
+===== src/product-consultation/application/consultation-agent/consultation.agent.ts =====
+
+import { Logger } from '@nestjs/common';
+
+import {
+  HumanMessage,
+  SystemMessage,
+  type BaseMessage,
+} from '@langchain/core/messages';
+
+import { createAgent } from 'langchain';
+
+import { AiService } from '@/src/ai/ai.service';
+
+import type { ProductConsultationLlmContext } from '@/src/product-consultation/application/context/product-consultation-context';
+
+import {
+  ProductConsultantDecisionSchema,
+  type ProductConsultantDecision,
+} from '@/src/product-consultation/application/consultant/product-consultant-decision.schema';
+
+import type { ProductConsultantRoundObservation } from '@/src/product-consultation/application/consultant/product-consultant-model.port';
+
+import { ConsultationCore } from '@/src/product-consultation/core/consultation-core';
+
+import type { AgentComparisonView } from '@/src/product-consultation/core/consultation-core.schema';
+
+import {
+  consultationAgentPrompt,
+  consultationCompletionPrompt,
+} from './prompts/consultation-agent.prompt';
+
+import { productConsultantDecisionPrompt } from './prompts/product-consultant.prompt';
+
+import {
+  ConsultationAgentInputSchema,
+  type ConsultationAgentInput,
+} from './schemas/consultation-agent.schema';
+
+import { ConsultationCompletionOutputSchema } from './schemas/consultation-completion.schema';
+
+import { createConsultationCoreTools } from './tools/consultation-core.tools';
+
+import { finalizeConsultation } from './consultation-finalizer';
+
+import {
+  normalizeProductWorkspaceModelPlan,
+  ProductWorkspaceModelPlanSchema,
+} from '../workspace/product-workspace-model-plan';
+
+import { ProductWorkspacePlanSchema } from '../workspace/product-workspace-plan';
+
+import { productWorkspacePrompt } from '../workspace/product-workspace.prompt';
+
+export type ProductConsultantAgentInput = {
+  context: ProductConsultationLlmContext;
+
+  observation: ProductConsultantRoundObservation;
+
+  signal?: AbortSignal;
+};
+
+const workspaceLogger = new Logger('ProductWorkspacePlanner');
+
+const WORKSPACE_REPAIR_PROMPT = `
+Предыдущий structured output оказался пустым или невалидным.
+
+Верни минимальный валидный Workspace plan.
+
+Не копируй входные данные.
+Не объясняй решение.
+Не пиши обычный текст вместо structured output.
+Не создавай decision.proposal.
+`.trim();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function workspaceFallbackQuery(context: unknown): string | null {
+  if (!isRecord(context)) {
+    return null;
+  }
+
+  const currentMessage = context.currentMessage;
+
+  return typeof currentMessage === 'string' && currentMessage.trim()
+    ? currentMessage.trim()
+    : null;
+}
+
+function extractRawToolArguments(response: unknown): unknown | null {
+  if (!isRecord(response)) {
+    return null;
+  }
+
+  const raw = response.raw;
+
+  if (!isRecord(raw)) {
+    return null;
+  }
+
+  const directToolCalls = raw.tool_calls;
+
+  if (Array.isArray(directToolCalls) && directToolCalls.length === 1) {
+    const toolCall = directToolCalls[0];
+
+    if (isRecord(toolCall)) {
+      const args = toolCall.args;
+
+      if (isRecord(args)) {
+        return args;
+      }
+    }
+  }
+
+  const additionalKwargs = raw.additional_kwargs;
+
+  if (!isRecord(additionalKwargs)) {
+    return null;
+  }
+
+  const toolCalls = additionalKwargs.tool_calls;
+
+  if (!Array.isArray(toolCalls) || toolCalls.length !== 1) {
+    return null;
+  }
+
+  const toolCall = toolCalls[0];
+
+  if (!isRecord(toolCall)) {
+    return null;
+  }
+
+  const fn = toolCall.function;
+
+  if (!isRecord(fn)) {
+    return null;
+  }
+
+  const args = fn.arguments;
+
+  if (isRecord(args)) {
+    return args;
+  }
+
+  if (typeof args !== 'string') {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(args);
+
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractWorkspaceCandidate(response: unknown): unknown | null {
+  if (!isRecord(response)) {
+    return response ?? null;
+  }
+
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      response,
+
+      'parsed',
+    )
+  ) {
+    return response;
+  }
+
+  if (response.parsed !== null && response.parsed !== undefined) {
+    return response.parsed;
+  }
+
+  return extractRawToolArguments(response);
+}
+
+function workspaceParsingError(response: unknown): unknown | null {
+  if (!isRecord(response)) {
+    return null;
+  }
+
+  return response.parsing_error ?? null;
+}
+
+export function createConsultationAgent(aiService: AiService) {
+  const model = aiService.getChatModel('yandex');
+
+  const decisionModel = model
+    .withStructuredOutput(ProductConsultantDecisionSchema, {
+      name: 'product_consultant_decision',
+
+      method: 'functionCalling',
+
+      strict: false,
+    })
+    .withRetry({
+      stopAfterAttempt: 2,
+    });
+
+  const workspaceDecisionModel = model.withStructuredOutput(
+    ProductWorkspaceModelPlanSchema,
+    {
+      name: 'product_workspace_decision',
+
+      method: 'functionCalling',
+
+      strict: false,
+
+      includeRaw: true,
+    },
+  );
+
+  const completionModel = model.withStructuredOutput(
+    ConsultationCompletionOutputSchema,
+    {
+      name: 'finalize_consultation',
+
+      method: 'functionCalling',
+
+      strict: false,
+
+      includeRaw: true,
+    },
+  );
+
+  return {
+    async decideWorkspace(context: unknown) {
+      const fallbackQuery = workspaceFallbackQuery(context);
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const response = await workspaceDecisionModel.invoke([
+            new SystemMessage(productWorkspacePrompt),
+
+            ...(attempt === 0
+              ? []
+              : [new SystemMessage(WORKSPACE_REPAIR_PROMPT)]),
+
+            new HumanMessage(JSON.stringify(context)),
+          ]);
+
+          const candidate = extractWorkspaceCandidate(response);
+
+          if (candidate === null) {
+            workspaceLogger.warn(
+              `Workspace structured output is empty on attempt ${
+                attempt + 1
+              }. Parsing error: ${String(workspaceParsingError(response))}`,
+            );
+
+            continue;
+          }
+
+          const internalPlan = ProductWorkspacePlanSchema.safeParse(candidate);
+
+          if (internalPlan.success) {
+            return internalPlan.data;
+          }
+
+          try {
+            return normalizeProductWorkspaceModelPlan(
+              candidate,
+
+              fallbackQuery,
+            );
+          } catch (error) {
+            workspaceLogger.warn(
+              `Workspace plan normalization failed on attempt ${attempt + 1}: ${
+                error instanceof Error ? error.message : String(error)
+              }. Candidate: ${JSON.stringify(candidate)}`,
+            );
+
+            continue;
+          }
+        } catch (error) {
+          workspaceLogger.warn(
+            `Workspace planner failed on attempt ${attempt + 1}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
+        }
+      }
+
+      return ProductWorkspacePlanSchema.parse({
+        operations: [],
+
+        clarification:
+          'Не удалось обработать запрос к товарам. Попробуйте сформулировать его ещё раз.',
+      });
+    },
+
+    async decide(
+      input: ProductConsultantAgentInput,
+    ): Promise<ProductConsultantDecision> {
+      const decision = await decisionModel.invoke(
+        [
+          new SystemMessage(productConsultantDecisionPrompt),
+
+          new HumanMessage(
+            JSON.stringify({
+              observation: input.observation,
+
+              context: input.context,
+            }),
+          ),
+        ],
+        {
+          signal: input.signal,
+        },
+      );
+
+      return ProductConsultantDecisionSchema.parse(decision);
+    },
+
+    async invoke(
+      rawInput: ConsultationAgentInput,
+
+      core: ConsultationCore,
+
+      comparisons?: AgentComparisonView[],
+    ) {
+      const input = ConsultationAgentInputSchema.parse(rawInput);
+
+      let messages: BaseMessage[] = [new HumanMessage(JSON.stringify(input))];
+
+      if (comparisons !== undefined) {
+        messages.push(
+          new HumanMessage(
+            JSON.stringify({
+              preparedComparisons: comparisons,
+            }),
+          ),
+        );
+      } else {
+        const tools = createConsultationCoreTools(
+          core,
+
+          input.query,
+        );
+
+        const agent = createAgent({
+          model,
+
+          systemPrompt: consultationAgentPrompt,
+
+          tools: [
+            tools.updateMemory,
+
+            tools.getProductDetails,
+
+            tools.compareProducts,
+          ],
+
+          checkpointer: false,
+        });
+
+        try {
+          const run = await agent.invoke(
+            {
+              messages,
+            },
+            {
+              recursionLimit: 24,
+            },
+          );
+
+          messages = run.messages;
+        } catch (error) {
+          if (
+            !(error instanceof Error) ||
+            error.name !== 'GraphRecursionError'
+          ) {
+            throw error;
+          }
+
+          return finalizeConsultation(
+            input,
+
+            null,
+
+            core,
+          );
+        }
+      }
+
+      const completion = await completionModel.invoke([
+        new SystemMessage(consultationCompletionPrompt),
+
+        ...messages,
+
+        new HumanMessage('Сформируй итоговый результат консультации.'),
+      ]);
+
+      return finalizeConsultation(
+        input,
+
+        completion.parsed,
+
+        core,
+      );
+    },
+  };
+}
+
+export type ConsultationAgent = ReturnType<typeof createConsultationAgent>;
+
+
+===== src/product-consultation/application/agent/nodes/decide-product.node.ts =====
+
+import type { GraphNode } from '@langchain/langgraph';
+
+import { AiService } from '@/src/ai/ai.service';
+
+import { ProductAgentService } from '../product-agent.service';
+
+import {
+  ProductAgentState,
+  type ProductAgentStateType,
+} from '../product-agent.state';
+
+import { createConsultationAgent } from '../../consultation-agent/consultation.agent';
+
+function compactWorkspaceTask(
+  task: ProductAgentStateType['workspace']['tasks'][number],
+) {
+  const state = task.record.state;
+
+  const snapshot = task.record.results.active;
+
+  return {
+    taskId: task.taskId,
+
+    query: task.query,
+
+    question: task.question,
+
+    search: state?.search ?? null,
+
+    memory: state
+      ? {
+          goals: state.memory.memory.goals.map((goal) => ({
+            text: goal.text,
+
+            importance: goal.importance,
+          })),
+
+          criteria: state.memory.memory.criteria.map((criterion) => ({
+            attributeId: criterion.attributeId,
+
+            operator: criterion.operator,
+
+            value: criterion.value,
+
+            unit: criterion.unit,
+
+            importance: criterion.importance,
+
+            sourceText: criterion.sourceText,
+          })),
+        }
+      : null,
+
+    results: snapshot
+      ? {
+          count: snapshot.products.length,
+
+          products: snapshot.products.slice(0, 25).map((product, index) => ({
+            position: index + 1,
+
+            title: product.title,
+          })),
+        }
+      : null,
+
+    lastComparison: task.lastComparison
+      ? {
+          positions: task.lastComparison.positions,
+        }
+      : null,
+  };
+}
+
+export function createDecideProductNode(
+  aiService: AiService,
+
+  productAgentService: ProductAgentService,
+): GraphNode<typeof ProductAgentState> {
+  const consultant = createConsultationAgent(aiService);
+
+  return async (state) => {
+    if (state.workspace.processedRequestIds.includes(state.requestId)) {
+      return {
+        plan: null,
+      };
+    }
+
+    const plan = await consultant.decideWorkspace({
+      currentMessage: state.query,
+
+      pendingClarification: state.workspace.pendingClarification,
+
+      tasks: state.workspace.tasks.map(compactWorkspaceTask),
+
+      focus: state.workspace.focus.map((focus) => ({
+        taskId: focus.taskId,
+
+        positions: focus.positions,
+      })),
+
+      searchCapabilities: productAgentService.capabilities(),
+    });
+
+    return {
+      plan,
+    };
+  };
+}
+
+
+===== src/product-consultation/application/agent/nodes/execute-product-workspace.node.ts =====
+
+import { Logger } from '@nestjs/common';
+
+import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
+
+import type { GraphNode, LangGraphRunnableConfig } from '@langchain/langgraph';
+
+import { AiService } from '@/src/ai/ai.service';
+
+import { ProductAgentService } from '../product-agent.service';
+
+import { ProductAgentState } from '../product-agent.state';
+
+import { executeProductLane } from '../../workspace/execute-product-lane';
+
+import { productActionPresentations } from '../../presentation/product-action-presentations';
+
+import {
+  ProductWorkspaceSchema,
+  replaceProductWorkspaceContext,
+} from '../../workspace/product-workspace';
+
+import {
+  prepareProductWorkspacePlan,
+  ProductWorkspaceClarification,
+  resolveProductWorkspaceLifecycle,
+} from '../../workspace/product-workspace-plan';
+
+import { appendProcessedRequestId } from '../../runtime/consultation-application-record';
+
+import { createExecuteProductDecisionNode } from './execute-product-decision.node';
+
+import type { ProductAgentAnswer } from '../agreagte-answer.schema';
+
+const workspaceLogger = new Logger('ExecuteProductWorkspace');
+
+function uniqueMessages(values: Array<string | null | undefined>): string[] {
+  const result: string[] = [];
+  const seen = new Set<string>();
+
+  for (const value of values) {
+    const message = value?.trim();
+
+    if (!message || seen.has(message)) {
+      continue;
+    }
+
+    seen.add(message);
+    result.push(message);
+  }
+
+  return result;
+}
+
+function userFacingClarification(message: string): string {
+  const normalized = message.trim();
+
+  if (
+    [
+      'Какую подборку вы имеете в виду? Укажите товар или название подбора.',
+      'Уточните, какую именно подборку вы имеете в виду.',
+      'Уточните, о какой подборке идёт речь.',
+      'Уточните подборку.',
+    ].includes(normalized)
+  ) {
+    return 'Какую подборку вы имеете в виду?';
+  }
+
+  return normalized;
+}
+
+export function productWorkspaceMessage(
+  groups: ProductAgentAnswer['groups'],
+): string {
+  if (groups.length === 0) {
+    return 'Готово.';
+  }
+
+  if (groups.length === 1) {
+    const group = groups[0];
+
+    if (
+      group.status === 'ready' &&
+      group.products.length > 0 &&
+      !group.presentations?.length
+    ) {
+      return 'Нашёл подходящие варианты.';
+    }
+
+    return group.message || 'Готово.';
+  }
+
+  const ready = groups.filter(
+    (group) => group.status === 'ready' && group.products.length > 0,
+  );
+
+  const questions = uniqueMessages(
+    groups.flatMap((group) => [
+      group.recovery?.question,
+      group.status === 'clarification'
+        ? userFacingClarification(group.message)
+        : null,
+    ]),
+  );
+
+  const empty = groups.filter((group) => group.status === 'empty');
+  const failed = groups.filter((group) => group.status === 'failed');
+
+  if (questions.length > 0) {
+    return uniqueMessages([
+      ready.length > 0 ? 'Часть вариантов нашёл.' : null,
+      failed.length > 0 ? 'Часть действий выполнить не удалось.' : null,
+      ...questions,
+    ]).join('\n\n');
+  }
+
+  if (failed.length > 0) {
+    if (groups.some((group) => group.presentations?.length)) {
+      return 'Часть действий выполнена. Не все действия удалось завершить.';
+    }
+
+    return ready.length > 0
+      ? 'Часть вариантов нашёл. Часть поиска выполнить не удалось.'
+      : 'Не удалось завершить поиск товаров.';
+  }
+
+  if (empty.length > 0) {
+    return ready.length > 0
+      ? 'Часть вариантов нашёл. По другой части запроса подходящих товаров нет.'
+      : 'Подходящих товаров не нашёл.';
+  }
+
+  if (groups.every((group) => group.status === 'closed')) {
+    return 'Спасибо за консультацию. Если понадобится помощь с выбором — обращайтесь.';
+  }
+
+  if (ready.length > 0) {
+    return 'Нашёл подходящие варианты.';
+  }
+
+  return 'Готово.';
+}
+
+export function productWorkspaceGroupMessage(input: {
+  status: NonNullable<ProductAgentAnswer['groups'][number]['status']>;
+  showProducts: boolean;
+  productsCount: number;
+  message: string;
+}): string {
+  if (
+    input.status === 'ready' &&
+    input.showProducts &&
+    input.productsCount > 0
+  ) {
+    return '';
+  }
+
+  return input.message;
+}
+
+export function createExecuteProductWorkspaceNode(
+  aiService: AiService,
+  service: ProductAgentService,
+): GraphNode<typeof ProductAgentState> {
+  const executeTask = createExecuteProductDecisionNode(aiService, service);
+
+  return async (state, config: LangGraphRunnableConfig) => {
+    let workspace = ProductWorkspaceSchema.parse(
+      structuredClone(state.workspace),
+    );
+
+    const empty = {
+      groups: [],
+      consultation: null,
+      consultationCompletion: null,
+      completionRequested: false,
+      handoffRequested: false,
+    };
+
+    if (workspace.processedRequestIds.includes(state.requestId)) {
+      return {
+        ...empty,
+        workspace,
+        message: 'Этот запрос уже обработан.',
+      };
+    }
+
+    if (!state.plan) {
+      throw new Error('Product workspace plan is missing.');
+    }
+
+    const acknowledge = () => {
+      workspace.processedRequestIds = appendProcessedRequestId(
+        workspace.processedRequestIds,
+        state.requestId,
+      );
+
+      return ProductWorkspaceSchema.parse(workspace);
+    };
+
+    if (state.plan.clarification) {
+      const question = userFacingClarification(state.plan.clarification);
+
+      workspace.pendingClarification = {
+        query: state.query.slice(0, 4000),
+        question,
+      };
+
+      return {
+        ...empty,
+        workspace: acknowledge(),
+        message: question,
+      };
+    }
+
+    let operations: ReturnType<typeof prepareProductWorkspacePlan>;
+
+    try {
+      operations = prepareProductWorkspacePlan({
+        workspace,
+        plan: state.plan,
+        query: state.query,
+        sourceQuery: state.sourceQuery ?? state.query,
+        conversationId: state.conversationId,
+        requestId: state.requestId,
+        search: service,
+      });
+    } catch (error) {
+      const message =
+        error instanceof ProductWorkspaceClarification
+          ? userFacingClarification(error.message)
+          : 'Уточните, какой товар и какие условия нужно использовать.';
+
+      if (!(error instanceof ProductWorkspaceClarification)) {
+        workspaceLogger.warn(
+          `Product workspace preflight failed for request ${state.requestId}: ${
+            error instanceof Error
+              ? error.stack ?? error.message
+              : String(error)
+          }`,
+        );
+      }
+
+      workspace.pendingClarification = {
+        query: state.query.slice(0, 4000),
+        question: message,
+      };
+
+      return {
+        ...empty,
+        workspace: acknowledge(),
+        message,
+      };
+    }
+
+    const lifecycle = resolveProductWorkspaceLifecycle({
+      plan: state.plan,
+      sourceQuery: state.sourceQuery ?? state.query,
+    });
+
+    if (lifecycle === 'replace') {
+      workspace = replaceProductWorkspaceContext(workspace);
+    }
+
+    workspace.pendingClarification = null;
+
+    const outcomes = await Promise.all(
+      operations.map((lane) =>
+        executeProductLane({
+          lane,
+          focus: workspace.focus.find(
+            (reference) => reference.taskId === lane.task.taskId,
+          ),
+          conversationId: state.conversationId,
+          requestId: state.requestId,
+          search: service,
+          executeAction: executeTask,
+          beforeAction: async (decision) => {
+            await dispatchCustomEvent(
+              'product_action_started',
+              {
+                action: decision.proposal.action,
+              },
+              config,
+            );
+          },
+        }),
+      ),
+    );
+
+    const groups: ProductAgentAnswer['groups'] = [];
+    const focus: typeof workspace.focus = [];
+
+    let handoffRequested = false;
+    let completionRequested = false;
+
+    for (const outcome of outcomes) {
+      const { task, actions, closed } = outcome;
+
+      const last = actions.at(-1);
+      const action = last?.decision.proposal.action;
+
+      completionRequested ||= Boolean(
+        last && !last.result.failed && action === 'COMPLETE',
+      );
+
+      if (closed) {
+        workspace.tasks = workspace.tasks.filter(
+          (current) => current.taskId !== task.taskId,
+        );
+      } else {
+        const index = workspace.tasks.findIndex(
+          (current) => current.taskId === task.taskId,
+        );
+
+        if (index < 0) {
+          workspace.tasks.push(task);
+        } else {
+          workspace.tasks[index] = task;
+        }
+
+        if (outcome.focus) {
+          focus.push(outcome.focus);
+        }
+      }
+
+      handoffRequested ||= outcome.handoffRequested;
+
+      const snapshot = task.record.results.active;
+
+      const showProducts = actions.some(({ decision }) =>
+        ['SEARCH', 'REFINE', 'SHOW_RESULTS'].includes(decision.proposal.action),
+      );
+
+      const products =
+        showProducts && snapshot
+          ? snapshot.products.map((product) => ({
+              id: product.productId,
+              title: product.title,
+              price: product.price,
+              image: product.image ?? '',
+            }))
+          : [];
+
+      const status = last?.result.failed
+        ? 'failed'
+        : closed
+        ? 'closed'
+        : action === 'CLARIFY'
+        ? 'clarification'
+        : showProducts && !snapshot
+        ? 'failed'
+        : showProducts && snapshot.products.length === 0
+        ? 'empty'
+        : 'ready';
+
+      const rawMessage =
+        uniqueMessages(actions.map(({ result }) => result.message)).join(
+          '\n\n',
+        ) || 'Готово.';
+
+      const presentations = productActionPresentations(actions);
+
+      const recovery = actions
+        .map(({ result }) => result.recovery)
+        .reverse()
+        .find(
+          (candidate) => candidate && candidate.resultId === snapshot?.resultId,
+        );
+
+      groups.push({
+        taskId: task.taskId,
+        query: task.record.state?.search?.semanticIntent ?? task.query,
+        status,
+        message: presentations.length
+          ? rawMessage
+          : productWorkspaceGroupMessage({
+              status,
+              showProducts,
+              productsCount: products.length,
+              message:
+                action === 'CLARIFY'
+                  ? userFacingClarification(rawMessage)
+                  : rawMessage,
+            }),
+        products,
+        presentations,
+        ...(recovery
+          ? {
+              recovery,
+            }
+          : {}),
+        consultation:
+          actions.length === 1 ? last?.result.consultation ?? null : null,
+      });
+    }
+
+    workspace.focus =
+      focus.length > 0
+        ? focus
+        : workspace.focus.filter((reference) =>
+            workspace.tasks.some((task) => task.taskId === reference.taskId),
+          );
+
+    const single =
+      outcomes.length === 1 && outcomes[0].actions.length === 1
+        ? outcomes[0].actions[0].result
+        : null;
+
+    return {
+      workspace: acknowledge(),
+      groups,
+      completionRequested,
+      handoffRequested,
+      consultation: single?.consultation ?? null,
+      consultationCompletion: single?.consultationCompletion ?? null,
+      message: productWorkspaceMessage(groups),
+    };
+  };
+}
+
+
+===== src/product-consultation/adapters/current-store/current-store-product-search.service.ts =====
+
+import { Injectable } from '@nestjs/common';
+
+import {
+  ProductQdrantPayloadSchema,
+  type ProductQdrantPayload,
+} from '@/src/ai/schemas/product-qdrant-payload.schema';
+
+import { AiService } from '@/src/ai/ai.service';
+
+import { PrismaService } from '@/src/core/prisma/prisma.service';
+
+import { QdrantCollections } from '@/src/core/qdrant/qdrant.collections';
+
+import { QdrantService } from '@/src/core/qdrant/qdrant.service';
+
+import { RerankerService } from '@/src/core/reranker/reranker.service';
+
+import { normalizeSearchFilterValue } from '@/src/shared/utils/normalize-search-filter-value';
+
+import {
+  ProductItemSchema,
+  type ProductItem,
+} from '@/src/product-consultation/application/agent/product-agent-result.schema';
+
+import type { ProductNeed } from '@/src/product-consultation/application/search/product-need.schema';
+
+import {
+  ProductSearchResultSchema,
+  type ProductSearchResult,
+} from '@/src/product-consultation/application/search/product-search-results.schema';
+
+import { CurrentStoreCatalogService } from './current-store-catalog.service';
+
+import {
+  buildCurrentStoreQdrantFilter,
+  CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
+  isCurrentStoreProductEligible,
+  matchesCurrentStoreHardFilters,
+} from './current-store-hard-filters';
+
+@Injectable()
+export class CurrentStoreProductSearchService {
+  constructor(
+    private readonly aiService: AiService,
+
+    private readonly qdrantService: QdrantService,
+
+    private readonly rerankerService: RerankerService,
+
+    private readonly prismaService: PrismaService,
+
+    private readonly currentStoreCatalogService: CurrentStoreCatalogService,
+  ) {}
+
+  public async searchProducts(
+    productNeed: ProductNeed,
+  ): Promise<ProductSearchResult> {
+    return ProductSearchResultSchema.parse({
+      productNeed,
+
+      products: await this.hybridProductSearch(productNeed),
+    });
+  }
+
+  private async hybridProductSearch(
+    productNeed: ProductNeed,
+  ): Promise<ProductItem[]> {
+    const catalog = await this.currentStoreCatalogService.resolveCatalogFilters(
+      productNeed,
+    );
+
+    if (!catalog) {
+      return [];
+    }
+
+    const embedding = await this.aiService.createQueryEmbedding(
+      productNeed.semanticQuery,
+    );
+
+    const points = await this.qdrantService.hybridSearch(
+      QdrantCollections.products,
+
+      embedding,
+
+      productNeed.semanticQuery,
+
+      20,
+
+      buildCurrentStoreQdrantFilter(
+        productNeed,
+
+        catalog,
+      ),
+    );
+
+    const seen = new Set<string>();
+
+    const payloads: ProductQdrantPayload[] = [];
+
+    for (const point of points) {
+      const parsed = ProductQdrantPayloadSchema.safeParse(point.payload);
+
+      if (!parsed.success) {
+        continue;
+      }
+
+      const payload = parsed.data;
+
+      if (
+        seen.has(payload.productId) ||
+        !matchesCurrentStoreHardFilters(
+          payload,
+
+          productNeed,
+
+          catalog,
+        )
+      ) {
+        continue;
+      }
+
+      seen.add(payload.productId);
+
+      payloads.push(payload);
+    }
+
+    if (!payloads.length) {
+      return [];
+    }
+
+    /**
+     * Qdrant — retrieval index.
+     *
+     * Финальная eligibility проверяется
+     * по source of truth — Postgres.
+     */
+    const rows = await this.prismaService.product.findMany({
+      where: {
+        id: {
+          in: payloads.map((item) => item.productId),
+        },
+
+        ...CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
+      },
+
+      select: {
+        id: true,
+
+        title: true,
+
+        price: true,
+
+        images: true,
+
+        gender: true,
+
+        type: true,
+
+        brandId: true,
+
+        subcategoryId: true,
+
+        color: true,
+
+        sizes: true,
+
+        inStock: true,
+
+        stock: true,
+
+        subcategory: {
+          select: {
+            categoryId: true,
+          },
+        },
+      },
+    });
+
+    const byId = new Map(rows.map((row) => [row.id, row]));
+
+    const candidates: {
+      payload: ProductQdrantPayload;
+
+      product: ProductItem;
+    }[] = [];
+
+    for (const payload of payloads) {
+      const row = byId.get(payload.productId);
+
+      if (!row || !isCurrentStoreProductEligible(row)) {
+        continue;
+      }
+
+      /**
+       * Hard constraints повторно
+       * проверяются по Postgres.
+       */
+      if (
+        !matchesCurrentStoreHardFilters(
+          {
+            inStock: row.inStock,
+
+            gender: row.gender,
+
+            type: row.type,
+
+            brandId: row.brandId,
+
+            subcategoryId: row.subcategoryId,
+
+            categoryId: row.subcategory?.categoryId ?? null,
+
+            colorKey:
+              row.color === null ? null : normalizeSearchFilterValue(row.color),
+
+            sizes: row.sizes,
+
+            price: row.price.trim() ? Number(row.price) : Number.NaN,
+          },
+
+          productNeed,
+
+          catalog,
+        )
+      ) {
+        continue;
+      }
+
+      const product = ProductItemSchema.safeParse({
+        id: row.id,
+
+        title: row.title,
+
+        price: row.price,
+
+        image: row.images[0] ?? '',
+      });
+
+      if (product.success) {
+        candidates.push({
+          payload,
+
+          product: product.data,
+        });
+      }
+    }
+
+    if (candidates.length <= 5) {
+      return candidates.map((item) => item.product);
+    }
+
+    const reranked = await this.rerankerService.rerank(
+      productNeed.semanticQuery,
+
+      candidates,
+
+      (item) => item.payload.searchText,
+
+      5,
+    );
+
+    return reranked.slice(0, 5).map(({ item }) => item.product);
+  }
+}
+
+
+===== src/product-consultation/core/profiles/usage-scenarios/shoes.usage-scenarios.ts =====
+
+import { SHOES_PROFILE } from '../shoes.profile';
+
+import { defineCategoryUsageKnowledge } from './category-usage-scenario.schema';
+
+export const SHOES_USAGE_SCENARIOS = defineCategoryUsageKnowledge(
+  SHOES_PROFILE,
+
+  {
+    profileId: 'SHOES',
+
+    version: 3,
+
+    scenarios: [
+      {
+        id: 'daily_walking',
+
+        title: 'Ежедневная ходьба',
+
+        description:
+          'Обувь выбирается для регулярной повседневной ходьбы, города и длительного использования в течение дня.',
+
+        signals: [
+          'на каждый день',
+          'для ежедневной носки',
+          'для повседневной носки',
+          'много хожу',
+          'для прогулок',
+          'для долгих прогулок',
+          'целый день на ногах',
+        ],
+
+        attributeIds: ['purpose', 'sole', 'upperMaterial', 'material'],
+
+        instruction:
+          'Для ежедневной ходьбы учитывай подтверждённое назначение, конструкцию подошвы, материалы и описание товара. Сведения об амортизации, сцеплении, вентиляции, опоре и повседневном использовании можно использовать, если они прямо указаны или являются разумным осторожным выводом из описанной конструкции. Не превращай такой вывод в гарантию индивидуального комфорта, отсутствия усталости или медицинского эффекта.',
+
+        question: {
+          when: 'Пользователь уже просит рекомендацию, но неясно, нужна ли обувь преимущественно для обычной городской ходьбы или для спортивной нагрузки, и это существенно меняет выбор.',
+
+          question:
+            'Обувь в основном нужна для обычной повседневной ходьбы или для тренировок?',
+        },
+      },
+
+      {
+        id: 'long_walking_travel',
+
+        title: 'Долгие прогулки и путешествия',
+
+        description:
+          'Обувь выбирается для поездок, путешествий, экскурсий и ситуаций, когда пользователь планирует много ходить в течение дня.',
+
+        signals: [
+          'для путешествия',
+          'для поездки',
+          'много ходить в отпуске',
+          'для экскурсий',
+          'ходить весь день',
+          'для долгих прогулок',
+          'для поездки по городу',
+          'много шагов в день',
+        ],
+
+        attributeIds: [
+          'purpose',
+          'sole',
+          'upperMaterial',
+          'material',
+          'season',
+        ],
+
+        instruction:
+          'Для долгой ходьбы и путешествий учитывай подтверждённое назначение, подошву, материалы, сезонность и описание товара. Особенно полезны сведения об амортизации, сцеплении, вентиляции, опоре, адаптации материалов и пригодности для повседневной носки, когда они действительно присутствуют в данных или разумно следуют из описанной конструкции. Не обещай отсутствие усталости, гарантированный комфорт на определённое число часов или ортопедический эффект.',
+
+        question: {
+          when: 'Пользователь уже просит рекомендацию для долгой ходьбы, а условия использования настолько различаются, что городской или более активный сценарий действительно может изменить выбор.',
+
+          question:
+            'Обувь нужна в основном для долгих прогулок по городу или также для прогулок вне города?',
+        },
+      },
+
+      {
+        id: 'casual_city',
+
+        title: 'Городской повседневный образ',
+
+        description:
+          'Обувь выбирается как универсальная городская пара для повседневной одежды и casual-образов.',
+
+        signals: [
+          'для города',
+          'городские кроссовки',
+          'под джинсы',
+          'универсальные кроссовки',
+          'для casual образа',
+          'на каждый день под одежду',
+          'не слишком спортивные',
+        ],
+
+        attributeIds: ['purpose', 'color', 'material', 'upperMaterial'],
+
+        instruction:
+          'Для городского casual используй подтверждённые цвет, материалы, заявленное назначение и описание товара. Стилевое соответствие является рекомендацией, а не объективным фактом. Связывай вывод с тем образом и предпочтениями, которые действительно указал пользователь.',
+
+        question: {
+          when: 'Пользователь уже выбирает обувь для города, но стилевое направление действительно существенно меняет рекомендацию.',
+
+          question:
+            'Вам нужна более спортивная пара или более сдержанный вариант под повседневную одежду?',
+        },
+      },
+
+      {
+        id: 'training',
+
+        title: 'Тренировки и спортивная нагрузка',
+
+        description:
+          'Обувь выбирается для тренировок, спорта или другой регулярной физической нагрузки.',
+
+        signals: [
+          'для тренировок',
+          'для спорта',
+          'для зала',
+          'для бега',
+          'для тренировок в зале',
+          'для спортивной нагрузки',
+        ],
+
+        attributeIds: ['purpose', 'sole', 'upperMaterial'],
+
+        instruction:
+          'Для спортивной нагрузки главным основанием являются заявленное назначение, конструктивные характеристики и описание товара. Спортивный внешний вид, название модели или ассоциации бренда сами по себе не доказывают пригодность для конкретной тренировки. Используй сведения об амортизации, стабилизации, сцеплении или поддержке только когда они действительно следуют из данных товара.',
+
+        question: {
+          when: 'Из запроса понятно, что обувь нужна для спорта, но конкретная нагрузка действительно существенно влияет на выбор.',
+
+          question: 'Для какого типа тренировок или нагрузки нужна обувь?',
+        },
+      },
+
+      {
+        id: 'light_outdoor',
+
+        title: 'Прогулки вне города и лёгкий outdoor',
+
+        description:
+          'Обувь выбирается для парков, лесных дорожек, поездок на природу и других умеренных условий вне обычной городской среды.',
+
+        signals: [
+          'для леса',
+          'на природу',
+          'для прогулок по лесу',
+          'по лёгким тропам',
+          'для загородных прогулок',
+          'город и природа',
+          'для парка и леса',
+        ],
+
+        attributeIds: [
+          'purpose',
+          'sole',
+          'upperMaterial',
+          'waterProtection',
+          'season',
+        ],
+
+        instruction:
+          'Для лёгкого outdoor учитывай заявленное назначение, конструкцию подошвы, материал верха, сезонность, водозащиту и описание товара. Не превращай обычные кроссовки в trekking или hiking обувь только по внешнему виду или маркетинговому названию. Сцепление и устойчивость можно учитывать, если они подтверждаются конструкцией или описанием, но не превращай их в гарантию поведения на сложном рельефе.',
+
+        question: {
+          when: 'Неясно, речь идёт об обычных прогулках по паркам и дорожкам или о более сложном рельефе, и это действительно меняет рекомендацию.',
+
+          question:
+            'Это обычные прогулки по паркам и лёгким тропам или нужен вариант для более сложного маршрута?',
+        },
+      },
+
+      {
+        id: 'hot_weather',
+
+        title: 'Тёплая и жаркая погода',
+
+        description:
+          'Обувь выбирается для лета, тёплой погоды или использования в жарком климате.',
+
+        signals: [
+          'на лето',
+          'для лета',
+          'для жары',
+          'на жаркую погоду',
+          'для тёплой погоды',
+          'в отпуск в жару',
+        ],
+
+        attributeIds: ['season', 'upperMaterial', 'material'],
+
+        instruction:
+          'Для тёплой погоды используй сезонность, материалы и описание конструкции верха. Если описание прямо упоминает сетку, перфорацию, вентиляционные отверстия или аналогичные элементы, допустим осторожный вывод, что такая конструкция должна способствовать вентиляции. Не превращай это в гарантию того, что ноге не будет жарко или что обувь обеспечивает конкретный уровень воздухопроницаемости.',
+
+        question: null,
+      },
+
+      {
+        id: 'wet_weather',
+
+        title: 'Дождь и влажная погода',
+
+        description:
+          'Обувь выбирается с учётом дождя, сырой погоды или необходимости защиты от воды.',
+
+        signals: [
+          'для дождя',
+          'на дождливую погоду',
+          'чтобы не промокали',
+          'водонепроницаемые',
+          'для сырой погоды',
+          'на осень под дождь',
+        ],
+
+        attributeIds: [
+          'waterProtection',
+          'season',
+          'upperMaterial',
+          'material',
+        ],
+
+        instruction:
+          'Для влажной погоды учитывай подтверждённую водозащиту, сезонность, материалы и описание товара. Не считай кожаный, синтетический или плотный материал автоматически водонепроницаемым. Если в описании нет достаточного основания говорить о защите от воды, не делай такой вывод.',
+
+        question: {
+          when: 'Пользователь говорит о дождливой погоде, но неизвестно, является ли водозащита обязательным требованием, и это действительно меняет выбор.',
+
+          question:
+            'Водозащита обязательна или достаточно обуви для обычной городской погоды?',
+        },
+      },
+
+      {
+        id: 'cold_weather',
+
+        title: 'Холодная погода',
+
+        description: 'Обувь выбирается для прохладной или холодной погоды.',
+
+        signals: [
+          'на холод',
+          'на зиму',
+          'для холодной погоды',
+          'чтобы было тепло',
+          'на позднюю осень',
+          'для зимы',
+        ],
+
+        attributeIds: ['season', 'upperMaterial', 'material'],
+
+        instruction:
+          'Для холодной погоды используй сезонность, материалы и подтверждённое описание товара. Не выводи точный температурный диапазон и не обещай тепло только по внешнему виду, толщине или общему названию материала. Если описание прямо сообщает об утеплении или конструкции для холода, это можно учитывать без придумывания конкретной температуры.',
+
+        question: {
+          when: 'Пользователь говорит о холодной погоде, но условия использования настолько различаются, что без уточнения рекомендация действительно может существенно измениться.',
+
+          question:
+            'Речь о прохладной городской погоде или о полноценной зиме?',
+        },
+      },
+    ],
+  },
+);
+

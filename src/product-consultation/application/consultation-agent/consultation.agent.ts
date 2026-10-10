@@ -46,15 +46,11 @@ import {
   ProductWorkspaceModelPlanSchema,
 } from '../workspace/product-workspace-model-plan';
 
-import { ProductWorkspacePlanSchema } from '../workspace/product-workspace-plan';
-
 import { productWorkspacePrompt } from '../workspace/product-workspace.prompt';
 
 export type ProductConsultantAgentInput = {
   context: ProductConsultationLlmContext;
-
   observation: ProductConsultantRoundObservation;
-
   signal?: AbortSignal;
 };
 
@@ -69,6 +65,8 @@ const WORKSPACE_REPAIR_PROMPT = `
 Не объясняй решение.
 Не пиши обычный текст вместо structured output.
 Не создавай decision.proposal.
+Не создавай memoryObservations.
+Используй только usageScenarioIds, которые есть во входном usageScenarios.
 `.trim();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -160,13 +158,7 @@ function extractWorkspaceCandidate(response: unknown): unknown | null {
     return response ?? null;
   }
 
-  if (
-    !Object.prototype.hasOwnProperty.call(
-      response,
-
-      'parsed',
-    )
-  ) {
+  if (!Object.prototype.hasOwnProperty.call(response, 'parsed')) {
     return response;
   }
 
@@ -191,9 +183,7 @@ export function createConsultationAgent(aiService: AiService) {
   const decisionModel = model
     .withStructuredOutput(ProductConsultantDecisionSchema, {
       name: 'product_consultant_decision',
-
       method: 'functionCalling',
-
       strict: false,
     })
     .withRetry({
@@ -204,11 +194,8 @@ export function createConsultationAgent(aiService: AiService) {
     ProductWorkspaceModelPlanSchema,
     {
       name: 'product_workspace_decision',
-
       method: 'functionCalling',
-
       strict: false,
-
       includeRaw: true,
     },
   );
@@ -217,11 +204,8 @@ export function createConsultationAgent(aiService: AiService) {
     ConsultationCompletionOutputSchema,
     {
       name: 'finalize_consultation',
-
       method: 'functionCalling',
-
       strict: false,
-
       includeRaw: true,
     },
   );
@@ -234,11 +218,9 @@ export function createConsultationAgent(aiService: AiService) {
         try {
           const response = await workspaceDecisionModel.invoke([
             new SystemMessage(productWorkspacePrompt),
-
             ...(attempt === 0
               ? []
               : [new SystemMessage(WORKSPACE_REPAIR_PROMPT)]),
-
             new HumanMessage(JSON.stringify(context)),
           ]);
 
@@ -254,18 +236,8 @@ export function createConsultationAgent(aiService: AiService) {
             continue;
           }
 
-          const internalPlan = ProductWorkspacePlanSchema.safeParse(candidate);
-
-          if (internalPlan.success) {
-            return internalPlan.data;
-          }
-
           try {
-            return normalizeProductWorkspaceModelPlan(
-              candidate,
-
-              fallbackQuery,
-            );
+            return normalizeProductWorkspaceModelPlan(candidate, fallbackQuery);
           } catch (error) {
             workspaceLogger.warn(
               `Workspace plan normalization failed on attempt ${attempt + 1}: ${
@@ -284,12 +256,9 @@ export function createConsultationAgent(aiService: AiService) {
         }
       }
 
-      return ProductWorkspacePlanSchema.parse({
-        operations: [],
-
-        clarification:
-          'Не удалось обработать запрос к товарам. Попробуйте сформулировать его ещё раз.',
-      });
+      throw new Error(
+        'ProductWorkspacePlanner: не удалось получить валидный workspace plan.',
+      );
     },
 
     async decide(
@@ -298,11 +267,9 @@ export function createConsultationAgent(aiService: AiService) {
       const decision = await decisionModel.invoke(
         [
           new SystemMessage(productConsultantDecisionPrompt),
-
           new HumanMessage(
             JSON.stringify({
               observation: input.observation,
-
               context: input.context,
             }),
           ),
@@ -317,9 +284,7 @@ export function createConsultationAgent(aiService: AiService) {
 
     async invoke(
       rawInput: ConsultationAgentInput,
-
       core: ConsultationCore,
-
       comparisons?: AgentComparisonView[],
     ) {
       const input = ConsultationAgentInputSchema.parse(rawInput);
@@ -335,25 +300,16 @@ export function createConsultationAgent(aiService: AiService) {
           ),
         );
       } else {
-        const tools = createConsultationCoreTools(
-          core,
-
-          input.query,
-        );
+        const tools = createConsultationCoreTools(core, input.query);
 
         const agent = createAgent({
           model,
-
           systemPrompt: consultationAgentPrompt,
-
           tools: [
             tools.updateMemory,
-
             tools.getProductDetails,
-
             tools.compareProducts,
           ],
-
           checkpointer: false,
         });
 
@@ -376,31 +332,17 @@ export function createConsultationAgent(aiService: AiService) {
             throw error;
           }
 
-          return finalizeConsultation(
-            input,
-
-            null,
-
-            core,
-          );
+          return finalizeConsultation(input, null, core);
         }
       }
 
       const completion = await completionModel.invoke([
         new SystemMessage(consultationCompletionPrompt),
-
         ...messages,
-
         new HumanMessage('Сформируй итоговый результат консультации.'),
       ]);
 
-      return finalizeConsultation(
-        input,
-
-        completion.parsed,
-
-        core,
-      );
+      return finalizeConsultation(input, completion.parsed, core);
     },
   };
 }

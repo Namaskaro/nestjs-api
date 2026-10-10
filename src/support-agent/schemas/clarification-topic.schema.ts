@@ -6,6 +6,8 @@ export const ClarificationTopicSchema = z.enum([
   'orders',
   'returns_claims',
   'payment',
+  'discounts',
+  'loyalty',
 ]);
 
 export type ClarificationTopic = z.infer<typeof ClarificationTopicSchema>;

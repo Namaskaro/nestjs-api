@@ -22,21 +22,31 @@ describe('Category usage scenarios', () => {
       SHOES_USAGE_SCENARIOS.scenarios.map((scenario) => scenario.id),
     ).toEqual([
       'daily_walking',
-
       'long_walking_travel',
-
       'casual_city',
-
+      'running',
       'training',
-
       'light_outdoor',
-
       'hot_weather',
-
       'wet_weather',
-
       'cold_weather',
     ]);
+  });
+
+  it('separates running from gym and fitness training', () => {
+    const running = SHOES_USAGE_SCENARIOS.scenarios.find(
+      (scenario) => scenario.id === 'running',
+    );
+
+    const training = SHOES_USAGE_SCENARIOS.scenarios.find(
+      (scenario) => scenario.id === 'training',
+    );
+
+    expect(running).toBeDefined();
+    expect(training).toBeDefined();
+
+    expect(running?.signals).toContain('для бега');
+    expect(training?.signals).not.toContain('для бега');
   });
 
   it('defines first-class usage knowledge for clothes', () => {
@@ -46,27 +56,16 @@ describe('Category usage scenarios', () => {
       CLOTHES_USAGE_SCENARIOS.scenarios.map((scenario) => scenario.id),
     ).toEqual([
       'daily_wear',
-
       'office_work',
-
       'business_casual',
-
       'formal_event',
-
       'date_evening',
-
       'party_social',
-
       'travel',
-
       'active_day',
-
       'hot_weather',
-
       'rainy_weather',
-
       'cold_weather',
-
       'easy_care',
     ]);
   });
@@ -78,41 +77,23 @@ describe('Category usage scenarios', () => {
       ACCESSORIES_USAGE_SCENARIOS.scenarios.map((scenario) => scenario.id),
     ).toEqual([
       'tie_business_formal',
-
       'cufflinks_formal_event',
-
       'scarf_cold_weather',
-
       'scarf_style',
-
       'headwear_cold_weather',
-
       'headwear_sun_hot_weather',
-
       'headwear_casual_city',
-
       'bag_backpack_daily',
-
       'bag_backpack_work',
-
       'bag_backpack_travel',
-
       'eyewear_driving',
-
       'eyewear_sun_outdoor',
-
       'gloves_cold_weather',
-
       'belt_everyday',
-
       'belt_formal_business',
-
       'watch_everyday',
-
       'watch_formal',
-
       'watch_active',
-
       'gift',
     ]);
   });
@@ -121,19 +102,14 @@ describe('Category usage scenarios', () => {
     const cases = [
       {
         profile: SHOES_PROFILE,
-
         knowledge: SHOES_USAGE_SCENARIOS,
       },
-
       {
         profile: CLOTHES_PROFILE,
-
         knowledge: CLOTHES_USAGE_SCENARIOS,
       },
-
       {
         profile: ACCESSORIES_PROFILE,
-
         knowledge: ACCESSORIES_USAGE_SCENARIOS,
       },
     ];
@@ -161,7 +137,7 @@ describe('Category usage scenarios', () => {
     expect(dailyWalking?.attributeIds).not.toContain('weight');
   });
 
-  it('prioritizes confirmed construction and season for long walking and travel in profile v3', () => {
+  it('prioritizes confirmed construction and season for long walking and travel', () => {
     const longWalking = SHOES_USAGE_SCENARIOS.scenarios.find(
       (scenario) => scenario.id === 'long_walking_travel',
     );
@@ -185,81 +161,50 @@ describe('Category usage scenarios', () => {
 
   it('rejects usage scenario referencing unknown profile attribute', () => {
     expect(() =>
-      defineCategoryUsageKnowledge(
-        SHOES_PROFILE,
-
-        {
-          profileId: 'SHOES',
-
-          version: 1,
-
-          scenarios: [
-            {
-              id: 'invalid',
-
-              title: 'Invalid scenario',
-
-              description: 'Invalid scenario used only for validation test.',
-
-              signals: ['test'],
-
-              attributeIds: ['batteryCapacity'],
-
-              instruction: 'Test instruction.',
-
-              question: null,
-            },
-          ],
-        },
-      ),
+      defineCategoryUsageKnowledge(SHOES_PROFILE, {
+        profileId: 'SHOES',
+        version: 1,
+        scenarios: [
+          {
+            id: 'invalid',
+            title: 'Invalid scenario',
+            description: 'Invalid scenario used only for validation test.',
+            signals: ['test'],
+            attributeIds: ['batteryCapacity'],
+            instruction: 'Test instruction.',
+            question: null,
+          },
+        ],
+      }),
     ).toThrow('references unknown attribute batteryCapacity');
   });
 
   it('rejects duplicate scenario IDs', () => {
     expect(() =>
-      defineCategoryUsageKnowledge(
-        SHOES_PROFILE,
-
-        {
-          profileId: 'SHOES',
-
-          version: 1,
-
-          scenarios: [
-            {
-              id: 'daily_walking',
-
-              title: 'First',
-
-              description: 'First usage scenario.',
-
-              signals: ['first'],
-
-              attributeIds: ['purpose'],
-
-              instruction: 'First instruction.',
-
-              question: null,
-            },
-
-            {
-              id: 'daily_walking',
-
-              title: 'Second',
-
-              description: 'Second usage scenario.',
-
-              signals: ['second'],
-
-              attributeIds: ['purpose'],
-
-              instruction: 'Second instruction.',
-
-              question: null,
-            },
-          ],
-        },
-      ),
+      defineCategoryUsageKnowledge(SHOES_PROFILE, {
+        profileId: 'SHOES',
+        version: 1,
+        scenarios: [
+          {
+            id: 'daily_walking',
+            title: 'First',
+            description: 'First usage scenario.',
+            signals: ['first'],
+            attributeIds: ['purpose'],
+            instruction: 'First instruction.',
+            question: null,
+          },
+          {
+            id: 'daily_walking',
+            title: 'Second',
+            description: 'Second usage scenario.',
+            signals: ['second'],
+            attributeIds: ['purpose'],
+            instruction: 'Second instruction.',
+            question: null,
+          },
+        ],
+      }),
     ).toThrow('duplicate scenario IDs');
   });
 

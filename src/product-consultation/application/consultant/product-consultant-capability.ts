@@ -427,7 +427,7 @@ export async function executeProductConsultantCapability(input: {
 
         products,
 
-        attributeIds: null,
+        attributeIds: factAttributeIds.length > 0 ? factAttributeIds : null,
       });
 
       return {

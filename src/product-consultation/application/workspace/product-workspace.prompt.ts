@@ -15,6 +15,8 @@ Backend сам:
 - управляет concurrency и idempotency.
 
 Не выводи taskTransition.
+Не выводи memoryObservations.
+Workspace Planner не изменяет persistent memory.
 Не придумывай Product IDs, результаты поиска или характеристики.
 
 Если currentMessage содержит несколько независимых товарных задач,
@@ -200,8 +202,131 @@ view="comparison":
 
 SearchSpec содержит только executable hard constraints.
 
+Hard constraints — только поля,
+которые реально поддержаны searchCapabilities.
+
 Soft preferences и цели пользователя
-не помещай в SearchSpec.
+не помещай в SearchSpec constraints.
+
+Никогда не создавай hard constraint:
+
+usageScenario
+usage_scenario
+useCase
+use_case
+
+Цель использования товара
+не является SearchSpec constraint.
+
+Для явно выраженной цели использования
+используй usageScenarioIds.
+
+Выбирай usageScenarioIds только из
+usageScenarios, переданных во входном context.
+Не придумывай новые usage scenario IDs.
+Если подходящего ID нет,
+оставь usageScenarioIds пустым,
+но сохрани смысл пользователя в semanticIntent.
+
+Если цель использования должна влиять
+на семантический поиск,
+обнови searchPatch.semanticIntent.
+
+ВАЖНО: searchPatch.semanticIntent — это замена
+текущего semanticIntent, а не частичный patch.
+
+Если пользователь добавляет только hard constraint,
+например "теперь чёрные" или "42 размер",
+и текущий semanticIntent уже содержит важную
+цель использования вроде "для бега",
+не удаляй эту цель.
+
+В таком случае либо:
+- не передавай searchPatch.semanticIntent вообще,
+  чтобы Backend сохранил текущий;
+- либо передай новый semanticIntent,
+  который сохраняет все актуальные semantic requirements.
+
+Несколько hard constraints можно менять
+одним REFINE через несколько элементов searchPatch.set.
+Не разбивай такой запрос на несколько действий
+только из-за количества изменяемых полей.
+
+Пример текущей подборки:
+
+мужские кроссовки Nike
+
+Пользователь:
+
+"чёрные, которые подойдут для бега"
+
+Это REFINE текущей задачи.
+
+Правильная структура:
+
+searchPatch.semanticIntent =
+"чёрные кроссовки для бега"
+
+searchPatch.set =
+[
+  {
+    attributeId: "color",
+    operator: "eq",
+    value: "чёрный",
+    unit: null
+  }
+]
+
+searchPatch.clear = []
+
+usageScenarioIds = ["running"]
+
+Существующие brand=Nike,
+gender=MAN и category=SHOES
+Backend сохранит сам.
+
+Не повторяй их без необходимости.
+
+ВАЖНО для SearchSpecPatch:
+
+set заменяет существующее значение
+того же attributeId + operator.
+
+Чтобы заменить:
+
+color=белый
+
+на:
+
+color=чёрный
+
+используй только:
+
+set color:eq=чёрный
+
+НЕ добавляй одновременно:
+
+clear color:eq
+
+Один target запрещено одновременно
+set и clear в одном patch.
+
+clear используй только тогда,
+когда пользователь явно хочет убрать условие
+и не задаёт ему новое значение.
+
+Пример:
+
+"цвет не важен"
+
+→ clear color:eq
+
+Пример:
+
+"теперь чёрные"
+
+→ set color:eq=чёрный
+→ clear=[]
 
 usageScenarioIds используй только
 при явно выраженной цели использования.

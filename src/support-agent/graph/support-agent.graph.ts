@@ -7,19 +7,14 @@ import { Command, END, START, StateGraph } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 
 import { AiService } from '@/src/ai/ai.service';
-
 import { StoreKnowledgeService } from '@/src/store-knowledge/store-knowledge.service';
-
 import { OrdersService } from '@/src/modules/orders/orders.service';
 
 import { createCustomerHelpAgent } from '../agents/customer-help-agent/customer-help.agent';
-
 import { createHandoffAgentGraph } from '../agents/handoff-agent/handoff-agent.graph';
-
 import { handoffResultNode } from '../agents/handoff-agent/nodes/handoff-result.node';
 
 import { submitConsultationFeedback as applyConsultationFeedback } from '@/src/product-consultation/application/session/consultation-session';
-
 import {
   ConsultationFeedbackReceiptSchema,
   type ConsultationFeedbackReceipt,
@@ -32,84 +27,70 @@ import {
 } from '../config/support-agent-execution.config';
 
 import { RequestRouterWorkerSchema } from '../schemas/request-router.schema';
-
 import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
-
 import { SupportAgentResumeValue } from '../schemas/support-agent-resume.schema';
-
 import {
   SupportAgentContextSchema,
   type SupportAgentContext,
 } from '../context/support-agent-context.schema';
 
 import { createAggregateFinalAnswerNode } from './nodes/aggregate-final-answer.node';
-
-import { clarificationQuestionNode } from './nodes/clarification-question.node';
-
-import { clarificationTopicNode } from './nodes/clarification-topic.node';
-
+import { createClarificationQuestionNode } from './nodes/clarification-question.node';
+import { createClarificationTopicNode } from './nodes/clarification-topic.node';
 import { preIntentNode } from './nodes/pre-intent.node';
-
 import { rejectNode } from './nodes/reject.node';
-
 import { createRequestRouterNode } from './nodes/request-router.node';
 
 import { afterPreIntentRoute } from './routers/after-pre-intent.route';
-
 import { afterRequestRoute } from './routers/after-request.route';
 
 import { SupportAgentState } from './support-agent.state';
 
 import { createCustomerHelpAgentWorker } from './workers/customer-help-agent.worker';
-
 import { createProductAgentWorker } from './workers/product-agent.worker';
-
 import { createOrderAgentWorker } from './workers/order-agent.worker';
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
-
 import { createProductAgent } from '@/src/product-consultation/application/agent/product.agent';
 
 @Injectable()
 export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
   private readonly graph;
-
   private readonly checkpointer: PostgresSaver;
 
   constructor(
     private readonly aiService: AiService,
-
     private readonly productAgentService: ProductAgentService,
-
     private readonly storeKnowledgeService: StoreKnowledgeService,
-
     private readonly ordersService: OrdersService,
   ) {
     const postgresUri = process.env.POSTGRES_URI;
 
-    this.checkpointer = PostgresSaver.fromConnString(
-      postgresUri,
-
-      {
-        schema: 'langgraph',
-      },
-    );
+    this.checkpointer = PostgresSaver.fromConnString(postgresUri, {
+      schema: 'langgraph',
+    });
 
     const productAgent = createProductAgent(
       this.aiService,
-
       this.productAgentService,
     );
 
     const customerHelpAgent = createCustomerHelpAgent(
       this.aiService,
-
       this.storeKnowledgeService,
     );
 
     const handoffAgentGraph = createHandoffAgentGraph(this.aiService);
 
     const requestRouterNode = createRequestRouterNode(this.aiService);
+
+    const clarificationTopicNode = createClarificationTopicNode(
+      this.storeKnowledgeService,
+    );
+
+    const clarificationQuestionNode = createClarificationQuestionNode(
+      this.storeKnowledgeService,
+    );
 
     const customerHelpWorker = createCustomerHelpAgentWorker(customerHelpAgent);
 
@@ -121,185 +102,55 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
     const agentNodes = RequestRouterWorkerSchema.options;
 
-    this.graph = new StateGraph(
-      SupportAgentState,
-
-      SupportAgentContextSchema,
-    )
-      .addNode(
-        'preIntentNode',
-
-        preIntentNode,
-      )
-
-      .addNode(
-        'requestRouterNode',
-
-        requestRouterNode,
-
-        {
-          retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
-
-          timeout: SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
-        },
-      )
-
-      .addNode(
-        'reject',
-
-        rejectNode,
-      )
-
-      .addNode(
-        'clarificationTopic',
-
-        clarificationTopicNode,
-      )
-
-      .addNode(
-        'clarificationQuestion',
-
-        clarificationQuestionNode,
-      )
-
-      .addNode(
-        'customerHelpAgent',
-
-        customerHelpWorker,
-
-        {
-          ends: [END, 'aggregateAnswer', 'handoffAgent', ...agentNodes],
-
-          retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
-
-          timeout: SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
-        },
-      )
-
-      .addNode(
-        'productAgent',
-
-        productAgentWorker,
-
-        {
-          ends: [END, 'aggregateAnswer', 'handoffAgent', ...agentNodes],
-
-          retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
-
-          timeout: SUPPORT_AGENT_PRODUCT_NODE_TIMEOUT_MS,
-        },
-      )
-
-      .addNode(
-        'orderAgent',
-
-        orderAgentWorker,
-
-        {
-          ends: [END, 'aggregateAnswer'],
-        },
-      )
-
-      .addNode(
-        'aggregateAnswer',
-
-        aggregateAnswerNode,
-      )
-
-      .addNode(
-        'handoffAgent',
-
-        handoffAgentGraph,
-      )
-
-      .addNode(
-        'handoffResult',
-
-        handoffResultNode,
-      )
-
-      .addEdge(
-        START,
-
-        'preIntentNode',
-      )
-
-      .addConditionalEdges(
-        'preIntentNode',
-
-        afterPreIntentRoute,
-
-        {
-          productAgent: 'productAgent',
-
-          customerHelpAgent: 'customerHelpAgent',
-
-          requestRouterNode: 'requestRouterNode',
-
-          reject: 'reject',
-
-          clarificationTopic: 'clarificationTopic',
-        },
-      )
-
-      .addConditionalEdges(
-        'requestRouterNode',
-
-        afterRequestRoute,
-
-        {
-          productAgent: 'productAgent',
-
-          orderAgent: 'orderAgent',
-
-          customerHelpAgent: 'customerHelpAgent',
-
-          reject: 'reject',
-
-          clarificationTopic: 'clarificationTopic',
-
-          clarificationQuestion: 'clarificationQuestion',
-
-          handoffAgent: 'handoffAgent',
-        },
-      )
-
-      .addEdge(
-        'clarificationTopic',
-
-        'clarificationQuestion',
-      )
-
-      .addEdge(
-        'clarificationQuestion',
-
-        'preIntentNode',
-      )
-
-      .addEdge(
-        'aggregateAnswer',
-
-        END,
-      )
-
-      .addEdge(
-        'reject',
-
-        END,
-      )
-
-      .addEdge(
-        'handoffAgent',
-
-        'handoffResult',
-      )
-
-      .addEdge(
-        'handoffResult',
-
-        END,
-      )
-
+    this.graph = new StateGraph(SupportAgentState, SupportAgentContextSchema)
+      .addNode('preIntentNode', preIntentNode)
+      .addNode('requestRouterNode', requestRouterNode, {
+        retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
+        timeout: SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
+      })
+      .addNode('reject', rejectNode)
+      .addNode('clarificationTopic', clarificationTopicNode)
+      .addNode('clarificationQuestion', clarificationQuestionNode, {
+        ends: [END, 'preIntentNode', 'productAgent', 'orderAgent'],
+      })
+      .addNode('customerHelpAgent', customerHelpWorker, {
+        ends: [END, 'aggregateAnswer', 'handoffAgent', ...agentNodes],
+        retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
+        timeout: SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
+      })
+      .addNode('productAgent', productAgentWorker, {
+        ends: [END, 'aggregateAnswer', 'handoffAgent', ...agentNodes],
+        retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
+        timeout: SUPPORT_AGENT_PRODUCT_NODE_TIMEOUT_MS,
+      })
+      .addNode('orderAgent', orderAgentWorker, {
+        ends: [END, 'aggregateAnswer'],
+      })
+      .addNode('aggregateAnswer', aggregateAnswerNode)
+      .addNode('handoffAgent', handoffAgentGraph)
+      .addNode('handoffResult', handoffResultNode)
+      .addEdge(START, 'preIntentNode')
+      .addConditionalEdges('preIntentNode', afterPreIntentRoute, {
+        productAgent: 'productAgent',
+        customerHelpAgent: 'customerHelpAgent',
+        requestRouterNode: 'requestRouterNode',
+        reject: 'reject',
+        clarificationTopic: 'clarificationTopic',
+      })
+      .addConditionalEdges('requestRouterNode', afterRequestRoute, {
+        productAgent: 'productAgent',
+        orderAgent: 'orderAgent',
+        customerHelpAgent: 'customerHelpAgent',
+        reject: 'reject',
+        clarificationTopic: 'clarificationTopic',
+        clarificationQuestion: 'clarificationQuestion',
+        handoffAgent: 'handoffAgent',
+      })
+      .addEdge('clarificationTopic', 'clarificationQuestion')
+      .addEdge('aggregateAnswer', END)
+      .addEdge('reject', END)
+      .addEdge('handoffAgent', 'handoffResult')
+      .addEdge('handoffResult', END)
       .compile({
         checkpointer: this.checkpointer,
       });
@@ -319,27 +170,20 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   invoke(
     query: string,
-
     threadId: string,
-
     context: SupportAgentContext,
-
     onCustomEvent?: (
       eventName: string,
-
       payload: unknown,
     ) => void | Promise<void>,
-
     messageId?: string,
   ) {
     return this.graph.invoke(
       {
         query,
-
         messages: [
           new HumanMessage({
             content: query,
-
             ...(messageId
               ? {
                   id: messageId,
@@ -348,14 +192,11 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
           }),
         ],
       },
-
       {
         configurable: {
           thread_id: threadId,
         },
-
         context,
-
         callbacks: onCustomEvent
           ? [
               {
@@ -367,27 +208,17 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  streamEvents(
-    query: string,
-
-    threadId: string,
-
-    context: SupportAgentContext,
-  ) {
+  streamEvents(query: string, threadId: string, context: SupportAgentContext) {
     return this.graph.streamEvents(
       {
         query,
-
         messages: [new HumanMessage(query)],
       },
-
       {
         version: 'v3',
-
         configurable: {
           thread_id: threadId,
         },
-
         context,
       },
     );
@@ -395,14 +226,10 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   resume(
     value: SupportAgentResumeValue,
-
     threadId: string,
-
     context: SupportAgentContext,
-
     onCustomEvent?: (
       eventName: string,
-
       payload: unknown,
     ) => void | Promise<void>,
   ) {
@@ -410,14 +237,11 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
       new Command({
         resume: value,
       }),
-
       {
         configurable: {
           thread_id: threadId,
         },
-
         context,
-
         callbacks: onCustomEvent
           ? [
               {
@@ -431,23 +255,18 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   resumeEvents(
     value: SupportAgentResumeValue,
-
     threadId: string,
-
     context: SupportAgentContext,
   ) {
     return this.graph.streamEvents(
       new Command({
         resume: value,
       }),
-
       {
         version: 'v3',
-
         configurable: {
           thread_id: threadId,
         },
-
         context,
       },
     );
@@ -455,9 +274,7 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
   async submitConsultationFeedback(
     threadId: string,
-
     sessionId: string,
-
     helpful: boolean,
   ): Promise<ConsultationFeedbackReceipt> {
     const config = {
@@ -470,25 +287,15 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
     const productContext = readProductContext(snapshot.values.productContext);
 
-    const feedback = applyConsultationFeedback(
-      productContext,
+    const feedback = applyConsultationFeedback(productContext, {
+      sessionId,
+      helpful,
+      source: 'BUTTON',
+    });
 
-      {
-        sessionId,
-
-        helpful,
-
-        source: 'BUTTON',
-      },
-    );
-
-    await this.graph.updateState(
-      config,
-
-      {
-        productContext: readProductContext(productContext),
-      },
-    );
+    await this.graph.updateState(config, {
+      productContext: readProductContext(productContext),
+    });
 
     return ConsultationFeedbackReceiptSchema.parse(feedback);
   }

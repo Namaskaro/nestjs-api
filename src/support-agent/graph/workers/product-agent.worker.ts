@@ -59,19 +59,11 @@ function sourceQueryFromState(state: typeof SupportAgentState.State): string {
     const text = message.text.trim();
 
     if (text) {
-      return text.slice(
-        0,
-
-        4000,
-      );
+      return text.slice(0, 4000);
     }
   }
 
-  return state.query.trim().slice(
-    0,
-
-    4000,
-  );
+  return state.query.trim().slice(0, 4000);
 }
 
 function recentMessagesFromState(
@@ -79,16 +71,8 @@ function recentMessagesFromState(
 ): ProductConsultationContextMessage[] {
   const result: ProductConsultationContextMessage[] = [];
 
-  for (const message of state.messages.slice(
-    0,
-
-    -1,
-  )) {
-    const text = message.text.trim().slice(
-      0,
-
-      4000,
-    );
+  for (const message of state.messages.slice(0, -1)) {
+    const text = message.text.trim().slice(0, 4000);
 
     if (!text) {
       continue;
@@ -97,7 +81,6 @@ function recentMessagesFromState(
     if (HumanMessage.isInstance(message)) {
       result.push({
         role: 'user',
-
         text,
       });
 
@@ -107,7 +90,6 @@ function recentMessagesFromState(
     if (AIMessage.isInstance(message)) {
       result.push({
         role: 'assistant',
-
         text,
       });
     }
@@ -127,57 +109,41 @@ function groupsForPresentation<
 export function createProductAgentWorker(
   productAgent: ProductAgent,
 ): GraphNode<typeof SupportAgentState> {
-  return async (
-    state,
-
-    config: LangGraphRunnableConfig,
-  ) => {
+  return async (state, config: LangGraphRunnableConfig) => {
     await dispatchCustomEvent(
       'assistant_status',
-
       {
-        status: 'SEARCHING_PRODUCTS',
+        status: 'THINKING',
       },
-
       config,
     );
 
     const productContext = readProductContext(state.productContext);
 
-    touchConsultationSession(
-      productContext,
+    touchConsultationSession(productContext, []);
 
-      [],
+    const result = await productAgent.invoke(
+      {
+        query: state.query,
+        sourceQuery: sourceQueryFromState(state),
+        conversationId: conversationIdFromConfig(config),
+        requestId: requestIdFromState(state),
+        recentMessages: recentMessagesFromState(state),
+        workspace:
+          state.productWorkspace ??
+          createProductWorkspace(state.productConsultationRecord),
+      },
+      config,
     );
-
-    const result = await productAgent.invoke({
-      query: state.query,
-
-      sourceQuery: sourceQueryFromState(state),
-
-      conversationId: conversationIdFromConfig(config),
-
-      requestId: requestIdFromState(state),
-
-      recentMessages: recentMessagesFromState(state),
-
-      workspace:
-        state.productWorkspace ??
-        createProductWorkspace(state.productConsultationRecord),
-    });
 
     const workspace = result.workspace;
 
     let consultationCompletion = result.consultationCompletion;
 
     if (result.completionRequested) {
-      const completed = completeConsultationSession(
-        productContext,
-
-        {
-          reason: 'USER_DONE',
-        },
-      );
+      const completed = completeConsultationSession(productContext, {
+        reason: 'USER_DONE',
+      });
 
       consultationCompletion =
         buildConsultationCompletionPresentation(completed);
@@ -186,20 +152,14 @@ export function createProductAgentWorker(
     if (result.handoffRequested) {
       return new Command({
         goto: 'handoffAgent',
-
         update: {
           productContext,
-
           productWorkspace: workspace,
-
           productConsultationRecord: null,
-
           handoffRequest: {
             reason: 'CUSTOMER_REQUEST',
-
             trigger: 'EXPLICIT_USER_REQUEST',
           },
-
           workerResults: [],
         },
       });
@@ -211,33 +171,24 @@ export function createProductAgentWorker(
 
     const data = {
       message: result.message,
-
       groups: groupsForPresentation(result.groups),
-
       resultGroups: result.groups,
-
       consultation: result.consultation,
-
       consultationCompletion,
     };
 
     if (state.executionMode === 'multi') {
       const workerResult = ProductSearchAnswerBlockSchema.parse({
         worker: 'product_search',
-
         data,
       });
 
       return new Command({
         goto: 'aggregateAnswer',
-
         update: {
           productContext,
-
           productWorkspace: workspace,
-
           productConsultationRecord: null,
-
           workerResults: [workerResult],
         },
       });
@@ -245,24 +196,17 @@ export function createProductAgentWorker(
 
     const answer = ProductAgentFinalAnswerSchema.parse({
       type: 'product_agent',
-
       ...data,
     });
 
     return new Command({
       goto: END,
-
       update: {
         activeAgent: 'productAgent',
-
         productContext,
-
         productWorkspace: workspace,
-
         productConsultationRecord: null,
-
         answer,
-
         messages: [new AIMessage(answer.message)],
       },
     });

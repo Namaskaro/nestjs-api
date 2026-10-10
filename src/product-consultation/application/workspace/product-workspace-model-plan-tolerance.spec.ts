@@ -318,6 +318,116 @@ describe('Product Workspace model plan tolerance', () => {
     expect(operation.actions[0].view).toBe('results');
   });
 
+  it('repairs REFINE that sets and clears the same slot and migrates usageScenario out of SearchSpec', () => {
+    const result = normalizeProductWorkspaceModelPlan(
+      {
+        clarification: null,
+
+        operations: [
+          {
+            decision: {
+              action: 'REFINE',
+
+              factAttributeIds: [],
+
+              feedback: null,
+
+              memoryObservations: [],
+
+              search: null,
+
+              searchPatch: {
+                category: 'SHOES',
+
+                clear: [
+                  {
+                    attributeId: 'color',
+
+                    operator: 'eq',
+                  },
+
+                  {
+                    attributeId: 'usageScenario',
+
+                    operator: 'eq',
+                  },
+                ],
+
+                set: [
+                  {
+                    attributeId: 'color',
+
+                    operator: 'eq',
+
+                    unit: null,
+
+                    value: 'черный',
+                  },
+
+                  {
+                    attributeId: 'usageScenario',
+
+                    operator: 'eq',
+
+                    unit: null,
+
+                    value: 'бег',
+                  },
+                ],
+              },
+
+              selection: null,
+
+              terminalText: null,
+
+              usageScenarioIds: [],
+            },
+
+            view: 'focus',
+          },
+        ],
+      },
+
+      'черного цвета для бега',
+    );
+
+    expect(result.operations).toHaveLength(1);
+
+    const operation = result.operations[0];
+
+    expect(operation.kind).toBe('consult');
+
+    if (operation.kind !== 'consult') {
+      throw new Error('Expected consult operation.');
+    }
+
+    const decision = operation.actions[0].decision;
+
+    expect(decision.proposal.action).toBe('REFINE');
+
+    expect(decision.proposal.searchPatch).toEqual({
+      semanticIntent: 'черного цвета для бега',
+
+      category: 'SHOES',
+
+      set: [
+        {
+          attributeId: 'color',
+
+          operator: 'eq',
+
+          value: 'черный',
+
+          unit: null,
+        },
+      ],
+
+      clear: [],
+    });
+
+    expect(decision.usageScenarioIds).toEqual(['training']);
+  });
+
   it('still rejects conflicting targets inside one lane', () => {
     expect(() =>
       normalizeProductWorkspaceModelPlan(

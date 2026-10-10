@@ -24,18 +24,41 @@ import {
   type SupportAgentContext,
 } from '@/src/support-agent/context/support-agent-context.schema';
 
+import {
+  SupportAgentResumeSchema,
+  type SupportAgentResumeValue,
+} from '@/src/support-agent/schemas/support-agent-resume.schema';
+
+import {
+  clarificationConfig,
+  findClarificationQuestion,
+} from '@/src/support-agent/config/clarification.config';
+
 import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
-
 import { ChatService } from './chat.service';
-
 import { JoinChatDto } from './dto/join-chat.dto';
-
 import { SendMessageDto } from './dto/send-message.dto';
-
 import { SubmitConsultationFeedbackDto } from './dto/submit-consultation-feedback.dto';
 
 function isRetryableAssistantError(error: unknown): boolean {
   if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const langGraphCode = (
+    error as Error & {
+      lc_error_code?: string;
+    }
+  ).lc_error_code;
+
+  /*
+   * Graph topology/state bugs не являются
+   * временными ошибками.
+   *
+   * Кнопка Retry здесь только зациклит
+   * пользователя на том же исключении.
+   */
+  if (langGraphCode) {
     return false;
   }
 
@@ -55,7 +78,6 @@ function isRetryableAssistantError(error: unknown): boolean {
 
   if (
     status === 408 ||
-    status === 409 ||
     status === 429 ||
     (typeof status === 'number' && status >= 500)
   ) {
@@ -77,16 +99,71 @@ function isRetryableAssistantError(error: unknown): boolean {
       }
     ).code ?? cause?.code;
 
-  return ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EPIPE'].includes(
-    code ?? '',
+  return [
+    'ECONNRESET',
+    'ETIMEDOUT',
+    'ECONNREFUSED',
+    'EPIPE',
+    'EAI_AGAIN',
+  ].includes(code ?? '');
+}
+
+function isJsonObject(
+  value: Prisma.JsonValue | null,
+): value is Prisma.JsonObject {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function resumeValueFromMessagePayload(
+  payload: Prisma.JsonValue | null,
+): SupportAgentResumeValue | null {
+  if (!isJsonObject(payload)) {
+    return null;
+  }
+
+  const parsed = SupportAgentResumeSchema.safeParse(
+    payload.clarificationResume,
   );
+
+  return parsed.success ? parsed.data : null;
+}
+
+function resumeDisplayText(value: SupportAgentResumeValue): string {
+  if (value.kind === 'topic_selected') {
+    return clarificationConfig[value.topic].label;
+  }
+
+  if (value.kind === 'custom_question') {
+    return value.text;
+  }
+
+  if (value.kind === 'question_selected') {
+    const configured = findClarificationQuestion(value.questionId);
+
+    if (configured) {
+      return configured.question.label;
+    }
+
+    if (value.questionId === 'order_cancel_decline') {
+      return 'Нет';
+    }
+
+    if (value.questionId.startsWith('order_cancel_confirm:')) {
+      return 'Да, отменить';
+    }
+
+    return value.questionId;
+  }
+
+  return value.decision === 'accept'
+    ? 'Связаться с оператором'
+    : 'Продолжить без оператора';
 }
 
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
   cors: {
     origin: process.env.CLIENT_URL,
-
     credentials: true,
   },
 })
@@ -100,7 +177,6 @@ export class ChatGateway {
 
   constructor(
     private readonly chatService: ChatService,
-
     private readonly supportAgentService: SupportAgentService,
   ) {}
 
@@ -126,7 +202,6 @@ export class ChatGateway {
   ) {
     await this.chatService.assertUserCanAccessChat(
       socket.data.user,
-
       dto.chatId,
     );
 
@@ -146,7 +221,6 @@ export class ChatGateway {
   ) {
     const chat = await this.chatService.assertUserCanAccessChat(
       socket.data.user,
-
       dto.chatId,
     );
 
@@ -159,19 +233,14 @@ export class ChatGateway {
     try {
       const userMessage = await this.chatService.createMessage({
         chatId: dto.chatId,
-
         content: dto.content,
-
         role: ConversationMessageRole.USER,
-
         authorId: socket.data.user.id,
       });
 
-      this.server.to(`chat:${dto.chatId}`).emit(
-        'chat:new_message',
-
-        userMessage,
-      );
+      this.server
+        .to(`chat:${dto.chatId}`)
+        .emit('chat:new_message', userMessage);
 
       ack(userMessage);
 
@@ -183,11 +252,8 @@ export class ChatGateway {
 
       await this.runAssistant(
         dto.chatId,
-
         userMessage.content,
-
         userMessage.id,
-
         context,
       );
     } finally {
@@ -210,14 +276,12 @@ export class ChatGateway {
   ) {
     const chat = await this.chatService.assertUserCanAccessChat(
       socket.data.user,
-
       dto.chatId,
     );
 
     if (chat.mode !== ChatMode.BOT) {
       throw new WsException({
         status: 'conflict',
-
         message: 'AI-ассистент сейчас не управляет этим чатом.',
       });
     }
@@ -239,7 +303,6 @@ export class ChatGateway {
       ) {
         throw new WsException({
           status: 'bad_request',
-
           message: 'Нет сообщения, для которого можно повторить ответ.',
         });
       }
@@ -248,13 +311,20 @@ export class ChatGateway {
 
       const context = this.createSupportAgentContext(socket);
 
+      const clarificationResume = resumeValueFromMessagePayload(
+        lastMessage.payload,
+      );
+
+      if (clarificationResume) {
+        await this.runAssistantResume(dto.chatId, clarificationResume, context);
+
+        return;
+      }
+
       await this.runAssistant(
         dto.chatId,
-
         lastMessage.content,
-
         lastMessage.id,
-
         context,
       );
     } finally {
@@ -275,7 +345,6 @@ export class ChatGateway {
   ) {
     await this.chatService.assertUserCanAccessChat(
       socket.data.user,
-
       dto.chatId,
     );
 
@@ -285,36 +354,26 @@ export class ChatGateway {
       const feedback =
         await this.supportAgentService.submitConsultationFeedback(
           dto.chatId,
-
           dto.sessionId,
-
           dto.helpful,
         );
 
       const assistantMessage =
         await this.chatService.updateConsultationFeedbackMessage({
           chatId: dto.chatId,
-
           sessionId: feedback.sessionId,
-
           helpful: feedback.helpful,
-
           submittedAt: feedback.submittedAt,
         });
 
-      this.server.to(`chat:${dto.chatId}`).emit(
-        'chat:message_updated',
-
-        assistantMessage,
-      );
+      this.server
+        .to(`chat:${dto.chatId}`)
+        .emit('chat:message_updated', assistantMessage);
 
       ack({
         sessionId: feedback.sessionId,
-
         helpful: feedback.helpful,
-
         submittedAt: feedback.submittedAt,
-
         messageId: assistantMessage.id,
       });
     } catch (error) {
@@ -325,12 +384,7 @@ export class ChatGateway {
       if (error instanceof Error && error.message.startsWith('ProductAgent:')) {
         throw new WsException({
           status: 'bad_request',
-
-          message: error.message.replace(
-            /^ProductAgent:\s*/u,
-
-            '',
-          ),
+          message: error.message.replace(/^ProductAgent:\s*/u, ''),
         });
       }
 
@@ -350,17 +404,12 @@ export class ChatGateway {
   ) {
     await this.chatService.assertUserCanAccessChat(
       socket.data.user,
-
       dto.chatId,
     );
 
     const chat = await this.chatService.assignOperator(dto.chatId);
 
-    this.server.to(`chat:${dto.chatId}`).emit(
-      'chat:status_changed',
-
-      chat,
-    );
+    this.server.to(`chat:${dto.chatId}`).emit('chat:status_changed', chat);
   }
 
   @SubscribeMessage('chat:clarification_resume')
@@ -371,105 +420,89 @@ export class ChatGateway {
     @MessageBody()
     dto: {
       chatId: string;
-
-      value: Parameters<SupportAgentService['resume']>[0];
+      value: unknown;
     },
 
     @Ack()
-    ack: () => void,
+    ack: (message: unknown) => void,
   ) {
     await this.chatService.assertUserCanAccessChat(
       socket.data.user,
-
       dto.chatId,
     );
+
+    const resumeValue = SupportAgentResumeSchema.parse(dto.value);
 
     this.acquireAssistantSlot(dto.chatId);
 
     try {
-      ack();
+      const userMessage = await this.chatService.createMessage({
+        chatId: dto.chatId,
+        content: resumeDisplayText(resumeValue),
+        role: ConversationMessageRole.USER,
+        authorId: socket.data.user.id,
+        payload: {
+          clarificationResume: resumeValue,
+        } as Prisma.InputJsonValue,
+      });
+
+      this.server
+        .to(`chat:${dto.chatId}`)
+        .emit('chat:new_message', userMessage);
+
+      ack(userMessage);
 
       const context = this.createSupportAgentContext(socket);
 
-      const result = await this.supportAgentService.resume(
-        dto.value,
-
-        dto.chatId,
-
-        context,
-
-        (event) =>
-          this.emitAssistantEvent(
-            dto.chatId,
-
-            event,
-          ),
-      );
-
-      await this.handleAgentResult(
-        dto.chatId,
-
-        result,
-      );
-    } catch (error) {
-      this.logger.error(error);
-
-      this.emitAssistantError(
-        dto.chatId,
-
-        error,
-
-        false,
-      );
+      await this.runAssistantResume(dto.chatId, resumeValue, context);
     } finally {
-      this.emitAssistantIdle(dto.chatId);
-
       this.releaseAssistantSlot(dto.chatId);
     }
   }
 
   private async runAssistant(
     chatId: string,
-
     content: string,
-
     messageId: string,
-
     context: SupportAgentContext,
   ) {
     try {
       const result = await this.supportAgentService.run(
         content,
-
         chatId,
-
         context,
-
-        (event) =>
-          this.emitAssistantEvent(
-            chatId,
-
-            event,
-          ),
-
+        (event) => this.emitAssistantEvent(chatId, event),
         messageId,
       );
 
-      await this.handleAgentResult(
-        chatId,
-
-        result,
-      );
+      await this.handleAgentResult(chatId, result);
     } catch (error) {
       this.logger.error(error);
 
-      this.emitAssistantError(
+      this.emitAssistantError(chatId, error);
+    } finally {
+      this.emitAssistantIdle(chatId);
+    }
+  }
+
+  private async runAssistantResume(
+    chatId: string,
+    value: SupportAgentResumeValue,
+    context: SupportAgentContext,
+  ) {
+    try {
+      const result = await this.supportAgentService.resume(
+        value,
         chatId,
-
-        error,
-
-        true,
+        context,
+        (event) => this.emitAssistantEvent(chatId, event),
       );
+
+      await this.handleAgentResult(chatId, result);
+    } catch (error) {
+      this.logger.error(error);
+
+      this.emitAssistantError(chatId, error);
     } finally {
       this.emitAssistantIdle(chatId);
     }
@@ -481,11 +514,9 @@ export class ChatGateway {
     result: Awaited<ReturnType<SupportAgentService['run']>>,
   ) {
     if (result.kind === 'interrupt') {
-      this.server.to(`chat:${chatId}`).emit(
-        'chat:clarification',
-
-        result.interrupt,
-      );
+      this.server
+        .to(`chat:${chatId}`)
+        .emit('chat:clarification', result.interrupt);
 
       return;
     }
@@ -495,20 +526,15 @@ export class ChatGateway {
         ? [
             {
               worker: 'product_search' as const,
-
               data: {
                 message: result.answer.message,
-
                 groups: result.answer.groups,
-
                 ...(result.answer.resultGroups
                   ? {
                       resultGroups: result.answer.resultGroups,
                     }
                   : {}),
-
                 consultation: result.answer.consultation,
-
                 consultationCompletion: result.answer.consultationCompletion,
               },
             },
@@ -517,21 +543,14 @@ export class ChatGateway {
 
     const assistantMessage = await this.chatService.createMessage({
       chatId,
-
       content: result.answer.message,
-
       role: ConversationMessageRole.ASSISTANT,
-
       payload: {
         blocks,
       } as Prisma.InputJsonValue,
     });
 
-    this.server.to(`chat:${chatId}`).emit(
-      'chat:new_message',
-
-      assistantMessage,
-    );
+    this.server.to(`chat:${chatId}`).emit('chat:new_message', assistantMessage);
   }
 
   private acquireAssistantSlot(chatId: string) {
@@ -541,7 +560,6 @@ export class ChatGateway {
     ) {
       throw new WsException({
         status: 'conflict',
-
         message: 'Ассистент уже обрабатывает предыдущий запрос.',
       });
     }
@@ -553,70 +571,39 @@ export class ChatGateway {
     this.activeAssistantChats.delete(chatId);
   }
 
-  private emitAssistantError(
-    chatId: string,
+  private emitAssistantError(chatId: string, error: unknown) {
+    const retryable = isRetryableAssistantError(error);
 
-    error: unknown,
-
-    allowManualRetry: boolean,
-  ) {
-    const retryable = allowManualRetry && isRetryableAssistantError(error);
-
-    this.server.to(`chat:${chatId}`).emit(
-      'chat:error',
-
-      {
-        code: 'ASSISTANT_UNAVAILABLE',
-
-        retryable,
-
-        message: retryable
-          ? 'Не удалось получить ответ. Попробуйте ещё раз.'
-          : 'Сервис временно недоступен. Попробуйте позже.',
-      },
-    );
+    this.server.to(`chat:${chatId}`).emit('chat:error', {
+      code: 'ASSISTANT_UNAVAILABLE',
+      retryable,
+      message: retryable
+        ? 'Не удалось получить ответ. Попробуйте ещё раз.'
+        : 'Не удалось получить ответ.',
+    });
   }
 
-  private emitAssistantEvent(
-    chatId: string,
-
-    event: SupportAgentStreamEvent,
-  ) {
+  private emitAssistantEvent(chatId: string, event: SupportAgentStreamEvent) {
     if (event.type === 'assistant_status') {
-      this.server.to(`chat:${chatId}`).emit(
-        'chat:assistant_status',
-
-        {
-          chatId,
-
-          status: event.status,
-        },
-      );
+      this.server.to(`chat:${chatId}`).emit('chat:assistant_status', {
+        chatId,
+        status: event.status,
+      });
 
       return;
     }
 
-    this.server.to(`chat:${chatId}`).emit(
-      'chat:assistant_delta',
-
-      {
-        chatId,
-
-        delta: event.delta,
-      },
-    );
+    this.server.to(`chat:${chatId}`).emit('chat:assistant_delta', {
+      chatId,
+      delta: event.delta,
+    });
   }
 
   private emitAssistantIdle(chatId: string) {
-    this.server.to(`chat:${chatId}`).emit(
-      'chat:assistant_status',
-
-      {
-        chatId,
-
-        status: 'IDLE',
-      },
-    );
+    this.server.to(`chat:${chatId}`).emit('chat:assistant_status', {
+      chatId,
+      status: 'IDLE',
+    });
   }
 
   private createSupportAgentContext(socket: Socket): SupportAgentContext {

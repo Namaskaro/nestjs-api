@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import {
   ProductQdrantPayloadSchema,
@@ -38,17 +38,19 @@ import {
   matchesCurrentStoreHardFilters,
 } from './current-store-hard-filters';
 
+const PRODUCT_SEARCH_CANDIDATE_LIMIT = 20;
+
+const PRODUCT_SEARCH_RESULT_LIMIT = 6;
+
 @Injectable()
 export class CurrentStoreProductSearchService {
+  private readonly logger = new Logger(CurrentStoreProductSearchService.name);
+
   constructor(
     private readonly aiService: AiService,
-
     private readonly qdrantService: QdrantService,
-
     private readonly rerankerService: RerankerService,
-
     private readonly prismaService: PrismaService,
-
     private readonly currentStoreCatalogService: CurrentStoreCatalogService,
   ) {}
 
@@ -57,7 +59,6 @@ export class CurrentStoreProductSearchService {
   ): Promise<ProductSearchResult> {
     return ProductSearchResultSchema.parse({
       productNeed,
-
       products: await this.hybridProductSearch(productNeed),
     });
   }
@@ -79,22 +80,13 @@ export class CurrentStoreProductSearchService {
 
     const points = await this.qdrantService.hybridSearch(
       QdrantCollections.products,
-
       embedding,
-
       productNeed.semanticQuery,
-
-      20,
-
-      buildCurrentStoreQdrantFilter(
-        productNeed,
-
-        catalog,
-      ),
+      PRODUCT_SEARCH_CANDIDATE_LIMIT,
+      buildCurrentStoreQdrantFilter(productNeed, catalog),
     );
 
     const seen = new Set<string>();
-
     const payloads: ProductQdrantPayload[] = [];
 
     for (const point of points) {
@@ -108,19 +100,12 @@ export class CurrentStoreProductSearchService {
 
       if (
         seen.has(payload.productId) ||
-        !matchesCurrentStoreHardFilters(
-          payload,
-
-          productNeed,
-
-          catalog,
-        )
+        !matchesCurrentStoreHardFilters(payload, productNeed, catalog)
       ) {
         continue;
       }
 
       seen.add(payload.productId);
-
       payloads.push(payload);
     }
 
@@ -139,35 +124,21 @@ export class CurrentStoreProductSearchService {
         id: {
           in: payloads.map((item) => item.productId),
         },
-
         ...CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
       },
-
       select: {
         id: true,
-
         title: true,
-
         price: true,
-
         images: true,
-
         gender: true,
-
         type: true,
-
         brandId: true,
-
         subcategoryId: true,
-
         color: true,
-
         sizes: true,
-
         inStock: true,
-
         stock: true,
-
         subcategory: {
           select: {
             categoryId: true,
@@ -180,7 +151,6 @@ export class CurrentStoreProductSearchService {
 
     const candidates: {
       payload: ProductQdrantPayload;
-
       product: ProductItem;
     }[] = [];
 
@@ -199,27 +169,17 @@ export class CurrentStoreProductSearchService {
         !matchesCurrentStoreHardFilters(
           {
             inStock: row.inStock,
-
             gender: row.gender,
-
             type: row.type,
-
             brandId: row.brandId,
-
             subcategoryId: row.subcategoryId,
-
             categoryId: row.subcategory?.categoryId ?? null,
-
             colorKey:
               row.color === null ? null : normalizeSearchFilterValue(row.color),
-
             sizes: row.sizes,
-
             price: row.price.trim() ? Number(row.price) : Number.NaN,
           },
-
           productNeed,
-
           catalog,
         )
       ) {
@@ -228,37 +188,42 @@ export class CurrentStoreProductSearchService {
 
       const product = ProductItemSchema.safeParse({
         id: row.id,
-
         title: row.title,
-
         price: row.price,
-
         image: row.images[0] ?? '',
       });
 
       if (product.success) {
         candidates.push({
           payload,
-
           product: product.data,
         });
       }
     }
 
-    if (candidates.length <= 5) {
+    if (candidates.length <= 1) {
       return candidates.map((item) => item.product);
     }
 
-    const reranked = await this.rerankerService.rerank(
-      productNeed.semanticQuery,
+    try {
+      const reranked = await this.rerankerService.rerank(
+        productNeed.semanticQuery,
+        candidates,
+        (item) => item.payload.searchText,
+        PRODUCT_SEARCH_RESULT_LIMIT,
+      );
 
-      candidates,
+      return reranked.map(({ item }) => item.product);
+    } catch (error) {
+      this.logger.warn(
+        `Reranker failed, fallback to hybrid-search order: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
 
-      (item) => item.payload.searchText,
-
-      5,
-    );
-
-    return reranked.slice(0, 5).map(({ item }) => item.product);
+      return candidates
+        .slice(0, PRODUCT_SEARCH_RESULT_LIMIT)
+        .map((item) => item.product);
+    }
   }
 }

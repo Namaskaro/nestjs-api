@@ -1,36 +1,61 @@
 import { interrupt, type GraphNode } from '@langchain/langgraph';
 
+import { StoreKnowledgeService } from '@/src/store-knowledge/store-knowledge.service';
+
 import { SupportAgentState } from '../support-agent.state';
-
 import { ClarificationNodeSchema } from '../../schemas/clarification-response.schema';
-
-import { clarificationTopicOptions } from '../../config/clarification.config';
-
 import { ClarificationTopicResumeSchema } from '../../schemas/clarification-resume.schema';
+import {
+  clarificationConfig,
+  clarificationTopicOrder,
+  filterAvailableClarificationQuestions,
+  getKnowledgeKeys,
+} from '../../config/clarification.config';
 
-export const clarificationTopicNode: GraphNode<typeof SupportAgentState> = (
-  state,
-) => {
-  const question =
-    state.rejectCount > 0
-      ? 'Давайте выберем тему, с которой я могу помочь.'
-      : 'Подскажите, пожалуйста, с чем связан ваш запрос?';
+export function createClarificationTopicNode(
+  storeKnowledgeService: StoreKnowledgeService,
+): GraphNode<typeof SupportAgentState> {
+  return async (state) => {
+    const knowledgeKeys = clarificationTopicOrder.flatMap((topic) =>
+      getKnowledgeKeys(clarificationConfig[topic].questions),
+    );
 
-  const interruptPayload = ClarificationNodeSchema.parse({
-    kind: 'topics',
+    const activeKnowledgeKeys = await storeKnowledgeService.findActiveKeys(
+      knowledgeKeys,
+    );
 
-    question,
+    const options = clarificationTopicOrder
+      .filter((topic) => {
+        const availableQuestions = filterAvailableClarificationQuestions(
+          clarificationConfig[topic].questions,
+          activeKnowledgeKeys,
+        );
 
-    topic: null,
+        return availableQuestions.length > 0;
+      })
+      .map((topic) => ({
+        id: topic,
+        label: clarificationConfig[topic].label,
+      }));
 
-    options: clarificationTopicOptions,
-  });
+    const question =
+      state.rejectCount > 0
+        ? 'Давайте выберем тему, с которой я могу помочь.'
+        : 'Подскажите, пожалуйста, с чем связан ваш запрос?';
 
-  const rawResumeValue = interrupt(interruptPayload);
+    const interruptPayload = ClarificationNodeSchema.parse({
+      kind: 'topics',
+      question,
+      topic: null,
+      options,
+    });
 
-  const resumeValue = ClarificationTopicResumeSchema.parse(rawResumeValue);
+    const rawResumeValue = interrupt(interruptPayload);
 
-  return {
-    clarification: resumeValue.topic,
+    const resumeValue = ClarificationTopicResumeSchema.parse(rawResumeValue);
+
+    return {
+      clarification: resumeValue.topic,
+    };
   };
-};
+}

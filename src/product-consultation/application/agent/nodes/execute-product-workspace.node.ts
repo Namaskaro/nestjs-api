@@ -1,6 +1,8 @@
 import { Logger } from '@nestjs/common';
 
-import type { GraphNode } from '@langchain/langgraph';
+import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
+
+import type { GraphNode, LangGraphRunnableConfig } from '@langchain/langgraph';
 
 import { AiService } from '@/src/ai/ai.service';
 
@@ -33,7 +35,6 @@ const workspaceLogger = new Logger('ExecuteProductWorkspace');
 
 function uniqueMessages(values: Array<string | null | undefined>): string[] {
   const result: string[] = [];
-
   const seen = new Set<string>();
 
   for (const value of values) {
@@ -44,7 +45,6 @@ function uniqueMessages(values: Array<string | null | undefined>): string[] {
     }
 
     seen.add(message);
-
     result.push(message);
   }
 
@@ -96,7 +96,6 @@ export function productWorkspaceMessage(
   const questions = uniqueMessages(
     groups.flatMap((group) => [
       group.recovery?.question,
-
       group.status === 'clarification'
         ? userFacingClarification(group.message)
         : null,
@@ -104,15 +103,12 @@ export function productWorkspaceMessage(
   );
 
   const empty = groups.filter((group) => group.status === 'empty');
-
   const failed = groups.filter((group) => group.status === 'failed');
 
   if (questions.length > 0) {
     return uniqueMessages([
       ready.length > 0 ? 'Часть вариантов нашёл.' : null,
-
       failed.length > 0 ? 'Часть действий выполнить не удалось.' : null,
-
       ...questions,
     ]).join('\n\n');
   }
@@ -146,11 +142,8 @@ export function productWorkspaceMessage(
 
 export function productWorkspaceGroupMessage(input: {
   status: NonNullable<ProductAgentAnswer['groups'][number]['status']>;
-
   showProducts: boolean;
-
   productsCount: number;
-
   message: string;
 }): string {
   if (
@@ -166,38 +159,27 @@ export function productWorkspaceGroupMessage(input: {
 
 export function createExecuteProductWorkspaceNode(
   aiService: AiService,
-
   service: ProductAgentService,
 ): GraphNode<typeof ProductAgentState> {
-  const executeTask = createExecuteProductDecisionNode(
-    aiService,
+  const executeTask = createExecuteProductDecisionNode(aiService, service);
 
-    service,
-  );
-
-  return async (state) => {
+  return async (state, config: LangGraphRunnableConfig) => {
     let workspace = ProductWorkspaceSchema.parse(
       structuredClone(state.workspace),
     );
 
     const empty = {
       groups: [],
-
       consultation: null,
-
       consultationCompletion: null,
-
       completionRequested: false,
-
       handoffRequested: false,
     };
 
     if (workspace.processedRequestIds.includes(state.requestId)) {
       return {
         ...empty,
-
         workspace,
-
         message: 'Этот запрос уже обработан.',
       };
     }
@@ -209,7 +191,6 @@ export function createExecuteProductWorkspaceNode(
     const acknowledge = () => {
       workspace.processedRequestIds = appendProcessedRequestId(
         workspace.processedRequestIds,
-
         state.requestId,
       );
 
@@ -220,20 +201,13 @@ export function createExecuteProductWorkspaceNode(
       const question = userFacingClarification(state.plan.clarification);
 
       workspace.pendingClarification = {
-        query: state.query.slice(
-          0,
-
-          4000,
-        ),
-
+        query: state.query.slice(0, 4000),
         question,
       };
 
       return {
         ...empty,
-
         workspace: acknowledge(),
-
         message: question,
       };
     }
@@ -243,25 +217,14 @@ export function createExecuteProductWorkspaceNode(
     try {
       operations = prepareProductWorkspacePlan({
         workspace,
-
         plan: state.plan,
-
         query: state.query,
-
         sourceQuery: state.sourceQuery ?? state.query,
-
         conversationId: state.conversationId,
-
         requestId: state.requestId,
-
         search: service,
       });
     } catch (error) {
-      const message =
-        error instanceof ProductWorkspaceClarification
-          ? userFacingClarification(error.message)
-          : 'Уточните, какой товар и какие условия нужно использовать.';
-
       if (!(error instanceof ProductWorkspaceClarification)) {
         workspaceLogger.warn(
           `Product workspace preflight failed for request ${state.requestId}: ${
@@ -270,30 +233,32 @@ export function createExecuteProductWorkspaceNode(
               : String(error)
           }`,
         );
+
+        /*
+         * Это техническая ошибка, а не вопрос пользователю.
+         *
+         * Не записываем pendingClarification,
+         * не acknowledge'им request и не изменяем workspace.
+         */
+        throw error;
       }
 
+      const message = userFacingClarification(error.message);
+
       workspace.pendingClarification = {
-        query: state.query.slice(
-          0,
-
-          4000,
-        ),
-
+        query: state.query.slice(0, 4000),
         question: message,
       };
 
       return {
         ...empty,
-
         workspace: acknowledge(),
-
         message,
       };
     }
 
     const lifecycle = resolveProductWorkspaceLifecycle({
       plan: state.plan,
-
       sourceQuery: state.sourceQuery ?? state.query,
     });
 
@@ -307,41 +272,36 @@ export function createExecuteProductWorkspaceNode(
       operations.map((lane) =>
         executeProductLane({
           lane,
-
           focus: workspace.focus.find(
             (reference) => reference.taskId === lane.task.taskId,
           ),
-
           conversationId: state.conversationId,
-
           requestId: state.requestId,
-
           search: service,
-
           executeAction: executeTask,
+          beforeAction: async (decision) => {
+            await dispatchCustomEvent(
+              'product_action_started',
+              {
+                action: decision.proposal.action,
+              },
+              config,
+            );
+          },
         }),
       ),
     );
 
     const groups: ProductAgentAnswer['groups'] = [];
-
     const focus: typeof workspace.focus = [];
 
     let handoffRequested = false;
-
     let completionRequested = false;
 
     for (const outcome of outcomes) {
-      const {
-        task,
-
-        actions,
-
-        closed,
-      } = outcome;
+      const { task, actions, closed } = outcome;
 
       const last = actions.at(-1);
-
       const action = last?.decision.proposal.action;
 
       completionRequested ||= Boolean(
@@ -380,11 +340,8 @@ export function createExecuteProductWorkspaceNode(
         showProducts && snapshot
           ? snapshot.products.map((product) => ({
               id: product.productId,
-
               title: product.title,
-
               price: product.price,
-
               image: product.image ?? '',
             }))
           : [];
@@ -417,36 +374,26 @@ export function createExecuteProductWorkspaceNode(
 
       groups.push({
         taskId: task.taskId,
-
         query: task.record.state?.search?.semanticIntent ?? task.query,
-
         status,
-
         message: presentations.length
           ? rawMessage
           : productWorkspaceGroupMessage({
               status,
-
               showProducts,
-
               productsCount: products.length,
-
               message:
                 action === 'CLARIFY'
                   ? userFacingClarification(rawMessage)
                   : rawMessage,
             }),
-
         products,
-
         presentations,
-
         ...(recovery
           ? {
               recovery,
             }
           : {}),
-
         consultation:
           actions.length === 1 ? last?.result.consultation ?? null : null,
       });
@@ -466,17 +413,11 @@ export function createExecuteProductWorkspaceNode(
 
     return {
       workspace: acknowledge(),
-
       groups,
-
       completionRequested,
-
       handoffRequested,
-
       consultation: single?.consultation ?? null,
-
       consultationCompletion: single?.consultationCompletion ?? null,
-
       message: productWorkspaceMessage(groups),
     };
   };

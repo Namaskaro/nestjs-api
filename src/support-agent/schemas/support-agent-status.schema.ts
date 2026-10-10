@@ -5,6 +5,8 @@ export const AssistantStatusSchema = z.enum([
   'THINKING',
   'SEARCHING_FAQ',
   'SEARCHING_PRODUCTS',
+  'COMPARING_PRODUCTS',
+  'PREPARING_RECOMMENDATION',
   'CHECKING_ORDER',
   'GENERATING_ANSWER',
 ]);

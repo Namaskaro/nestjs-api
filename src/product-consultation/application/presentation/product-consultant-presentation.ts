@@ -28,7 +28,9 @@ import {
 
 const NEED_ID = 'current-consultation-task';
 
-const MAX_KEY_DIFFERENCES = 4;
+const SEMANTIC_STYLE_ATTRIBUTE_ID = 'semantic.styleAssociations';
+
+const MAX_SEMANTIC_STYLE_VALUES = 3;
 
 function clip(
   value: string,
@@ -46,50 +48,6 @@ function clip(
       Math.max(0, maxLength - 1),
     ) + '…'
   );
-}
-
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat('ru-RU', {
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatValue(input: {
-  status: 'known' | 'unknown' | 'not_applicable' | 'conflicting';
-
-  value?: string | number | boolean | string[] | null;
-
-  unit?: string | null;
-
-  displayValue?: string | null;
-}): string {
-  if (input.status !== 'known') {
-    return 'не указано';
-  }
-
-  if (input.displayValue) {
-    return input.displayValue;
-  }
-
-  if (Array.isArray(input.value)) {
-    return input.value.join(', ');
-  }
-
-  if (typeof input.value === 'boolean') {
-    return input.value ? 'да' : 'нет';
-  }
-
-  if (input.value === null || input.value === undefined) {
-    return 'не указано';
-  }
-
-  if (typeof input.value === 'number') {
-    const formatted = formatNumber(input.value);
-
-    return input.unit ? `${formatted} ${input.unit}` : formatted;
-  }
-
-  return input.unit ? `${input.value} ${input.unit}` : input.value;
 }
 
 function currentGoal(state: ProductConsultationState): string {
@@ -147,10 +105,12 @@ function orderedProducts(
   });
 }
 
-function buildRows(input: {
+function buildFactRows(input: {
   comparison: AgentComparisonView;
 
   state: ProductConsultationState;
+
+  requestedAttributeIds: readonly string[];
 }): ComparisonPresentation['rows'] {
   const profile = getCategoryProfile(input.comparison.profileId);
 
@@ -158,12 +118,52 @@ function buildRows(input: {
     profile.attributes.map((attribute) => [attribute.id, attribute] as const),
   );
 
-  const showSizes = hasSizeContext(input.state);
+  const requested = new Set(input.requestedAttributeIds);
+
+  const requestedOrder = new Map(
+    input.requestedAttributeIds.map(
+      (attributeId, index) => [attributeId, index] as const,
+    ),
+  );
+
+  const showSizes =
+    requested.has('sizes') ||
+    requested.has('size') ||
+    hasSizeContext(input.state);
 
   return input.comparison.rows
     .filter((row) => {
-      if (row.attributeId === 'sizes' && !showSizes) {
+      if (
+        (row.attributeId === 'sizes' || row.attributeId === 'size') &&
+        !showSizes
+      ) {
         return false;
+      }
+
+      /*
+       * Цена уже крупно показана
+       * в верхних карточках.
+       *
+       * Отдельной строкой таблицы
+       * показываем её только тогда,
+       * когда пользователь сам попросил
+       * сравнить цену.
+       */
+      if (row.attributeId === 'price' && !requested.has('price')) {
+        return false;
+      }
+
+      /*
+       * Явно запрошенный критерий
+       * показываем даже когда значения
+       * одинаковые или неизвестные.
+       *
+       * Это важно для запроса вроде:
+       *
+       * "сравни по материалу".
+       */
+      if (requested.has(row.attributeId)) {
+        return true;
       }
 
       if (row.state === 'same') {
@@ -210,29 +210,26 @@ function buildRows(input: {
           })),
         },
       ];
+    })
+    .sort((left, right) => {
+      const leftRequested = requestedOrder.get(left.attributeId);
+
+      const rightRequested = requestedOrder.get(right.attributeId);
+
+      if (leftRequested !== undefined && rightRequested !== undefined) {
+        return leftRequested - rightRequested;
+      }
+
+      if (leftRequested !== undefined) {
+        return -1;
+      }
+
+      if (rightRequested !== undefined) {
+        return 1;
+      }
+
+      return 0;
     });
-}
-
-function deterministicFactDifference(
-  row: ComparisonPresentation['rows'][number],
-
-  products: ComparisonPresentation['products'],
-): string {
-  const titleById = new Map(
-    products.map((product) => [product.id, product.title] as const),
-  );
-
-  const values = row.cells.map((cell) => {
-    const title = titleById.get(cell.productId) ?? 'Товар';
-
-    return `${title} — ${formatValue(cell)}`;
-  });
-
-  return clip(
-    `${row.label}: ${values.join('; ')}.`,
-
-    500,
-  );
 }
 
 function normalizedStringSet(values: readonly string[]): string {
@@ -248,15 +245,11 @@ function normalizedStringSet(values: readonly string[]): string {
   );
 }
 
-function semanticDifference(input: {
-  label: string;
-
+function semanticStyleRow(input: {
   products: ComparisonPresentation['products'];
 
   representations: ReadonlyMap<string, ProductSemanticRepresentation>;
-
-  read: (representation: ProductSemanticRepresentation) => readonly string[];
-}): string | null {
+}): ComparisonPresentation['rows'][number] | null {
   const values = input.products.map((product) => {
     const representation = input.representations.get(product.id);
 
@@ -266,22 +259,34 @@ function semanticDifference(input: {
 
     const items = [
       ...new Set(
-        input
-          .read(representation)
+        representation.styleAssociations
           .map((value) => value.trim())
           .filter(Boolean),
       ),
-    ];
+    ].slice(
+      0,
 
-    return items.length > 0
-      ? {
-          title: product.title,
+      MAX_SEMANTIC_STYLE_VALUES,
+    );
 
-          items,
-        }
-      : null;
+    if (items.length === 0) {
+      return null;
+    }
+
+    return {
+      productId: product.id,
+
+      items,
+    };
   });
 
+  /*
+   * Не строим semantic row,
+   * если enrichment неполный.
+   *
+   * Отсутствие semantic data
+   * не является различием товара.
+   */
   if (values.some((value) => value === null)) {
     return null;
   }
@@ -290,7 +295,7 @@ function semanticDifference(input: {
     (
       value,
     ): value is {
-      title: string;
+      productId: string;
 
       items: string[];
     } => value !== null,
@@ -302,93 +307,103 @@ function semanticDifference(input: {
     return null;
   }
 
-  return clip(
-    `${input.label}: ${complete
-      .map((value) => `${value.title} — ${value.items.join(', ')}`)
-      .join('; ')}.`,
+  return {
+    attributeId: SEMANTIC_STYLE_ATTRIBUTE_ID,
 
-    500,
-  );
+    /*
+     * Важно:
+     *
+     * это не объективное "назначение"
+     * товара и не ProductFact.
+     *
+     * Формулировка специально
+     * показывает пользователю,
+     * что это мягкая интерпретация.
+     */
+    label: 'Стиль / ассоциации',
+
+    state: 'different',
+
+    range: null,
+
+    cells: complete.map((value) => ({
+      productId: value.productId,
+
+      status: 'known',
+
+      value: value.items,
+
+      unit: null,
+
+      displayValue: null,
+    })),
+  };
 }
 
-function buildSemanticDifferences(
-  products: ComparisonPresentation['products'],
+function buildRows(input: {
+  comparison: AgentComparisonView;
 
-  representations: ReadonlyMap<string, ProductSemanticRepresentation>,
-): string[] {
-  return [
-    semanticDifference({
-      label: 'Стиль',
+  products: ComparisonPresentation['products'];
 
-      products,
+  state: ProductConsultationState;
 
-      representations,
+  requestedAttributeIds: readonly string[];
 
-      read: (representation) => representation.styleAssociations,
-    }),
+  semanticRepresentations: ReadonlyMap<string, ProductSemanticRepresentation>;
+}): ComparisonPresentation['rows'] {
+  const factRows = buildFactRows({
+    comparison: input.comparison,
 
-    semanticDifference({
-      label: 'Для чего подойдут',
+    state: input.state,
 
-      products,
+    requestedAttributeIds: input.requestedAttributeIds,
+  });
 
-      representations,
+  const styleRow = semanticStyleRow({
+    products: input.products,
 
-      read: (representation) => representation.useCases,
-    }),
-  ].filter((value): value is string => value !== null);
+    representations: input.semanticRepresentations,
+  });
+
+  return styleRow ? [...factRows, styleRow] : factRows;
 }
 
-function buildKeyDifferences(
-  rows: ComparisonPresentation['rows'],
+function unavailableRequestedLabels(input: {
+  comparison: AgentComparisonView;
 
-  products: ComparisonPresentation['products'],
+  rows: ComparisonPresentation['rows'];
 
-  semanticRepresentations: ReadonlyMap<string, ProductSemanticRepresentation>,
-): string[] {
-  const factDifferences = rows
-    .filter(
-      (row) =>
-        row.state !== 'same' &&
-        row.cells.some((cell) => cell.status === 'known'),
-    )
-    .map((row) => ({
-      attributeId: row.attributeId,
+  requestedAttributeIds: readonly string[];
+}): string[] {
+  if (input.requestedAttributeIds.length === 0) {
+    return [];
+  }
 
-      text: deterministicFactDifference(
-        row,
+  const profile = getCategoryProfile(input.comparison.profileId);
 
-        products,
-      ),
-    }));
-
-  const priceFacts = factDifferences.filter(
-    (difference) => difference.attributeId === 'price',
+  const definitionById = new Map(
+    profile.attributes.map((attribute) => [attribute.id, attribute] as const),
   );
 
-  const nonPriceFacts = factDifferences.filter(
-    (difference) => difference.attributeId !== 'price',
-  );
+  return input.requestedAttributeIds.flatMap((attributeId) => {
+    const definition = definitionById.get(attributeId);
 
-  const semanticDifferences = buildSemanticDifferences(
-    products,
+    if (!definition) {
+      return [];
+    }
 
-    semanticRepresentations,
-  );
+    const row = input.rows.find(
+      (candidate) => candidate.attributeId === attributeId,
+    );
 
-  const ordered = [
-    ...priceFacts.map((difference) => difference.text),
+    if (!row) {
+      return [definition.label];
+    }
 
-    ...semanticDifferences,
+    const hasKnownValue = row.cells.some((cell) => cell.status === 'known');
 
-    ...nonPriceFacts.map((difference) => difference.text),
-  ];
-
-  return [...new Set(ordered)].slice(
-    0,
-
-    MAX_KEY_DIFFERENCES,
-  );
+    return hasKnownValue ? [] : [definition.label];
+  });
 }
 
 function buildSynthesisRows(
@@ -442,6 +457,8 @@ export function prepareProductConsultantComparisonPresentation(input: {
 
   currentQuery: string;
 
+  requestedAttributeIds?: readonly string[];
+
   semanticRepresentations?: ReadonlyMap<string, ProductSemanticRepresentation>;
 }) {
   const profile = getCategoryProfile(input.comparison.profileId);
@@ -466,19 +483,19 @@ export function prepareProductConsultantComparisonPresentation(input: {
     }),
   );
 
+  const requestedAttributeIds = input.requestedAttributeIds ?? [];
+
   const rows = buildRows({
     comparison: input.comparison,
 
-    state: input.state,
-  });
-
-  const keyDifferences = buildKeyDifferences(
-    rows,
-
     products,
 
-    input.semanticRepresentations ?? new Map(),
-  );
+    state: input.state,
+
+    requestedAttributeIds,
+
+    semanticRepresentations: input.semanticRepresentations ?? new Map(),
+  });
 
   const synthesisRows = buildSynthesisRows(
     rows,
@@ -528,7 +545,16 @@ export function prepareProductConsultantComparisonPresentation(input: {
 
     rows,
 
-    keyDifferences,
+    /*
+     * Legacy transport field.
+     *
+     * Новый active COMPARE больше не
+     * строит текстовую простыню.
+     *
+     * Все различия представлены
+     * структурированными rows.
+     */
+    keyDifferences: [],
 
     synthesisInput: {
       goal,
@@ -551,12 +577,18 @@ export function prepareProductConsultantComparisonPresentation(input: {
 
       rows: synthesisRows,
 
-      keyDifferences,
+      keyDifferences: [],
 
       guidance,
     },
 
-    unavailableRequestedLabels: [],
+    unavailableRequestedLabels: unavailableRequestedLabels({
+      comparison: input.comparison,
+
+      rows,
+
+      requestedAttributeIds,
+    }),
   };
 }
 

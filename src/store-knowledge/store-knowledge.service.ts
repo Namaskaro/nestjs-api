@@ -1,29 +1,19 @@
 import { Injectable } from '@nestjs/common';
-
 import { readFile } from 'node:fs/promises';
 
 import { AiService } from '@/src/ai/ai.service';
-
 import { PrismaService } from '@/src/core/prisma/prisma.service';
-
 import { QdrantCollections } from '@/src/core/qdrant/qdrant.collections';
-
 import {
   QDRANT_DENSE_VECTOR,
   QDRANT_SPARSE_VECTOR,
 } from '@/src/core/qdrant/qdrant.constants';
-
 import { QdrantService } from '@/src/core/qdrant/qdrant.service';
-
 import { RerankerService } from '@/src/core/reranker/reranker.service';
 
 import { StoreKnowledgeImportSchema } from './schemas/store-knowledge-import.schema';
 
 const SEARCH_CANDIDATE_LIMIT = 20;
-
-// ИЗМЕНЕНО:
-// Reranker сравнивает кандидатов,
-// но наружу отдаём только один лучший результат.
 const SEARCH_RESULT_LIMIT = 1;
 
 export type StoreKnowledgeSearchResult = {
@@ -45,10 +35,8 @@ export class StoreKnowledgeService {
     private readonly rerankerService: RerankerService,
   ) {}
 
-  // Один импорт сразу сохраняет knowledge и в Postgres, и в Qdrant.
   async importJson(filePath: string): Promise<number> {
     const raw = await readFile(filePath, 'utf-8');
-
     const { items } = StoreKnowledgeImportSchema.parse(JSON.parse(raw));
 
     for (const [index, item] of items.entries()) {
@@ -56,7 +44,6 @@ export class StoreKnowledgeService {
         where: {
           key: item.id,
         },
-
         create: {
           key: item.id,
           section: item.category,
@@ -69,7 +56,6 @@ export class StoreKnowledgeService {
           sortOrder: index,
           isActive: true,
         },
-
         update: {
           section: item.category,
           topic: item.topic ?? null,
@@ -96,16 +82,13 @@ export class StoreKnowledgeService {
 
       await this.qdrantService.savePoint(QdrantCollections.storeKnowledge, {
         id: knowledge.id,
-
         vector: {
           [QDRANT_DENSE_VECTOR]: embedding,
-
           [QDRANT_SPARSE_VECTOR]: {
             text: content,
             model: 'qdrant/bm25',
           },
         },
-
         payload: {
           key: knowledge.key,
           section: knowledge.section,
@@ -122,8 +105,46 @@ export class StoreKnowledgeService {
     return items.length;
   }
 
-  // ИЗМЕНЕНО:
-  // Qdrant dense + BM25 + RRF -> reranker -> один лучший результат.
+  async findByKey(key: string): Promise<StoreKnowledgeSearchResult | null> {
+    const knowledge = await this.prismaService.storeKnowledge.findFirst({
+      where: {
+        key,
+        isActive: true,
+      },
+      select: {
+        key: true,
+        section: true,
+        topic: true,
+        question: true,
+        answer: true,
+        notice: true,
+        footnote: true,
+      },
+    });
+
+    return knowledge;
+  }
+
+  async findActiveKeys(keys: readonly string[]): Promise<Set<string>> {
+    if (keys.length === 0) {
+      return new Set();
+    }
+
+    const records = await this.prismaService.storeKnowledge.findMany({
+      where: {
+        key: {
+          in: [...new Set(keys)],
+        },
+        isActive: true,
+      },
+      select: {
+        key: true,
+      },
+    });
+
+    return new Set(records.map((record) => record.key));
+  }
+
   async search(query: string): Promise<StoreKnowledgeSearchResult | null> {
     const queryEmbedding = await this.aiService.createQueryEmbedding(query);
 
@@ -141,8 +162,6 @@ export class StoreKnowledgeService {
       SEARCH_RESULT_LIMIT,
     );
 
-    // НОВОЕ:
-    // После rerank нас интересует только лучший кандидат.
     const bestResult = reranked[0];
 
     if (!bestResult) {

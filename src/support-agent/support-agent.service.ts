@@ -21,26 +21,21 @@ export type SupportAgentAssistantStatus = AssistantStatus;
 export type SupportAgentStreamEvent =
   | {
       type: 'assistant_status';
-
       status: SupportAgentAssistantStatus;
     }
   | {
       type: 'assistant_delta';
-
       delta: string;
     };
 
 export type SupportAgentRunResult =
   | {
       kind: 'answer';
-
       answer: SupportAgentAnswer;
-
       handoff: SupportAgentHandoff;
     }
   | {
       kind: 'interrupt';
-
       interrupt: unknown;
     };
 
@@ -56,6 +51,25 @@ export class SupportAgentRunInProgressError extends Error {
   }
 }
 
+function statusForProductAction(
+  action: string,
+): SupportAgentAssistantStatus | null {
+  switch (action) {
+    case 'SEARCH':
+    case 'REFINE':
+      return 'SEARCHING_PRODUCTS';
+
+    case 'COMPARE':
+      return 'COMPARING_PRODUCTS';
+
+    case 'RECOMMEND':
+      return 'PREPARING_RECOMMENDATION';
+
+    default:
+      return null;
+  }
+}
+
 @Injectable()
 export class SupportAgentService {
   private readonly activeThreadIds = new Set<string>();
@@ -68,104 +82,62 @@ export class SupportAgentService {
 
   async run(
     query: string,
-
     threadId: string,
-
     context: SupportAgentContext,
-
     onEvent?: EventHandler,
-
     messageId?: string,
   ): Promise<SupportAgentRunResult> {
-    return this.withThreadLock(
-      threadId,
+    return this.withThreadLock(threadId, async () => {
+      const result = await this.supportAgentGraph.invoke(
+        query,
+        threadId,
+        context,
+        this.createCustomEventHandler(onEvent),
+        messageId,
+      );
 
-      async () => {
-        const result = await this.supportAgentGraph.invoke(
-          query,
-
-          threadId,
-
-          context,
-
-          this.createCustomEventHandler(onEvent),
-
-          messageId,
-        );
-
-        return this.toRunResult(result);
-      },
-    );
+      return this.toRunResult(result);
+    });
   }
 
   async resume(
     value: Parameters<SupportAgentGraph['resume']>[0],
-
     threadId: string,
-
     context: SupportAgentContext,
-
     onEvent?: EventHandler,
   ): Promise<SupportAgentRunResult> {
-    return this.withThreadLock(
-      threadId,
+    return this.withThreadLock(threadId, async () => {
+      const result = await this.supportAgentGraph.resume(
+        value,
+        threadId,
+        context,
+        this.createCustomEventHandler(onEvent),
+      );
 
-      async () => {
-        const result = await this.supportAgentGraph.resume(
-          value,
-
-          threadId,
-
-          context,
-
-          this.createCustomEventHandler(onEvent),
-        );
-
-        return this.toRunResult(result);
-      },
-    );
+      return this.toRunResult(result);
+    });
   }
 
   async submitConsultationFeedback(
     threadId: string,
-
     sessionId: string,
-
     helpful: boolean,
   ): Promise<ConsultationFeedbackReceipt> {
-    return this.withThreadLock(
-      threadId,
-
-      () =>
-        this.supportAgentGraph.submitConsultationFeedback(
-          threadId,
-
-          sessionId,
-
-          helpful,
-        ),
+    return this.withThreadLock(threadId, () =>
+      this.supportAgentGraph.submitConsultationFeedback(
+        threadId,
+        sessionId,
+        helpful,
+      ),
     );
   }
 
-  streamEvents(
-    query: string,
-
-    threadId: string,
-
-    context: SupportAgentContext,
-  ) {
-    return this.supportAgentGraph.streamEvents(
-      query,
-
-      threadId,
-
-      context,
-    );
+  streamEvents(query: string, threadId: string, context: SupportAgentContext) {
+    return this.supportAgentGraph.streamEvents(query, threadId, context);
   }
 
   private async withThreadLock<T>(
     threadId: string,
-
     operation: () => Promise<T>,
   ): Promise<T> {
     if (this.activeThreadIds.has(threadId)) {
@@ -186,11 +158,7 @@ export class SupportAgentService {
       return undefined;
     }
 
-    return async (
-      eventName: string,
-
-      payload: unknown,
-    ) => {
+    return async (eventName: string, payload: unknown) => {
       if (eventName === 'assistant_status') {
         const eventPayload = payload as {
           status: SupportAgentAssistantStatus;
@@ -198,9 +166,25 @@ export class SupportAgentService {
 
         await onEvent({
           type: 'assistant_status',
-
           status: eventPayload.status,
         });
+
+        return;
+      }
+
+      if (eventName === 'product_action_started') {
+        const eventPayload = payload as {
+          action?: string;
+        };
+
+        const status = statusForProductAction(eventPayload.action ?? '');
+
+        if (status) {
+          await onEvent({
+            type: 'assistant_status',
+            status,
+          });
+        }
 
         return;
       }
@@ -212,7 +196,6 @@ export class SupportAgentService {
 
         await onEvent({
           type: 'assistant_delta',
-
           delta: eventPayload.delta,
         });
       }
@@ -231,7 +214,6 @@ export class SupportAgentService {
 
       return {
         kind: 'interrupt',
-
         interrupt: interrupt.value,
       };
     }
@@ -242,9 +224,7 @@ export class SupportAgentService {
 
     return {
       kind: 'answer',
-
       answer: result.answer,
-
       handoff: result.handoff,
     };
   }

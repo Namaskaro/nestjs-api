@@ -409,6 +409,8 @@ export function createExecuteProductDecisionNode(
 
           currentQuery: state.query,
 
+          requestedAttributeIds: decision.factAttributeIds,
+
           semanticRepresentations,
         });
 

@@ -1,3 +1,5 @@
+import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
+
 import { AIMessage } from '@langchain/core/messages';
 
 import {
@@ -27,17 +29,11 @@ import { SupportAgentState } from '../support-agent.state';
 
 const ORDER_STATUS_LABELS: Record<OrderRecord['status'], string> = {
   DRAFT: 'оформляется',
-
   PENDING_PAYMENT: 'ожидает оплаты',
-
   PAID: 'оплачен',
-
   PROCESSING: 'обрабатывается',
-
   SHIPPED: 'отправлен',
-
   DELIVERED: 'доставлен',
-
   CANCELLED: 'отменён',
 };
 
@@ -71,26 +67,27 @@ function cancellationDeniedMessage(reason: string): string {
 export function createOrderAgentWorker(
   ordersService: OrdersService,
 ): GraphNode<typeof SupportAgentState> {
-  return async (
-    state,
-
-    config: LangGraphRunnableConfig,
-  ) => {
+  return async (state, config: LangGraphRunnableConfig) => {
     const context = SupportAgentContextSchema.parse(config.context);
-
     const userId = context.userId;
-
     const request = state.requestRouter?.orderRequest;
 
     if (!request) {
       throw new Error('OrderAgentWorker: отсутствует orderRequest');
     }
 
+    await dispatchCustomEvent(
+      'assistant_status',
+      {
+        status: 'CHECKING_ORDER',
+      },
+      config,
+    );
+
     const finish = (message: string) => {
       if (state.executionMode === 'multi') {
         const block = OrderAnswerBlockSchema.parse({
           worker: 'order',
-
           data: {
             message,
           },
@@ -98,7 +95,6 @@ export function createOrderAgentWorker(
 
         return new Command({
           goto: 'aggregateAnswer',
-
           update: {
             workerResults: [block],
           },
@@ -107,18 +103,14 @@ export function createOrderAgentWorker(
 
       const answer = OrderAgentFinalAnswerSchema.parse({
         type: 'order_agent',
-
         message,
       });
 
       return new Command({
         goto: END,
-
         update: {
           activeAgent: 'orderAgent' as const,
-
           answer,
-
           messages: [new AIMessage(answer.message)],
         },
       });
@@ -133,7 +125,6 @@ export function createOrderAgentWorker(
 
       const message = [
         `У вас ${orders.length} заказ(а/ов):`,
-
         ...orders.map((order, index) => `${index + 1}. ${orderSummary(order)}`),
       ].join('\n');
 
@@ -147,11 +138,7 @@ export function createOrderAgentWorker(
         return finish(order ? orderSummary(order) : 'У вас пока нет заказов.');
       }
 
-      const order = await ordersService.getOrderById(
-        userId,
-
-        request.orderId,
-      );
+      const order = await ordersService.getOrderById(userId, request.orderId);
 
       return finish(orderSummary(order));
     }
@@ -170,11 +157,7 @@ export function createOrderAgentWorker(
 
     if (request.action === 'CANCEL') {
       const targetOrder = request.orderId
-        ? await ordersService.getOrderById(
-            userId,
-
-            request.orderId,
-          )
+        ? await ordersService.getOrderById(userId, request.orderId)
         : await ordersService.getRelevantUserOrder(userId);
 
       if (!targetOrder) {
@@ -184,7 +167,6 @@ export function createOrderAgentWorker(
       const { eligibility } =
         await ordersService.getOrderCancellationEligibility(
           userId,
-
           targetOrder.id,
         );
 
@@ -196,23 +178,17 @@ export function createOrderAgentWorker(
 
       const interruptPayload = ClarificationNodeSchema.parse({
         kind: 'questions',
-
         question: `Вы действительно хотите отменить ${orderLabel(
           targetOrder,
         )}?`,
-
         topic: 'orders',
-
         options: [
           {
             id: confirmId,
-
             label: 'Да, отменить',
           },
-
           {
             id: 'order_cancel_decline',
-
             label: 'Нет',
           },
         ],
@@ -245,7 +221,6 @@ export function createOrderAgentWorker(
 
       const cancelledOrder = await ordersService.cancelOrder(
         userId,
-
         confirmedOrderId,
       );
 
