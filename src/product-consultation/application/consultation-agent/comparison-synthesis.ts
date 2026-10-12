@@ -16,7 +16,7 @@ const COMPARISON_SYNTHESIS_TIMEOUT_MS = 12_000;
 
 export function createComparisonSynthesis(aiService: AiService) {
   const model = aiService
-    .getYandexLiteChatModel()
+    .getChatModel('FAST')
     .withStructuredOutput(ComparisonSynthesisOutputSchema, {
       name: 'summarize_product_comparison',
       includeRaw: true,

@@ -52,10 +52,11 @@ function supportHarness(
       reason: 'offline fixture',
     },
   }));
+  const getChatModel = jest.fn(() => ({
+    withStructuredOutput: () => RunnableLambda.from(route),
+  }));
   const ai = {
-    getYandexLiteChatModel: () => ({
-      withStructuredOutput: () => RunnableLambda.from(route),
-    }),
+    getChatModel,
   } as unknown as AiService;
   const help = jest.fn(async (_input: { messages: BaseMessage[] }) => ({
     messages: [new AIMessage('Доставка курьером и в пункт выдачи.')],
@@ -98,6 +99,7 @@ function supportHarness(
     .compile({ checkpointer: new MemorySaver() });
   let turn = 0;
   return {
+    getChatModel,
     help,
     invoke,
     route,
@@ -125,6 +127,7 @@ describe('Product multi-action across real Support routing, workers, aggregation
   it('preserves Product context through production preIntent/afterPreIntent on a delivery detour', async () => {
     const h = harness();
     const s = supportHarness(h, true);
+    expect(s.getChatModel).toHaveBeenCalledWith('FAST');
     const initial = await s.run('Найди кроссовки', 'Найди кроссовки');
     expect(s.route).toHaveBeenCalledTimes(1);
     h.setPlan(

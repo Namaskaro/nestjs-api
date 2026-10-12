@@ -85,19 +85,23 @@ function aiServiceReturning(response: unknown) {
     withStructuredOutput,
   };
 
+  const getChatModel = jest.fn(() => model);
+
   return {
     aiService: {
-      getChatModel: () => model,
+      getChatModel,
     } as unknown as AiService,
 
     invoke,
+
+    getChatModel,
 
     withStructuredOutput,
   };
 }
 
 describe('ProductRecommendationSynthesizer', () => {
-  it('uses JSON mode for Yandex recommendation synthesis', async () => {
+  it('uses the STANDARD role and JSON mode for recommendation synthesis', async () => {
     const ai = aiServiceReturning({
       message: 'Nike Mind 002 можно рассматривать для ежедневной ходьбы.',
 
@@ -113,6 +117,8 @@ describe('ProductRecommendationSynthesizer', () => {
     });
 
     expect(ai.withStructuredOutput).toHaveBeenCalledTimes(1);
+
+    expect(ai.getChatModel).toHaveBeenCalledWith('STANDARD');
 
     expect(ai.withStructuredOutput.mock.calls[0][1]).toEqual({
       name: 'product_recommendation_response',

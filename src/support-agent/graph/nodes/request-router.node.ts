@@ -122,7 +122,7 @@ function createRouterProductContext(value: unknown) {
 export function createRequestRouterNode(
   aiService: AiService,
 ): GraphNode<typeof SupportAgentState> {
-  const model = aiService.getYandexLiteChatModel();
+  const model = aiService.getChatModel('FAST');
 
   const structuredRouter = model.withStructuredOutput(
     RequestRouterModelSchema,

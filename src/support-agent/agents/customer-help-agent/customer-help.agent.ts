@@ -114,7 +114,7 @@ export function createCustomerHelpAgent(
   aiService: AiService,
   storeKnowledgeService: StoreKnowledgeService,
 ) {
-  const model = aiService.getChatModel('yandex');
+  const model = aiService.getChatModel('STANDARD');
 
   const searchKnowledgeTool = createSearchKnowledgeTool(storeKnowledgeService);
 

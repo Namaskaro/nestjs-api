@@ -471,7 +471,7 @@ export class LangChainProductConsultantModelAdapter
   constructor(private readonly aiService: AiService) {}
 
   public async decide(input: ProductConsultantModelInput): Promise<unknown> {
-    const model = this.aiService.getChatModel();
+    const model = this.aiService.getChatModel('STANDARD');
 
     const response = await model.invoke(
       [
