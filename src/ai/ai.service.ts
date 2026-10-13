@@ -19,6 +19,8 @@ import { productSemanticRepresentationPrompt } from './prompts/product-semantic-
 
 import { llmUsageCallback } from './llm-usage';
 
+import { getChatTransport } from './chat-transport';
+
 export type AiProvider = 'openai' | 'yandex';
 
 // STRONG is reserved; no current operation or deployment needs to configure it.
@@ -111,17 +113,24 @@ export class AiService {
       ? 'OPENAI_FAST_MODEL'
       : 'OPENAI_STANDARD_MODEL';
     const model = this.requireConfig(modelKey);
+    const transport = getChatTransport(
+      provider,
+      role,
+      model,
+      isYandex
+        ? undefined
+        : this.configService.get<unknown>(`OPENAI_${role}_TRANSPORT_PROFILE`),
+    );
     const chatModel = new ChatOpenAI({
       apiKey: this.requireConfig(
         isYandex ? 'YANDEX_API_KEY' : 'OPENAI_API_KEY',
       ),
       model,
-      temperature: 0,
+      ...transport,
       maxRetries: 0,
       ...(isYandex
         ? {
             configuration: { baseURL: this.requireConfig('YANDEX_API_URL') },
-            streamUsage: false,
           }
         : {}),
       callbacks: [llmUsageCallback],

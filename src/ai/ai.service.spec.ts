@@ -35,6 +35,8 @@ const chatConfig = {
     OPENAI_API_KEY: 'test-openai-key',
     OPENAI_FAST_MODEL: 'configured-openai-fast',
     OPENAI_STANDARD_MODEL: 'configured-openai-standard',
+    OPENAI_FAST_TRANSPORT_PROFILE: 'gpt-6-luna',
+    OPENAI_STANDARD_TRANSPORT_PROFILE: 'gpt-6.1-sol',
   },
 };
 
@@ -126,7 +128,6 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
         expect.objectContaining({
           model,
           apiKey: `test-${provider}-key`,
-          temperature: 0,
           maxRetries: 0,
           callbacks: [llmUsageCallback],
           tags: expect.arrayContaining([
@@ -142,9 +143,24 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
       if (provider === 'yandex') {
         expect(options).toMatchObject({
           configuration: { baseURL: chatConfig.yandex.YANDEX_API_URL },
+          useResponsesApi: false,
+          temperature: 0,
           streamUsage: false,
         });
       } else {
+        expect(options).toMatchObject({
+          useResponsesApi: true,
+          zdrEnabled: true,
+          modelKwargs: {
+            reasoning: { effort: role === 'FAST' ? 'none' : 'medium' },
+            include: ['reasoning.encrypted_content'],
+          },
+        });
+        if (role === 'STANDARD') {
+          expect(options).not.toHaveProperty('temperature');
+        } else {
+          expect(options.temperature).toBe(0);
+        }
         expect(options).not.toHaveProperty('configuration');
         expect(options).not.toHaveProperty('streamUsage');
       }
