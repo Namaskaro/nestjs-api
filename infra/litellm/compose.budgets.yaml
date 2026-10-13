@@ -1,0 +1,31 @@
+# Optional, dedicated LiteLLM database. Never point this at the commerce DB.
+services:
+  litellm:
+    environment:
+      DATABASE_URL: postgresql://litellm:${LITELLM_POSTGRES_PASSWORD:?Set a URL-safe dedicated DB password}@litellm-db:5432/litellm
+      LITELLM_SALT_KEY: ${LITELLM_SALT_KEY:?Set a persistent dedicated salt key}
+      SUPPORT_REQUIRE_PRICING: "true"
+    depends_on:
+      litellm-db:
+        condition: service_healthy
+    networks: [gateway, gateway-db]
+  litellm-db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_USER: litellm
+      POSTGRES_PASSWORD: ${LITELLM_POSTGRES_PASSWORD:?Set a dedicated DB password}
+      POSTGRES_DB: litellm
+    volumes:
+      - litellm-data:/var/lib/postgresql/data
+    networks: [gateway-db]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  litellm-data:
+networks:
+  gateway-db:
+    internal: true

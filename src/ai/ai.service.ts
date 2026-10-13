@@ -20,6 +20,7 @@ import { productSemanticRepresentationPrompt } from './prompts/product-semantic-
 import { llmUsageCallback } from './llm-usage';
 
 import { getChatTransport } from './chat-transport';
+import { createChatFetch } from './chat-http';
 
 export type AiProvider = 'openai' | 'yandex';
 
@@ -35,7 +36,9 @@ type YandexEmbeddingResponse = {
 
 @Injectable()
 export class AiService {
-  private readonly chatProvider: AiProvider;
+  private readonly chatProvider?: AiProvider;
+
+  private readonly chatMode: 'direct' | 'gateway';
 
   private readonly embeddingProvider: AiProvider;
 
@@ -44,7 +47,15 @@ export class AiService {
   private openAiEmbeddingClient?: OpenAI;
 
   public constructor(private readonly configService: ConfigService) {
-    this.chatProvider = this.getProvider('CHAT_PROVIDER');
+    const mode = this.configService.get<unknown>('CHAT_MODE') ?? 'direct';
+    if (mode !== 'direct' && mode !== 'gateway') {
+      throw new Error(
+        'AiService configuration: CHAT_MODE must be "direct" or "gateway".',
+      );
+    }
+    this.chatMode = mode;
+    if (mode === 'direct')
+      this.chatProvider = this.getProvider('CHAT_PROVIDER');
     this.embeddingProvider = this.getProvider('EMBEDDING_PROVIDER');
   }
 
@@ -66,7 +77,7 @@ export class AiService {
     if (provider !== 'openai' && provider !== 'yandex') {
       throw new Error(
         `AiService configuration: ${key} must be "openai" or "yandex". ` +
-          'Set CHAT_PROVIDER and EMBEDDING_PROVIDER explicitly; AI_PROVIDER is no longer used.',
+          `Set ${key} explicitly; AI_PROVIDER is no longer used.`,
       );
     }
 
@@ -103,7 +114,8 @@ export class AiService {
       return cached;
     }
 
-    const provider = this.chatProvider;
+    const isGateway = this.chatMode === 'gateway';
+    const provider = isGateway ? 'litellm' : this.chatProvider!;
     const isYandex = provider === 'yandex';
     const modelKey = isYandex
       ? role === 'FAST'
@@ -112,27 +124,70 @@ export class AiService {
       : role === 'FAST'
       ? 'OPENAI_FAST_MODEL'
       : 'OPENAI_STANDARD_MODEL';
-    const model = this.requireConfig(modelKey);
-    const transport = getChatTransport(
-      provider,
-      role,
-      model,
-      isYandex
-        ? undefined
-        : this.configService.get<unknown>(`OPENAI_${role}_TRANSPORT_PROFILE`),
-    );
+    const model = isGateway
+      ? role === 'FAST'
+        ? 'support-fast'
+        : 'support-standard'
+      : this.requireConfig(modelKey);
+    const transport = isGateway
+      ? {
+          useResponsesApi: true,
+          zdrEnabled: true,
+          modelKwargs: { include: ['reasoning.encrypted_content'] },
+        }
+      : getChatTransport(
+          this.chatProvider!,
+          role,
+          model,
+          isYandex
+            ? undefined
+            : this.configService.get<unknown>(
+                `OPENAI_${role}_TRANSPORT_PROFILE`,
+              ),
+        );
+    const baseURL = isGateway
+      ? this.requireConfig('LITELLM_BASE_URL').replace(/\/$/, '')
+      : isYandex
+      ? this.requireConfig('YANDEX_API_URL')
+      : undefined;
+    if (isGateway) {
+      const url = new URL(baseURL!);
+      if (
+        !['http:', 'https:'].includes(url.protocol) ||
+        url.username ||
+        url.password ||
+        url.search ||
+        url.hash ||
+        !url.pathname.endsWith('/v1')
+      ) {
+        throw new Error(
+          'AiService configuration: LITELLM_BASE_URL must be an HTTP(S) URL ending in /v1 without credentials, query or fragment.',
+        );
+      }
+    }
     const chatModel = new ChatOpenAI({
       apiKey: this.requireConfig(
-        isYandex ? 'YANDEX_API_KEY' : 'OPENAI_API_KEY',
+        isGateway
+          ? 'LITELLM_API_KEY'
+          : isYandex
+          ? 'YANDEX_API_KEY'
+          : 'OPENAI_API_KEY',
       ),
       model,
       ...transport,
+      // Graph event callbacks otherwise make invoke() stream implicitly. Buffer
+      // the provider response so completion safety runs before tools/parsers.
+      disableStreaming: true,
       maxRetries: 0,
-      ...(isYandex
-        ? {
-            configuration: { baseURL: this.requireConfig('YANDEX_API_URL') },
-          }
-        : {}),
+      ...(isGateway ? { timeout: 70_000 } : {}),
+      configuration: {
+        ...(baseURL ? { baseURL } : {}),
+        fetch: createChatFetch({
+          mode: this.chatMode,
+          role,
+          api: transport.useResponsesApi ? 'responses' : 'chat-completions',
+        }),
+      },
       callbacks: [llmUsageCallback],
       tags: [
         `role:${role}`,
@@ -140,7 +195,7 @@ export class AiService {
         `model:${model}`,
         isYandex && role === 'FAST' ? 'tier:lite' : 'tier:primary',
       ],
-      metadata: { role, provider, model },
+      metadata: { role, provider, model, chatMode: this.chatMode },
     });
 
     this.chatModels.set(role, chatModel);

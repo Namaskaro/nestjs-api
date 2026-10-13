@@ -1,0 +1,41 @@
+model_list:
+  - model_name: support-fast
+    litellm_params:
+      model: os.environ/OPENAI_FAST_MODEL
+      custom_llm_provider: openai
+      api_key: os.environ/OPENAI_API_KEY
+      reasoning: {effort: none}
+      temperature: 0
+      max_retries: 0
+    model_info:
+      id: support-fast-openai
+      transport_profile: gpt-6-luna
+  - model_name: support-standard
+    litellm_params:
+      model: os.environ/OPENAI_STANDARD_MODEL
+      custom_llm_provider: openai
+      api_key: os.environ/OPENAI_API_KEY
+      reasoning: {effort: medium}
+      max_retries: 0
+    model_info:
+      id: support-standard-openai
+      transport_profile: gpt-6.1-sol
+
+router_settings:
+  num_retries: 0
+  max_fallbacks: 0
+  fallbacks: []
+  context_window_fallbacks: []
+  content_policy_fallbacks: []
+  timeout: 60
+
+litellm_settings:
+  drop_params: false
+  telemetry: false
+  turn_off_message_logging: true
+  callbacks: [gateway_policy.policy]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  store_model_in_db: false
+  fail_closed_budget_enforcement: true

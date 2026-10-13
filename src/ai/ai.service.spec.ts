@@ -135,7 +135,7 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
             `provider:${provider}`,
             `model:${model}`,
           ]),
-          metadata: { role, provider, model },
+          metadata: { role, provider, model, chatMode: 'direct' },
         }),
       );
 
@@ -161,7 +161,7 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
         } else {
           expect(options.temperature).toBe(0);
         }
-        expect(options).not.toHaveProperty('configuration');
+        expect(options.configuration).toEqual({ fetch: expect.any(Function) });
         expect(options).not.toHaveProperty('streamUsage');
       }
       expect(OpenAI).not.toHaveBeenCalled();
@@ -277,9 +277,10 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
         service.getChatModel('FAST');
         service.getChatModel('STANDARD');
       }
-      const options = jest
-        .mocked(ChatOpenAI)
-        .mock.calls.map(([input]) => input);
+      const options = jest.mocked(ChatOpenAI).mock.calls.map(([input]) => ({
+        ...input,
+        configuration: { ...input.configuration, fetch: expect.any(Function) },
+      }));
       expect(options.slice(0, 2)).toEqual(options.slice(2));
       expect(OpenAI).not.toHaveBeenCalled();
       expect(fetchMock).not.toHaveBeenCalled();

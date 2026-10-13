@@ -1,0 +1,24 @@
+# Test-only DB, disposable contents in tmpfs, fake credentials. No commerce DB.
+services:
+  gateway-contract:
+    environment:
+      SUPPORT_TEST_DATABASE_URL: postgresql://litellm_test:offline-db@budget-db:5432/litellm_test
+    ports:
+      - "127.0.0.1:34183:9183"
+    depends_on:
+      budget-db:
+        condition: service_healthy
+  budget-db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_USER: litellm_test
+      POSTGRES_PASSWORD: offline-db
+      POSTGRES_DB: litellm_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks: [offline]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm_test -d litellm_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 10

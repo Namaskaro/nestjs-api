@@ -489,7 +489,7 @@ describe('Chat transport HTTP contracts (offline)', () => {
   );
 
   it.each(deployments)(
-    '$provider $role retains truncation metadata and rejects partial JSON',
+    '$provider $role rejects truncation before structured parsing',
     async (d) => {
       const response =
         d.provider === 'openai'
@@ -509,7 +509,7 @@ describe('Chat transport HTTP contracts (offline)', () => {
               ],
             };
       replies.push(response);
-      const result = await service(d)
+      const result = service(d)
         .getChatModel(d.role)
         .withStructuredOutput(schema, {
           method: 'jsonMode',
@@ -517,15 +517,9 @@ describe('Chat transport HTTP contracts (offline)', () => {
           includeRaw: true,
         })
         .invoke('Return JSON.');
-      expect(result.parsed).toBeNull();
-      expect(result.raw.response_metadata).toMatchObject(
-        d.provider === 'openai'
-          ? {
-              status: 'incomplete',
-              incomplete_details: { reason: 'max_output_tokens' },
-            }
-          : { finish_reason: 'length' },
-      );
+      await expect(result).rejects.toMatchObject({
+        cause: expect.objectContaining({ name: 'ChatTransportError' }),
+      });
     },
   );
 
@@ -701,6 +695,36 @@ describe('Chat transport HTTP contracts (offline)', () => {
           'request_operator_handoff',
         ]),
       );
+    },
+  );
+
+  it.each([deployments[1], deployments[3]])(
+    '$provider supports graph v3 events without implicitly streaming incomplete provider output',
+    async (d) => {
+      replies.push(
+        toolResponse(
+          d,
+          JSON.stringify({ query: 'Доставка' }),
+          'search_knowledge',
+        ),
+        textResponse(d, 'Доставка курьером.'),
+      );
+      const search = jest.fn(async () => 'Доставка курьером.');
+      const graph = createCustomerHelpAgent(service(d), {
+        search,
+      } as unknown as StoreKnowledgeService);
+      const events = [];
+      for await (const event of await graph.streamEvents(
+        { messages: [new HumanMessage('Доставка')] },
+        { version: 'v3' },
+      ))
+        events.push(event);
+      expect(events.length).toBeGreaterThan(0);
+      expect(JSON.stringify(events)).toContain('Доставка курьером.');
+      expect(search).toHaveBeenCalledTimes(1);
+      expect(requests).toHaveLength(2);
+      for (const request of requests)
+        expect(request.body.stream).not.toBe(true);
     },
   );
 

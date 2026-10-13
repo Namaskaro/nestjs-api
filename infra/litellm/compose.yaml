@@ -1,0 +1,28 @@
+name: support-ai
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.100.3@sha256:a68b34df312f1e72914f0886384517fa4fdb09013480460b80a4e3a40104376b
+    command: ["--config", "/gateway/config.yaml", "--port", "4000", "--num_workers", "1"]
+    env_file: .env
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?Set a dedicated gateway master key}
+      PYTHONPATH: /gateway
+      DISABLE_ADMIN_UI: "true"
+      LITELLM_LOCAL_MODEL_COST_MAP: "true"
+    volumes:
+      - ./${LITELLM_CONFIG_FILE:-config.yandex.yaml}:/gateway/config.yaml:ro
+      - ./gateway_policy.py:/gateway/gateway_policy.py:ro
+    ports:
+      - "127.0.0.1:4000:4000"
+    networks: [gateway]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+
+networks:
+  gateway:
+    driver: bridge
