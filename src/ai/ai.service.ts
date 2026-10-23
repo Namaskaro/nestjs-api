@@ -379,7 +379,9 @@ export class AiService {
 
     const prompt = await productSemanticRepresentationPrompt.invoke(product);
 
-    return structuredModel.invoke(prompt);
+    const result = await structuredModel.invoke(prompt);
+
+    return ProductSemanticRepresentationSchema.parse(result);
   }
 
   public buildProductSearchText(
