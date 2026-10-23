@@ -21,6 +21,8 @@ import { productSemanticRepresentationPrompt } from './prompts/product-semantic-
 import { llmUsageCallback } from './llm-usage';
 
 import { DirectGigaChat } from './gigachat-model';
+import { FallbackChatModel } from './chat-fallback';
+
 import { getChatTransport } from './chat-transport';
 import { createChatFetch } from './chat-http';
 import { EmbeddingRequestError, embeddingHttpFailure, validateEmbedding, type EmbeddingSpec, type EmbeddingOptions } from './embedding-execution';
@@ -163,7 +165,17 @@ export class AiService {
       return cached;
     }
 
-    const provider = this.chatProviders[role];
+    const primary = this.createChatDeployment(role, this.chatProviders[role]);
+    const fallbackKey = `CHAT_${role}_FALLBACK_PROVIDER`;
+    const fallbackProvider = this.configService.get<unknown>(fallbackKey);
+    const model = fallbackProvider === undefined ? primary : new FallbackChatModel(
+      primary, this.createChatDeployment(role, this.getChatProvider(fallbackKey), true), this.chatProviders[role], this.getChatProvider(fallbackKey),
+    );
+    this.chatModels.set(role, model);
+    return model;
+  }
+
+  private createChatDeployment(role: 'FAST' | 'STANDARD', provider: ChatProvider, fallback = false): BaseChatModel {
     const isYandex = provider === 'yandex';
     const legacyModelKey =
       (provider === 'qwen' || provider === 'gigachat')
@@ -175,27 +187,25 @@ export class AiService {
         : role === 'FAST'
         ? 'OPENAI_FAST_MODEL'
         : 'OPENAI_STANDARD_MODEL';
-    const roleModelKey = `CHAT_${role}_MODEL`;
+    const roleModelKey = fallback ? `CHAT_${role}_FALLBACK_MODEL` : `CHAT_${role}_MODEL`;
     const model = this.requireConfig(
-      this.configService.get<unknown>(roleModelKey) === undefined
+      !fallback && this.configService.get<unknown>(roleModelKey) === undefined
         ? legacyModelKey
         : roleModelKey,
     );
-    const roleProfileKey = `CHAT_${role}_TRANSPORT_PROFILE`;
+    const roleProfileKey = fallback ? `CHAT_${role}_FALLBACK_TRANSPORT_PROFILE` : `CHAT_${role}_TRANSPORT_PROFILE`;
     const profileKey =
-      this.configService.get<unknown>(roleProfileKey) === undefined &&
+      !fallback && this.configService.get<unknown>(roleProfileKey) === undefined &&
       provider === 'openai'
         ? `OPENAI_${role}_TRANSPORT_PROFILE`
         : roleProfileKey;
     if (provider === 'gigachat') {
       const profile = this.configService.get(profileKey);
       if (profile !== undefined && profile !== 'gigachat-native') throw new Error(profileKey + ' must be gigachat-native');
-      const native = new DirectGigaChat({ model, timeoutMs: this.chatTimeoutMs,
+      return new DirectGigaChat({ model, timeoutMs: this.chatTimeoutMs,
         credentials: this.configService.get('GIGACHAT_CREDENTIALS'), accessToken: this.configService.get('GIGACHAT_ACCESS_TOKEN'),
         scope: this.configService.get('GIGACHAT_SCOPE'), baseURL: this.configService.get('GIGACHAT_API_URL'), authURL: this.configService.get('GIGACHAT_AUTH_URL'),
       }, { callbacks: [llmUsageCallback], tags: [`role:${role}`, `provider:${provider}`, `model:${model}`], metadata: { role, provider, model } });
-      this.chatModels.set(role, native);
-      return native;
     }
     const transport = getChatTransport(
       provider,
@@ -251,7 +261,6 @@ export class AiService {
       metadata: { role, provider, model },
     });
 
-    this.chatModels.set(role, chatModel);
     return chatModel;
   }
 
