@@ -160,7 +160,11 @@ function textResponse(d: Deployment, text: string) {
 }
 
 describe('Chat transport HTTP contracts (offline)', () => {
-  let requests: Array<{ url: string; body: Record<string, any> }>;
+  let requests: Array<{
+    url: string;
+    body: Record<string, any>;
+    headers: Headers;
+  }>;
   let replies: unknown[];
   let fetchMock: jest.SpyInstance;
   let log: jest.SpyInstance;
@@ -183,6 +187,7 @@ describe('Chat transport HTTP contracts (offline)', () => {
         requests.push({
           url: String(url),
           body: JSON.parse(String(init?.body)),
+          headers: new Headers(init?.headers),
         });
         if (!replies.length)
           throw new Error('Unexpected HTTP request: network is forbidden');
@@ -194,6 +199,69 @@ describe('Chat transport HTTP contracts (offline)', () => {
   });
 
   afterEach(() => jest.restoreAllMocks());
+
+  it.each([
+    ['yandex', 'openai'],
+    ['openai', 'yandex'],
+    ['yandex', 'yandex'],
+    ['openai', 'openai'],
+  ] as const)(
+    'routes FAST=%s / STANDARD=%s independently through real SDK serialization',
+    async (fast, standard) => {
+      const values = {
+        CHAT_FAST_PROVIDER: fast,
+        CHAT_STANDARD_PROVIDER: standard,
+        CHAT_FAST_MODEL:
+          fast === 'openai' ? 'gpt-6.1-sol' : 'gpt://offline/fast',
+        CHAT_STANDARD_MODEL:
+          standard === 'openai' ? 'gpt-6-luna' : 'gpt://offline/standard',
+        OPENAI_API_KEY: 'mixed-openai',
+        YANDEX_API_KEY: 'mixed-yandex',
+        YANDEX_API_URL: 'https://yandex.invalid/v1',
+        EMBEDDING_PROVIDER: 'yandex',
+      };
+      const ai = new AiService({
+        get: (key: string) => values[key],
+      } as ConfigService);
+      for (const role of ['FAST', 'STANDARD'] as const) {
+        const provider = values[`CHAT_${role}_PROVIDER`];
+        const model = values[`CHAT_${role}_MODEL`];
+        replies.push(toolResponse({ provider, model, role }));
+        const result = await ai
+          .getChatModel(role)
+          .withStructuredOutput(schema, {
+            method: 'functionCalling',
+            name: 'emit_result',
+            includeRaw: true,
+            strict: false,
+          })
+          .invoke('Use the schema');
+        expect(result.parsed).toEqual(valid);
+        expect(result.raw.tool_calls[0].id).toBe('call_offline');
+        const request = requests.at(-1)!;
+        expect(request.headers.get('authorization')).toBe(
+          `Bearer mixed-${provider}`,
+        );
+        expect(request.headers.has('x-support-deadline-unix-ms')).toBe(false);
+        expect(request.headers.has('x-litellm-call-id')).toBe(false);
+        expect(request.body.model).toBe(model);
+        expect(request.url).toBe(
+          provider === 'openai'
+            ? 'https://api.openai.com/v1/responses'
+            : 'https://yandex.invalid/v1/chat/completions',
+        );
+        if (provider === 'openai') {
+          expect(request.body.reasoning).toEqual({
+            effort: model === 'gpt-6-luna' ? 'none' : 'medium',
+          });
+          expect(request.body.store).toBe(false);
+          if (model === 'gpt-6.1-sol')
+            expect(request.body).not.toHaveProperty('temperature');
+        } else expect(request.body).not.toHaveProperty('reasoning');
+      }
+      expect(requests).toHaveLength(2);
+    },
+  );
 
   it.each(deployments)(
     '$provider $role sends the correct transport and normalizes function output',
@@ -659,6 +727,59 @@ describe('Chat transport HTTP contracts (offline)', () => {
         Object.values(record).forEach(checkObjects);
       }
       checkObjects(format.schema);
+    },
+  );
+
+  it.each([deployments[1], deployments[3]])(
+    '$provider does not execute tools from a truncated but syntactically valid response',
+    async (d) => {
+      const body: any = toolResponse(
+        d,
+        JSON.stringify({ query: 'Доставка' }),
+        'search_knowledge',
+      );
+      if (d.provider === 'openai') body.status = 'incomplete';
+      else body.choices[0].finish_reason = 'length';
+      replies.push(body);
+      const search = jest.fn(async () => 'Must not execute');
+      const graph = createCustomerHelpAgent(service(d), {
+        search,
+      } as unknown as StoreKnowledgeService);
+      await expect(
+        graph.invoke({ messages: [new HumanMessage('Доставка')] }),
+      ).rejects.toThrow();
+      expect(search).not.toHaveBeenCalled();
+      expect(requests).toHaveLength(1);
+    },
+  );
+
+  it.each([deployments[1], deployments[3]])(
+    '$provider does not replay a completed tool when the parent aborts between rounds',
+    async (d) => {
+      replies.push(
+        toolResponse(
+          d,
+          JSON.stringify({ query: 'Доставка' }),
+          'search_knowledge',
+        ),
+      );
+      const controller = new AbortController();
+      const search = jest.fn(async () => {
+        controller.abort();
+        return 'Completed tool';
+      });
+      const graph = createCustomerHelpAgent(service(d), {
+        search,
+      } as unknown as StoreKnowledgeService);
+      await expect(
+        graph.invoke(
+          { messages: [new HumanMessage('Доставка')] },
+          { signal: controller.signal },
+        ),
+      ).rejects.toThrow();
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(search).toHaveBeenCalledTimes(1);
+      expect(requests).toHaveLength(1);
     },
   );
 

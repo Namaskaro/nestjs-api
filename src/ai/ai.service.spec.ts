@@ -135,7 +135,7 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
             `provider:${provider}`,
             `model:${model}`,
           ]),
-          metadata: { role, provider, model, chatMode: 'direct' },
+          metadata: { role, provider, model },
         }),
       );
 

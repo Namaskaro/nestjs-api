@@ -1,41 +1,33 @@
+# Conformance candidate, not a production deployment. Both APIs stay native.
 model_list:
   - model_name: support-fast
     litellm_params:
-      model: os.environ/OPENAI_FAST_MODEL
+      model: os.environ/FAST_MODEL
       custom_llm_provider: openai
-      api_key: os.environ/OPENAI_API_KEY
-      reasoning: {effort: none}
-      temperature: 0
+      api_base: os.environ/FAST_API_BASE
+      api_key: os.environ/FAST_API_KEY
       max_retries: 0
-    model_info:
-      id: support-fast-openai
-      transport_profile: gpt-6-luna
   - model_name: support-standard
     litellm_params:
-      model: os.environ/OPENAI_STANDARD_MODEL
+      model: os.environ/STANDARD_MODEL
       custom_llm_provider: openai
-      api_key: os.environ/OPENAI_API_KEY
-      reasoning: {effort: medium}
+      api_base: os.environ/STANDARD_API_BASE
+      api_key: os.environ/STANDARD_API_KEY
       max_retries: 0
-    model_info:
-      id: support-standard-openai
-      transport_profile: gpt-6.1-sol
-
 router_settings:
   num_retries: 0
   max_fallbacks: 0
   fallbacks: []
   context_window_fallbacks: []
   content_policy_fallbacks: []
-  timeout: 60
-
+  disable_cooldowns: true
+  timeout: 3
 litellm_settings:
+  num_retries: 0
   drop_params: false
   telemetry: false
   turn_off_message_logging: true
-  callbacks: [gateway_policy.policy]
-
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
   store_model_in_db: false
-  fail_closed_budget_enforcement: true
+  cancel_on_disconnect: true

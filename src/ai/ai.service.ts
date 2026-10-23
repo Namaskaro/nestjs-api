@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { OpenAI } from 'openai/client.js';
 
 import { ChatOpenAI } from '@langchain/openai';
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 import { CreateProductEmbeddingText } from './dto/create-product-embedding-text.dto';
 
@@ -36,27 +37,53 @@ type YandexEmbeddingResponse = {
 
 @Injectable()
 export class AiService {
-  private readonly chatProvider?: AiProvider;
+  private readonly chatProviders: Record<'FAST' | 'STANDARD', AiProvider>;
 
-  private readonly chatMode: 'direct' | 'gateway';
+  private readonly chatTimeoutMs: number;
 
   private readonly embeddingProvider: AiProvider;
 
-  private readonly chatModels = new Map<ChatModelRole, ChatOpenAI>();
+  private readonly chatModels = new Map<ChatModelRole, BaseChatModel>();
 
   private openAiEmbeddingClient?: OpenAI;
 
   public constructor(private readonly configService: ConfigService) {
     const mode = this.configService.get<unknown>('CHAT_MODE') ?? 'direct';
-    if (mode !== 'direct' && mode !== 'gateway') {
+    if (mode !== 'direct') {
       throw new Error(
-        'AiService configuration: CHAT_MODE must be "direct" or "gateway".',
+        'AiService configuration: only CHAT_MODE=direct is supported; configure direct provider credentials before removing gateway mode.',
       );
     }
-    this.chatMode = mode;
-    if (mode === 'direct')
-      this.chatProvider = this.getProvider('CHAT_PROVIDER');
+    this.chatProviders = {
+      FAST: this.getProvider(this.chatProviderKey('FAST')),
+      STANDARD: this.getProvider(this.chatProviderKey('STANDARD')),
+    };
     this.embeddingProvider = this.getProvider('EMBEDDING_PROVIDER');
+    const configuredTimeout = this.configService.get<unknown>(
+      'CHAT_REQUEST_TIMEOUT_MS',
+    );
+    const timeout =
+      configuredTimeout === undefined ? 60_000 : configuredTimeout;
+    this.chatTimeoutMs =
+      typeof timeout === 'number' || typeof timeout === 'string'
+        ? Number(timeout)
+        : NaN;
+    if (
+      !Number.isInteger(this.chatTimeoutMs) ||
+      this.chatTimeoutMs <= 0 ||
+      this.chatTimeoutMs > 2_147_483_647
+    ) {
+      throw new Error(
+        'AiService configuration: CHAT_REQUEST_TIMEOUT_MS must be an integer between 1 and 2147483647.',
+      );
+    }
+  }
+
+  private chatProviderKey(role: 'FAST' | 'STANDARD'): string {
+    const key = `CHAT_${role}_PROVIDER`;
+    return this.configService.get<unknown>(key) === undefined
+      ? 'CHAT_PROVIDER'
+      : key;
   }
 
   private requireConfig(key: string): string {
@@ -71,7 +98,7 @@ export class AiService {
     return value.trim();
   }
 
-  private getProvider(key: 'CHAT_PROVIDER' | 'EMBEDDING_PROVIDER'): AiProvider {
+  private getProvider(key: string): AiProvider {
     const provider = this.configService.get<unknown>(key);
 
     if (provider !== 'openai' && provider !== 'yandex') {
@@ -100,7 +127,7 @@ export class AiService {
     return dimensions;
   }
 
-  public getChatModel(role: ChatModelRole): ChatOpenAI {
+  public getChatModel(role: ChatModelRole): BaseChatModel {
     if (role !== 'FAST' && role !== 'STANDARD') {
       throw new Error(
         `AiService configuration: unsupported chat role "${role}". ` +
@@ -114,64 +141,55 @@ export class AiService {
       return cached;
     }
 
-    const isGateway = this.chatMode === 'gateway';
-    const provider = isGateway ? 'litellm' : this.chatProvider!;
+    const provider = this.chatProviders[role];
     const isYandex = provider === 'yandex';
-    const modelKey = isYandex
+    const legacyModelKey = isYandex
       ? role === 'FAST'
         ? 'YANDEX_LITE_MODEL'
         : 'YANDEX_MODEL'
       : role === 'FAST'
       ? 'OPENAI_FAST_MODEL'
       : 'OPENAI_STANDARD_MODEL';
-    const model = isGateway
-      ? role === 'FAST'
-        ? 'support-fast'
-        : 'support-standard'
-      : this.requireConfig(modelKey);
-    const transport = isGateway
-      ? {
-          useResponsesApi: true,
-          zdrEnabled: true,
-          modelKwargs: { include: ['reasoning.encrypted_content'] },
-        }
-      : getChatTransport(
-          this.chatProvider!,
-          role,
-          model,
-          isYandex
-            ? undefined
-            : this.configService.get<unknown>(
-                `OPENAI_${role}_TRANSPORT_PROFILE`,
-              ),
-        );
-    const baseURL = isGateway
-      ? this.requireConfig('LITELLM_BASE_URL').replace(/\/$/, '')
-      : isYandex
-      ? this.requireConfig('YANDEX_API_URL')
-      : undefined;
-    if (isGateway) {
-      const url = new URL(baseURL!);
-      if (
-        !['http:', 'https:'].includes(url.protocol) ||
-        url.username ||
-        url.password ||
-        url.search ||
-        url.hash ||
-        !url.pathname.endsWith('/v1')
-      ) {
-        throw new Error(
-          'AiService configuration: LITELLM_BASE_URL must be an HTTP(S) URL ending in /v1 without credentials, query or fragment.',
-        );
+    const roleModelKey = `CHAT_${role}_MODEL`;
+    const model = this.requireConfig(
+      this.configService.get<unknown>(roleModelKey) === undefined
+        ? legacyModelKey
+        : roleModelKey,
+    );
+    const roleProfileKey = `CHAT_${role}_TRANSPORT_PROFILE`;
+    const profileKey =
+      this.configService.get<unknown>(roleProfileKey) === undefined && !isYandex
+        ? `OPENAI_${role}_TRANSPORT_PROFILE`
+        : roleProfileKey;
+    const transport = getChatTransport(
+      provider,
+      role,
+      model,
+      this.configService.get<unknown>(profileKey),
+      profileKey,
+    );
+    const baseURL = isYandex ? this.requireConfig('YANDEX_API_URL') : undefined;
+    if (baseURL) {
+      let valid = false;
+      try {
+        const url = new URL(baseURL);
+        valid =
+          ['http:', 'https:'].includes(url.protocol) &&
+          !url.username &&
+          !url.password &&
+          !url.search &&
+          !url.hash;
+      } catch {
+        /* Report the variable name without exposing its value. */
       }
+      if (!valid)
+        throw new Error(
+          'AiService configuration: YANDEX_API_URL must be an HTTP(S) URL without credentials, query or fragment.',
+        );
     }
     const chatModel = new ChatOpenAI({
       apiKey: this.requireConfig(
-        isGateway
-          ? 'LITELLM_API_KEY'
-          : isYandex
-          ? 'YANDEX_API_KEY'
-          : 'OPENAI_API_KEY',
+        isYandex ? 'YANDEX_API_KEY' : 'OPENAI_API_KEY',
       ),
       model,
       ...transport,
@@ -179,23 +197,16 @@ export class AiService {
       // the provider response so completion safety runs before tools/parsers.
       disableStreaming: true,
       maxRetries: 0,
-      ...(isGateway ? { timeout: 70_000 } : {}),
+      timeout: this.chatTimeoutMs,
       configuration: {
         ...(baseURL ? { baseURL } : {}),
         fetch: createChatFetch({
-          mode: this.chatMode,
-          role,
           api: transport.useResponsesApi ? 'responses' : 'chat-completions',
         }),
       },
       callbacks: [llmUsageCallback],
-      tags: [
-        `role:${role}`,
-        `provider:${provider}`,
-        `model:${model}`,
-        isYandex && role === 'FAST' ? 'tier:lite' : 'tier:primary',
-      ],
-      metadata: { role, provider, model, chatMode: this.chatMode },
+      tags: [`role:${role}`, `provider:${provider}`, `model:${model}`],
+      metadata: { role, provider, model },
     });
 
     this.chatModels.set(role, chatModel);

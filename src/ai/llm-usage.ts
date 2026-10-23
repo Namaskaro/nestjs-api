@@ -92,20 +92,6 @@ function responseId(output: unknown): string | null {
   );
 }
 
-function transportFailure(error: unknown): UnknownRecord | null {
-  let current = asRecord(error);
-  for (let depth = 0; current && depth < 4; depth += 1) {
-    const transport = asRecord(current.chatTransport);
-    if (transport) return transport;
-    if (current.headers instanceof Headers) {
-      const gatewayRequestId = current.headers.get('x-litellm-call-id');
-      if (gatewayRequestId) return { gatewayRequestId };
-    }
-    current = asRecord(current.cause);
-  }
-  return null;
-}
-
 /**
  * Поддерживает как обычный
  * AIMessage / structured wrapper,
@@ -314,10 +300,7 @@ export const llmUsageCallback: BaseCallbackHandler =
         JSON.stringify({
           event: 'llm_call',
 
-          usageScope:
-            active?.metadata.chatMode === 'gateway'
-              ? 'logical_call'
-              : 'provider_call',
+          usageScope: 'provider_call',
 
           responseId: responseId(output),
 
@@ -352,12 +335,7 @@ export const llmUsageCallback: BaseCallbackHandler =
         JSON.stringify({
           event: 'llm_call',
 
-          usageScope:
-            active?.metadata.chatMode === 'gateway'
-              ? 'logical_call'
-              : 'provider_call',
-
-          transport: transportFailure(error),
+          usageScope: 'provider_call',
 
           status: 'error',
 
@@ -399,7 +377,6 @@ export const llmUsageCallback: BaseCallbackHandler =
  *
  * Они больше ничего не логируют:
  * llmUsageCallback уже собирает telemetry вызовов модели.
- * В gateway mode это logical calls; physical attempts логирует gateway.
  *
  * Удалим эти функции,
  * когда дочистим legacy call sites.

@@ -1,4 +1,22 @@
+# Current status — experimental gateway only
+
+No LiteLLM runtime is connected. The latest retained stock check was 1.106.2 with mock upstream; completion normalization still failed. See [CHAT-FAILOVER.md](../CHAT-FAILOVER.md) for that result and reproduction. The conformance fixture retains its 1.105.1 default; it is outside production runtime and ordinary required CI. [MINIMAL-GATEWAY.md](MINIMAL-GATEWAY.md) preserves the earlier investigation.
+
+# Historical LiteLLM report — runtime retired
+
+This document preserves the Phase 3/4 findings. The Compose files, hooks and
+gateway tests described below were removed by the approved direct-provider
+simplification. Commands below are historical, not current deployment instructions.
+See [current AI configuration](../../src/ai/README.md) and
+[recovery/inventory](../../src/ai/SIMPLIFICATION.md). Original files, including
+untracked Phase 4 work, are preserved in the verified local backup.
+
 # Phase 3 — LiteLLM chat gateway
+
+Phase 3 опубликована коммитом `aff28c0ee5912047f524b16db9fd8a262606ecf2`.
+Актуальные результаты Phase 4, минимальные caller proposals и offline fallback
+matrix находятся в [RELIABILITY.md](RELIABILITY.md). Ниже сохранён отчёт Phase 3;
+выводы о completion/budget уточнены по новым экспериментам.
 
 Результат проверки: 13 октября 2026. База — опубликованный Phase 2 commit
 `fd1337d3c952c6c8ff299998d8d4a453304058d7`, ветка
@@ -113,7 +131,7 @@ Copy-Item infra/litellm/.env.example infra/litellm/.env
 | LiteLLM, всегда | `LITELLM_MASTER_KEY`, `LITELLM_CONFIG_FILE=config.yandex.yaml` или `config.openai.yaml` |
 | LiteLLM, Yandex | `YANDEX_API_KEY`, `YANDEX_API_URL` с `/v1`, `YANDEX_LITE_MODEL`, `YANDEX_MODEL` |
 | LiteLLM, OpenAI | `OPENAI_API_KEY`, `OPENAI_FAST_MODEL=gpt-6-luna`, `OPENAI_STANDARD_MODEL=gpt-6.1-sol` |
-| LiteLLM, budgets overlay | `LITELLM_POSTGRES_PASSWORD` (URL-safe), постоянный `LITELLM_SALT_KEY` |
+| LiteLLM, budgets overlay | `LITELLM_POSTGRES_PASSWORD` (URL-safe), постоянный `LITELLM_SALT_KEY`, optional `SUPPORT_BUDGET_ADMISSION_TIMEOUT_SECONDS` (по умолчанию 2) |
 
 Gateway mode не читает `CHAT_PROVIDER`, upstream chat keys или model IDs в NestJS.
 Embedding client по-прежнему может требовать свой provider key в NestJS.
@@ -197,11 +215,10 @@ tool arguments. `includeRaw` не превращает такой вызов в 
 - LiteLLM превращает `length`/`content_filter`/`refusal` finish reason в Responses
   `incomplete`; это проверено. Неизвестный ненулевой reason нормализуется в `stop`,
   но сохраняется как `native_finish_reason`: policy проверяет его и возвращает 502.
-- **Отсутствующий/null finish reason upstream Chat Completions LiteLLM 1.100.3
-  заменяет `stop`, не сохраняя исходный статус.** После такого преобразования
-  приложение не может доказать завершённость исходного ответа. Для этой формы
-  malformed upstream ответа строгой гарантии нет. Direct guard её отклоняет.
-  Не расширять список провайдеров, пока не проверен их реальный completion contract.
+- **LiteLLM 1.100.3 заменяет missing/null finish_reason на stop.** Phase 4 добавляет
+  upstream HTTPX guard до этой нормализации: исходное отсутствие/null/unknown
+  теперь даёт 502. Провайдер, ошибочно сообщающий stop, по-прежнему не обнаруживается.
+  Гарантия относится к non-streaming утверждённым transport profiles.
 - Completed refusal не означает parsed success. OpenAI refusal сохраняется в raw;
   для Yandex bridge проверено отсутствие parsed result, но не гарантируется
   сохранение исходного refusal field. Существующий direct LangChain CC converter
@@ -225,8 +242,9 @@ tool arguments. `includeRaw` не превращает такой вызов в 
 | `llm_gateway_deployment` / `deployment_attempt` | Физический provider deployment attempt | gateway ID + deployment ID, started и terminal event |
 | `llm_call` / `provider_call` в direct mode | Прежний вызов direct модели | Прежние usage/tags/metadata плюс response ID |
 
-Для подсчёта физических попыток считать **terminal** deployment events, не
-складывать их со `started`, gateway или logical events. У Yandex bridge outer
+Для завершённых физических попыток считать **terminal** deployment events, не
+складывать их со `started`, gateway или logical events. Незавершённые started без
+terminal после kill учитывать отдельно с неизвестным исходом. У Yandex bridge outer
 Responses hook является обёрткой; логируется только leaf Chat Completions hook.
 Проверены одна попытка на успех/503, две при существующем workspace repair и
 раздельная корреляция двух параллельных вызовов одной cached model.
@@ -244,10 +262,9 @@ success — завершение model invocation, не успешная domain/
 могут быть неизвестны. Terminal event на падении процесса также может отсутствовать;
 это структурированные операционные логи, не гарантированный billing ledger.
 
-Fallback выключен: attempted fallback count равен 0 в проверенных ответах.
-Failure event содержит `errorType` и доступный hook `fallbackDepth`; причина
-перехода между провайдерами и корректность логов цепочки fallback не проверены.
-Перед его включением нужны отдельные failure/retry/fallback тесты. Наши новые
+Production fallback выключен. Failure event содержит `errorType` и доступный hook
+`fallbackDepth`; изолированные failure/retry/fallback тесты Phase 4 теперь описаны
+в RELIABILITY.md. Generic fallback остаётся неутверждённым для production. Наши
 deployment events не содержат prompts, raw arguments или secrets; стандартные
 ошибки SDK/gateway всё равно требуют обычного контроля хранения логов.
 
@@ -255,8 +272,30 @@ deployment events не содержат prompts, raw arguments или secrets; �
 
 В конфигурации без DB нет виртуальных ключей и budget accounting. Optional overlay
 использует PostgreSQL 17.6 Alpine, собственные credentials и volume.
-`fail_closed_budget_enforcement: true` установлен, однако поведение при потере DB,
-рестарте, конкуренции и нескольких replicas в production здесь не проверено.
+`fail_closed_budget_enforcement: true` установлен. Phase 4 проверила DB pause,
+рестарт, конкуренцию и потерю terminal event на disposable DB; ограничения
+описаны в RELIABILITY.md. Несколько replicas и реальный billing не проверены.
+
+Одного `fail_closed_budget_enforcement` недостаточно: подтверждение spend из DB
+может быть кешировано. В budget overlay дополнительно включён admission из
+`budget_admission.py`: штатная авторизация ограничена по времени через публичный
+FastAPI dependency override, а `CompletionGuardTransport` требует свежий
+`SELECT 1 AS support_admission` перед каждой физической отправкой. Используется
+существующий Prisma client/pool; новая DB, схема, драйвер или сервис не добавлены.
+
+Auth и первая SQL-проверка делят один admission budget (по умолчанию 2 s),
+ограниченный оставшимся operation deadline. Ошибка/timeout/missing DB дают 503;
+истёкший operation deadline — 408. SQL failure проходит штатный failure handler,
+чтобы LiteLLM освободил reservation. Положительного health cache нет. После
+admission таймаут генерации остаётся прежним; последующая физическая попытка
+проверяет DB заново. Без budget mode эти SQL-проверки и auth override выключены.
+
+Это проверка доступности DB в момент допуска, не атомарная транзакция с внешним
+LLM и не доказательство возможности будущей записи spend. Падение DB после
+проверки, асинхронная запись usage и неучтённый billing остаются ограничениями;
+budget hard cap не заявляется. `deployment started` и последующий error event
+могут относиться к отказу admission до физической HTTP-отправки; они не доказывают
+обращение к провайдеру или списание денег.
 
 **В production YAML тарифы намеренно отсутствуют.** В budget mode policy требует
 у каждого deployment в `model_info`:
@@ -297,10 +336,10 @@ gateway/DB: доступ к alias вне key scope дал 403 без upstream re
 Проверка бюджета использовала **исключительно тестовые** цены 0.001/0.002 USD за
 token, usage 10 input + 5 output, budget 0.015 USD. Первый ответ учтён как 0.02,
 значение прочитано через `/key/info`, следующий последовательный вызов получил
-429 budget error без повторного upstream HTTP. Это намеренно показывает, что
-лимит не является резервированием максимальной стоимости до первого вызова.
-Уже начатый запрос может превысить остаток; асинхронные записи и параллельные
-запросы требуют проверки. Production hard cap не заявляется. Test harness
+429 budget error без повторного upstream HTTP. **Уточнение Phase 4:** в этой версии
+есть reservation, но при малом остатке она уменьшается до остатка и первый запрос
+допускается. Второй concurrent запрос блокируется; фактический расход первого
+может превысить лимит. Production hard cap не заявляется. Test harness
 устанавливает `proxy_batch_write_at=1` для быстрой проверки persistence, production
 batching остаётся default. Production DB в этой работе не запускалась.
 
@@ -392,7 +431,8 @@ test suite, emitting Nest build и live paid calls не запускались. 
 5. Только после этого отдельно решать вопрос fallback по операциям. История с
    provider-specific state и encrypted reasoning — отдельный запрет до проверки.
 
-Ни один из этих live-вызовов в Phase 3 не выполнен. Phase 4 автоматически не начата.
+Ни один из этих live-вызовов не выполнен. Phase 4 проведена по отдельному заданию,
+её изменения остаются локальными для review.
 
 ## Первичные источники
 

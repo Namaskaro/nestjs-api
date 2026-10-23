@@ -1,20 +1,36 @@
 import { assertCompletedChatResponse, createChatFetch } from './chat-http';
-import { Logger } from '@nestjs/common';
 
 describe('completion safety at the HTTP boundary', () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+  });
+
+  it('discards late success from a custom fetch that ignores abort, preserving cancellation identity', async () => {
+    const caller = new AbortController();
+    const reason = new DOMException('Timed out', 'TimeoutError');
+    jest.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      caller.abort(reason);
+      return new Response('{"status":"completed","output":[]}');
+    });
+    await expect(
+      createChatFetch({ api: 'responses' })(
+        'https://offline.invalid/v1/responses',
+        { body: '{}', signal: caller.signal },
+      ),
+    ).rejects.toBe(reason);
+    expect(reason.name).toBe('TimeoutError');
+  });
 
   it('preserves an abort while the response body is being read', async () => {
     const error = new Error('Aborted while reading');
     error.name = 'AbortError';
     const response = new Response('{}');
     jest.spyOn(response, 'clone').mockReturnValue({
-      json: jest.fn().mockRejectedValue(error),
+      text: jest.fn().mockRejectedValue(error),
     } as unknown as Response);
     jest.spyOn(globalThis, 'fetch').mockResolvedValue(response);
     const http = createChatFetch({
-      mode: 'direct',
-      role: 'STANDARD',
       api: 'responses',
     });
     await expect(
@@ -66,7 +82,7 @@ describe('completion safety at the HTTP boundary', () => {
     ).toThrow('unfinished');
   });
 
-  it.each(['length', 'content_filter', undefined, 'unknown'])(
+  it.each(['length', 'content_filter', 'refusal', undefined, null, 'unknown'])(
     'rejects chat finish_reason %s even for valid JSON',
     (finish_reason) => {
       expect(() =>
@@ -98,8 +114,6 @@ describe('completion safety at the HTTP boundary', () => {
   it('rejects unverified streaming before sending a request', async () => {
     const upstream = jest.spyOn(globalThis, 'fetch');
     const http = createChatFetch({
-      mode: 'direct',
-      role: 'STANDARD',
       api: 'responses',
     });
     await expect(
@@ -113,8 +127,6 @@ describe('completion safety at the HTTP boundary', () => {
   it('rejects an SDK auto-switch to an unapproved API surface', async () => {
     const upstream = jest.spyOn(globalThis, 'fetch');
     const http = createChatFetch({
-      mode: 'direct',
-      role: 'FAST',
       api: 'chat-completions',
     });
     await expect(
@@ -129,8 +141,6 @@ describe('completion safety at the HTTP boundary', () => {
     const upstream = jest.spyOn(globalThis, 'fetch').mockRejectedValue(error);
     const controller = new AbortController();
     const http = createChatFetch({
-      mode: 'direct',
-      role: 'STANDARD',
       api: 'responses',
     });
     await expect(
@@ -141,47 +151,4 @@ describe('completion safety at the HTTP boundary', () => {
     ).rejects.toBe(error);
     expect(upstream.mock.calls[0][1]?.signal).toBe(controller.signal);
   });
-
-  it.each([
-    { headers: {}, cost: null },
-    { headers: { 'x-litellm-response-cost': '0' }, cost: null },
-    {
-      headers: {
-        'x-support-cost-status': 'gateway-estimate',
-        'x-litellm-response-cost': '0',
-      },
-      cost: 0,
-    },
-    {
-      headers: {
-        'x-support-cost-status': 'gateway-estimate',
-        'x-litellm-response-cost': 'NaN',
-      },
-      cost: null,
-    },
-  ])(
-    'keeps unverified or invalid cost unknown: %j',
-    async ({ headers, cost }) => {
-      const log = jest
-        .spyOn(Logger.prototype, 'log')
-        .mockImplementation(() => undefined);
-      jest.spyOn(globalThis, 'fetch').mockResolvedValue(
-        new Response(JSON.stringify({ status: 'completed', output: [] }), {
-          headers,
-        }),
-      );
-      const http = createChatFetch({
-        mode: 'gateway',
-        role: 'STANDARD',
-        api: 'responses',
-      });
-      await http('http://gateway.invalid/v1/responses', {
-        body: '{"model":"support-standard"}',
-      });
-      expect(JSON.parse(log.mock.calls[0][0] as string)).toMatchObject({
-        usageScope: 'gateway_request',
-        costUsd: cost,
-      });
-    },
-  );
 });

@@ -19,15 +19,24 @@ export function getChatTransport(
   role: Exclude<ChatModelRole, 'STRONG'>,
   model: string,
   configuredProfile?: unknown,
+  profileKey = `OPENAI_${role}_TRANSPORT_PROFILE`,
 ): ChatTransport {
   if (provider === 'yandex') {
+    if (
+      configuredProfile !== undefined &&
+      configuredProfile !== 'yandex-chat'
+    ) {
+      throw new Error(
+        `AiService configuration: ${profileKey} must be "yandex-chat" for Yandex.`,
+      );
+    }
     return { useResponsesApi: false, temperature: 0, streamUsage: false };
   }
 
   const knownProfile: OpenAiTransportProfile | undefined =
     model === 'gpt-6-luna' || model === 'gpt-6.1-sol' ? model : undefined;
   const profile = configuredProfile ?? knownProfile;
-  const key = `OPENAI_${role}_TRANSPORT_PROFILE`;
+  const key = profileKey;
 
   if (profile !== 'gpt-6-luna' && profile !== 'gpt-6.1-sol') {
     throw new Error(
