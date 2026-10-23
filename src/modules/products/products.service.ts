@@ -1,3 +1,5 @@
+import { productIndexVersion } from '@/src/ai/product-index-version';
+import { writeEmbeddingIndices, invalidateEmbeddingIndexSnapshot } from '@/src/ai/embedding-retrieval';
 // import { AiService } from './../../ai/ai.service';
 // import { PrismaService } from '@/src/core/prisma/prisma.service';
 // import { Injectable, Logger, NotFoundException } from '@nestjs/common';
@@ -747,6 +749,9 @@ export class ProductsService {
       price: product.price,
     };
 
+    if (this.aiService.embeddingFailover && this.aiService.getEmbeddingSpec('yandex').dimensions !== 768)
+      throw new Error('ProductEmbedding requires primary dimensions=768; review migration before changing it');
+
     const semanticRepresentation =
       await this.aiService.createProductSemanticRepresentation(semanticInput);
 
@@ -754,20 +759,6 @@ export class ProductsService {
       semanticInput,
       semanticRepresentation,
     );
-
-    const denseEmbedding = await this.aiService.createProductEmbedding(
-      searchText,
-    );
-
-    await this.prismaService.$executeRaw`
-      INSERT INTO "ProductEmbedding" ("productId", "vector")
-      VALUES (
-        ${product.id},
-        ${JSON.stringify(denseEmbedding)}::vector
-      )
-      ON CONFLICT ("productId")
-      DO UPDATE SET "vector" = EXCLUDED."vector"
-    `;
 
     const payload = ProductQdrantPayloadSchema.parse({
       productId: product.id,
@@ -806,6 +797,30 @@ export class ProductsService {
       semanticRepresentation,
     } satisfies ProductQdrantPayload);
 
+    if (this.aiService.embeddingFailover) {
+      await writeEmbeddingIndices(this.aiService, this.qdrantService, {
+        collection: QdrantCollections.products, id: product.id, version: productIndexVersion(product), text: searchText, payload,
+        savePrimary: async (vector) => {
+          if (vector === null) { await this.prismaService.productEmbedding.deleteMany({ where: { productId: product.id } }); return; }
+          await this.prismaService.$executeRaw`INSERT INTO "ProductEmbedding" ("productId", "vector") VALUES (${product.id}, ${JSON.stringify(vector)}::vector) ON CONFLICT ("productId") DO UPDATE SET "vector" = EXCLUDED."vector"`;
+        },
+      });
+      return;
+    }
+    const denseEmbedding = await this.aiService.createProductEmbedding(
+      searchText,
+    );
+
+    await this.prismaService.$executeRaw`
+      INSERT INTO "ProductEmbedding" ("productId", "vector")
+      VALUES (
+        ${product.id},
+        ${JSON.stringify(denseEmbedding)}::vector
+      )
+      ON CONFLICT ("productId")
+      DO UPDATE SET "vector" = EXCLUDED."vector"
+    `;
+
     await this.qdrantService.savePoint(QdrantCollections.products, {
       id: product.id,
 
@@ -843,10 +858,19 @@ export class ProductsService {
   async delete(id: string) {
     await this.getProductById(id);
 
-    return this.prismaService.product.delete({
+    const deleted = await this.prismaService.product.delete({
       where: {
         id,
       },
     });
+    if (this.aiService.embeddingFailover) {
+      invalidateEmbeddingIndexSnapshot(this.qdrantService, QdrantCollections.products);
+      for (const collection of [QdrantCollections.products, this.aiService.secondaryEmbeddingCollection(QdrantCollections.products)]) {
+        try { await this.qdrantService.removeIndexPoints(collection, [id]); }
+        catch { this.logger.error({ event: 'index_delete_pending', collection, productId: id }); }
+      }
+      invalidateEmbeddingIndexSnapshot(this.qdrantService, QdrantCollections.products);
+    }
+    return deleted;
   }
 }

@@ -23,6 +23,7 @@ import { llmUsageCallback } from './llm-usage';
 import { DirectGigaChat } from './gigachat-model';
 import { getChatTransport } from './chat-transport';
 import { createChatFetch } from './chat-http';
+import { EmbeddingRequestError, embeddingHttpFailure, validateEmbedding, type EmbeddingSpec, type EmbeddingOptions } from './embedding-execution';
 
 export type AiProvider = 'openai' | 'yandex';
 
@@ -34,12 +35,10 @@ export type ChatModelRole = 'FAST' | 'STANDARD' | 'STRONG';
 const YANDEX_EMBEDDING_API_URL =
   'https://ai.api.cloud.yandex.net:443/foundationModels/v1/textEmbedding';
 
-type YandexEmbeddingResponse = {
-  embedding: Array<number | string>;
-};
-
 @Injectable()
 export class AiService {
+  public readonly embeddingFailover: boolean;
+  private readonly embeddingTimeoutMs: number;
   private readonly chatProviders: Record<'FAST' | 'STANDARD', ChatProvider>;
 
   private readonly chatTimeoutMs: number;
@@ -51,6 +50,13 @@ export class AiService {
   private openAiEmbeddingClient?: OpenAI;
 
   public constructor(private readonly configService: ConfigService) {
+    const failover = this.configService.get<unknown>('EMBEDDING_FAILOVER_ENABLED');
+    if (failover !== undefined && !['true', 'false', true, false].includes(failover as boolean))
+      throw new Error('EMBEDDING_FAILOVER_ENABLED must be true or false');
+    this.embeddingFailover = failover === true || failover === 'true';
+    this.embeddingTimeoutMs = Number(this.configService.get('EMBEDDING_REQUEST_TIMEOUT_MS') ?? 60000);
+    if (!Number.isInteger(this.embeddingTimeoutMs) || this.embeddingTimeoutMs <= 0 || this.embeddingTimeoutMs > 2147483647)
+      throw new Error('EMBEDDING_REQUEST_TIMEOUT_MS must be a positive integer <= 2147483647');
     const mode = this.configService.get<unknown>('CHAT_MODE') ?? 'direct';
     if (mode !== 'direct') {
       throw new Error(
@@ -62,6 +68,8 @@ export class AiService {
       STANDARD: this.getChatProvider(this.chatProviderKey('STANDARD')),
     };
     this.embeddingProvider = this.getProvider('EMBEDDING_PROVIDER');
+    if (this.embeddingFailover && this.embeddingProvider !== 'yandex')
+      throw new Error('Embedding failover requires primary EMBEDDING_PROVIDER=yandex');
     const configuredTimeout = this.configService.get<unknown>(
       'CHAT_REQUEST_TIMEOUT_MS',
     );
@@ -247,156 +255,121 @@ export class AiService {
     return chatModel;
   }
 
-  private getOpenAiEmbeddingClient(): OpenAI {
-    this.openAiEmbeddingClient ??= new OpenAI({
-      apiKey: this.requireConfig('OPENAI_API_KEY'),
-    });
-
-    return this.openAiEmbeddingClient;
+  public getEmbeddingSpec(provider: AiProvider): EmbeddingSpec {
+    return provider === 'yandex'
+      ? { provider, queryModel: this.requireConfig('YANDEX_EMBEDDING_QUERY_MODEL'),
+          documentModel: this.requireConfig('YANDEX_EMBEDDING_DOCUMENT_MODEL'),
+          dimensions: this.getEmbeddingDimensions('YANDEX_EMBEDDING_DIMENSIONS', 768) }
+      : { provider, queryModel: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
+          documentModel: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
+          dimensions: this.getEmbeddingDimensions('OPENAI_EMBEDDING_DIMENSIONS', 1536) };
   }
 
-  public async createOpenAiEmbedding(text: string): Promise<number[]> {
-    const response = await this.getOpenAiEmbeddingClient().embeddings.create({
-      model: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
+  public secondaryEmbeddingCollection(collection: string): string {
+    const key = collection === 'products' ? 'QDRANT_PRODUCTS_SECONDARY_COLLECTION'
+      : collection === 'store_knowledge' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : undefined;
+    if (!key) throw new Error('Unsupported logical embedding collection');
+    const name = this.requireConfig(key);
+    if (!/^[a-zA-Z0-9_-]+$/.test(name) || ['products','store_knowledge'].includes(name))
+      throw new Error(key + ' must name a separate collection');
+    const other = this.configService.get(collection === 'products' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : 'QDRANT_PRODUCTS_SECONDARY_COLLECTION');
+    if (name === other) throw new Error('Secondary product and knowledge collections must be different');
+    return name;
+  }
 
-      input: text,
+  public async createEmbedding(text: string, provider: AiProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[]> {
+    return (await this.requestEmbedding(text, provider, kind, options))[0];
+  }
 
-      dimensions: this.getEmbeddingDimensions(
-        'OPENAI_EMBEDDING_DIMENSIONS',
-        1536,
-      ),
-    });
-
-    const embedding = response.data[0]?.embedding;
-
-    if (!embedding) {
-      throw new Error('OpenAI не вернул embedding');
+  private async requestEmbedding(text: string | string[], provider: AiProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[][]> {
+    options.signal?.throwIfAborted();
+    const apiKey = this.requireConfig(provider === 'yandex' ? 'YANDEX_API_KEY' : 'OPENAI_API_KEY');
+    const spec = this.getEmbeddingSpec(provider);
+    const timeout = AbortSignal.timeout(this.embeddingTimeoutMs);
+    const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
+    try {
+      if (provider === 'openai') {
+        this.openAiEmbeddingClient ??= new OpenAI({ apiKey, maxRetries: 0, timeout: this.embeddingTimeoutMs });
+        const result = await this.openAiEmbeddingClient.embeddings.create({
+          model: kind === 'query' ? spec.queryModel : spec.documentModel, input: text, dimensions: spec.dimensions, encoding_format: 'float',
+        }, { signal, maxRetries: 0, timeout: this.embeddingTimeoutMs });
+        signal.throwIfAborted();
+        const count = Array.isArray(text) ? text.length : 1;
+        if (!Array.isArray(result.data)) throw new EmbeddingRequestError('invalid-response', provider);
+        const ordered = [...result.data].sort((a, b) => a.index - b.index);
+        if (ordered.length !== count || ordered.some((row, index) => row.index !== index))
+          throw new EmbeddingRequestError('invalid-response', provider);
+        return ordered.map(row => validateEmbedding(row.embedding, spec));
+      }
+      const auth = this.configService.get<string>('YANDEX_EMBEDDING_AUTH_TYPE') ?? 'iam';
+      if (!['iam', 'api-key'].includes(auth)) throw new Error('YANDEX_EMBEDDING_AUTH_TYPE must be iam or api-key');
+      const response = await fetch(YANDEX_EMBEDDING_API_URL, {
+        method: 'POST', signal,
+        headers: { 'Content-Type': 'application/json', Authorization: (auth === 'iam' ? 'Bearer ' : 'Api-Key ') + apiKey,
+          'x-folder-id': this.requireConfig('YANDEX_FOLDER_ID') },
+        body: JSON.stringify({ modelUri: kind === 'query' ? spec.queryModel : spec.documentModel, text, dim: String(spec.dimensions) }),
+      });
+      const textBody = await response.text();
+      signal.throwIfAborted();
+      let body: any;
+      try { body = JSON.parse(textBody); } catch { /* Keep HTTP status classification for non-JSON error bodies. */ }
+      if (!response.ok) throw embeddingHttpFailure(provider, response.status, String(body?.error?.code ?? body?.code ?? ''));
+      return [validateEmbedding(body?.embedding, spec)];
+    } catch (error) {
+      options.signal?.throwIfAborted();
+      if (error instanceof EmbeddingRequestError) throw error;
+      if (!error || typeof error !== 'object') throw error;
+      const failure = error as { name?: string; status?: number; code?: string; cause?: { code?: string }; message?: string };
+      if (timeout.aborted || failure.name === 'APIConnectionTimeoutError')
+        throw new EmbeddingRequestError('availability', provider, undefined, { cause: error });
+      if (typeof failure.status === 'number') {
+        const classified = embeddingHttpFailure(provider, failure.status, failure.code);
+        throw new EmbeddingRequestError(classified.category, provider, failure.status, { cause: error });
+      }
+      if (failure.name === 'APIConnectionError' || (error as any)?.constructor?.name === 'APIConnectionError' ||
+        (failure.name === 'TypeError' && /^(fetch failed|Failed to fetch)$/.test(failure.message ?? ''))) {
+        let cause = error as any;
+        for (let depth = 0; cause && depth < 8; depth++, cause = cause.cause) {
+          if (/^(ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|UND_ERR_CONNECT_TIMEOUT|UND_ERR_SOCKET)$/.test(cause.code ?? ''))
+            throw new EmbeddingRequestError('availability', provider, undefined, { cause: error });
+        }
+      }
+      throw error;
     }
-
-    return embedding;
   }
 
-  public async createOpenAiEmbeddings(texts: string[]): Promise<number[][]> {
-    if (texts.length === 0) {
-      return [];
-    }
-
-    const response = await this.getOpenAiEmbeddingClient().embeddings.create({
-      model: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
-
-      input: texts,
-
-      dimensions: this.getEmbeddingDimensions(
-        'OPENAI_EMBEDDING_DIMENSIONS',
-        1536,
-      ),
-    });
-
-    return response.data
-      .sort((a, b) => a.index - b.index)
-      .map((item) => item.embedding);
+  public createOpenAiEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, 'openai', 'document', options);
   }
-
-  private async createYandexEmbedding(
-    text: string,
-    modelUri: string,
-  ): Promise<number[]> {
-    const apiKey = this.requireConfig('YANDEX_API_KEY');
-
-    const folderId = this.requireConfig('YANDEX_FOLDER_ID');
-
-    const dimensions = this.getEmbeddingDimensions(
-      'YANDEX_EMBEDDING_DIMENSIONS',
-      768,
-    );
-
-    const response = await fetch(YANDEX_EMBEDDING_API_URL, {
-      method: 'POST',
-
-      headers: {
-        'Content-Type': 'application/json',
-
-        Authorization: `Bearer ${apiKey}`,
-
-        'x-folder-id': folderId,
-      },
-
-      body: JSON.stringify({
-        modelUri,
-
-        text,
-
-        dim: String(dimensions),
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-
-      throw new Error(`Yandex Embeddings API: ${response.status} ${error}`);
-    }
-
-    const data = (await response.json()) as YandexEmbeddingResponse;
-
-    return data.embedding.map(Number);
+  public async createOpenAiEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
+    if (!texts.length) return [];
+    return this.requestEmbedding(texts, 'openai', 'document', options);
   }
-
-  public async createYandexQueryEmbedding(text: string): Promise<number[]> {
-    const modelUri = this.requireConfig('YANDEX_EMBEDDING_QUERY_MODEL');
-
-    return this.createYandexEmbedding(text, modelUri);
+  public createYandexQueryEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, 'yandex', 'query', options);
   }
-
-  public async createYandexDocumentEmbedding(text: string): Promise<number[]> {
-    const modelUri = this.requireConfig('YANDEX_EMBEDDING_DOCUMENT_MODEL');
-
-    return this.createYandexEmbedding(text, modelUri);
+  public createYandexDocumentEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, 'yandex', 'document', options);
   }
-
-  public async createYandexDocumentEmbeddings(
-    texts: string[],
-  ): Promise<number[][]> {
-    if (texts.length === 0) {
-      return [];
-    }
-
-    return Promise.all(
-      texts.map((text) => this.createYandexDocumentEmbedding(text)),
-    );
+  public async createYandexDocumentEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
+    const results: number[][] = [];
+    for (const text of texts) results.push(await this.createYandexDocumentEmbedding(text, options));
+    return results;
   }
-
-  public async createQueryEmbedding(text: string): Promise<number[]> {
-    const provider = this.embeddingProvider;
-
-    if (provider === 'openai') {
-      return this.createOpenAiEmbedding(text);
-    }
-
-    return this.createYandexQueryEmbedding(text);
+  public createQueryEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, this.embeddingProvider, 'query', options);
   }
-
-  public async createDocumentEmbedding(text: string): Promise<number[]> {
-    const provider = this.embeddingProvider;
-
-    if (provider === 'openai') {
-      return this.createOpenAiEmbedding(text);
-    }
-
-    return this.createYandexDocumentEmbedding(text);
+  public createDocumentEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, this.embeddingProvider, 'document', options);
   }
-
-  public async createDocumentEmbeddings(texts: string[]): Promise<number[][]> {
-    const provider = this.embeddingProvider;
-
-    if (provider === 'openai') {
-      return this.createOpenAiEmbeddings(texts);
-    }
-
-    return this.createYandexDocumentEmbeddings(texts);
+  public async createDocumentEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
+    if (this.embeddingProvider === 'openai') return this.createOpenAiEmbeddings(texts, options);
+    const results: number[][] = [];
+    for (const text of texts) results.push(await this.createDocumentEmbedding(text, options));
+    return results;
   }
-
-  public async createProductEmbedding(text: string): Promise<number[]> {
-    return this.createDocumentEmbedding(text);
+  public createProductEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createDocumentEmbedding(text, options);
   }
 
   public async createProductSemanticRepresentation(

@@ -1,3 +1,9 @@
+import {
+  EmbeddingIndexIncompleteError,
+  retrieveWithEmbeddingFallback,
+  writeEmbeddingIndices,
+} from '@/src/ai/embedding-retrieval';
+import type { StoreKnowledge } from '@/prisma/generated';
 import { Injectable } from '@nestjs/common';
 import { readFile } from 'node:fs/promises';
 
@@ -69,40 +75,70 @@ export class StoreKnowledgeService {
         },
       });
 
-      const content = [
-        `Вопрос: ${item.question}`,
-        `Ответ: ${item.answer}`,
-        item.notice ? `Важно: ${item.notice}` : null,
-        item.footnote ? `Примечание: ${item.footnote}` : null,
-      ]
-        .filter(Boolean)
-        .join('\n\n');
-
-      const embedding = await this.aiService.createDocumentEmbedding(content);
-
-      await this.qdrantService.savePoint(QdrantCollections.storeKnowledge, {
-        id: knowledge.id,
-        vector: {
-          [QDRANT_DENSE_VECTOR]: embedding,
-          [QDRANT_SPARSE_VECTOR]: {
-            text: content,
-            model: 'qdrant/bm25',
-          },
-        },
-        payload: {
-          key: knowledge.key,
-          section: knowledge.section,
-          topic: knowledge.topic,
-          question: knowledge.question,
-          answer: knowledge.answer,
-          notice: knowledge.notice,
-          footnote: knowledge.footnote,
-          content,
-        },
-      });
+      await this.indexKnowledge(knowledge);
     }
 
     return items.length;
+  }
+
+  private async indexKnowledge(knowledge: StoreKnowledge): Promise<void> {
+    const content = [
+      `Вопрос: ${knowledge.question}`,
+      `Ответ: ${knowledge.answer}`,
+      knowledge.notice ? `Важно: ${knowledge.notice}` : null,
+      knowledge.footnote ? `Примечание: ${knowledge.footnote}` : null,
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+
+    const payload = {
+      key: knowledge.key,
+      section: knowledge.section,
+      topic: knowledge.topic,
+      question: knowledge.question,
+      answer: knowledge.answer,
+      notice: knowledge.notice,
+      footnote: knowledge.footnote,
+      content,
+    };
+    if (this.aiService.embeddingFailover) {
+      await writeEmbeddingIndices(this.aiService, this.qdrantService, {
+        collection: QdrantCollections.storeKnowledge,
+        id: knowledge.id,
+        version: knowledge.updatedAt.toISOString(),
+        text: content,
+        payload,
+      });
+      return;
+    }
+    const embedding = await this.aiService.createDocumentEmbedding(content);
+
+    await this.qdrantService.savePoint(QdrantCollections.storeKnowledge, {
+      id: knowledge.id,
+      vector: {
+        [QDRANT_DENSE_VECTOR]: embedding,
+        [QDRANT_SPARSE_VECTOR]: {
+          text: content,
+          model: 'qdrant/bm25',
+        },
+      },
+      payload: {
+        key: knowledge.key,
+        section: knowledge.section,
+        topic: knowledge.topic,
+        question: knowledge.question,
+        answer: knowledge.answer,
+        notice: knowledge.notice,
+        footnote: knowledge.footnote,
+        content,
+      },
+    });
+  }
+
+  public async reindexSearchIndices(): Promise<{ indexed: number }> {
+    const rows = await this.prismaService.storeKnowledge.findMany();
+    for (const row of rows) await this.indexKnowledge(row);
+    return { indexed: rows.length };
   }
 
   async findByKey(key: string): Promise<StoreKnowledgeSearchResult | null> {
@@ -146,14 +182,43 @@ export class StoreKnowledgeService {
   }
 
   async search(query: string): Promise<StoreKnowledgeSearchResult | null> {
-    const queryEmbedding = await this.aiService.createQueryEmbedding(query);
-
-    const candidates = await this.qdrantService.hybridSearch(
-      QdrantCollections.storeKnowledge,
-      queryEmbedding,
-      query,
-      SEARCH_CANDIDATE_LIMIT,
+    let candidates = await retrieveWithEmbeddingFallback(
+      this.aiService,
+      this.qdrantService,
+      {
+        collection: QdrantCollections.storeKnowledge,
+        query,
+        limit: SEARCH_CANDIDATE_LIMIT,
+        loadVersions: async () =>
+          (
+            await this.prismaService.storeKnowledge.findMany({
+              where: { isActive: true },
+              select: { id: true, updatedAt: true },
+            })
+          ).map((row) => ({
+            id: row.id,
+            version: row.updatedAt.toISOString(),
+          })),
+      },
     );
+
+    if (this.aiService.embeddingFailover && candidates.length) {
+      const current = await this.prismaService.storeKnowledge.findMany({
+        where: {
+          id: { in: candidates.map((point) => String(point.id)) },
+          isActive: true,
+        },
+        select: { id: true, updatedAt: true },
+      });
+      const versions = new Map(
+        current.map((row) => [row.id, row.updatedAt.toISOString()]),
+      );
+      if (candidates.some(point => versions.has(String(point.id)) && versions.get(String(point.id)) !== point.payload?._source_version)) throw new EmbeddingIndexIncompleteError(QdrantCollections.storeKnowledge);
+      candidates = candidates.filter(
+        (point) =>
+          versions.get(String(point.id)) === point.payload?._source_version,
+      );
+    }
 
     const reranked = await this.rerankerService.rerank(
       query,

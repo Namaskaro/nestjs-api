@@ -194,7 +194,7 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
     async (embeddingProvider) => {
       fetchMock.mockResolvedValue({
         ok: true,
-        json: async () => ({ embedding: [1, '2'] }),
+        text: async () => JSON.stringify({ embedding: [1, '2'] }),
       });
       mockEmbeddingCreate.mockImplementation(async ({ input }) => ({
         data: Array.isArray(input)
@@ -249,15 +249,15 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
       } else {
         expect(fetchMock).not.toHaveBeenCalled();
         expect(OpenAI).toHaveBeenCalledTimes(2); // Once per service, reused for all embeddings.
-        expect(OpenAI).toHaveBeenCalledWith({ apiKey: 'test-openai-key' });
+        expect(OpenAI).toHaveBeenCalledWith({ apiKey: 'test-openai-key', maxRetries: 0, timeout: 60000 });
         expect(mockEmbeddingCreate).toHaveBeenCalledTimes(6);
         const requests = mockEmbeddingCreate.mock.calls.map(
           ([request]) => request,
         );
         expect(requests.slice(0, 3)).toEqual([
-          { model: 'configured-embedding', input: 'query', dimensions: 2 },
-          { model: 'configured-embedding', input: 'document', dimensions: 2 },
-          { model: 'configured-embedding', input: ['a', 'b'], dimensions: 2 },
+          { model: 'configured-embedding', input: 'query', dimensions: 2, encoding_format: 'float' },
+          { model: 'configured-embedding', input: 'document', dimensions: 2, encoding_format: 'float' },
+          { model: 'configured-embedding', input: ['a', 'b'], dimensions: 2, encoding_format: 'float' },
         ]);
         expect(requests.slice(3)).toEqual(requests.slice(0, 3));
       }

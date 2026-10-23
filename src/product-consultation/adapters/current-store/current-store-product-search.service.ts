@@ -1,3 +1,7 @@
+import {
+  productIndexVersion,
+  PRODUCT_INDEX_SOURCE_INCLUDE,
+} from '@/src/ai/product-index-version';
 import { Injectable, Logger } from '@nestjs/common';
 
 import {
@@ -6,6 +10,10 @@ import {
 } from '@/src/ai/schemas/product-qdrant-payload.schema';
 
 import { AiService } from '@/src/ai/ai.service';
+import {
+  retrieveWithEmbeddingFallback,
+  EmbeddingIndexIncompleteError,
+} from '@/src/ai/embedding-retrieval';
 
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 
@@ -74,16 +82,25 @@ export class CurrentStoreProductSearchService {
       return [];
     }
 
-    const embedding = await this.aiService.createQueryEmbedding(
-      productNeed.semanticQuery,
+    const points = await retrieveWithEmbeddingFallback(
+      this.aiService,
+      this.qdrantService,
+      {
+        collection: QdrantCollections.products,
+        query: productNeed.semanticQuery,
+        limit: PRODUCT_SEARCH_CANDIDATE_LIMIT,
+        filter: buildCurrentStoreQdrantFilter(productNeed, catalog),
+        loadVersions: async () =>
+          (
+            await this.prismaService.product.findMany({
+              where: CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
+              include: PRODUCT_INDEX_SOURCE_INCLUDE,
+            })
+          ).map((row) => ({ id: row.id, version: productIndexVersion(row) })),
+      },
     );
-
-    const points = await this.qdrantService.hybridSearch(
-      QdrantCollections.products,
-      embedding,
-      productNeed.semanticQuery,
-      PRODUCT_SEARCH_CANDIDATE_LIMIT,
-      buildCurrentStoreQdrantFilter(productNeed, catalog),
+    const sourceVersions = new Map(
+      points.map((point) => [String(point.id), point.payload?._source_version]),
     );
 
     const seen = new Set<string>();
@@ -119,33 +136,39 @@ export class CurrentStoreProductSearchService {
      * Финальная eligibility проверяется
      * по source of truth — Postgres.
      */
-    const rows = await this.prismaService.product.findMany({
-      where: {
-        id: {
-          in: payloads.map((item) => item.productId),
-        },
-        ...CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
+    const where = {
+      id: {
+        in: payloads.map((item) => item.productId),
       },
-      select: {
-        id: true,
-        title: true,
-        price: true,
-        images: true,
-        gender: true,
-        type: true,
-        brandId: true,
-        subcategoryId: true,
-        color: true,
-        sizes: true,
-        inStock: true,
-        stock: true,
-        subcategory: {
+      ...CURRENT_STORE_ELIGIBLE_PRODUCT_WHERE,
+    };
+    const currentVersions = new Map<string, string>();
+    const rows = this.aiService.embeddingFailover
+      ? await this.prismaService.product
+          .findMany({ where, include: PRODUCT_INDEX_SOURCE_INCLUDE })
+          .then((rows) => {
+            for (const row of rows)
+              currentVersions.set(row.id, productIndexVersion(row));
+            return rows;
+          })
+      : await this.prismaService.product.findMany({
+          where,
           select: {
-            categoryId: true,
+            id: true,
+            title: true,
+            price: true,
+            images: true,
+            gender: true,
+            type: true,
+            brandId: true,
+            subcategoryId: true,
+            color: true,
+            sizes: true,
+            inStock: true,
+            stock: true,
+            subcategory: { select: { categoryId: true } },
           },
-        },
-      },
-    });
+        });
 
     const byId = new Map(rows.map((row) => [row.id, row]));
 
@@ -160,6 +183,11 @@ export class CurrentStoreProductSearchService {
       if (!row || !isCurrentStoreProductEligible(row)) {
         continue;
       }
+      if (
+        this.aiService.embeddingFailover &&
+        sourceVersions.get(row.id) !== currentVersions.get(row.id)
+      )
+        throw new EmbeddingIndexIncompleteError(QdrantCollections.products);
 
       /**
        * Hard constraints повторно
