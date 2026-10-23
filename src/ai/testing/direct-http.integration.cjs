@@ -29,7 +29,11 @@ test('native direct transport timeout and cancellation contracts', async (t) => 
   const nativeFetch = globalThis.fetch;
   globalThis.fetch = (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
-    assert.ok(['api.openai.com', 'yandex.invalid'].includes(url.hostname));
+    assert.ok(
+      ['api.openai.com', 'yandex.invalid', 'qwen.invalid'].includes(
+        url.hostname,
+      ),
+    );
     return nativeFetch(
       `http://127.0.0.1:${server.address().port}${url.pathname}`,
       init,
@@ -45,13 +49,20 @@ test('native direct transport timeout and cancellation contracts', async (t) => 
       YANDEX_API_KEY: 'offline',
       YANDEX_API_URL: 'https://yandex.invalid/v1',
       YANDEX_MODEL: 'gpt://offline/test',
+      ...(provider === 'qwen'
+        ? {
+            QWEN_API_KEY: 'offline',
+            QWEN_API_URL: 'https://qwen.invalid/compatible-mode/v1',
+            CHAT_STANDARD_MODEL: 'qwen3.7-flash-2026-07-15',
+          }
+        : {}),
     };
     return new AiService({ get: (key) => config[key] }).getChatModel(
       'STANDARD',
     );
   };
   try {
-    for (const provider of ['openai', 'yandex']) {
+    for (const provider of ['openai', 'yandex', 'qwen']) {
       for (const status of [null, 200, 503]) {
         await t.test(
           `${provider}: timeout while waiting for ${status ?? 'headers'}`,

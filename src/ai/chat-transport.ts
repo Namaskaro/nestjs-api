@@ -1,6 +1,6 @@
 import type { ChatOpenAIFields } from '@langchain/openai';
 
-import type { AiProvider, ChatModelRole } from './ai.service';
+import type { ChatProvider, ChatModelRole } from './ai.service';
 
 type OpenAiTransportProfile = 'gpt-6-luna' | 'gpt-6.1-sol';
 
@@ -15,12 +15,29 @@ type ChatTransport = Pick<
 
 /** Transport belongs to the configured deployment, not to an application role. */
 export function getChatTransport(
-  provider: AiProvider,
+  provider: ChatProvider,
   role: Exclude<ChatModelRole, 'STRONG'>,
   model: string,
   configuredProfile?: unknown,
   profileKey = `OPENAI_${role}_TRANSPORT_PROFILE`,
 ): ChatTransport {
+  if (provider === 'gigachat') throw new Error('GigaChat requires its native v1 adapter');
+  if (provider === 'qwen') {
+    if (configuredProfile !== undefined && configuredProfile !== 'qwen-chat') {
+      throw new Error(
+        `AiService configuration: ${profileKey} must be "qwen-chat" for Qwen.`,
+      );
+    }
+    // This profile targets text models supporting non-thinking + JSON Schema.
+    // Thinking-only / Omni deployments require separate conformance, not a silent fallback.
+    return {
+      useResponsesApi: false,
+      temperature: 0,
+      streamUsage: false,
+      modelKwargs: { enable_thinking: false },
+    };
+  }
+
   if (provider === 'yandex') {
     if (
       configuredProfile !== undefined &&

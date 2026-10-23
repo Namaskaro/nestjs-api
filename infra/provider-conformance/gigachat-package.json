@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "langchain-gigachat": "0.0.18"
+  }
+}

@@ -20,10 +20,13 @@ import { productSemanticRepresentationPrompt } from './prompts/product-semantic-
 
 import { llmUsageCallback } from './llm-usage';
 
+import { DirectGigaChat } from './gigachat-model';
 import { getChatTransport } from './chat-transport';
 import { createChatFetch } from './chat-http';
 
 export type AiProvider = 'openai' | 'yandex';
+
+export type ChatProvider = AiProvider | 'qwen' | 'gigachat';
 
 // STRONG is reserved; no current operation or deployment needs to configure it.
 export type ChatModelRole = 'FAST' | 'STANDARD' | 'STRONG';
@@ -37,7 +40,7 @@ type YandexEmbeddingResponse = {
 
 @Injectable()
 export class AiService {
-  private readonly chatProviders: Record<'FAST' | 'STANDARD', AiProvider>;
+  private readonly chatProviders: Record<'FAST' | 'STANDARD', ChatProvider>;
 
   private readonly chatTimeoutMs: number;
 
@@ -55,8 +58,8 @@ export class AiService {
       );
     }
     this.chatProviders = {
-      FAST: this.getProvider(this.chatProviderKey('FAST')),
-      STANDARD: this.getProvider(this.chatProviderKey('STANDARD')),
+      FAST: this.getChatProvider(this.chatProviderKey('FAST')),
+      STANDARD: this.getChatProvider(this.chatProviderKey('STANDARD')),
     };
     this.embeddingProvider = this.getProvider('EMBEDDING_PROVIDER');
     const configuredTimeout = this.configService.get<unknown>(
@@ -111,6 +114,17 @@ export class AiService {
     return provider;
   }
 
+  private getChatProvider(key: string): ChatProvider {
+    const provider = this.configService.get<unknown>(key);
+    if (provider !== 'openai' && provider !== 'yandex' && provider !== 'qwen' && provider !== 'gigachat') {
+      throw new Error(
+        `AiService configuration: ${key} must be "openai", "yandex", "qwen" or "gigachat". ` +
+          `Set ${key} explicitly; AI_PROVIDER is no longer used.`,
+      );
+    }
+    return provider;
+  }
+
   private getEmbeddingDimensions(key: string, fallback: number): number {
     const value = this.configService.get<string | number>(key);
 
@@ -143,13 +157,16 @@ export class AiService {
 
     const provider = this.chatProviders[role];
     const isYandex = provider === 'yandex';
-    const legacyModelKey = isYandex
-      ? role === 'FAST'
-        ? 'YANDEX_LITE_MODEL'
-        : 'YANDEX_MODEL'
-      : role === 'FAST'
-      ? 'OPENAI_FAST_MODEL'
-      : 'OPENAI_STANDARD_MODEL';
+    const legacyModelKey =
+      (provider === 'qwen' || provider === 'gigachat')
+        ? `CHAT_${role}_MODEL`
+        : isYandex
+        ? role === 'FAST'
+          ? 'YANDEX_LITE_MODEL'
+          : 'YANDEX_MODEL'
+        : role === 'FAST'
+        ? 'OPENAI_FAST_MODEL'
+        : 'OPENAI_STANDARD_MODEL';
     const roleModelKey = `CHAT_${role}_MODEL`;
     const model = this.requireConfig(
       this.configService.get<unknown>(roleModelKey) === undefined
@@ -158,9 +175,20 @@ export class AiService {
     );
     const roleProfileKey = `CHAT_${role}_TRANSPORT_PROFILE`;
     const profileKey =
-      this.configService.get<unknown>(roleProfileKey) === undefined && !isYandex
+      this.configService.get<unknown>(roleProfileKey) === undefined &&
+      provider === 'openai'
         ? `OPENAI_${role}_TRANSPORT_PROFILE`
         : roleProfileKey;
+    if (provider === 'gigachat') {
+      const profile = this.configService.get(profileKey);
+      if (profile !== undefined && profile !== 'gigachat-native') throw new Error(profileKey + ' must be gigachat-native');
+      const native = new DirectGigaChat({ model, timeoutMs: this.chatTimeoutMs,
+        credentials: this.configService.get('GIGACHAT_CREDENTIALS'), accessToken: this.configService.get('GIGACHAT_ACCESS_TOKEN'),
+        scope: this.configService.get('GIGACHAT_SCOPE'), baseURL: this.configService.get('GIGACHAT_API_URL'), authURL: this.configService.get('GIGACHAT_AUTH_URL'),
+      }, { callbacks: [llmUsageCallback], tags: [`role:${role}`, `provider:${provider}`, `model:${model}`], metadata: { role, provider, model } });
+      this.chatModels.set(role, native);
+      return native;
+    }
     const transport = getChatTransport(
       provider,
       role,
@@ -168,7 +196,9 @@ export class AiService {
       this.configService.get<unknown>(profileKey),
       profileKey,
     );
-    const baseURL = isYandex ? this.requireConfig('YANDEX_API_URL') : undefined;
+    const baseUrlKey = isYandex ? 'YANDEX_API_URL' : 'QWEN_API_URL';
+    const baseURL =
+      provider !== 'openai' ? this.requireConfig(baseUrlKey) : undefined;
     if (baseURL) {
       let valid = false;
       try {
@@ -184,12 +214,16 @@ export class AiService {
       }
       if (!valid)
         throw new Error(
-          'AiService configuration: YANDEX_API_URL must be an HTTP(S) URL without credentials, query or fragment.',
+          `AiService configuration: ${baseUrlKey} must be an HTTP(S) URL without credentials, query or fragment.`,
         );
     }
     const chatModel = new ChatOpenAI({
       apiKey: this.requireConfig(
-        isYandex ? 'YANDEX_API_KEY' : 'OPENAI_API_KEY',
+        isYandex
+          ? 'YANDEX_API_KEY'
+          : provider === 'qwen'
+          ? 'QWEN_API_KEY'
+          : 'OPENAI_API_KEY',
       ),
       model,
       ...transport,

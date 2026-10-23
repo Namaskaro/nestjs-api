@@ -298,7 +298,11 @@ describe('AiService provider-neutral roles and independent embeddings', () => {
             AI_PROVIDER: 'openai',
             [key]: invalid,
           }),
-        ).toThrow(`${key} must be "openai" or "yandex"`);
+        ).toThrow(
+          key === 'CHAT_PROVIDER'
+            ? `${key} must be "openai", "yandex", "qwen" or "gigachat"`
+            : `${key} must be "openai" or "yandex"`,
+        );
       }
       expect(ChatOpenAI).not.toHaveBeenCalled();
       expect(OpenAI).not.toHaveBeenCalled();

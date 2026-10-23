@@ -79,7 +79,7 @@ describe('direct role configuration', () => {
   it.each(['CHAT_FAST_PROVIDER', 'CHAT_STANDARD_PROVIDER'])(
     'rejects invalid explicit %s instead of silently using a legacy value',
     (key) => {
-      for (const value of ['', null, 'qwen'])
+      for (const value of ['', null, 'unknown'])
         expect(() =>
           service({ [key]: value, CHAT_PROVIDER: 'yandex' }),
         ).toThrow(key);
