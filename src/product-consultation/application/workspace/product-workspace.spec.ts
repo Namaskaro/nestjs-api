@@ -37,6 +37,8 @@ import { loadCurrentProductConsultationFixture } from '../../evaluation/fixtures
 
 import { ProductWorkspaceSchema } from './product-workspace';
 
+import { modelPlan } from './product-workspace.test-fixtures';
+
 const constraint = (
   attributeId: string,
 
@@ -309,7 +311,9 @@ function recommendationPositionFromMessages(messages: unknown): number {
 function harness(initialPlan = pair()) {
   let nextPlan = initialPlan;
 
-  const decide = jest.fn(async (_messages: unknown) => nextPlan);
+  const decide = jest.fn(async (_messages: unknown) => ({
+    parsed: modelPlan(nextPlan),
+  }));
 
   const respond = jest.fn(async (messages: unknown) => ({
     message: 'Рекомендация по данным каталога.',
@@ -938,13 +942,12 @@ describe('Product workspace: real graph with offline model boundary', () => {
       ),
     );
 
-    const invalid = await h.run(
-      'Найди Adidas и неизвестный товар',
+    const beforeInvalid = structuredClone(first.workspace);
+    await expect(
+      h.run('Найди Adidas и неизвестный товар', first.workspace),
+    ).rejects.toThrow('unsupported current-store category profile UNKNOWN');
 
-      first.workspace,
-    );
-
-    expect(invalid.workspace.tasks).toEqual(first.workspace.tasks);
+    expect(first.workspace).toEqual(beforeInvalid);
 
     expect(h.service.search).toHaveBeenCalledTimes(2);
   });
@@ -1440,13 +1443,12 @@ describe('Product workspace: real graph with offline model boundary', () => {
       searched.workspace.tasks[0].record.state!.memory.memory.goals,
     ).toEqual(first.workspace.tasks[0].record.state!.memory.memory.goals);
 
-    const rejected = await h.run(
-      'Снова Nike',
-
-      searched.workspace,
+    const beforeRepeatedSearch = structuredClone(searched.workspace);
+    await expect(h.run('Снова Nike', searched.workspace)).rejects.toThrow(
+      'SEARCH continue is only allowed before the first search',
     );
 
-    expect(rejected.groups).toEqual([]);
+    expect(searched.workspace).toEqual(beforeRepeatedSearch);
 
     expect(h.service.search).toHaveBeenCalledTimes(1);
   });

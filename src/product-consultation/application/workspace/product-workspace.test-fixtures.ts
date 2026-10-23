@@ -27,6 +27,8 @@ import type { SearchSpec } from '../../core/search/search-spec.schema';
 
 import type { ProductDetails } from '../../core/consultation-core.schema';
 
+import { ProductWorkspaceModelPlanSchema } from './product-workspace-model-plan';
+
 export const constraint = (
   attributeId: string,
 
@@ -271,10 +273,38 @@ function recommendationPositionFromMessages(messages: unknown): number {
   }
 }
 
+export function modelPlan(value: ProductWorkspacePlan) {
+  return ProductWorkspaceModelPlanSchema.parse({
+    ...value,
+    operations: value.operations.map((operation) =>
+      operation.kind !== 'consult'
+        ? operation
+        : {
+            ...operation,
+            actions: operation.actions.map(({ view, decision }) => ({
+              view,
+              decision: {
+                action: decision.proposal.action,
+                search: decision.proposal.search,
+                searchPatch: decision.proposal.searchPatch,
+                selection: decision.proposal.selection,
+                feedback: decision.proposal.feedback,
+                usageScenarioIds: decision.usageScenarioIds,
+                factAttributeIds: decision.factAttributeIds,
+                terminalText: decision.terminalText,
+              },
+            })),
+          },
+    ),
+  });
+}
+
 export function harness(initial = plan(newSearch('кроссовки'))) {
   let nextPlan = initial;
 
-  const decide = jest.fn(async (_messages: unknown) => nextPlan);
+  const decide = jest.fn(async (_messages: unknown) => ({
+    parsed: modelPlan(nextPlan),
+  }));
 
   const respond = jest.fn(async (messages: unknown) => ({
     message: 'Рекомендация по фактам каталога.',
