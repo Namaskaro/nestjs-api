@@ -167,15 +167,30 @@ export class DirectGigaChat extends BaseChatModel<GigaOptions> {
   private messages(messages: BaseMessage[]): Record<string, unknown>[] {
     const tools = new Map<string, string>();
     return messages.map((message) => {
-      if (typeof message.content !== 'string')
-        throw new Error(
-          'GigaChat text adapter does not accept multimodal or opaque reasoning blocks',
-        );
+      let content = message.content;
+      if (typeof content !== 'string') {
+        if (
+          !Array.isArray(content) ||
+          !Array.from(content).every(
+            (block) =>
+              block !== null &&
+              typeof block === 'object' &&
+              !Array.isArray(block) &&
+              block.type === 'text' &&
+              typeof block.text === 'string' &&
+              Object.keys(block).every((key) => key === 'type' || key === 'text'),
+          )
+        )
+          throw new Error(
+            'GigaChat text adapter does not accept multimodal or opaque reasoning blocks',
+          );
+        content = content.map((block) => block.text).join('');
+      }
       const type = message.getType();
       if (type === 'human' || type === 'system')
         return {
           role: type === 'human' ? 'user' : 'system',
-          content: message.content,
+          content,
         };
       if (type === 'tool') {
         const id = (message as any).tool_call_id;
@@ -184,7 +199,7 @@ export class DirectGigaChat extends BaseChatModel<GigaOptions> {
           throw new Error(
             'GigaChat tool result has no preceding matching call',
           );
-        return { role: 'function', name, content: message.content };
+        return { role: 'function', name, content };
       }
       if (type !== 'ai') throw new Error('Unsupported GigaChat message type');
       const calls = (message as AIMessage).tool_calls ?? [];
@@ -194,7 +209,7 @@ export class DirectGigaChat extends BaseChatModel<GigaOptions> {
       if (call) tools.set(call.id, call.name);
       return {
         role: 'assistant',
-        content: message.content,
+        content,
         ...(call
           ? { function_call: { name: call.name, arguments: call.args } }
           : {}),

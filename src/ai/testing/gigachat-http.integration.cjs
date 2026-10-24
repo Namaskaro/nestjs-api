@@ -9,9 +9,13 @@ const path = require('node:path');
 require('ts-node/register/transpile-only');
 const { DirectGigaChat } = require('../gigachat-model.ts');
 const { z } = require('zod');
-const { HumanMessage, ToolMessage } = require('@langchain/core/messages');
+const { AIMessage, HumanMessage, SystemMessage, ToolMessage } = require('@langchain/core/messages');
 const { tool } = require('@langchain/core/tools');
 const { createReactAgent } = require('@langchain/langgraph/prebuilt');
+const { createAgent } = require('langchain');
+const { toJsonSchema } = require('@langchain/core/utils/json_schema');
+const { customerHelpPrompt } = require('../../support-agent/agents/customer-help-agent/prompts/customer-help.prompt.ts');
+const { createSearchKnowledgeTool } = require('../../support-agent/agents/customer-help-agent/tools/search-knowledge.tool.ts');
 process.env.LANGSMITH_TRACING = 'false';
 process.env.LANGCHAIN_TRACING_V2 = 'false';
 
@@ -91,6 +95,131 @@ test('Native GigaChat adapter mandatory application contracts', async (t) => {
       const result = await model().invoke('hello');
       assert.equal(result.text, 'ok');
       assert.equal(result.usage_metadata.total_tokens, 15);
+    });
+    await t.test('strings and text-only blocks preserve exact content for every message role', async () => {
+      const start = requests.length;
+      respond = (_, res) => reply(res, { content: 'done' });
+      const parts = ['  Начало\r\n', '', '🎯 е\u0301\t', 'конец  '];
+      const text = parts.join('');
+      const functionParts = ['{"found":', 'true}'];
+      for (const asBlocks of [false, true]) {
+        const content = asBlocks ? parts.map((text) => ({ type: 'text', text })) : text;
+        const history = [
+          new SystemMessage({ content }),
+          new HumanMessage({ content }),
+          new AIMessage({
+            content,
+            tool_calls: [{ id: 'keep-call-id', name: 'lookup', args: { query: 'delivery' }, type: 'tool_call' }],
+            additional_kwargs: { functions_state_id: 'keep-state-id' },
+          }),
+          new ToolMessage({
+            content: asBlocks ? functionParts.map((text) => ({ type: 'text', text })) : functionParts.join(''),
+            name: 'lookup', tool_call_id: 'keep-call-id',
+          }),
+          new AIMessage({ content: asBlocks ? [] : '' }),
+        ];
+        const before = JSON.stringify(history);
+        await model().invoke(history);
+        assert.equal(JSON.stringify(history), before, 'Input messages and call IDs must not be mutated');
+        assert.deepEqual(requests.at(-1).messages, [
+          { role: 'system', content: text },
+          { role: 'user', content: text },
+          { role: 'assistant', content: text, function_call: { name: 'lookup', arguments: { query: 'delivery' } }, functions_state_id: 'keep-state-id' },
+          { role: 'function', name: 'lookup', content: functionParts.join('') },
+          { role: 'assistant', content: '' },
+        ]);
+      }
+      assert.equal(requests.length - start, 2);
+    });
+    await t.test('unsupported or malformed content blocks are rejected before HTTP', async () => {
+      const start = requests.length;
+      const invalidContents = [
+        [{ type: 'image_url', image_url: { url: 'https://image.invalid/a.png' } }],
+        [{ type: 'input_audio', input_audio: { data: 'AA==', format: 'wav' } }],
+        [{ type: 'reasoning', encrypted_content: 'opaque' }],
+        [{ type: 'unknown', text: 'not a text block' }],
+        [{ type: 'text' }],
+        [{ type: 'text', text: 42 }],
+        [{ type: 'text', text: null }],
+        [{ text: 'missing type' }],
+        [{ type: 'text', text: 'text', encrypted_content: 'must not be discarded' }],
+        [{ type: 'text', text: 'keep me' }, { type: 'image', source: 'opaque' }],
+        [null], [undefined], ['text'], [[{ type: 'text', text: 'nested' }]],
+        new Array(1),
+      ];
+      for (const content of invalidContents) {
+        for (const Message of [SystemMessage, HumanMessage, AIMessage, ToolMessage]) {
+          await assert.rejects(
+            model().invoke([new Message({ content, tool_call_id: 'unused' })]),
+            /does not accept multimodal or opaque reasoning blocks/,
+          );
+        }
+      }
+      assert.equal(requests.length, start);
+    });
+    await t.test('Customer Help createAgent preserves the real prompt, tool cycle, events and state', async () => {
+      const start = requests.length;
+      let toolsRun = 0;
+      const query = 'Срок доставки в Тестоград';
+      const knowledge = {
+        key: 'offline-delivery', section: 'delivery', topic: 'test-city',
+        question: query, answer: 'Доставка занимает 3 дня.', notice: null, footnote: null,
+      };
+      const search = createSearchKnowledgeTool({ search: async (receivedQuery) => {
+        toolsRun++;
+        assert.equal(receivedQuery, query);
+        return knowledge;
+      } });
+      respond = (_, res) => requests.length === start + 1
+        ? reply(res, {
+            content: '', function_call: { name: search.name, arguments: { query } },
+            functions_state_id: 'customer-help-state',
+          }, 'function_call')
+        : reply(res, { content: knowledge.answer });
+      const agent = createAgent({ model: model(), systemPrompt: customerHelpPrompt, tools: [search] });
+      const events = [];
+      const inputs = [];
+      for await (const event of agent.streamEvents(
+        { messages: [new HumanMessage(query)] },
+        { version: 'v2', recursionLimit: 6, callbacks: [{
+          handleChatModelStart(_model, batches) { inputs.push(batches[0]); },
+        }] },
+      )) events.push(event);
+      assert.equal(requests.length - start, 2);
+      assert.equal(toolsRun, 1);
+      assert.equal(inputs.length, 2);
+      assert.ok(Array.isArray(inputs[0][0].content), 'Exercise createAgent text blocks, not a manually constructed string SystemMessage');
+      for (const request of requests.slice(start)) {
+        assert.equal(request.messages[0].role, 'system');
+        assert.equal(request.messages[0].content, customerHelpPrompt);
+        assert.deepEqual(request.functions[0].parameters, toJsonSchema(search.schema));
+      }
+      const completions = events.filter((event) => event.event === 'on_chat_model_end');
+      assert.equal(events.filter((event) => event.event === 'on_chat_model_start').length, 2);
+      assert.equal(completions.length, 2);
+      assert.equal(events.filter((event) => event.event === 'on_tool_start').length, 1);
+      assert.equal(events.filter((event) => event.event === 'on_tool_end').length, 1);
+      assert.ok(events.some((event) => event.event === 'on_chain_end'));
+      const first = completions[0].data.output;
+      assert.equal(first.tool_calls.length, 1);
+      assert.deepEqual(search.schema.parse(first.tool_calls[0].args), { query });
+      const historyCall = inputs[1].find((message) => message.getType() === 'ai');
+      const historyResult = inputs[1].find((message) => message.getType() === 'tool');
+      assert.equal(historyCall.tool_calls[0].id, first.tool_calls[0].id);
+      assert.equal(historyResult.tool_call_id, first.tool_calls[0].id);
+      assert.equal(historyCall.additional_kwargs.functions_state_id, 'customer-help-state');
+      assert.deepEqual(JSON.parse(historyResult.content), { found: true, result: knowledge });
+      assert.deepEqual(requests.at(-1).messages.find((message) => message.function_call), {
+        role: 'assistant', content: '',
+        function_call: { name: search.name, arguments: { query } },
+        functions_state_id: 'customer-help-state',
+      });
+      assert.deepEqual(requests.at(-1).messages.at(-1), {
+        role: 'function', name: search.name, content: historyResult.content,
+      });
+      assert.equal(completions[1].data.output.text, knowledge.answer);
+      assert.equal(completions[1].data.output.response_metadata.finish_reason, 'stop');
+      assert.equal(completions[1].data.output.tool_calls.length, 0);
     });
     await t.test(
       'jsonMode required by recommendation synthesizer',
