@@ -31,8 +31,8 @@ test('Yandex primary, Qwen through Polza fallback: actual SDK and application co
   const config = { CHAT_FAST: 'yandex-lite', CHAT_STANDARD: 'yandex-standard',
     CHAT_FAST_FALLBACK: 'qwen-flash', CHAT_STANDARD_FALLBACK: 'qwen-max',
     YANDEX_API_KEY: 'offline', YANDEX_API_URL: 'https://yandex.invalid/v1', YANDEX_LITE_MODEL: 'gpt://fixture/lite', YANDEX_MODEL: 'gpt://fixture/standard',
-    POLZA_API_KEY: 'offline', EMBEDDING_PROVIDER: 'yandex',
-    CHAT_REQUEST_TIMEOUT_MS: 500 };
+    POLZA_API_KEY: 'offline', EMBEDDING_PROVIDER: 'yandex', EMBEDDING_FALLBACK_PROVIDER: 'qwen', QWEN_EMBEDDING_DIMENSIONS: 2,
+    CHAT_REQUEST_TIMEOUT_MS: 500, EMBEDDING_REQUEST_TIMEOUT_MS: 150 };
   const ai = (extra = {}) => new AiService({ get: k => ({ ...config, ...extra })[k] });
   const json = (res, status, body) => { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
   const chat = (res, content = 'ok', extra = {}, finish = 'stop') => json(res, 200, { id: `chat_fixture_${requests.length}`, model: 'fixture', choices: [{ index: 0, finish_reason: finish, message: { role: 'assistant', content, ...extra } }], usage: { prompt_tokens: 2, completion_tokens: 1, total_tokens: 3 } });
@@ -101,6 +101,31 @@ test('Yandex primary, Qwen through Polza fallback: actual SDK and application co
       requests.length = 0; reply = (q, r) => primary(q) ? failure(r) : chat(r, 'partial', {}, 'length');
       await assert.rejects(ai().getChatModel('FAST').invoke('q'));
       assert.equal(requests.length, 2);
+    });
+    await t.test('Qwen embedding uses /embeddings, configured model, full vector validation and no dimensions/thinking parameter', async () => {
+      requests.length = 0; reply = (_q, r) => json(r, 200, { data: [{ index: 0, embedding: [0.1, 0.2] }] });
+      for (const model of ['qwen/qwen3-embedding-4b', 'qwen/qwen3-embedding-8b']) {
+        assert.deepEqual(await ai({ QWEN_EMBEDDING_MODEL: model }).createEmbedding('text', 'qwen', 'document'), [0.1, 0.2]);
+        assert.equal(requests.at(-1).path, '/polza.ai/api/v1/embeddings');
+        assert.deepEqual(requests.at(-1).body, { model, input: 'text', encoding_format: 'float' });
+      }
+      assert.equal(requests.length, 2);
+    });
+    for (const [status, code, category] of [[503, 'unavailable', 'availability'], [401, 'unauthorized', 'configuration'], [429, 'insufficient_quota', 'configuration'], [429, 'rate_limit_exceeded', 'availability']]) {
+      await t.test(`Polza embedding ${status}/${code} has bounded classification and one send`, async () => {
+        requests.length = 0; reply = (_q, r) => failure(r, status, code);
+        await assert.rejects(ai().createEmbedding('text', 'qwen', 'query'), e => e.category === category);
+        assert.equal(requests.length, 1);
+      });
+    }
+    await t.test('Polza invalid dimension is a data error; preabort sends zero; timeout sends once', async () => {
+      requests.length = 0; reply = (_q, r) => json(r, 200, { data: [{ index: 0, embedding: [1] }] });
+      await assert.rejects(ai().createEmbedding('text', 'qwen', 'query'), e => e.category === 'invalid-response'); assert.equal(requests.length, 1);
+      requests.length = 0; const c = new AbortController(); c.abort();
+      await assert.rejects(ai().createEmbedding('text', 'qwen', 'query', { signal: c.signal })); assert.equal(requests.length, 0);
+      reply = () => {}; const start = performance.now();
+      await assert.rejects(ai().createEmbedding('text', 'qwen', 'query'), e => e.category === 'availability');
+      assert.equal(requests.length, 1); assert.ok(performance.now() - start < 2000);
     });
   } finally {
     globalThis.fetch = native; for (const socket of sockets) socket.destroy(); await new Promise(r => server.close(r));

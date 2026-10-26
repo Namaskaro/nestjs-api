@@ -17,10 +17,77 @@ const spec = (provider: 'yandex' | 'openai') => ({
   documentModel: provider + '-d',
   dimensions: provider === 'yandex' ? 768 : 1536,
 });
+
+describe('Qwen/Polza secondary uses the existing guarded retrieval and writer', () => {
+  const polza = () => {
+    const fixture = setup();
+    fixture.ai.embeddingFallbackProvider = 'qwen';
+    fixture.ai.secondaryEmbeddingCollection = c => `${c}_fallback`;
+    fixture.ai.getEmbeddingSpec = p => p === 'qwen'
+      ? { provider: p, queryModel: 'qwen/qwen3-embedding-4b', documentModel: 'qwen/qwen3-embedding-4b', dimensions: 2560, service: 'polza' }
+      : spec(p);
+    return fixture;
+  };
+  it('healthy primary never checks or calls Qwen', async () => {
+    const { ai, q, run } = polza();
+    await run();
+    expect(ai.createEmbedding.mock.calls.map(c => c[1])).toEqual(['yandex']);
+    expect(q.validateEmbeddingCollection).toHaveBeenCalledTimes(1);
+    expect(q.hybridSearch.mock.calls[0][0]).toBe('products');
+  });
+  it('Yandex -> Qwen preserves filters and current source versions', async () => {
+    const { ai, q, run } = polza();
+    ai.createEmbedding.mockRejectedValueOnce(outage());
+    await run();
+    expect(ai.createEmbedding.mock.calls.map(c => c[1])).toEqual(['yandex', 'qwen']);
+    expect(q.hybridSearch).toHaveBeenCalledWith('products_fallback', [1, 2], 'shoes', 20, {
+      must: [filter, indexVersionFilter(versions, embeddingSpace(ai.getEmbeddingSpec('qwen')))],
+    });
+  });
+  it('two availability failures use primary BM25; authentication/data errors do not', async () => {
+    const { ai, q, run } = polza();
+    ai.createEmbedding.mockRejectedValue(outage());
+    await run();
+    expect(q.keywordSearch).toHaveBeenCalledWith('products', 'shoes', 20, { must: [filter, indexVersionFilter(versions)] });
+    for (const category of ['configuration', 'invalid-response'] as const) {
+      const next = polza();
+      const failure = new EmbeddingRequestError(category, 'qwen', 401);
+      next.ai.createEmbedding.mockRejectedValueOnce(outage()).mockRejectedValueOnce(failure);
+      await expect(next.run()).rejects.toBe(failure);
+      expect(next.q.keywordSearch).not.toHaveBeenCalled();
+    }
+  });
+  it('incomplete Qwen space is not queried and incompatible dimensions propagate', async () => {
+    const { ai, q, run } = polza();
+    ai.createEmbedding.mockRejectedValue(outage());
+    q.embeddingIndexComplete.mockImplementation(async (collection, _versions, space) => collection === 'products' || !space);
+    await run();
+    expect(ai.createEmbedding).toHaveBeenCalledTimes(1);
+    expect(q.keywordSearch).toHaveBeenCalledTimes(1);
+    const next = polza();
+    next.ai.createEmbedding.mockRejectedValueOnce(outage());
+    next.q.validateEmbeddingCollection.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('incompatible dimensions'));
+    await expect(next.run()).rejects.toThrow('incompatible dimensions');
+    expect(next.q.keywordSearch).not.toHaveBeenCalled();
+  });
+  it.each(['products', 'store_knowledge'])('secondary-only %s writes Qwen dense + sparse metadata without primary vectors or PG writes', async collection => {
+    const { ai, q } = polza();
+    const savePrimary = jest.fn();
+    await writeEmbeddingIndices(ai, q, { collection, id: 'a', version: 'v2', text: 'search text', payload: {}, secondaryOnly: true, savePrimary });
+    expect(ai.createEmbedding.mock.calls.map(c => c[1])).toEqual(['qwen']);
+    expect(savePrimary).not.toHaveBeenCalled();
+    expect(q.savePoint.mock.calls.map(c => c[0])).toEqual([`${collection}_fallback`, `${collection}_fallback`]);
+    expect(q.savePoint.mock.calls[1][1]).toMatchObject({ vector: { dense: [1, 2], bm25: { text: 'search text' } }, payload: {
+      _source_version: 'v2', _embedding_space: embeddingSpace(ai.getEmbeddingSpec('qwen')),
+      _embedding_model: 'qwen/qwen3-embedding-4b', _embedding_dimensions: 2560, _embedding_service: 'polza',
+    } });
+  });
+});
 const outage = () => new EmbeddingRequestError('availability', 'yandex', 503);
 function setup() {
   const ai: any = {
     embeddingFailover: true,
+    embeddingFallbackProvider: 'openai',
     getEmbeddingSpec: spec,
     secondaryEmbeddingCollection: () => 'products_openai',
     createEmbedding: jest.fn().mockResolvedValue([1, 2]),

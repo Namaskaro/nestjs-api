@@ -26,7 +26,7 @@ import { FallbackChatModel } from './chat-fallback';
 import { getChatTransport } from './chat-transport';
 import { chatPreset } from './chat-presets';
 import { createChatFetch } from './chat-http';
-import { EmbeddingRequestError, embeddingHttpFailure, validateEmbedding, type EmbeddingSpec, type EmbeddingOptions } from './embedding-execution';
+import { EmbeddingRequestError, embeddingHttpFailure, validateEmbedding, type EmbeddingProvider, type EmbeddingSpec, type EmbeddingOptions } from './embedding-execution';
 
 export type AiProvider = 'openai' | 'yandex';
 
@@ -41,6 +41,7 @@ const YANDEX_EMBEDDING_API_URL =
 @Injectable()
 export class AiService {
   public readonly embeddingFailover: boolean;
+  public readonly embeddingFallbackProvider: 'openai' | 'qwen';
   private readonly embeddingTimeoutMs: number;
   private readonly chatProviders: Record<'FAST' | 'STANDARD', ChatProvider>;
 
@@ -51,12 +52,18 @@ export class AiService {
   private readonly chatModels = new Map<ChatModelRole, BaseChatModel>();
 
   private openAiEmbeddingClient?: OpenAI;
+  private polzaEmbeddingClient?: OpenAI;
 
   public constructor(private readonly configService: ConfigService) {
     const failover = this.configService.get<unknown>('EMBEDDING_FAILOVER_ENABLED');
     if (failover !== undefined && !['true', 'false', true, false].includes(failover as boolean))
       throw new Error('EMBEDDING_FAILOVER_ENABLED must be true or false');
     this.embeddingFailover = failover === true || failover === 'true';
+    // Preserve existing OpenAI secondary deployments unless explicitly switched.
+    const embeddingFallback = this.configService.get('EMBEDDING_FALLBACK_PROVIDER') ?? 'openai';
+    if (embeddingFallback !== 'openai' && embeddingFallback !== 'qwen')
+      throw new Error('EMBEDDING_FALLBACK_PROVIDER must be openai or qwen');
+    this.embeddingFallbackProvider = embeddingFallback;
     this.embeddingTimeoutMs = Number(this.configService.get('EMBEDDING_REQUEST_TIMEOUT_MS') ?? 60000);
     if (!Number.isInteger(this.embeddingTimeoutMs) || this.embeddingTimeoutMs <= 0 || this.embeddingTimeoutMs > 2147483647)
       throw new Error('EMBEDDING_REQUEST_TIMEOUT_MS must be a positive integer <= 2147483647');
@@ -271,7 +278,16 @@ export class AiService {
     return chatModel;
   }
 
-  public getEmbeddingSpec(provider: AiProvider): EmbeddingSpec {
+  public getEmbeddingSpec(provider: EmbeddingProvider): EmbeddingSpec {
+    if (provider === 'qwen') {
+      const model = this.configService.get<string>('QWEN_EMBEDDING_MODEL') ?? 'qwen/qwen3-embedding-4b';
+      const fullDimensions = model === 'qwen/qwen3-embedding-4b' ? 2560 : model === 'qwen/qwen3-embedding-8b' ? 4096 : undefined;
+      if (!model.trim() || (fullDimensions === undefined && this.configService.get('QWEN_EMBEDDING_DIMENSIONS') === undefined))
+        throw new Error('Custom QWEN_EMBEDDING_MODEL requires QWEN_EMBEDDING_DIMENSIONS');
+      return { provider, queryModel: model, documentModel: model,
+        dimensions: this.getEmbeddingDimensions('QWEN_EMBEDDING_DIMENSIONS', fullDimensions!),
+        service: 'polza', baseURL: 'https://polza.ai/api/v1' };
+    }
     return provider === 'yandex'
       ? { provider, queryModel: this.requireConfig('YANDEX_EMBEDDING_QUERY_MODEL'),
           documentModel: this.requireConfig('YANDEX_EMBEDDING_DOCUMENT_MODEL'),
@@ -285,29 +301,32 @@ export class AiService {
     const key = collection === 'products' ? 'QDRANT_PRODUCTS_SECONDARY_COLLECTION'
       : collection === 'store_knowledge' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : undefined;
     if (!key) throw new Error('Unsupported logical embedding collection');
-    const name = this.requireConfig(key);
+    const name = this.configService.get(key) === undefined ? `${collection}_fallback` : this.requireConfig(key);
     if (!/^[a-zA-Z0-9_-]+$/.test(name) || ['products','store_knowledge'].includes(name))
       throw new Error(key + ' must name a separate collection');
-    const other = this.configService.get(collection === 'products' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : 'QDRANT_PRODUCTS_SECONDARY_COLLECTION');
+    const other = this.configService.get(collection === 'products' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : 'QDRANT_PRODUCTS_SECONDARY_COLLECTION') ?? (collection === 'products' ? 'store_knowledge_fallback' : 'products_fallback');
     if (name === other) throw new Error('Secondary product and knowledge collections must be different');
     return name;
   }
 
-  public async createEmbedding(text: string, provider: AiProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[]> {
+  public async createEmbedding(text: string, provider: EmbeddingProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[]> {
     return (await this.requestEmbedding(text, provider, kind, options))[0];
   }
 
-  private async requestEmbedding(text: string | string[], provider: AiProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[][]> {
+  private async requestEmbedding(text: string | string[], provider: EmbeddingProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[][]> {
     options.signal?.throwIfAborted();
-    const apiKey = this.requireConfig(provider === 'yandex' ? 'YANDEX_API_KEY' : 'OPENAI_API_KEY');
+    const apiKey = this.requireConfig(provider === 'yandex' ? 'YANDEX_API_KEY' : provider === 'qwen' ? 'POLZA_API_KEY' : 'OPENAI_API_KEY');
     const spec = this.getEmbeddingSpec(provider);
     const timeout = AbortSignal.timeout(this.embeddingTimeoutMs);
     const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
     try {
-      if (provider === 'openai') {
-        this.openAiEmbeddingClient ??= new OpenAI({ apiKey, maxRetries: 0, timeout: this.embeddingTimeoutMs });
-        const result = await this.openAiEmbeddingClient.embeddings.create({
-          model: kind === 'query' ? spec.queryModel : spec.documentModel, input: text, dimensions: spec.dimensions, encoding_format: 'float',
+      if (provider === 'openai' || provider === 'qwen') {
+        const client = provider === 'qwen'
+          ? (this.polzaEmbeddingClient ??= new OpenAI({ apiKey, baseURL: spec.baseURL, maxRetries: 0, timeout: this.embeddingTimeoutMs }))
+          : (this.openAiEmbeddingClient ??= new OpenAI({ apiKey, maxRetries: 0, timeout: this.embeddingTimeoutMs }));
+        const result = await client.embeddings.create({
+          model: kind === 'query' ? spec.queryModel : spec.documentModel, input: text,
+          ...(provider === 'openai' ? { dimensions: spec.dimensions } : {}), encoding_format: 'float',
         }, { signal, maxRetries: 0, timeout: this.embeddingTimeoutMs });
         signal.throwIfAborted();
         const count = Array.isArray(text) ? text.length : 1;

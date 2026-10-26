@@ -44,6 +44,7 @@ const product = {
 function setup() {
   const ai: any = {
     embeddingFailover: true,
+    embeddingFallbackProvider: 'openai',
     getEmbeddingSpec: (provider) => ({
       provider,
       queryModel: provider,
@@ -86,6 +87,64 @@ function setup() {
   return { ai, prisma, q, products };
 }
 describe('embedding index lifecycle through application entry points', () => {
+  it('secondary reconciliation reuses current semantics, rebuilds the normal text and never calls Yandex/LLM or writes PG', async () => {
+    const { ai, prisma, q, products } = setup();
+    await products.reindexProducts();
+    const original = q.savePoint.mock.calls[2][1];
+    q.retrievePoints = jest.fn().mockResolvedValue([{ id, payload: original.payload }]);
+    q.savePoint.mockClear();
+    ai.createEmbedding.mockClear();
+    ai.createProductSemanticRepresentation.mockClear();
+    prisma.$executeRaw.mockClear();
+    ai.embeddingFailover = false; // Prepare while runtime fallback is still off.
+    ai.embeddingFallbackProvider = 'qwen';
+    ai.secondaryEmbeddingCollection = c => `${c}_fallback`;
+    const plan = await products.reindexProducts({ scope: 'secondary', dryRun: true });
+    expect(plan).toEqual({ indexed: 0, planned: 1, textChars: 'walking shoes'.length });
+    expect(q.savePoint).not.toHaveBeenCalled();
+    expect(ai.createEmbedding).not.toHaveBeenCalled();
+    await products.reindexProducts({ scope: 'secondary' });
+    expect(ai.createProductSemanticRepresentation).not.toHaveBeenCalled();
+    expect(prisma.$executeRaw).not.toHaveBeenCalled();
+    expect(ai.createEmbedding.mock.calls.map(c => c.slice(0, 3))).toEqual([['walking shoes', 'qwen', 'document']]);
+    expect(q.savePoint.mock.calls.map(c => c[0])).toEqual(['products_fallback', 'products_fallback']);
+    expect(q.savePoint.mock.calls[1][1].payload).toMatchObject({ ...original.payload, _embedding_provider: 'qwen', _embedding_service: 'qwen', _embedding_model: 'qwen', _embedding_query_model: 'qwen', _embedding_dimensions: 1536, _embedding_space: expect.any(String) });
+  });
+  it('missing, stale or invalid cached semantics stop reconciliation before a model call or write', async () => {
+    const { ai, prisma, q, products } = setup();
+    await products.reindexProducts();
+    const payload = q.savePoint.mock.calls[2][1].payload;
+    ai.createProductSemanticRepresentation.mockClear();
+    ai.createEmbedding.mockClear();
+    q.savePoint.mockClear();
+    prisma.$executeRaw.mockClear();
+    for (const cached of [undefined, { ...payload, title: 'old title' }, { ...payload, semanticRepresentation: { ...semantic, summary: 42 } }]) {
+      q.retrievePoints = jest.fn().mockResolvedValue([{ id, payload: cached }]);
+      await expect(products.reindexProducts({ scope: 'secondary', dryRun: true })).rejects.toThrow('current stored semantic input unavailable');
+    }
+    expect(ai.createEmbedding).not.toHaveBeenCalled();
+    expect(ai.createProductSemanticRepresentation).not.toHaveBeenCalled();
+    expect(q.savePoint).not.toHaveBeenCalled();
+    expect(prisma.$executeRaw).not.toHaveBeenCalled();
+  });
+  it('knowledge secondary-only uses the same deterministic content with no primary calls or PG writes', async () => {
+    const { ai, prisma, q } = setup();
+    ai.embeddingFailover = false;
+    ai.embeddingFallbackProvider = 'qwen';
+    ai.secondaryEmbeddingCollection = c => `${c}_fallback`;
+    const row = { id, updatedAt: new Date('2026-10-26T00:00:00Z'), key: 'delivery', section: 'Shipping', topic: null, question: 'When?', answer: 'Tomorrow', notice: 'Call', footnote: 'Details' };
+    prisma.storeKnowledge = { findMany: jest.fn().mockResolvedValue([row]) };
+    const knowledge = new StoreKnowledgeService(prisma, ai, q, null);
+    await knowledge.reindexSearchIndices({ scope: 'secondary', dryRun: true });
+    expect(ai.createEmbedding).not.toHaveBeenCalled();
+    expect(q.savePoint).not.toHaveBeenCalled();
+    await knowledge.reindexSearchIndices({ scope: 'secondary' });
+    const text = 'Вопрос: When?\n\nОтвет: Tomorrow\n\nВажно: Call\n\nПримечание: Details';
+    expect(ai.createEmbedding).toHaveBeenCalledWith(text, 'qwen', 'document', { signal: undefined });
+    expect(q.savePoint.mock.calls[1][1]).toMatchObject({ id, payload: { content: text, _source_version: row.updatedAt.toISOString() } });
+    expect(q.savePoint.mock.calls.map(c => c[0])).toEqual(['store_knowledge_fallback', 'store_knowledge_fallback']);
+    expect(prisma.$executeRaw).not.toHaveBeenCalled();
+  });
   it('disabled failover preserves the original bounded PG projection and does not scan index coverage', async () => {
     const { ai, prisma, q, products } = setup();
     jest.spyOn(products, 'getProductById').mockResolvedValue(product as any);

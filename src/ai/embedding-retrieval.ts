@@ -133,7 +133,7 @@ export async function retrieveWithEmbeddingFallback(
   const versions = await snapshot.versions;
   signal?.throwIfAborted();
   if (!versions.length) return [];
-  for (const provider of ['yandex', 'openai'] as const) {
+  for (const provider of ['yandex', ai.embeddingFallbackProvider] as const) {
     const target =
       provider === 'yandex'
         ? collection
@@ -221,12 +221,14 @@ export async function writeEmbeddingIndices(
     text: string;
     payload: Record<string, unknown>;
     savePrimary?: (vector: number[] | null) => Promise<void>;
+    secondaryOnly?: boolean;
   } & EmbeddingOptions,
 ): Promise<void> {
   invalidateEmbeddingIndexSnapshot(qdrant, input.collection);
   try {
-    const targets = ['yandex', 'openai'].map((provider) => {
-      const spec = ai.getEmbeddingSpec(provider as 'yandex' | 'openai');
+    const providers = input.secondaryOnly ? [ai.embeddingFallbackProvider] : ['yandex', ai.embeddingFallbackProvider] as const;
+    const targets = providers.map((provider) => {
+      const spec = ai.getEmbeddingSpec(provider);
       return {
         spec,
         collection:
@@ -246,7 +248,7 @@ export async function writeEmbeddingIndices(
         availableTargets.push(target);
       } catch (error) {
         if (
-          target.spec.provider !== 'openai' ||
+          target.spec.provider === 'yandex' || input.secondaryOnly ||
           (error as { status?: number })?.status !== 404
         )
           throw error;
@@ -299,7 +301,12 @@ export async function writeEmbeddingIndices(
       await qdrant.savePoint(target.collection, {
         id: input.id,
         vector: { ...sparse, dense: vector },
-        payload: { ...payload, _embedding_space: embeddingSpace(target.spec) },
+        payload: { ...payload, _embedding_space: embeddingSpace(target.spec),
+          _embedding_provider: target.spec.provider,
+          _embedding_service: target.spec.service ?? target.spec.provider,
+          _embedding_model: target.spec.documentModel,
+          _embedding_query_model: target.spec.queryModel,
+          _embedding_dimensions: target.spec.dimensions },
       });
     }
   } finally {

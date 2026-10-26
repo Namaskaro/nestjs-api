@@ -81,7 +81,7 @@ export class StoreKnowledgeService {
     return items.length;
   }
 
-  private async indexKnowledge(knowledge: StoreKnowledge): Promise<void> {
+  private async indexKnowledge(knowledge: StoreKnowledge, reconciliation?: { scope: 'all' | 'secondary'; dryRun?: boolean }): Promise<number> {
     const content = [
       `Вопрос: ${knowledge.question}`,
       `Ответ: ${knowledge.answer}`,
@@ -101,15 +101,17 @@ export class StoreKnowledgeService {
       footnote: knowledge.footnote,
       content,
     };
-    if (this.aiService.embeddingFailover) {
+    if (reconciliation?.dryRun) return content.length;
+    if (this.aiService.embeddingFailover || reconciliation) {
       await writeEmbeddingIndices(this.aiService, this.qdrantService, {
         collection: QdrantCollections.storeKnowledge,
         id: knowledge.id,
         version: knowledge.updatedAt.toISOString(),
         text: content,
         payload,
+        secondaryOnly: reconciliation?.scope === 'secondary',
       });
-      return;
+      return content.length;
     }
     const embedding = await this.aiService.createDocumentEmbedding(content);
 
@@ -133,12 +135,14 @@ export class StoreKnowledgeService {
         content,
       },
     });
+    return content.length;
   }
 
-  public async reindexSearchIndices(): Promise<{ indexed: number }> {
+  public async reindexSearchIndices(reconciliation?: { scope: 'all' | 'secondary'; dryRun?: boolean }): Promise<{ indexed: number; planned: number; textChars: number }> {
     const rows = await this.prismaService.storeKnowledge.findMany();
-    for (const row of rows) await this.indexKnowledge(row);
-    return { indexed: rows.length };
+    let textChars = 0;
+    for (const row of rows) textChars += await this.indexKnowledge(row, reconciliation);
+    return { indexed: reconciliation?.dryRun ? 0 : rows.length, planned: rows.length, textChars };
   }
 
   async findByKey(key: string): Promise<StoreKnowledgeSearchResult | null> {

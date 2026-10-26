@@ -3,6 +3,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { AiService } from './ai.service';
 import { FallbackChatModel } from './chat-fallback';
 import { DirectGigaChat } from './gigachat-model';
+import { embeddingSpace } from './embedding-execution';
 
 const config = {
   CHAT_FAST: 'yandex-lite', CHAT_STANDARD: 'yandex-standard', EMBEDDING_PROVIDER: 'yandex',
@@ -44,5 +45,19 @@ describe('named deployments, access service and independent embeddings', () => {
   });
   it.each(['unknown', '', 'constructor'])('invalid alias %s fails explicitly', value => {
     expect(() => service({ CHAT_FAST: value })).toThrow('CHAT_FAST');
+  });
+  it('Qwen embedding spec is independent, service-qualified, and model/dimension changes invalidate the space', () => {
+    const a = service({ EMBEDDING_FALLBACK_PROVIDER: 'qwen' });
+    const b = service({ QWEN_EMBEDDING_MODEL: 'qwen/qwen3-embedding-8b' });
+    expect(a.embeddingFallbackProvider).toBe('qwen');
+    expect(a.getEmbeddingSpec('qwen')).toMatchObject({ dimensions: 2560, service: 'polza' });
+    expect(b.getEmbeddingSpec('qwen').dimensions).toBe(4096);
+    expect(embeddingSpace(a.getEmbeddingSpec('qwen'))).not.toBe(embeddingSpace(b.getEmbeddingSpec('qwen')));
+    expect(embeddingSpace(a.getEmbeddingSpec('qwen'))).not.toBe(embeddingSpace(service({ QWEN_EMBEDDING_DIMENSIONS: 1024 }).getEmbeddingSpec('qwen')));
+    expect(a.secondaryEmbeddingCollection('products')).toBe('products_fallback');
+    expect(a.secondaryEmbeddingCollection('store_knowledge')).toBe('store_knowledge_fallback');
+    expect(() => service({ QWEN_EMBEDDING_MODEL: 'custom' }).getEmbeddingSpec('qwen')).toThrow('DIMENSIONS');
+    expect(() => service({ QDRANT_PRODUCTS_SECONDARY_COLLECTION: 'products' }).secondaryEmbeddingCollection('products')).toThrow('separate');
+    expect(() => service({ QDRANT_PRODUCTS_SECONDARY_COLLECTION: 'store_knowledge_fallback' }).secondaryEmbeddingCollection('products')).toThrow('different');
   });
 });

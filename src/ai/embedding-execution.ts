@@ -1,11 +1,14 @@
 import { createHash } from 'node:crypto';
 
-export type EmbeddingProvider = 'yandex' | 'openai';
+export type EmbeddingProvider = 'yandex' | 'openai' | 'qwen';
 export type EmbeddingSpec = {
   provider: EmbeddingProvider;
   queryModel: string;
   documentModel: string;
   dimensions: number;
+  // Included in the space hash only for new deployments; legacy hashes stay stable.
+  service?: string;
+  baseURL?: string;
 };
 export type EmbeddingOptions = { signal?: AbortSignal };
 

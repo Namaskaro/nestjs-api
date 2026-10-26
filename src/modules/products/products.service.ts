@@ -710,7 +710,10 @@ export class ProductsService {
 
   // START CHANGES — ЕДИНЫЙ FLOW ДЛЯ SEMANTIC REPRESENTATION / EMBEDDING / QDRANT
 
-  private async syncProductSearchIndex(productId: string): Promise<void> {
+  private async syncProductSearchIndex(
+    productId: string,
+    reconciliation?: { scope: 'all' | 'secondary'; dryRun?: boolean },
+  ): Promise<number> {
     const product = await this.prismaService.product.findUnique({
       where: {
         id: productId,
@@ -749,11 +752,25 @@ export class ProductsService {
       price: product.price,
     };
 
-    if (this.aiService.embeddingFailover && this.aiService.getEmbeddingSpec('yandex').dimensions !== 768)
+    if ((this.aiService.embeddingFailover || reconciliation) && this.aiService.getEmbeddingSpec('yandex').dimensions !== 768)
       throw new Error('ProductEmbedding requires primary dimensions=768; review migration before changing it');
 
-    const semanticRepresentation =
-      await this.aiService.createProductSemanticRepresentation(semanticInput);
+    let semanticRepresentation: ProductQdrantPayload['semanticRepresentation'];
+    if (reconciliation) {
+      // Maintenance reuses only a validated description of the same semantic
+      // inputs. Other payload fields are rebuilt from current PostgreSQL data.
+      const [point] = await this.qdrantService.retrievePoints(QdrantCollections.products, [product.id]);
+      const cached = ProductQdrantPayloadSchema.safeParse(point?.payload);
+      if (!cached.success || cached.data.productId !== product.id ||
+        cached.data.title !== product.title || cached.data.description !== product.description ||
+        cached.data.brand !== brand.name || cached.data.subcategory !== subcategory.name ||
+        (cached.data.color ?? '') !== (product.color ?? '') || cached.data.price !== price ||
+        JSON.stringify(cached.data.details) !== JSON.stringify(product.details))
+        throw Object.assign(new Error(`Product ${product.id}: current stored semantic input unavailable; reconciliation makes no LLM calls. Refresh this product explicitly first.`), { code: 'SEMANTIC_CACHE_UNAVAILABLE', productId: product.id });
+      semanticRepresentation = cached.data.semanticRepresentation;
+    } else {
+      semanticRepresentation = await this.aiService.createProductSemanticRepresentation(semanticInput);
+    }
 
     const searchText = this.aiService.buildProductSearchText(
       semanticInput,
@@ -797,15 +814,17 @@ export class ProductsService {
       semanticRepresentation,
     } satisfies ProductQdrantPayload);
 
-    if (this.aiService.embeddingFailover) {
+    if (reconciliation?.dryRun) return searchText.length;
+    if (this.aiService.embeddingFailover || reconciliation) {
       await writeEmbeddingIndices(this.aiService, this.qdrantService, {
         collection: QdrantCollections.products, id: product.id, version: productIndexVersion(product), text: searchText, payload,
+        secondaryOnly: reconciliation?.scope === 'secondary',
         savePrimary: async (vector) => {
           if (vector === null) { await this.prismaService.productEmbedding.deleteMany({ where: { productId: product.id } }); return; }
           await this.prismaService.$executeRaw`INSERT INTO "ProductEmbedding" ("productId", "vector") VALUES (${product.id}, ${JSON.stringify(vector)}::vector) ON CONFLICT ("productId") DO UPDATE SET "vector" = EXCLUDED."vector"`;
         },
       });
-      return;
+      return searchText.length;
     }
     const denseEmbedding = await this.aiService.createProductEmbedding(
       searchText,
@@ -835,21 +854,25 @@ export class ProductsService {
 
       payload,
     });
+    return searchText.length;
   }
 
-  public async reindexProducts(): Promise<{ indexed: number }> {
+  public async reindexProducts(reconciliation?: { scope: 'all' | 'secondary'; dryRun?: boolean }): Promise<{ indexed: number; planned: number; textChars: number }> {
     const products = await this.prismaService.product.findMany({
       select: {
         id: true,
       },
     });
 
+    let textChars = 0;
     for (const product of products) {
-      await this.syncProductSearchIndex(product.id);
+      textChars += await this.syncProductSearchIndex(product.id, reconciliation);
     }
 
     return {
-      indexed: products.length,
+      indexed: reconciliation?.dryRun ? 0 : products.length,
+      planned: products.length,
+      textChars,
     };
   }
 
