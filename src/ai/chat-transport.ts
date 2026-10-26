@@ -23,9 +23,9 @@ export function getChatTransport(
 ): ChatTransport {
   if (provider === 'gigachat') throw new Error('GigaChat requires its native v1 adapter');
   if (provider === 'qwen') {
-    if (configuredProfile !== undefined && configuredProfile !== 'qwen-chat') {
+    if (configuredProfile !== undefined && configuredProfile !== 'qwen-chat' && configuredProfile !== 'polza-chat') {
       throw new Error(
-        `AiService configuration: ${profileKey} must be "qwen-chat" for Qwen.`,
+        `AiService configuration: ${profileKey} must be "qwen-chat" or "polza-chat" for Qwen.`,
       );
     }
     // This profile targets text models supporting non-thinking + JSON Schema.
@@ -34,7 +34,7 @@ export function getChatTransport(
       useResponsesApi: false,
       temperature: 0,
       streamUsage: false,
-      modelKwargs: { enable_thinking: false },
+      ...(configuredProfile === 'polza-chat' ? {} : { modelKwargs: { enable_thinking: false } }),
     };
   }
 

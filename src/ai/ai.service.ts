@@ -24,6 +24,7 @@ import { DirectGigaChat } from './gigachat-model';
 import { FallbackChatModel } from './chat-fallback';
 
 import { getChatTransport } from './chat-transport';
+import { chatPreset } from './chat-presets';
 import { createChatFetch } from './chat-http';
 import { EmbeddingRequestError, embeddingHttpFailure, validateEmbedding, type EmbeddingSpec, type EmbeddingOptions } from './embedding-execution';
 
@@ -66,8 +67,8 @@ export class AiService {
       );
     }
     this.chatProviders = {
-      FAST: this.getChatProvider(this.chatProviderKey('FAST')),
-      STANDARD: this.getChatProvider(this.chatProviderKey('STANDARD')),
+      FAST: chatPreset(this.configService.get('CHAT_FAST'), 'CHAT_FAST')?.provider ?? this.getChatProvider(this.chatProviderKey('FAST')),
+      STANDARD: chatPreset(this.configService.get('CHAT_STANDARD'), 'CHAT_STANDARD')?.provider ?? this.getChatProvider(this.chatProviderKey('STANDARD')),
     };
     this.embeddingProvider = this.getProvider('EMBEDDING_PROVIDER');
     if (this.embeddingFailover && this.embeddingProvider !== 'yandex')
@@ -167,15 +168,19 @@ export class AiService {
 
     const primary = this.createChatDeployment(role, this.chatProviders[role]);
     const fallbackKey = `CHAT_${role}_FALLBACK_PROVIDER`;
-    const fallbackProvider = this.configService.get<unknown>(fallbackKey);
+    const fallbackAliasKey = `CHAT_${role}_FALLBACK`;
+    const preset = chatPreset(this.configService.get(fallbackAliasKey), fallbackAliasKey);
+    const fallbackProvider = preset?.provider ?? (this.configService.get(fallbackKey) === undefined ? undefined : this.getChatProvider(fallbackKey));
     const model = fallbackProvider === undefined ? primary : new FallbackChatModel(
-      primary, this.createChatDeployment(role, this.getChatProvider(fallbackKey), true), this.chatProviders[role], this.getChatProvider(fallbackKey),
+      primary, this.createChatDeployment(role, fallbackProvider, true), this.chatProviders[role], fallbackProvider,
     );
     this.chatModels.set(role, model);
     return model;
   }
 
   private createChatDeployment(role: 'FAST' | 'STANDARD', provider: ChatProvider, fallback = false): BaseChatModel {
+    const aliasKey = `CHAT_${role}${fallback ? '_FALLBACK' : ''}`;
+    const preset = chatPreset(this.configService.get(aliasKey), aliasKey);
     const isYandex = provider === 'yandex';
     const legacyModelKey =
       (provider === 'qwen' || provider === 'gigachat')
@@ -188,7 +193,7 @@ export class AiService {
         ? 'OPENAI_FAST_MODEL'
         : 'OPENAI_STANDARD_MODEL';
     const roleModelKey = fallback ? `CHAT_${role}_FALLBACK_MODEL` : `CHAT_${role}_MODEL`;
-    const model = this.requireConfig(
+    const model = preset ? (preset.model ?? this.requireConfig(preset.modelEnv!)) : this.requireConfig(
       !fallback && this.configService.get<unknown>(roleModelKey) === undefined
         ? legacyModelKey
         : roleModelKey,
@@ -199,8 +204,8 @@ export class AiService {
       provider === 'openai'
         ? `OPENAI_${role}_TRANSPORT_PROFILE`
         : roleProfileKey;
+    const profile = preset?.profile ?? this.configService.get<unknown>(profileKey);
     if (provider === 'gigachat') {
-      const profile = this.configService.get(profileKey);
       if (profile !== undefined && profile !== 'gigachat-native') throw new Error(profileKey + ' must be gigachat-native');
       return new DirectGigaChat({ model, timeoutMs: this.chatTimeoutMs,
         credentials: this.configService.get('GIGACHAT_CREDENTIALS'), accessToken: this.configService.get('GIGACHAT_ACCESS_TOKEN'),
@@ -211,12 +216,14 @@ export class AiService {
       provider,
       role,
       model,
-      this.configService.get<unknown>(profileKey),
+      profile,
       profileKey,
     );
-    const baseUrlKey = isYandex ? 'YANDEX_API_URL' : 'QWEN_API_URL';
+    const polza = provider === 'qwen' && profile === 'polza-chat';
+    const service = preset?.service ?? (polza ? 'polza' : provider === 'qwen' ? 'alibaba' : provider);
+    const baseUrlKey = preset?.baseURLEnv ?? (isYandex ? 'YANDEX_API_URL' : 'QWEN_API_URL');
     const baseURL =
-      provider !== 'openai' ? this.requireConfig(baseUrlKey) : undefined;
+      preset?.baseURL ?? (polza ? 'https://polza.ai/api/v1' : provider !== 'openai' ? this.requireConfig(baseUrlKey) : undefined);
     if (baseURL) {
       let valid = false;
       try {
@@ -237,11 +244,11 @@ export class AiService {
     }
     const chatModel = new ChatOpenAI({
       apiKey: this.requireConfig(
-        isYandex
+        preset?.credentialEnv ?? (polza ? 'POLZA_API_KEY' : isYandex
           ? 'YANDEX_API_KEY'
           : provider === 'qwen'
           ? 'QWEN_API_KEY'
-          : 'OPENAI_API_KEY',
+          : 'OPENAI_API_KEY'),
       ),
       model,
       ...transport,
@@ -258,7 +265,7 @@ export class AiService {
       },
       callbacks: [llmUsageCallback],
       tags: [`role:${role}`, `provider:${provider}`, `model:${model}`],
-      metadata: { role, provider, model },
+      metadata: { role, provider, model, ...(preset || polza ? { service } : {}) },
     });
 
     return chatModel;
