@@ -1,6 +1,6 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
+
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'node:crypto';
 
 type YookassaPaymentStatus =
   | 'pending'
@@ -11,11 +11,14 @@ type YookassaPaymentStatus =
 interface CreateYookassaPaymentParams {
   orderId: string;
   amount: number;
+  idempotenceKey: string;
 }
 
 export interface YookassaPaymentResponse {
   id: string;
+
   status: YookassaPaymentStatus;
+
   paid: boolean;
 
   amount: {
@@ -37,6 +40,7 @@ export interface YookassaPaymentResponse {
   };
 
   created_at: string;
+
   test: boolean;
 }
 
@@ -49,6 +53,7 @@ export class YookassaService {
   public async createPayment({
     orderId,
     amount,
+    idempotenceKey,
   }: CreateYookassaPaymentParams): Promise<YookassaPaymentResponse> {
     const clientUrl = this.configService.getOrThrow<string>('CLIENT_URL');
 
@@ -62,7 +67,7 @@ export class YookassaService {
       headers: {
         Authorization: this.getAuthorizationHeader(),
 
-        'Idempotence-Key': randomUUID(),
+        'Idempotence-Key': idempotenceKey,
 
         'Content-Type': 'application/json',
       },
@@ -95,7 +100,6 @@ export class YookassaService {
     return this.parseResponse(response);
   }
 
-  // NEW
   public async getPayment(
     providerPaymentId: string,
   ): Promise<YookassaPaymentResponse> {
@@ -115,7 +119,7 @@ export class YookassaService {
     return this.parseResponse(response);
   }
 
-  private getAuthorizationHeader() {
+  private getAuthorizationHeader(): string {
     const shopId = this.configService.getOrThrow<string>('YOOKASSA_SHOP_ID');
 
     const secretKey = this.configService.getOrThrow<string>(
@@ -137,7 +141,6 @@ export class YookassaService {
     if (!response.ok) {
       throw new BadGatewayException({
         message: 'Ошибка запроса к ЮKassa',
-
         yookassa: body,
       });
     }

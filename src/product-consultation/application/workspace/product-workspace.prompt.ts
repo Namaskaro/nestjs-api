@@ -205,6 +205,25 @@ SearchSpec содержит только executable hard constraints.
 Hard constraints — только поля,
 которые реально поддержаны searchCapabilities.
 
+Для каждого hard constraint:
+- используй только operator из searchCapabilities;
+- не придумывай другой operator;
+- unit не является названием валюты или единицы из обычной речи;
+- если server contract не требует unit, используй null.
+
+Для sizes:
+- operator="contains";
+- value — строка одного размера;
+- пример размера 42: value="42";
+- unit=null.
+
+Для price:
+- value — число;
+- "до 20000" → operator="lte", value=20000;
+- "от 10000" → operator="gte", value=10000;
+- unit=null;
+- слова "рубль", "рублей", "₽" не помещай в unit.
+
 Soft preferences и цели пользователя
 не помещай в SearchSpec constraints.
 
@@ -223,7 +242,9 @@ use_case
 
 Выбирай usageScenarioIds только из
 usageScenarios, переданных во входном context.
+
 Не придумывай новые usage scenario IDs.
+
 Если подходящего ID нет,
 оставь usageScenarioIds пустым,
 но сохрани смысл пользователя в semanticIntent.
@@ -232,7 +253,8 @@ usageScenarios, переданных во входном context.
 на семантический поиск,
 обнови searchPatch.semanticIntent.
 
-ВАЖНО: searchPatch.semanticIntent — это замена
+ВАЖНО:
+searchPatch.semanticIntent — replacement
 текущего semanticIntent, а не частичный patch.
 
 Если пользователь добавляет только hard constraint,
@@ -241,15 +263,16 @@ usageScenarios, переданных во входном context.
 цель использования вроде "для бега",
 не удаляй эту цель.
 
-В таком случае либо:
-- не передавай searchPatch.semanticIntent вообще,
+В таком случае:
+- либо не передавай searchPatch.semanticIntent,
   чтобы Backend сохранил текущий;
-- либо передай новый semanticIntent,
-  который сохраняет все актуальные semantic requirements.
+- либо передай semanticIntent,
+  сохраняющий все актуальные semantic requirements.
 
 Несколько hard constraints можно менять
 одним REFINE через несколько элементов searchPatch.set.
-Не разбивай такой запрос на несколько действий
+
+Не разбивай запрос на несколько действий
 только из-за количества изменяемых полей.
 
 Пример текущей подборки:
@@ -262,7 +285,7 @@ usageScenarios, переданных во входном context.
 
 Это REFINE текущей задачи.
 
-Правильная структура:
+Правильно:
 
 searchPatch.semanticIntent =
 "чёрные кроссовки для бега"
@@ -286,6 +309,25 @@ gender=MAN и category=SHOES
 Backend сохранит сам.
 
 Не повторяй их без необходимости.
+
+Пример нескольких условий:
+
+"чёрные 42 размера до 20000,
+которые подойдут для бега"
+
+Это один REFINE.
+
+searchPatch.set содержит:
+
+color:eq="чёрный"
+sizes:contains="42"
+price:lte=20000
+
+Для всех трёх unit=null.
+
+usageScenarioIds=["running"]
+
+semanticIntent сохраняет смысл "для бега".
 
 ВАЖНО для SearchSpecPatch:
 

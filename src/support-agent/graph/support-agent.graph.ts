@@ -48,7 +48,10 @@ import { SupportAgentState } from './support-agent.state';
 
 import { createCustomerHelpAgentWorker } from './workers/customer-help-agent.worker';
 import { createProductAgentWorker } from './workers/product-agent.worker';
-import { createOrderAgentWorker } from './workers/order-agent.worker';
+import {
+  createOrderAgentWorker,
+  createConfirmOrderCancellationNode,
+} from './workers/order-agent.worker';
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
 import { createProductAgent } from '@/src/product-consultation/application/agent/product.agent';
@@ -98,6 +101,10 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
     const orderAgentWorker = createOrderAgentWorker(this.ordersService);
 
+    const confirmOrderCancellationNode = createConfirmOrderCancellationNode(
+      this.ordersService,
+    );
+
     const aggregateAnswerNode = createAggregateFinalAnswerNode(this.aiService);
 
     const agentNodes = RequestRouterWorkerSchema.options;
@@ -124,6 +131,9 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
         timeout: SUPPORT_AGENT_PRODUCT_NODE_TIMEOUT_MS,
       })
       .addNode('orderAgent', orderAgentWorker, {
+        ends: [END, 'aggregateAnswer', 'confirmOrderCancellation'],
+      })
+      .addNode('confirmOrderCancellation', confirmOrderCancellationNode, {
         ends: [END, 'aggregateAnswer'],
       })
       .addNode('aggregateAnswer', aggregateAnswerNode)
@@ -150,7 +160,6 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
       .addEdge('aggregateAnswer', END)
       .addEdge('reject', END)
       .addEdge('handoffAgent', 'handoffResult')
-      .addEdge('handoffResult', END)
       .compile({
         checkpointer: this.checkpointer,
       });

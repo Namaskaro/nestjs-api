@@ -280,6 +280,7 @@ exports.Prisma.PromoCodeScalarFieldEnum = {
 
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
+  number: 'number',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   userId: 'userId',
@@ -299,6 +300,20 @@ exports.Prisma.OrderScalarFieldEnum = {
   paymentType: 'paymentType',
   deliveryProvider: 'deliveryProvider',
   finalAmount: 'finalAmount'
+};
+
+exports.Prisma.ShipmentScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  provider: 'provider',
+  status: 'status',
+  trackingNumber: 'trackingNumber',
+  trackingUrl: 'trackingUrl',
+  estimatedDeliveryAt: 'estimatedDeliveryAt',
+  shippedAt: 'shippedAt',
+  deliveredAt: 'deliveredAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.PaymentScalarFieldEnum = {
@@ -461,6 +476,17 @@ exports.DeliveryProvider = exports.$Enums.DeliveryProvider = {
   SDEK: 'SDEK'
 };
 
+exports.ShipmentStatus = exports.$Enums.ShipmentStatus = {
+  PENDING: 'PENDING',
+  SHIPPED: 'SHIPPED',
+  IN_TRANSIT: 'IN_TRANSIT',
+  OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
+  DELIVERED: 'DELIVERED',
+  EXCEPTION: 'EXCEPTION',
+  RETURNED: 'RETURNED',
+  UNKNOWN: 'UNKNOWN'
+};
+
 exports.PaymentStatus = exports.$Enums.PaymentStatus = {
   PENDING: 'PENDING',
   SUCCEEDED: 'SUCCEEDED',
@@ -484,6 +510,7 @@ exports.Prisma.ModelName = {
   Review: 'Review',
   PromoCode: 'PromoCode',
   Order: 'Order',
+  Shipment: 'Shipment',
   Payment: 'Payment',
   CartItem: 'CartItem',
   Cart: 'Cart',

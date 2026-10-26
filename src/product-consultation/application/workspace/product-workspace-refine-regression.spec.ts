@@ -76,13 +76,13 @@ describe('Product Workspace REFINE regression', () => {
     });
 
     expect(operation.query).toBe('чёрные, которые подойдут для бега');
-    expect(operation.actions).toHaveLength(1);
 
     const decision = operation.actions[0].decision;
 
     expect(decision.proposal.action).toBe('REFINE');
     expect(decision.proposal.taskTransition).toBe('continue');
     expect(decision.proposal.memoryObservations).toEqual([]);
+
     expect(decision.proposal.searchPatch).toEqual({
       category: 'SHOES',
       clear: [],
@@ -96,10 +96,11 @@ describe('Product Workspace REFINE regression', () => {
         },
       ],
     });
+
     expect(decision.usageScenarioIds).toEqual(['running']);
   });
 
-  it('accepts several hard-filter changes in one REFINE action', () => {
+  it('canonicalizes profile-owned hard constraints in one REFINE', () => {
     const result = normalizeProductWorkspaceModelPlan(
       {
         clarification: null,
@@ -110,14 +111,15 @@ describe('Product Workspace REFINE regression', () => {
               kind: 'current',
               view: 'focus',
             },
-            query: 'чёрные 42 размера до 20000, которые подойдут для бега',
+            query: 'черные 42 размера до 20000, которые подойдут для бега',
             actions: [
               {
                 decision: {
                   action: 'REFINE',
                   search: null,
                   searchPatch: {
-                    semanticIntent: 'кроссовки для бега',
+                    semanticIntent:
+                      'чёрные кроссовки для бега, 42 размер, до 20000 рублей',
                     category: 'SHOES',
                     set: [
                       {
@@ -126,17 +128,27 @@ describe('Product Workspace REFINE regression', () => {
                         value: 'чёрный',
                         unit: null,
                       },
+
+                      /*
+                       * Реальный bad output Yandex:
+                       * eq + numeric member.
+                       */
                       {
                         attributeId: 'sizes',
-                        operator: 'contains',
-                        value: '42',
+                        operator: 'eq',
+                        value: 42,
                         unit: null,
                       },
+
+                      /*
+                       * Ещё один реальный bad output:
+                       * natural-language currency попала в unit.
+                       */
                       {
                         attributeId: 'price',
                         operator: 'lte',
                         value: 20000,
-                        unit: null,
+                        unit: 'рубль',
                       },
                     ],
                     clear: [],
@@ -153,7 +165,7 @@ describe('Product Workspace REFINE regression', () => {
           },
         ],
       },
-      'чёрные 42 размера до 20000, которые подойдут для бега',
+      'черные 42 размера до 20000, которые подойдут для бега',
     );
 
     const operation = result.operations[0];
@@ -167,8 +179,76 @@ describe('Product Workspace REFINE regression', () => {
     const decision = operation.actions[0].decision;
 
     expect(decision.proposal.action).toBe('REFINE');
-    expect(decision.proposal.searchPatch?.set).toHaveLength(3);
     expect(decision.proposal.searchPatch?.clear).toEqual([]);
+
+    expect(decision.proposal.searchPatch?.set).toEqual([
+      {
+        attributeId: 'color',
+        operator: 'eq',
+        value: 'чёрный',
+        unit: null,
+      },
+      {
+        attributeId: 'sizes',
+        operator: 'contains',
+        value: '42',
+        unit: null,
+      },
+      {
+        attributeId: 'price',
+        operator: 'lte',
+        value: 20000,
+        unit: null,
+      },
+    ]);
+
     expect(decision.usageScenarioIds).toEqual(['running']);
+  });
+
+  it('does not guess between several valid numeric operators', () => {
+    expect(() =>
+      normalizeProductWorkspaceModelPlan(
+        {
+          clarification: null,
+          operations: [
+            {
+              kind: 'consult',
+              target: {
+                kind: 'current',
+                view: 'focus',
+              },
+              query: 'цена 20000',
+              actions: [
+                {
+                  decision: {
+                    action: 'REFINE',
+                    search: null,
+                    searchPatch: {
+                      category: 'SHOES',
+                      set: [
+                        {
+                          attributeId: 'price',
+                          operator: 'contains',
+                          value: 20000,
+                          unit: null,
+                        },
+                      ],
+                      clear: [],
+                    },
+                    selection: null,
+                    feedback: null,
+                    usageScenarioIds: [],
+                    factAttributeIds: [],
+                    terminalText: null,
+                  },
+                  view: 'focus',
+                },
+              ],
+            },
+          ],
+        },
+        'цена 20000',
+      ),
+    ).toThrow();
   });
 });

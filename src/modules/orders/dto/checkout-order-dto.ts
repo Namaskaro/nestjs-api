@@ -1,6 +1,7 @@
 import { DeliveryProvider, PaymentType } from '@/prisma/generated';
 
 import {
+  Equals,
   IsDateString,
   IsEmail,
   IsEnum,
@@ -33,6 +34,9 @@ export class CheckoutOrderDto {
   deliveryTime?: string;
 
   @IsEnum(PaymentType)
+  @Equals(PaymentType.CARD, {
+    message: 'Доступна только онлайн-оплата картой',
+  })
   paymentType: PaymentType;
 
   @IsOptional()

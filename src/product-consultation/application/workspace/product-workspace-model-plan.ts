@@ -2,15 +2,19 @@ import { z } from 'zod';
 
 import { ProductConsultantDecisionSchema } from '../consultant/product-consultant-decision.schema';
 
-import {
-  SearchSpecDraftSchema,
-  SearchSpecPatchSchema,
-} from '../../core/search/search-spec.schema';
+import type { AttributeDefinition } from '../../core/consultation-core.schema';
+
+import { CATEGORY_PROFILES, getCategoryProfile } from '../../core/profiles';
 
 import {
   CATEGORY_USAGE_KNOWLEDGE,
   getCategoryUsageKnowledge,
 } from '../../core/profiles/usage-scenarios';
+
+import {
+  SearchSpecDraftSchema,
+  SearchSpecPatchSchema,
+} from '../../core/search/search-spec.schema';
 
 import {
   ProductSelectionSchema,
@@ -40,35 +44,45 @@ const ProductWorkspaceModelTargetSchema = z.discriminatedUnion('kind', [
       kind: z.literal('new'),
     })
     .strict(),
+
   z
     .object({
       kind: z.literal('current'),
       view: ProductWorkspaceViewSchema.default('focus'),
     })
     .strict(),
+
   z
     .object({
       kind: z.literal('all'),
     })
     .strict(),
+
   ProductWorkspaceModelExplicitTargetSchema,
 ]);
 
 const ProductWorkspaceModelDecisionSchema = z
   .object({
     action: PublicConsultationActionSchema,
+
     search: SearchSpecDraftSchema.nullable().default(null),
+
     searchPatch: SearchSpecPatchSchema.nullable().default(null),
+
     selection: ProductSelectionSchema.nullable().default(null),
+
     feedback: TurnFeedbackObservationSchema.nullable().default(null),
+
     usageScenarioIds: z
       .array(z.string().trim().min(1).max(160))
       .max(3)
       .default(() => []),
+
     factAttributeIds: z
       .array(z.string().trim().min(1).max(160))
       .max(16)
       .default(() => []),
+
     terminalText: z.string().trim().min(1).max(6000).nullable().default(null),
   })
   .strict();
@@ -76,6 +90,7 @@ const ProductWorkspaceModelDecisionSchema = z
 const ProductWorkspaceModelActionSchema = z
   .object({
     decision: ProductWorkspaceModelDecisionSchema,
+
     view: ProductWorkspaceViewSchema.nullable().default(null),
   })
   .strict();
@@ -88,20 +103,26 @@ export const ProductWorkspaceModelPlanSchema = z
           z
             .object({
               kind: z.literal('consult'),
+
               target: ProductWorkspaceModelTargetSchema,
+
               query: z.string().trim().min(1).max(4000),
+
               actions: z.array(ProductWorkspaceModelActionSchema).min(1),
             })
             .strict(),
+
           z
             .object({
               kind: z.literal('remove'),
+
               target: ProductWorkspaceModelExplicitTargetSchema,
             })
             .strict(),
         ]),
       )
       .default(() => []),
+
     clarification: z.string().trim().min(1).max(6000).nullable().default(null),
   })
   .strict()
@@ -109,6 +130,7 @@ export const ProductWorkspaceModelPlanSchema = z
     if ((plan.operations.length === 0) === (plan.clarification === null)) {
       context.addIssue({
         code: 'custom',
+
         message: 'Choose operations or workspace clarification.',
       });
     }
@@ -173,6 +195,247 @@ function constraintKey(raw: unknown): string | null {
   return `${raw.attributeId}:${raw.operator}`;
 }
 
+function sameOperators(
+  left: readonly string[],
+  right: readonly string[],
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  const normalizedLeft = [...left].sort();
+  const normalizedRight = [...right].sort();
+
+  return normalizedLeft.every(
+    (operator, index) => operator === normalizedRight[index],
+  );
+}
+
+function sameAttributeContract(
+  left: AttributeDefinition,
+  right: AttributeDefinition,
+): boolean {
+  return (
+    left.kind === right.kind &&
+    left.unit === right.unit &&
+    sameOperators(left.allowedOperators, right.allowedOperators)
+  );
+}
+
+function resolveAttributeContract(
+  attributeId: string,
+  category: string | null,
+): AttributeDefinition | null {
+  if (category) {
+    const categoryProfile = getCategoryProfile(category);
+
+    const categoryAttribute = categoryProfile.attributes.find(
+      (attribute) => attribute.id === attributeId,
+    );
+
+    if (categoryAttribute) {
+      return categoryAttribute;
+    }
+  }
+
+  const definitions = CATEGORY_PROFILES.flatMap((profile) => {
+    const attribute = profile.attributes.find(
+      (candidate) => candidate.id === attributeId,
+    );
+
+    return attribute ? [attribute] : [];
+  });
+
+  if (definitions.length === 0) {
+    return null;
+  }
+
+  const first = definitions[0];
+
+  if (
+    definitions.some((definition) => !sameAttributeContract(first, definition))
+  ) {
+    return null;
+  }
+
+  return first;
+}
+
+function executableOperators(attribute: AttributeDefinition): string[] {
+  return attribute.allowedOperators.filter(
+    (operator) => operator !== 'observe',
+  );
+}
+
+function canonicalizeAttributeOperator(
+  rawOperator: unknown,
+  attribute: AttributeDefinition,
+): unknown {
+  if (typeof rawOperator !== 'string') {
+    return rawOperator;
+  }
+
+  const operators = executableOperators(attribute);
+
+  if (operators.includes(rawOperator)) {
+    return rawOperator;
+  }
+
+  /*
+   * Если hard attribute имеет ровно
+   * один executable operator,
+   * намерение можно нормализовать
+   * однозначно.
+   *
+   * Например:
+   *
+   * sizes eq 42
+   *
+   * sizes — set attribute и поддерживает
+   * только contains.
+   *
+   * Поэтому безопасно:
+   *
+   * eq -> contains
+   */
+  if (operators.length === 1) {
+    return operators[0];
+  }
+
+  /*
+   * Если допустимых операторов несколько,
+   * Backend не имеет права угадывать.
+   *
+   * Например price:
+   *
+   * eq
+   * gte
+   * lte
+   *
+   * model output:
+   *
+   * price:contains
+   *
+   * невозможно deterministic решить,
+   * что пользователь имел в виду.
+   *
+   * Такой output должен быть отвергнут
+   * на model boundary и отправлен
+   * на repair attempt.
+   */
+  throw new Error(
+    `ProductWorkspaceModelPlan: operator ${rawOperator} is not allowed ` +
+      `for attribute ${attribute.id}; supported operators: ${operators.join(
+        ', ',
+      )}.`,
+  );
+}
+
+function canonicalizeAttributeValue(
+  value: unknown,
+  attribute: AttributeDefinition,
+): unknown {
+  switch (attribute.kind) {
+    case 'set': {
+      if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+      ) {
+        return String(value).trim();
+      }
+
+      return value;
+    }
+
+    case 'number': {
+      if (typeof value === 'number') {
+        return value;
+      }
+
+      if (typeof value !== 'string') {
+        return value;
+      }
+
+      const normalized = value.trim().replace(',', '.');
+
+      if (!/^-?\d+(?:\.\d+)?$/u.test(normalized)) {
+        return value;
+      }
+
+      return Number(normalized);
+    }
+
+    case 'text':
+    case 'boolean': {
+      return value;
+    }
+  }
+}
+
+function canonicalizeProfileConstraint(
+  raw: unknown,
+  category: string | null,
+): unknown {
+  if (!isRecord(raw) || typeof raw.attributeId !== 'string') {
+    return raw;
+  }
+
+  const attribute = resolveAttributeContract(raw.attributeId, category);
+
+  if (!attribute) {
+    return raw;
+  }
+
+  return {
+    attributeId: raw.attributeId,
+
+    operator: canonicalizeAttributeOperator(raw.operator, attribute),
+
+    value: canonicalizeAttributeValue(raw.value, attribute),
+
+    /*
+     * Unit принадлежит server-owned
+     * attribute contract.
+     *
+     * Модель не определяет его
+     * из естественного языка.
+     *
+     * Поэтому:
+     *
+     * "до 20000 рублей"
+     *
+     * не превращается в:
+     *
+     * unit="рубль"
+     *
+     * если price contract имеет unit=null.
+     */
+    unit: attribute.unit,
+  };
+}
+
+function canonicalizeProfileSelector(
+  raw: unknown,
+  category: string | null,
+): unknown {
+  if (!isRecord(raw) || typeof raw.attributeId !== 'string') {
+    return raw;
+  }
+
+  const attribute = resolveAttributeContract(raw.attributeId, category);
+
+  if (!attribute) {
+    return raw;
+  }
+
+  return {
+    attributeId: raw.attributeId,
+
+    operator: canonicalizeAttributeOperator(raw.operator, attribute),
+  };
+}
+
 function isUsageScenarioConstraint(raw: unknown): boolean {
   if (!isRecord(raw) || typeof raw.attributeId !== 'string') {
     return false;
@@ -199,6 +462,7 @@ function usageScenarioValue(raw: unknown): string | null {
 
 function scenarioMatches(rawValue: string, candidate: string): boolean {
   const value = normalizeSemanticText(rawValue);
+
   const normalizedCandidate = normalizeSemanticText(candidate);
 
   if (value.length < 3 || normalizedCandidate.length < 3) {
@@ -225,6 +489,7 @@ function inferUsageScenarioIds(input: {
     : null;
 
   const sources = knowledge ? [knowledge] : CATEGORY_USAGE_KNOWLEDGE;
+
   const matchedIds = new Set<string>();
 
   for (const value of input.values) {
@@ -240,12 +505,9 @@ function inferUsageScenarioIds(input: {
   }
 
   /*
-   * Автоматически мигрируем legacy/ошибочный
-   * usageScenario constraint только тогда,
-   * когда значение однозначно соответствует
-   * одному Usage Scenario.
-   *
-   * Неоднозначность не угадываем.
+   * Legacy/ошибочный usageScenario
+   * hard constraint мигрируем
+   * только при однозначном соответствии.
    */
   return matchedIds.size === 1 ? [...matchedIds] : [];
 }
@@ -283,7 +545,13 @@ function canonicalizeSearchDraft(raw: unknown): {
     };
   }
 
-  const usageScenarioValues = raw.constraints.flatMap((constraint) => {
+  const category = typeof raw.category === 'string' ? raw.category : null;
+
+  const constraints = raw.constraints.map((constraint) =>
+    canonicalizeProfileConstraint(constraint, category),
+  );
+
+  const usageScenarioValues = constraints.flatMap((constraint) => {
     const value = usageScenarioValue(constraint);
 
     return value ? [value] : [];
@@ -292,10 +560,12 @@ function canonicalizeSearchDraft(raw: unknown): {
   return {
     value: {
       ...raw,
-      constraints: raw.constraints.filter(
+
+      constraints: constraints.filter(
         (constraint) => !isUsageScenarioConstraint(constraint),
       ),
     },
+
     usageScenarioValues,
   };
 }
@@ -314,8 +584,19 @@ function canonicalizeSearchPatch(
     };
   }
 
-  const rawSet = Array.isArray(raw.set) ? raw.set : [];
-  const rawClear = Array.isArray(raw.clear) ? raw.clear : [];
+  const category = typeof raw.category === 'string' ? raw.category : null;
+
+  const rawSet = Array.isArray(raw.set)
+    ? raw.set.map((constraint) =>
+        canonicalizeProfileConstraint(constraint, category),
+      )
+    : [];
+
+  const rawClear = Array.isArray(raw.clear)
+    ? raw.clear.map((selector) =>
+        canonicalizeProfileSelector(selector, category),
+      )
+    : [];
 
   const usageScenarioValues = rawSet.flatMap((constraint) => {
     const value = usageScenarioValue(constraint);
@@ -336,22 +617,10 @@ function canonicalizeSearchPatch(
   );
 
   /*
-   * Model-boundary tolerance.
-   *
-   * Для замены:
-   *
-   * color=white -> color=black
-   *
-   * достаточно:
-   *
-   * set color=black
-   *
-   * Если модель одновременно выдала
-   * set + clear одного slot,
-   * set является однозначным намерением
-   * заменить значение и побеждает clear.
-   *
-   * Core schema при этом остаётся строгой.
+   * Если model выдал set + clear
+   * одного semantic slot,
+   * set является replacement
+   * и побеждает clear.
    */
   const clear = rawClear.filter((selector) => {
     if (isUsageScenarioConstraint(selector)) {
@@ -376,21 +645,18 @@ function canonicalizeSearchPatch(
   return {
     value: {
       ...raw,
-      /*
-       * Если модель ошибочно пыталась
-       * выразить soft goal через
-       * usageScenario constraint,
-       * сохраняем пользовательский смысл
-       * в semantic retrieval query.
-       */
+
       ...(usageScenarioValues.length > 0 && !hasSemanticIntent && fallback
         ? {
             semanticIntent: fallback,
           }
         : {}),
+
       set,
+
       clear,
     },
+
     usageScenarioValues,
   };
 }
@@ -406,11 +672,12 @@ function canonicalizeModelDecision(
   }
 
   /*
-   * Workspace Planner не владеет persistent memory.
+   * Workspace Planner
+   * не владеет persistent memory.
    *
-   * Даже если provider вернул legacy memoryObservations
-   * в raw tool arguments, optional memory enrichment
-   * не должно ломать основной SEARCH / REFINE.
+   * Legacy memoryObservations
+   * от provider не участвуют
+   * в основном action.
    */
   const { memoryObservations: _memoryObservations, ...decision } = stripped;
 
@@ -444,13 +711,17 @@ function canonicalizeModelDecision(
             ...search.usageScenarioValues,
             ...searchPatch.usageScenarioValues,
           ],
+
           category,
         });
 
   return {
     ...decision,
+
     search: search.value,
+
     searchPatch: searchPatch.value,
+
     ...(existingScenarioIds.length > 0 || inferredScenarioIds.length > 0
       ? {
           usageScenarioIds: [
@@ -571,7 +842,9 @@ function inferOperationTarget(
   }
 
   const first = actions.find(isRecord);
+
   const decision = first?.decision !== undefined ? first.decision : first;
+
   const action = decisionAction(decision);
 
   if (action === 'SEARCH' || action === 'CLARIFY') {
@@ -582,6 +855,7 @@ function inferOperationTarget(
 
   return {
     kind: 'current',
+
     view: currentView(actions),
   };
 }
@@ -630,6 +904,7 @@ function canonicalizeAction(
 
   return {
     decision: canonicalizeModelDecision(decision, fallbackQuery),
+
     view: actionView(raw),
   };
 }
@@ -652,9 +927,12 @@ function canonicalizeOperation(
     return canonicalizeOperation(
       {
         ...nested,
+
         target: raw.target ?? nested.target,
+
         query: raw.query ?? nested.query,
       },
+
       fallbackQuery,
     );
   }
@@ -681,8 +959,11 @@ function canonicalizeOperation(
 
     return {
       kind: 'consult',
+
       target,
+
       query,
+
       actions: raw.actions.map((action) =>
         canonicalizeAction(action, query ?? fallbackQuery),
       ),
@@ -703,8 +984,11 @@ function canonicalizeOperation(
 
     return {
       kind: 'consult',
+
       target,
+
       query,
+
       actions: [canonicalizeAction(raw, query ?? fallbackQuery)],
     };
   }
@@ -726,6 +1010,7 @@ function canonicalizeProductWorkspaceModelPlan(
 
   return {
     ...raw,
+
     operations: raw.operations.map((operation) =>
       canonicalizeOperation(operation, fallbackQuery),
     ),
@@ -774,21 +1059,24 @@ function normalizeDecision(
   return ProductConsultantDecisionSchema.parse({
     proposal: {
       action: raw.action,
+
       taskTransition: taskTransition(raw.action, target, actionOrdinal),
+
       search: raw.search,
+
       searchPatch: raw.searchPatch,
 
-      /*
-       * Workspace planner больше не владеет memory.
-       * Persistent memory обновляется отдельным механизмом.
-       */
       memoryObservations: [],
 
       selection: normalizeRootSelection(raw),
+
       feedback: raw.feedback,
     },
+
     usageScenarioIds: raw.usageScenarioIds,
+
     factAttributeIds: raw.factAttributeIds,
+
     terminalText: terminalText(raw),
   });
 }
@@ -809,6 +1097,7 @@ function normalizeAction(
     return [
       {
         decision: normalizeDecision(decision, target, actionOrdinal),
+
         view: action.view,
       },
     ];
@@ -819,14 +1108,19 @@ function normalizeAction(
       decision: normalizeDecision(
         {
           ...decision,
+
           selection: {
             kind: 'positions',
+
             positions: [position],
           },
         },
+
         target,
+
         actionOrdinal,
       ),
+
       view: action.view,
     }),
   );
@@ -846,19 +1140,24 @@ export function normalizeProductWorkspaceModelPlan(
       if (operation.kind === 'remove') {
         return {
           kind: 'remove' as const,
+
           target: operation.target,
         };
       }
 
       return {
         kind: 'consult' as const,
+
         target: operation.target,
+
         query: operation.query,
+
         actions: operation.actions.flatMap((action, actionOrdinal) =>
           normalizeAction(action, operation.target, actionOrdinal),
         ),
       };
     }),
+
     clarification: modelPlan.clarification,
   };
 

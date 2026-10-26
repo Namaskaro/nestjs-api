@@ -126,19 +126,6 @@ function nextRecord(
     ...patch,
   });
 }
-
-/**
- * Profile определяется:
- *
- * 1. новым complete SearchSpec,
- *    если proposal его несёт;
- *
- * 2. иначе current task SearchSpec.
- *
- * Это позволяет CLARIFY
- * сохранить условия новой задачи
- * до первого поиска.
- */
 function resolveProfile(
   current: ConsultationApplicationRecord,
 
@@ -177,24 +164,6 @@ function assertExpectedRevision(value: number): void {
   }
 }
 
-/**
- * SearchSpec изменился БЕЗ
- * нового SearchExecution.
- *
- * Значит старая выдача
- * больше не соответствует
- * authoritative SearchSpec.
- *
- * active → null
- *
- * lastConfirmed сохраняем
- * как последний исторически
- * подтверждённый snapshot.
- *
- * pending/lastFailure относятся
- * к предыдущему search lifecycle
- * и больше не current.
- */
 function detachResultsFromChangedSearch(
   currentRaw: ConsultationResultsState,
 ): ConsultationResultsState {
@@ -310,17 +279,6 @@ export class ConsultationWriteOwner {
 
     let search: SearchSpec | null = null;
 
-    /**
-     * PRE-SEARCH CLARIFY.
-     *
-     * SearchSpec не исполняется,
-     * но он всё равно обязан быть
-     * реально executable текущим
-     * Store adapter.
-     *
-     * SearchSpec = executable
-     * hard constraints only.
-     */
     if (proposal.action === 'CLARIFY' && proposal.search !== null) {
       const persistedSearch = prepared.turn.state.search;
 
@@ -331,15 +289,6 @@ export class ConsultationWriteOwner {
       }
 
       this.productSearch.validate(persistedSearch);
-
-      /**
-       * Если SearchSpec действительно
-       * изменился, старая active выдача
-       * больше не current.
-       *
-       * start_new уже получил
-       * свежий empty ResultsState.
-       */
       const searchChanged = !isDeepStrictEqual(
         current.state?.search ?? null,
 
@@ -441,13 +390,6 @@ export class ConsultationWriteOwner {
         resolvedFeedbackSelection: prepared.resolvedFeedbackSelection,
       };
     }
-
-    /**
-     * S2:
-     *
-     * SearchPort failure отделён
-     * от persistence/finalization.
-     */
     let products: Awaited<ReturnType<ProductSearchPort['search']>>;
 
     try {
@@ -486,14 +428,6 @@ export class ConsultationWriteOwner {
       };
     }
 
-    /**
-     * SearchPort уже успешно
-     * завершился.
-     *
-     * Ошибка здесь —
-     * persistence/finalization error,
-     * не search_failed.
-     */
     const finalized = await this.finalizeSuccessfulSearch({
       conversationId,
 

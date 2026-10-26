@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
   OrderStatus as PrismaOrderStatus,
   PaymentStatus as PrismaPaymentStatus,
+  ShipmentStatus as PrismaShipmentStatus,
   type Prisma,
 } from '@prisma/generated';
 
@@ -18,15 +19,49 @@ import { CANCELLABLE_ORDER_STATUSES } from '../core/order-policy';
 
 import type { OrderPort } from '../ports/order.port';
 
+import { lockCurrentStoreOrder } from './current-store-order-lock';
+
 type CurrentStoreOrder = Prisma.OrderGetPayload<{
   include: {
     payments: true;
+    shipments: true;
   };
 }>;
 
 const CURRENT_STORE_CANCELLABLE_STATUSES = CANCELLABLE_ORDER_STATUSES.map(
   (status) => status as PrismaOrderStatus,
 );
+
+const STARTED_SHIPMENT_STATUSES: PrismaShipmentStatus[] = [
+  PrismaShipmentStatus.SHIPPED,
+  PrismaShipmentStatus.IN_TRANSIT,
+  PrismaShipmentStatus.OUT_FOR_DELIVERY,
+  PrismaShipmentStatus.DELIVERED,
+  PrismaShipmentStatus.EXCEPTION,
+  PrismaShipmentStatus.RETURNED,
+];
+
+const MAX_PRISMA_ORDER_NUMBER = 2_147_483_647;
+
+function parseCurrentStoreOrderNumber(value: string): number | null {
+  const normalized = value.trim();
+
+  if (!/^\d+$/.test(normalized)) {
+    return null;
+  }
+
+  const number = Number(normalized);
+
+  if (
+    !Number.isSafeInteger(number) ||
+    number < 1 ||
+    number > MAX_PRISMA_ORDER_NUMBER
+  ) {
+    return null;
+  }
+
+  return number;
+}
 
 @Injectable()
 export class CurrentStoreOrderAdapter implements OrderPort {
@@ -42,6 +77,12 @@ export class CurrentStoreOrderAdapter implements OrderPort {
         payments: {
           orderBy: {
             createdAt: 'desc',
+          },
+        },
+
+        shipments: {
+          orderBy: {
+            createdAt: 'asc',
           },
         },
       },
@@ -61,7 +102,6 @@ export class CurrentStoreOrderAdapter implements OrderPort {
     const order = await this.prismaService.order.findFirstOrThrow({
       where: {
         id: orderId,
-
         userId,
       },
 
@@ -71,10 +111,50 @@ export class CurrentStoreOrderAdapter implements OrderPort {
             createdAt: 'desc',
           },
         },
+
+        shipments: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
       },
     });
 
     return this.mapOrder(order);
+  }
+
+  public async getOrderByNumber(
+    userId: string,
+    orderNumber: string,
+  ): Promise<OrderRecord | null> {
+    const number = parseCurrentStoreOrderNumber(orderNumber);
+
+    if (number === null) {
+      return null;
+    }
+
+    const order = await this.prismaService.order.findFirst({
+      where: {
+        userId,
+        number,
+      },
+
+      include: {
+        payments: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+
+        shipments: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+      },
+    });
+
+    return order ? this.mapOrder(order) : null;
   }
 
   public async getLatestUserOrder(userId: string): Promise<OrderRecord | null> {
@@ -87,6 +167,12 @@ export class CurrentStoreOrderAdapter implements OrderPort {
         payments: {
           orderBy: {
             createdAt: 'desc',
+          },
+        },
+
+        shipments: {
+          orderBy: {
+            createdAt: 'asc',
           },
         },
       },
@@ -103,49 +189,70 @@ export class CurrentStoreOrderAdapter implements OrderPort {
     userId: string,
     orderId: string,
   ): Promise<OrderRecord | null> {
-    const result = await this.prismaService.order.updateMany({
-      where: {
-        id: orderId,
+    return this.prismaService.$transaction(async (tx) => {
+      const orderExists = await lockCurrentStoreOrder(tx, orderId);
 
-        userId,
+      if (!orderExists) {
+        return null;
+      }
 
-        status: {
-          in: CURRENT_STORE_CANCELLABLE_STATUSES,
-        },
+      const result = await tx.order.updateMany({
+        where: {
+          id: orderId,
 
-        payments: {
-          none: {
-            status: PrismaPaymentStatus.SUCCEEDED,
+          userId,
+
+          status: {
+            in: CURRENT_STORE_CANCELLABLE_STATUSES,
+          },
+
+          payments: {
+            none: {
+              status: PrismaPaymentStatus.SUCCEEDED,
+            },
+          },
+
+          shipments: {
+            none: {
+              status: {
+                in: STARTED_SHIPMENT_STATUSES,
+              },
+            },
           },
         },
-      },
 
-      data: {
-        status: PrismaOrderStatus.CANCELLED,
-      },
-    });
+        data: {
+          status: PrismaOrderStatus.CANCELLED,
+        },
+      });
 
-    if (result.count !== 1) {
-      return null;
-    }
+      if (result.count !== 1) {
+        return null;
+      }
 
-    const order = await this.prismaService.order.findFirstOrThrow({
-      where: {
-        id: orderId,
+      const order = await tx.order.findFirstOrThrow({
+        where: {
+          id: orderId,
+          userId,
+        },
 
-        userId,
-      },
+        include: {
+          payments: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
 
-      include: {
-        payments: {
-          orderBy: {
-            createdAt: 'desc',
+          shipments: {
+            orderBy: {
+              createdAt: 'asc',
+            },
           },
         },
-      },
-    });
+      });
 
-    return this.mapOrder(order);
+      return this.mapOrder(order);
+    });
   }
 
   private mapOrder(order: CurrentStoreOrder): OrderRecord {
@@ -153,6 +260,8 @@ export class CurrentStoreOrderAdapter implements OrderPort {
 
     return OrderRecordSchema.parse({
       id: order.id,
+
+      number: String(order.number),
 
       createdAt: order.createdAt,
 
@@ -168,14 +277,6 @@ export class CurrentStoreOrderAdapter implements OrderPort {
 
       finalAmount: order.finalAmount,
 
-      /**
-       * В текущей Prisma-модели валюта заказа
-       * отдельно не хранится.
-       *
-       * Канонический OrderRecord поле имеет,
-       * потому что внешние магазины вроде
-       * Shopify могут возвращать валюту.
-       */
       currency: null,
 
       status: order.status,
@@ -220,6 +321,24 @@ export class CurrentStoreOrderAdapter implements OrderPort {
         paidAt: payment.paidAt,
 
         rawResponse: payment.rawResponse,
+      })),
+
+      shipments: order.shipments.map((shipment) => ({
+        id: shipment.id,
+
+        provider: shipment.provider,
+
+        status: shipment.status,
+
+        trackingNumber: shipment.trackingNumber,
+
+        trackingUrl: shipment.trackingUrl,
+
+        estimatedDeliveryAt: shipment.estimatedDeliveryAt,
+
+        shippedAt: shipment.shippedAt,
+
+        deliveredAt: shipment.deliveredAt,
       })),
     });
   }

@@ -257,6 +257,7 @@ model PromoCode {
 
 model Order {
   id               String            @id @default(uuid())
+  number           Int               @unique @default(autoincrement())
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   userId           String
@@ -278,12 +279,30 @@ model Order {
   finalAmount      Int
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // CHANGED: один заказ может иметь несколько попыток оплаты
-  payments Payment[]
+  payments  Payment[]
+  shipments Shipment[]
 
-  // CHANGED: пригодится для списка заказов пользователя
   @@index([userId, createdAt])
   @@map("order")
+}
+
+model Shipment {
+  id                  String         @id @default(uuid())
+  orderId             String
+  provider            String?
+  status              ShipmentStatus @default(PENDING)
+  trackingNumber      String?
+  trackingUrl         String?
+  estimatedDeliveryAt DateTime?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@map("shipment")
 }
 
 model Payment {
@@ -291,7 +310,6 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // CHANGED: больше не @unique
   orderId String
 
   providerPaymentId String        @unique
@@ -301,7 +319,6 @@ model Payment {
   rawResponse       Json?
   order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  // CHANGED
   @@index([orderId, createdAt])
   @@map("payment")
 }
@@ -397,16 +414,10 @@ enum ProductType {
   ACCESSORIES @map("ACCESSORIES")
 }
 
-// CHANGED
 enum OrderStatus {
   DRAFT
-
-  // В коде PENDING_PAYMENT, в существующей БД остаётся PENDING
   PENDING_PAYMENT @map("PENDING")
-
-  // В коде PAID, в существующей БД остаётся SUCCESS
-  PAID @map("SUCCESS")
-
+  PAID            @map("SUCCESS")
   PROCESSING
   SHIPPED
   DELIVERED
@@ -464,4 +475,15 @@ enum SenderType {
   BOT
   OPERATOR
   SYSTEM
+}
+
+enum ShipmentStatus {
+  PENDING
+  SHIPPED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  EXCEPTION
+  RETURNED
+  UNKNOWN
 }

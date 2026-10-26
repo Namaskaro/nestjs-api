@@ -11,6 +11,8 @@ import { OrdersService } from '../orders.service';
 const order: OrderRecord = {
   id: 'order-1',
 
+  number: '10482',
+
   createdAt: new Date(),
 
   updatedAt: new Date(),
@@ -52,60 +54,92 @@ const order: OrderRecord = {
   paymentType: 'CARD',
 
   payments: [],
+
+  shipments: [],
 };
+
+/**
+ * Полностью типизированный mock OrderPort.
+ *
+ * Все методы соответствуют реальному интерфейсу.
+ *
+ * Если OrderPort расширится, TypeScript потребует
+ * добавить новый метод и сюда.
+ */
+function createOrderPortMock(): jest.Mocked<OrderPort> {
+  return {
+    getUserOrders: jest.fn<OrderPort['getUserOrders']>(),
+
+    getOrderById: jest.fn<OrderPort['getOrderById']>(),
+
+    getOrderByNumber: jest.fn<OrderPort['getOrderByNumber']>(),
+
+    getLatestUserOrder: jest.fn<OrderPort['getLatestUserOrder']>(),
+
+    cancelOrder: jest.fn<OrderPort['cancelOrder']>(),
+  };
+}
 
 describe('OrdersService', () => {
   it('selects relevant order using core policy', async () => {
-    const port = {
-      getUserOrders: jest.fn().mockResolvedValue([order]),
+    const port = createOrderPortMock();
 
-      getOrderById: jest.fn(),
+    port.getUserOrders.mockResolvedValue([order]);
 
-      getLatestUserOrder: jest.fn(),
-
-      cancelOrder: jest.fn(),
-    } as jest.Mocked<OrderPort>;
-
-    const service = new OrdersService(
-      port,
-
-      {} as PrismaService,
-    );
+    const service = new OrdersService(port, {} as PrismaService);
 
     await expect(service.getRelevantUserOrder('user-1')).resolves.toEqual(
       order,
     );
+
+    expect(port.getUserOrders).toHaveBeenCalledWith('user-1');
   });
 
   it('cancels eligible order through port', async () => {
-    const cancelled = {
+    const cancellableOrder: OrderRecord = {
       ...order,
 
-      status: 'CANCELLED' as const,
+      status: 'DRAFT',
+
+      payments: [],
+
+      shipments: [],
     };
 
-    const port = {
-      getUserOrders: jest.fn(),
+    const cancelledOrder: OrderRecord = {
+      ...cancellableOrder,
 
-      getOrderById: jest.fn().mockResolvedValue(order),
+      status: 'CANCELLED',
+    };
 
-      getLatestUserOrder: jest.fn(),
+    const port = createOrderPortMock();
 
-      cancelOrder: jest.fn().mockResolvedValue(cancelled),
-    } as jest.Mocked<OrderPort>;
+    port.getOrderById.mockResolvedValue(cancellableOrder);
 
-    const service = new OrdersService(
-      port,
+    port.cancelOrder.mockResolvedValue(cancelledOrder);
 
-      {} as PrismaService,
+    const service = new OrdersService(port, {} as PrismaService);
+
+    await expect(service.cancelOrder('user-1', 'order-1')).resolves.toEqual(
+      cancelledOrder,
     );
 
-    await expect(
-      service.cancelOrder(
-        'user-1',
+    expect(port.getOrderById).toHaveBeenCalledWith('user-1', 'order-1');
 
-        'order-1',
-      ),
-    ).resolves.toEqual(cancelled);
+    expect(port.cancelOrder).toHaveBeenCalledWith('user-1', 'order-1');
+  });
+
+  it('does not automatically cancel PROCESSING without payment', async () => {
+    const port = createOrderPortMock();
+
+    port.getOrderById.mockResolvedValue(order);
+
+    const service = new OrdersService(port, {} as PrismaService);
+
+    await expect(service.cancelOrder('user-1', 'order-1')).rejects.toThrow(
+      'Этот заказ нельзя отменить',
+    );
+
+    expect(port.cancelOrder).not.toHaveBeenCalled();
   });
 });

@@ -2,40 +2,62 @@ import { z } from 'zod';
 
 import { ClarificationTopicSchema } from './clarification-topic.schema';
 
-export const ClarificationOptionSchema = z.object({
-  id: z.string(),
+export const OrderCancellationCardSchema = z.object({
+  number: z.string().min(1),
 
-  label: z.string(),
+  status: z.enum([
+    'DRAFT',
+    'PENDING_PAYMENT',
+    'PAID',
+    'PROCESSING',
+    'SHIPPED',
+    'DELIVERED',
+    'CANCELLED',
+  ]),
+
+  finalAmount: z.number().nonnegative(),
+
+  currency: z.literal('RUB'),
+
+  items: z.array(
+    z.object({
+      productId: z.string(),
+
+      title: z.string(),
+
+      image: z.string().nullable(),
+
+      size: z.string().nullable(),
+
+      quantity: z.number().int().positive(),
+    }),
+  ),
+});
+
+export type OrderCancellationCard = z.infer<typeof OrderCancellationCardSchema>;
+
+export const ClarificationOptionSchema = z.object({
+  id: z.string().min(1),
+
+  label: z.string().min(1),
+
+  // Используется только при подтверждении
+  // отмены заказа.
+  //
+  // Остальные clarification options
+  // не обязаны содержать это поле.
+  order: OrderCancellationCardSchema.optional(),
 });
 
 export type ClarificationOption = z.infer<typeof ClarificationOptionSchema>;
 
 export const ClarificationNodeSchema = z.object({
-  /**
-   * topics:
-   * пользователь должен выбрать категорию.
-   *
-   * questions:
-   * пользователь должен выбрать готовый вопрос
-   * или написать собственный.
-   */
   kind: z.enum(['topics', 'questions', 'custom_input']),
 
-  /**
-   * Текст над кнопками.
-   */
   question: z.string(),
 
-  /**
-   * Для kind: topics будет null.
-   *
-   * Для kind: questions будет выбранная тема.
-   */
   topic: ClarificationTopicSchema.nullable(),
 
-  /**
-   * Кнопки для frontend.
-   */
   options: z.array(ClarificationOptionSchema),
 });
 

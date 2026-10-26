@@ -58,8 +58,43 @@ export const OrderPaymentRecordSchema = z.object({
 
 export type OrderPaymentRecord = z.infer<typeof OrderPaymentRecordSchema>;
 
+export const ShipmentStatusSchema = z.enum([
+  'PENDING',
+  'SHIPPED',
+  'IN_TRANSIT',
+  'OUT_FOR_DELIVERY',
+  'DELIVERED',
+  'EXCEPTION',
+  'RETURNED',
+  'UNKNOWN',
+]);
+
+export type ShipmentStatus = z.infer<typeof ShipmentStatusSchema>;
+
+export const ShipmentRecordSchema = z.object({
+  id: z.string().min(1),
+
+  provider: z.string().nullable(),
+
+  status: ShipmentStatusSchema,
+
+  trackingNumber: z.string().nullable(),
+
+  trackingUrl: z.string().url().nullable(),
+
+  estimatedDeliveryAt: z.date().nullable(),
+
+  shippedAt: z.date().nullable(),
+
+  deliveredAt: z.date().nullable(),
+});
+
+export type ShipmentRecord = z.infer<typeof ShipmentRecordSchema>;
+
 export const OrderRecordSchema = z.object({
   id: z.string(),
+
+  number: z.string().trim().min(1).nullable().optional(),
 
   createdAt: z.date(),
 
@@ -102,6 +137,8 @@ export const OrderRecordSchema = z.object({
   paymentType: z.string().nullable(),
 
   payments: z.array(OrderPaymentRecordSchema),
+
+  shipments: z.array(ShipmentRecordSchema).nullable().optional(),
 });
 
 export type OrderRecord = z.infer<typeof OrderRecordSchema>;

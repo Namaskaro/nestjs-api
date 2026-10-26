@@ -258,6 +258,7 @@ model PromoCode {
 
 model Order {
   id               String            @id @default(uuid())
+  number           Int               @unique @default(autoincrement())
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   userId           String
@@ -279,10 +280,30 @@ model Order {
   finalAmount      Int
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  payments Payment[]
+  payments  Payment[]
+  shipments Shipment[]
 
   @@index([userId, createdAt])
   @@map("order")
+}
+
+model Shipment {
+  id                  String         @id @default(uuid())
+  orderId             String
+  provider            String?
+  status              ShipmentStatus @default(PENDING)
+  trackingNumber      String?
+  trackingUrl         String?
+  estimatedDeliveryAt DateTime?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@map("shipment")
 }
 
 model Payment {
@@ -457,4 +478,15 @@ enum SenderType {
   BOT
   OPERATOR
   SYSTEM
+}
+
+enum ShipmentStatus {
+  PENDING
+  SHIPPED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  EXCEPTION
+  RETURNED
+  UNKNOWN
 }

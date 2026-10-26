@@ -31,15 +31,8 @@ export function createConsultProductsNode(
   return async (state) =>
     handleProductTurn({
       state,
-
       productAgentService,
-
       consultant,
-
-      // ===== START CHANGE: INJECT INTO TURN =====
-
       comparisonSynthesis,
-
-      // ===== END CHANGE: INJECT INTO TURN =====
     });
 }

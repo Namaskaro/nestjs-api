@@ -12,6 +12,8 @@ import { OrdersController } from './orders.controller';
 
 import { OrdersService } from './orders.service';
 
+import { OrderCancellationCaseService } from './order-cancellation-case.service';
+
 @Module({
   imports: [PrismaModule, forwardRef(() => AuthModule)],
 
@@ -20,15 +22,16 @@ import { OrdersService } from './orders.service';
   providers: [
     OrdersService,
 
+    OrderCancellationCaseService,
+
     CurrentStoreOrderAdapter,
 
     {
       provide: ORDER_PORT,
-
       useExisting: CurrentStoreOrderAdapter,
     },
   ],
 
-  exports: [OrdersService],
+  exports: [OrdersService, OrderCancellationCaseService],
 })
 export class OrdersModule {}

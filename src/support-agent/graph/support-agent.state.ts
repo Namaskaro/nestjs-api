@@ -25,6 +25,20 @@ import { ConsultationApplicationRecordSchema } from '@/src/product-consultation/
 
 import { ProductWorkspaceSchema } from '@/src/product-consultation/application/workspace/product-workspace';
 
+export const PendingOrderActionSchema = z.object({
+  action: z.literal('CANCEL'),
+
+  orderId: z.string().trim().min(1),
+
+  orderNumber: z.string().trim().min(1).nullable().optional(),
+
+  userId: z.string().trim().min(1),
+
+  confirmationId: z.string().trim().min(1),
+});
+
+export type PendingOrderAction = z.infer<typeof PendingOrderActionSchema>;
+
 export const SupportAgentState = new StateSchema({
   query: z.string(),
 
@@ -65,6 +79,8 @@ export const SupportAgentState = new StateSchema({
       },
     },
   ),
+
+  pendingOrderAction: PendingOrderActionSchema.nullable().default(null),
 
   handoffRequest: HandoffRequestSchema.nullable().default(null),
 
