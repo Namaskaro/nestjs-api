@@ -1,3 +1,5 @@
+> **Исторический материал (до 26.10.2026).** Актуальные конфигурация, статусы, индексация и rollback: [AI_PROVIDERS.md](../../docs/AI_PROVIDERS.md). Примеры Alibaba/OpenAI secondary и прежний CLI/prune ниже сохранены для истории и не являются текущей инструкцией запуска.
+
 # Direct AI provider configuration
 
 Current implementation (2026-10-23): [provider status](../../infra/AI-PROVIDERS-STATUS.md),

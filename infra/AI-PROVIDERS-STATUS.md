@@ -1,3 +1,5 @@
+> **Исторический материал (до 26.10.2026).** Актуальные конфигурация, статусы, индексация и rollback: [AI_PROVIDERS.md](../docs/AI_PROVIDERS.md). Примеры Alibaba/OpenAI secondary и прежний CLI/prune ниже сохранены для истории и не являются текущей инструкцией запуска.
+
 # Current AI provider status — 2026-10-23
 
 Direct is the implementation. OpenAI Responses and Yandex/Qwen Chat Completions use ChatOpenAI; GigaChat native v1 uses DirectGigaChat. The official Giga SDK experiment remains incompatible and is not the runtime adapter. All are covered offline; none is newly certified for live production.

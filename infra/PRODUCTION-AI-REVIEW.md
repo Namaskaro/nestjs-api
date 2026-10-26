@@ -1,3 +1,5 @@
+> **Исторический материал (до 26.10.2026).** Актуальные конфигурация, статусы, индексация и rollback: [AI_PROVIDERS.md](../docs/AI_PROVIDERS.md). Примеры Alibaba/OpenAI secondary и прежний CLI/prune ниже сохранены для истории и не являются текущей инструкцией запуска.
+
 # Production AI Provider & Embedding Failover — pre-commit review, 2026-10-23
 
 ## Final cleanup
