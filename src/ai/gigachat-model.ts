@@ -378,6 +378,13 @@ export class DirectGigaChat extends BaseChatModel<GigaOptions> {
     const name = config?.name ?? 'structured_response';
     if (!['jsonMode', 'jsonSchema', 'functionCalling'].includes(method))
       throw new Error('Unsupported GigaChat structured output method');
+    if (config?.strict !== undefined && typeof config.strict !== 'boolean')
+      throw new Error('GigaChat strict must be a boolean');
+    // Native functions have no strict option; do not promise server enforcement.
+    if (method === 'functionCalling' && config?.strict === true)
+      throw new Error(
+        'GigaChat functionCalling does not support strict:true; use jsonSchema for native strict output',
+      );
     const model =
       method === 'functionCalling'
         ? this.bindTools(
@@ -396,7 +403,7 @@ export class DirectGigaChat extends BaseChatModel<GigaOptions> {
               response_format: {
                 type: 'json_schema',
                 schema: jsonSchema,
-                strict: true,
+                strict: config?.strict ?? true,
               },
             },
           });

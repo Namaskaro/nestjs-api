@@ -7,6 +7,7 @@ const assert = require('node:assert/strict');
 const http = require('node:http');
 const path = require('node:path');
 require('ts-node/register/transpile-only');
+require('tsconfig-paths/register');
 const { DirectGigaChat } = require('../gigachat-model.ts');
 const { z } = require('zod');
 const { AIMessage, HumanMessage, SystemMessage, ToolMessage } = require('@langchain/core/messages');
@@ -238,6 +239,55 @@ test('Native GigaChat adapter mandatory application contracts', async (t) => {
         .invoke('Return JSON');
       assert.equal(result.value, 'ok');
     });
+    await t.test('native strict preserves explicit false/true and the full Workspace schema', async () => {
+      const { ProductWorkspaceModelPlanSchema } = require('../../product-consultation/application/workspace/product-workspace-model-plan.ts');
+      const candidate = { operations: [], clarification: 'Какой товар подобрать?' };
+      const expected = ProductWorkspaceModelPlanSchema.parse(candidate);
+      const expectedSchema = toJsonSchema(ProductWorkspaceModelPlanSchema);
+      respond = (_, res) => reply(res, { content: JSON.stringify(candidate) });
+      for (const method of ['jsonSchema', 'jsonMode']) {
+        for (const strict of [undefined, false, true]) {
+          const start = requests.length;
+          const result = await model().withStructuredOutput(ProductWorkspaceModelPlanSchema, {
+            method, strict, includeRaw: true,
+          }).invoke('Return JSON');
+          assert.deepEqual(result.parsed, expected);
+          assert.equal(result.raw.response_metadata.finish_reason, 'stop');
+          assert.equal(requests.length, start + 1);
+          assert.deepEqual(requests.at(-1).response_format, {
+            type: 'json_schema', schema: expectedSchema, strict: strict ?? true,
+          });
+          assert.equal(requests.at(-1).functions, undefined);
+        }
+      }
+    });
+    await t.test('strict false never weakens local Workspace Zod validation or retries malformed results', async () => {
+      const { ProductWorkspaceModelPlanSchema } = require('../../product-consultation/application/workspace/product-workspace-model-plan.ts');
+      respond = (_, res) => reply(res, { content: '{"operations":[],"clarification":42}' });
+      const start = requests.length;
+      await assert.rejects(model().withStructuredOutput(ProductWorkspaceModelPlanSchema, {
+        method: 'jsonSchema', strict: false,
+      }).invoke('Return JSON'), error => error.name === 'ZodError');
+      const result = await model().withStructuredOutput(ProductWorkspaceModelPlanSchema, {
+        method: 'jsonMode', strict: false, includeRaw: true,
+      }).invoke('Return JSON');
+      assert.equal(result.parsed, null);
+      assert.equal(JSON.parse(result.raw.text).clarification, 42);
+      assert.equal(requests.length, start + 2);
+      assert.ok(requests.slice(start).every(body => body.response_format.strict === false));
+    });
+    await t.test('unsupported function strict guarantee and malformed strict values fail before HTTP', () => {
+      const start = requests.length;
+      assert.throws(() => model().withStructuredOutput(schema, {
+        method: 'functionCalling', strict: true,
+      }), /functionCalling does not support strict:true/);
+      for (const method of ['functionCalling', 'jsonSchema', 'jsonMode']) {
+        for (const strict of ['false', null, 0]) {
+          assert.throws(() => model().withStructuredOutput(schema, { method, strict }), /strict must be a boolean/);
+        }
+      }
+      assert.equal(requests.length, start);
+    });
     await t.test(
       'Zod 4 function schema preserves required fields',
       async () => {
@@ -255,6 +305,7 @@ test('Native GigaChat adapter mandatory application contracts', async (t) => {
           .withStructuredOutput(schema, {
             name: 'emit',
             method: 'functionCalling',
+            strict: false,
             includeRaw: true,
           })
           .invoke('emit');
@@ -262,6 +313,9 @@ test('Native GigaChat adapter mandatory application contracts', async (t) => {
         const sent = requests.at(-1).functions[0].parameters;
         assert.equal(sent.properties?.value?.type, 'string');
         assert.ok(sent.required.includes('value'));
+        assert.deepEqual(requests.at(-1).function_call, { name: 'emit' });
+        assert.equal(requests.at(-1).functions[0].strict, undefined);
+        assert.equal(requests.at(-1).response_format, undefined);
       },
     );
     await t.test(
