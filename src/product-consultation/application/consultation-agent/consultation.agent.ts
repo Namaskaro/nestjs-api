@@ -178,7 +178,7 @@ function workspaceParsingError(response: unknown): unknown | null {
 }
 
 export function createConsultationAgent(aiService: AiService) {
-  const model = aiService.getChatModel('yandex');
+  const model = aiService.getChatModel('STANDARD');
 
   const decisionModel = model
     .withStructuredOutput(ProductConsultantDecisionSchema, {

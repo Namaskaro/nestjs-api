@@ -1,0 +1,15 @@
+# Test only. Fake keys, local upstream, no connection to real providers or databases.
+name: support-stock-conformance
+services:
+  conformance:
+    image: ${LITELLM_TEST_IMAGE:-ghcr.io/berriai/litellm:v1.105.1@sha256:b7b9e2c306343721802253d0dd9436b9634a2eb4e14da7c7cf06c5c7b7530802}
+    entrypoint: [python, /conformance/tests/stock_runtime.py]
+    volumes:
+      - ./:/conformance:ro
+    ports:
+      - '127.0.0.1:34580:9180'
+      - '127.0.0.1:34581:9181'
+    networks: [offline]
+networks:
+  offline:
+    driver: bridge

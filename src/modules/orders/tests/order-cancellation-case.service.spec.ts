@@ -198,12 +198,25 @@ describe('OrderCancellationCaseService', () => {
   });
 
   it('registers a paid but unshipped order for refund processing', async () => {
-    const { service, ordersService } = harness;
+    const { tx, service, ordersService } = harness;
 
     ordersService.getOrderById.mockResolvedValue(
       createOrder({
         status: 'PAID',
         shipments: [],
+        payments: [
+          {
+            id: 1,
+            orderId: ORDER_ID,
+            providerPaymentId: 'payment-1',
+            amount: 12000,
+            status: 'SUCCEEDED',
+            createdAt: new Date('2026-10-21T10:00:00.000Z'),
+            updatedAt: new Date('2026-10-21T10:00:00.000Z'),
+            paidAt: new Date('2026-10-21T10:00:00.000Z'),
+            rawResponse: null,
+          },
+        ],
       }),
     );
 
@@ -211,5 +224,42 @@ describe('OrderCancellationCaseService', () => {
 
     expect(result.route).toBe('REFUND_BEFORE_SHIPPING');
     expect(result.alreadyExists).toBe(false);
+    expect(tx.supportCase.create).toHaveBeenCalledTimes(1);
+    expect(tx.supportCase.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: USER_ID,
+        chatId: CHAT_ID,
+        status: 'WAITING_OPERATOR',
+        summary: expect.stringContaining('Успешная оплата: да'),
+      }),
+    });
+  });
+
+  it('routes PAID without confirmed payment to manual review, not refund', async () => {
+    const { tx, service, ordersService } = harness;
+
+    ordersService.getOrderById.mockResolvedValue(
+      createOrder({ status: 'PAID', shipments: [], payments: [] }),
+    );
+
+    const result = await service.createOrGet(USER_ID, CHAT_ID, ORDER_ID);
+
+    expect(result).toEqual({
+      caseId: 'case-1',
+      orderId: ORDER_ID,
+      orderNumber: '10482',
+      route: 'MANUAL_REVIEW',
+      alreadyExists: false,
+    });
+    expect(ordersService.getOrderById).toHaveBeenCalledWith(USER_ID, ORDER_ID);
+    expect(tx.supportCase.create).toHaveBeenCalledTimes(1);
+    expect(tx.supportCase.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: USER_ID,
+        chatId: CHAT_ID,
+        status: 'WAITING_OPERATOR',
+        summary: expect.stringContaining('Успешная оплата: нет'),
+      }),
+    });
   });
 });

@@ -80,6 +80,18 @@ function extractGenerationMessages(output: unknown): UnknownRecord[] {
     });
 }
 
+function responseId(output: unknown): string | null {
+  const wrapper = asRecord(output);
+  const raw = asRecord(wrapper?.raw) ?? wrapper;
+  const message = extractGenerationMessages(output)[0];
+  return firstString(
+    asRecord(raw?.response_metadata)?.id,
+    raw?.id,
+    asRecord(message?.response_metadata)?.id,
+    message?.id,
+  );
+}
+
 /**
  * Поддерживает как обычный
  * AIMessage / structured wrapper,
@@ -288,6 +300,10 @@ export const llmUsageCallback: BaseCallbackHandler =
         JSON.stringify({
           event: 'llm_call',
 
+          usageScope: 'provider_call',
+
+          responseId: responseId(output),
+
           status: 'success',
 
           runId,
@@ -318,6 +334,8 @@ export const llmUsageCallback: BaseCallbackHandler =
       logger.warn(
         JSON.stringify({
           event: 'llm_call',
+
+          usageScope: 'provider_call',
 
           status: 'error',
 
@@ -358,8 +376,7 @@ export const llmUsageCallback: BaseCallbackHandler =
  * пока импортируют эти функции.
  *
  * Они больше ничего не логируют:
- * physical telemetry уже собирает
- * llmUsageCallback.
+ * llmUsageCallback уже собирает telemetry вызовов модели.
  *
  * Удалим эти функции,
  * когда дочистим legacy call sites.

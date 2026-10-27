@@ -8,6 +8,8 @@ describe('CurrentStoreOrderAdapter', () => {
   const order = {
     id: 'order-1',
 
+    number: 10482,
+
     createdAt: new Date(),
 
     updatedAt: new Date(),
@@ -61,6 +63,8 @@ describe('CurrentStoreOrderAdapter', () => {
     paymentType: 'CARD',
 
     payments: [],
+
+    shipments: [],
   };
 
   let prisma: {
@@ -73,11 +77,29 @@ describe('CurrentStoreOrderAdapter', () => {
 
       updateMany: jest.Mock;
     };
+
+    $transaction: jest.Mock;
+  };
+
+  let tx: {
+    $queryRaw: jest.Mock;
+    order: {
+      updateMany: jest.Mock;
+      findFirstOrThrow: jest.Mock;
+    };
   };
 
   let adapter: CurrentStoreOrderAdapter;
 
   beforeEach(() => {
+    tx = {
+      $queryRaw: jest.fn().mockResolvedValue([{ id: order.id }] as never),
+      order: {
+        updateMany: jest.fn(),
+        findFirstOrThrow: jest.fn(),
+      },
+    };
+
     prisma = {
       order: {
         findMany: jest.fn(),
@@ -88,6 +110,10 @@ describe('CurrentStoreOrderAdapter', () => {
 
         updateMany: jest.fn(),
       },
+
+      $transaction: jest.fn(
+        async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx),
+      ),
     };
 
     adapter = new CurrentStoreOrderAdapter(prisma as unknown as PrismaService);
@@ -116,15 +142,19 @@ describe('CurrentStoreOrderAdapter', () => {
       expect.objectContaining({
         id: 'order-1',
 
+        number: '10482',
+
         status: 'PROCESSING',
 
         currency: null,
+
+        shipments: [],
       }),
     );
   });
 
   it('returns null when atomic cancellation fails', async () => {
-    prisma.order.updateMany.mockResolvedValue({
+    tx.order.updateMany.mockResolvedValue({
       count: 0,
     });
 
@@ -135,14 +165,18 @@ describe('CurrentStoreOrderAdapter', () => {
         'order-1',
       ),
     ).resolves.toBeNull();
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(tx.order.findFirstOrThrow).not.toHaveBeenCalled();
+    expect(prisma.order.updateMany).not.toHaveBeenCalled();
   });
 
   it('returns cancelled order after successful cancellation', async () => {
-    prisma.order.updateMany.mockResolvedValue({
+    tx.order.updateMany.mockResolvedValue({
       count: 1,
     });
 
-    prisma.order.findFirstOrThrow.mockResolvedValue({
+    tx.order.findFirstOrThrow.mockResolvedValue({
       ...order,
 
       status: 'CANCELLED',
@@ -155,5 +189,62 @@ describe('CurrentStoreOrderAdapter', () => {
     );
 
     expect(result?.status).toBe('CANCELLED');
+    expect(result?.number).toBe('10482');
+    expect(result?.shipments).toEqual([]);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.$queryRaw).toHaveBeenCalledTimes(1);
+    const [query, lockedOrderId] = tx.$queryRaw.mock.calls[0];
+    expect((query as TemplateStringsArray).join('?').replace(/\s+/g, ' ').trim())
+      .toBe('SELECT "id" FROM "order" WHERE "id" = ? FOR UPDATE');
+    expect(lockedOrderId).toBe('order-1');
+    expect(tx.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(
+      tx.order.updateMany.mock.invocationCallOrder[0],
+    );
+    expect(tx.order.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'order-1',
+        userId: 'user-1',
+        status: { in: ['DRAFT', 'PENDING_PAYMENT'] },
+        payments: { none: { status: 'SUCCEEDED' } },
+        shipments: {
+          none: {
+            status: {
+              in: ['SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'EXCEPTION', 'RETURNED'],
+            },
+          },
+        },
+      },
+      data: { status: 'CANCELLED' },
+    });
+    expect(tx.order.findFirstOrThrow).toHaveBeenCalledWith({
+      where: { id: 'order-1', userId: 'user-1' },
+      include: {
+        payments: { orderBy: { createdAt: 'desc' } },
+        shipments: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+    expect(prisma.order.updateMany).not.toHaveBeenCalled();
+    expect(prisma.order.findFirstOrThrow).not.toHaveBeenCalled();
+  });
+
+  it('does not update or read an order when the row lock finds no order', async () => {
+    tx.$queryRaw.mockResolvedValue([]);
+
+    await expect(adapter.cancelOrder('user-1', 'order-1')).resolves.toBeNull();
+
+    expect(tx.order.updateMany).not.toHaveBeenCalled();
+    expect(tx.order.findFirstOrThrow).not.toHaveBeenCalled();
+  });
+
+  it('keeps the requesting user filter when another user tries to cancel an order', async () => {
+    tx.order.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(adapter.cancelOrder('other-user', 'order-1')).resolves.toBeNull();
+
+    expect(tx.order.updateMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({ id: 'order-1', userId: 'other-user' }),
+      data: { status: 'CANCELLED' },
+    });
+    expect(tx.order.findFirstOrThrow).not.toHaveBeenCalled();
   });
 });

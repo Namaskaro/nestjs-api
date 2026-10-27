@@ -18,6 +18,8 @@ function createOrder(
   return {
     id,
 
+    number: '10482',
+
     createdAt: date,
 
     updatedAt: date,
@@ -57,6 +59,8 @@ function createOrder(
     deliveryProvider: null,
 
     paymentType: 'CARD',
+
+    shipments: [],
 
     payments: paymentSucceeded
       ? [
@@ -125,7 +129,7 @@ describe('order policy', () => {
     expect(selectRelevantOrder([older, newer])).toEqual(newer);
   });
 
-  it('allows cancellation of unpaid processing order', () => {
+  it('requires manual review of PROCESSING without confirmed payment', () => {
     const order = createOrder(
       'order-1',
 
@@ -135,11 +139,23 @@ describe('order policy', () => {
     );
 
     expect(getOrderCancellationEligibility(order)).toEqual({
-      allowed: true,
+      allowed: false,
 
-      reason: 'ALLOWED',
+      reason: 'UNSUPPORTED_STATUS',
     });
   });
+
+  it.each(['DRAFT', 'PENDING_PAYMENT'] as const)(
+    'allows cancellation of unpaid %s before shipping',
+    (status) => {
+      const order = createOrder('order-1', status, '2026-09-25T12:00:00.000Z');
+
+      expect(getOrderCancellationEligibility(order)).toEqual({
+        allowed: true,
+        reason: 'ALLOWED',
+      });
+    },
+  );
 
   it('requires refund when payment already succeeded', () => {
     const order = createOrder(

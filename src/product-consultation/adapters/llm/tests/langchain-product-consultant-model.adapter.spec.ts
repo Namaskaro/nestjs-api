@@ -118,6 +118,8 @@ describe('LangChainProductConsultantModelAdapter', () => {
 
     expect(getChatModel).toHaveBeenCalledTimes(1);
 
+    expect(getChatModel).toHaveBeenCalledWith('STANDARD');
+
     expect(invoke).toHaveBeenCalledTimes(1);
   });
 

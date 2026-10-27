@@ -239,6 +239,8 @@ describe('ProductConsultationContext usage knowledge', () => {
 
       'casual_city',
 
+      'running',
+
       'training',
 
       'light_outdoor',

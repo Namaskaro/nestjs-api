@@ -425,7 +425,7 @@ describe('Product Workspace model plan tolerance', () => {
       clear: [],
     });
 
-    expect(decision.usageScenarioIds).toEqual(['training']);
+    expect(decision.usageScenarioIds).toEqual(['running']);
   });
 
   it('still rejects conflicting targets inside one lane', () => {

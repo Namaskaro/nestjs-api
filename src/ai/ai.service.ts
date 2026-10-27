@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { OpenAI } from 'openai/client.js';
 
 import { ChatOpenAI } from '@langchain/openai';
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 import { CreateProductEmbeddingText } from './dto/create-product-embedding-text.dto';
 
@@ -19,94 +20,126 @@ import { productSemanticRepresentationPrompt } from './prompts/product-semantic-
 
 import { llmUsageCallback } from './llm-usage';
 
+import { DirectGigaChat } from './gigachat-model';
+import { FallbackChatModel } from './chat-fallback';
+
+import { getChatTransport } from './chat-transport';
+import { chatPreset } from './chat-presets';
+import { createChatFetch } from './chat-http';
+import { EmbeddingRequestError, embeddingHttpFailure, validateEmbedding, type EmbeddingProvider, type EmbeddingSpec, type EmbeddingOptions } from './embedding-execution';
+
 export type AiProvider = 'openai' | 'yandex';
+
+export type ChatProvider = AiProvider | 'qwen' | 'gigachat';
+
+// STRONG is reserved; no current operation or deployment needs to configure it.
+export type ChatModelRole = 'FAST' | 'STANDARD' | 'STRONG';
 
 const YANDEX_EMBEDDING_API_URL =
   'https://ai.api.cloud.yandex.net:443/foundationModels/v1/textEmbedding';
 
-type YandexEmbeddingResponse = {
-  embedding: Array<number | string>;
-};
-
 @Injectable()
 export class AiService {
-  private readonly openAiChatModel: ChatOpenAI;
+  public readonly embeddingFailover: boolean;
+  public readonly embeddingFallbackProvider: 'openai' | 'qwen';
+  private readonly embeddingTimeoutMs: number;
+  private readonly chatProviders: Record<'FAST' | 'STANDARD', ChatProvider>;
 
-  private readonly yandexChatModel: ChatOpenAI;
+  private readonly chatTimeoutMs: number;
 
-  private readonly yandexLiteChatModel: ChatOpenAI;
+  private readonly embeddingProvider: AiProvider;
 
-  public constructor(
-    private readonly configService: ConfigService,
+  private readonly chatModels = new Map<ChatModelRole, BaseChatModel>();
 
-    private readonly openaiService: OpenAI,
-  ) {
-    this.openAiChatModel = new ChatOpenAI({
-      apiKey: this.configService.getOrThrow<string>('OPENAI_API_KEY'),
+  private openAiEmbeddingClient?: OpenAI;
+  private polzaEmbeddingClient?: OpenAI;
 
-      model:
-        this.configService.get<string>('OPENAI_CHAT_MODEL') ?? 'gpt-4.1-mini',
-
-      temperature: 0,
-
-      maxRetries: 0,
-
-      callbacks: [llmUsageCallback],
-
-      tags: ['provider:openai', 'tier:primary'],
-    });
-
-    this.yandexChatModel = new ChatOpenAI({
-      apiKey: this.configService.getOrThrow<string>('YANDEX_API_KEY'),
-
-      model: this.configService.getOrThrow<string>('YANDEX_MODEL'),
-
-      temperature: 0,
-
-      configuration: {
-        baseURL: this.configService.getOrThrow<string>('YANDEX_API_URL'),
-      },
-
-      streamUsage: false,
-
-      maxRetries: 0,
-
-      callbacks: [llmUsageCallback],
-
-      tags: ['provider:yandex', 'tier:primary'],
-    });
-
-    this.yandexLiteChatModel = new ChatOpenAI({
-      apiKey: this.configService.getOrThrow<string>('YANDEX_API_KEY'),
-
-      model: this.configService.getOrThrow<string>('YANDEX_LITE_MODEL'),
-
-      temperature: 0,
-
-      configuration: {
-        baseURL: this.configService.getOrThrow<string>('YANDEX_API_URL'),
-      },
-
-      streamUsage: false,
-
-      maxRetries: 0,
-
-      callbacks: [llmUsageCallback],
-
-      tags: ['provider:yandex', 'tier:lite'],
-    });
+  public constructor(private readonly configService: ConfigService) {
+    const failover = this.configService.get<unknown>('EMBEDDING_FAILOVER_ENABLED');
+    if (failover !== undefined && !['true', 'false', true, false].includes(failover as boolean))
+      throw new Error('EMBEDDING_FAILOVER_ENABLED must be true or false');
+    this.embeddingFailover = failover === true || failover === 'true';
+    // Preserve existing OpenAI secondary deployments unless explicitly switched.
+    const embeddingFallback = this.configService.get('EMBEDDING_FALLBACK_PROVIDER') ?? 'openai';
+    if (embeddingFallback !== 'openai' && embeddingFallback !== 'qwen')
+      throw new Error('EMBEDDING_FALLBACK_PROVIDER must be openai or qwen');
+    this.embeddingFallbackProvider = embeddingFallback;
+    this.embeddingTimeoutMs = Number(this.configService.get('EMBEDDING_REQUEST_TIMEOUT_MS') ?? 60000);
+    if (!Number.isInteger(this.embeddingTimeoutMs) || this.embeddingTimeoutMs <= 0 || this.embeddingTimeoutMs > 2147483647)
+      throw new Error('EMBEDDING_REQUEST_TIMEOUT_MS must be a positive integer <= 2147483647');
+    const mode = this.configService.get<unknown>('CHAT_MODE') ?? 'direct';
+    if (mode !== 'direct') {
+      throw new Error(
+        'AiService configuration: only CHAT_MODE=direct is supported; configure direct provider credentials before removing gateway mode.',
+      );
+    }
+    this.chatProviders = {
+      FAST: chatPreset(this.configService.get('CHAT_FAST'), 'CHAT_FAST')?.provider ?? this.getChatProvider(this.chatProviderKey('FAST')),
+      STANDARD: chatPreset(this.configService.get('CHAT_STANDARD'), 'CHAT_STANDARD')?.provider ?? this.getChatProvider(this.chatProviderKey('STANDARD')),
+    };
+    this.embeddingProvider = this.getProvider('EMBEDDING_PROVIDER');
+    if (this.embeddingFailover && this.embeddingProvider !== 'yandex')
+      throw new Error('Embedding failover requires primary EMBEDDING_PROVIDER=yandex');
+    const configuredTimeout = this.configService.get<unknown>(
+      'CHAT_REQUEST_TIMEOUT_MS',
+    );
+    const timeout =
+      configuredTimeout === undefined ? 60_000 : configuredTimeout;
+    this.chatTimeoutMs =
+      typeof timeout === 'number' || typeof timeout === 'string'
+        ? Number(timeout)
+        : NaN;
+    if (
+      !Number.isInteger(this.chatTimeoutMs) ||
+      this.chatTimeoutMs <= 0 ||
+      this.chatTimeoutMs > 2_147_483_647
+    ) {
+      throw new Error(
+        'AiService configuration: CHAT_REQUEST_TIMEOUT_MS must be an integer between 1 and 2147483647.',
+      );
+    }
   }
 
-  private getAiProvider(): AiProvider {
-    const provider = this.configService.get<string>('AI_PROVIDER') ?? 'yandex';
+  private chatProviderKey(role: 'FAST' | 'STANDARD'): string {
+    const key = `CHAT_${role}_PROVIDER`;
+    return this.configService.get<unknown>(key) === undefined
+      ? 'CHAT_PROVIDER'
+      : key;
+  }
 
-    if (provider !== 'openai' && provider !== 'yandex') {
+  private requireConfig(key: string): string {
+    const value = this.configService.get<unknown>(key);
+
+    if (typeof value !== 'string' || value.trim().length === 0) {
       throw new Error(
-        `Неизвестный AI_PROVIDER: ${provider}. ` +
-          'Ожидается "openai" или "yandex"',
+        `AiService configuration: ${key} must be a non-empty string.`,
       );
     }
 
+    return value.trim();
+  }
+
+  private getProvider(key: string): AiProvider {
+    const provider = this.configService.get<unknown>(key);
+
+    if (provider !== 'openai' && provider !== 'yandex') {
+      throw new Error(
+        `AiService configuration: ${key} must be "openai" or "yandex". ` +
+          `Set ${key} explicitly; AI_PROVIDER is no longer used.`,
+      );
+    }
+
+    return provider;
+  }
+
+  private getChatProvider(key: string): ChatProvider {
+    const provider = this.configService.get<unknown>(key);
+    if (provider !== 'openai' && provider !== 'yandex' && provider !== 'qwen' && provider !== 'gigachat') {
+      throw new Error(
+        `AiService configuration: ${key} must be "openai", "yandex", "qwen" or "gigachat". ` +
+          `Set ${key} explicitly; AI_PROVIDER is no longer used.`,
+      );
+    }
     return provider;
   }
 
@@ -126,172 +159,258 @@ export class AiService {
     return dimensions;
   }
 
-  public getChatModel(provider?: AiProvider): ChatOpenAI {
-    const activeProvider = provider ?? this.getAiProvider();
-
-    if (activeProvider === 'openai') {
-      return this.openAiChatModel;
+  public getChatModel(role: ChatModelRole): BaseChatModel {
+    if (role !== 'FAST' && role !== 'STANDARD') {
+      throw new Error(
+        `AiService configuration: unsupported chat role "${role}". ` +
+          'Use FAST or STANDARD; STRONG is reserved.',
+      );
     }
 
-    return this.yandexChatModel;
-  }
+    const cached = this.chatModels.get(role);
 
-  public getYandexLiteChatModel(): ChatOpenAI {
-    return this.yandexLiteChatModel;
-  }
-
-  public async createOpenAiEmbedding(text: string): Promise<number[]> {
-    const response = await this.openaiService.embeddings.create({
-      model: this.configService.getOrThrow<string>('OPENAI_EMBEDDING_MODEL'),
-
-      input: text,
-
-      dimensions: this.getEmbeddingDimensions(
-        'OPENAI_EMBEDDING_DIMENSIONS',
-        1536,
-      ),
-    });
-
-    const embedding = response.data[0]?.embedding;
-
-    if (!embedding) {
-      throw new Error('OpenAI не вернул embedding');
+    if (cached) {
+      return cached;
     }
 
-    return embedding;
-  }
-
-  public async createOpenAiEmbeddings(texts: string[]): Promise<number[][]> {
-    if (texts.length === 0) {
-      return [];
-    }
-
-    const response = await this.openaiService.embeddings.create({
-      model: this.configService.getOrThrow<string>('OPENAI_EMBEDDING_MODEL'),
-
-      input: texts,
-
-      dimensions: this.getEmbeddingDimensions(
-        'OPENAI_EMBEDDING_DIMENSIONS',
-        1536,
-      ),
-    });
-
-    return response.data
-      .sort((a, b) => a.index - b.index)
-      .map((item) => item.embedding);
-  }
-
-  private async createYandexEmbedding(
-    text: string,
-    modelUri: string,
-  ): Promise<number[]> {
-    const apiKey = this.configService.getOrThrow<string>('YANDEX_API_KEY');
-
-    const folderId = this.configService.getOrThrow<string>('YANDEX_FOLDER_ID');
-
-    const dimensions = this.getEmbeddingDimensions(
-      'YANDEX_EMBEDDING_DIMENSIONS',
-      768,
+    const primary = this.createChatDeployment(role, this.chatProviders[role]);
+    const fallbackKey = `CHAT_${role}_FALLBACK_PROVIDER`;
+    const fallbackAliasKey = `CHAT_${role}_FALLBACK`;
+    const preset = chatPreset(this.configService.get(fallbackAliasKey), fallbackAliasKey);
+    const fallbackProvider = preset?.provider ?? (this.configService.get(fallbackKey) === undefined ? undefined : this.getChatProvider(fallbackKey));
+    const model = fallbackProvider === undefined ? primary : new FallbackChatModel(
+      primary, this.createChatDeployment(role, fallbackProvider, true), this.chatProviders[role], fallbackProvider,
     );
+    this.chatModels.set(role, model);
+    return model;
+  }
 
-    const response = await fetch(YANDEX_EMBEDDING_API_URL, {
-      method: 'POST',
-
-      headers: {
-        'Content-Type': 'application/json',
-
-        Authorization: `Bearer ${apiKey}`,
-
-        'x-folder-id': folderId,
+  private createChatDeployment(role: 'FAST' | 'STANDARD', provider: ChatProvider, fallback = false): BaseChatModel {
+    const aliasKey = `CHAT_${role}${fallback ? '_FALLBACK' : ''}`;
+    const preset = chatPreset(this.configService.get(aliasKey), aliasKey);
+    const isYandex = provider === 'yandex';
+    const legacyModelKey =
+      (provider === 'qwen' || provider === 'gigachat')
+        ? `CHAT_${role}_MODEL`
+        : isYandex
+        ? role === 'FAST'
+          ? 'YANDEX_LITE_MODEL'
+          : 'YANDEX_MODEL'
+        : role === 'FAST'
+        ? 'OPENAI_FAST_MODEL'
+        : 'OPENAI_STANDARD_MODEL';
+    const roleModelKey = fallback ? `CHAT_${role}_FALLBACK_MODEL` : `CHAT_${role}_MODEL`;
+    const model = preset ? (preset.model ?? this.requireConfig(preset.modelEnv!)) : this.requireConfig(
+      !fallback && this.configService.get<unknown>(roleModelKey) === undefined
+        ? legacyModelKey
+        : roleModelKey,
+    );
+    const roleProfileKey = fallback ? `CHAT_${role}_FALLBACK_TRANSPORT_PROFILE` : `CHAT_${role}_TRANSPORT_PROFILE`;
+    const profileKey =
+      !fallback && this.configService.get<unknown>(roleProfileKey) === undefined &&
+      provider === 'openai'
+        ? `OPENAI_${role}_TRANSPORT_PROFILE`
+        : roleProfileKey;
+    const profile = preset?.profile ?? this.configService.get<unknown>(profileKey);
+    if (provider === 'gigachat') {
+      if (profile !== undefined && profile !== 'gigachat-native') throw new Error(profileKey + ' must be gigachat-native');
+      return new DirectGigaChat({ model, timeoutMs: this.chatTimeoutMs,
+        credentials: this.configService.get('GIGACHAT_CREDENTIALS'), accessToken: this.configService.get('GIGACHAT_ACCESS_TOKEN'),
+        scope: this.configService.get('GIGACHAT_SCOPE'), baseURL: this.configService.get('GIGACHAT_API_URL'), authURL: this.configService.get('GIGACHAT_AUTH_URL'),
+      }, { callbacks: [llmUsageCallback], tags: [`role:${role}`, `provider:${provider}`, `model:${model}`], metadata: { role, provider, model } });
+    }
+    const transport = getChatTransport(
+      provider,
+      role,
+      model,
+      profile,
+      profileKey,
+    );
+    const polza = provider === 'qwen' && profile === 'polza-chat';
+    const service = preset?.service ?? (polza ? 'polza' : provider === 'qwen' ? 'alibaba' : provider);
+    const baseUrlKey = preset?.baseURLEnv ?? (isYandex ? 'YANDEX_API_URL' : 'QWEN_API_URL');
+    const baseURL =
+      preset?.baseURL ?? (polza ? 'https://polza.ai/api/v1' : provider !== 'openai' ? this.requireConfig(baseUrlKey) : undefined);
+    if (baseURL) {
+      let valid = false;
+      try {
+        const url = new URL(baseURL);
+        valid =
+          ['http:', 'https:'].includes(url.protocol) &&
+          !url.username &&
+          !url.password &&
+          !url.search &&
+          !url.hash;
+      } catch {
+        /* Report the variable name without exposing its value. */
+      }
+      if (!valid)
+        throw new Error(
+          `AiService configuration: ${baseUrlKey} must be an HTTP(S) URL without credentials, query or fragment.`,
+        );
+    }
+    const chatModel = new ChatOpenAI({
+      apiKey: this.requireConfig(
+        preset?.credentialEnv ?? (polza ? 'POLZA_API_KEY' : isYandex
+          ? 'YANDEX_API_KEY'
+          : provider === 'qwen'
+          ? 'QWEN_API_KEY'
+          : 'OPENAI_API_KEY'),
+      ),
+      model,
+      ...transport,
+      // Graph event callbacks otherwise make invoke() stream implicitly. Buffer
+      // the provider response so completion safety runs before tools/parsers.
+      disableStreaming: true,
+      maxRetries: 0,
+      timeout: this.chatTimeoutMs,
+      configuration: {
+        ...(baseURL ? { baseURL } : {}),
+        fetch: createChatFetch({
+          api: transport.useResponsesApi ? 'responses' : 'chat-completions',
+        }),
       },
-
-      body: JSON.stringify({
-        modelUri,
-
-        text,
-
-        dim: String(dimensions),
-      }),
+      callbacks: [llmUsageCallback],
+      tags: [`role:${role}`, `provider:${provider}`, `model:${model}`],
+      metadata: { role, provider, model, ...(preset || polza ? { service } : {}) },
     });
 
-    if (!response.ok) {
-      const error = await response.text();
+    return chatModel;
+  }
 
-      throw new Error(`Yandex Embeddings API: ${response.status} ${error}`);
+  public getEmbeddingSpec(provider: EmbeddingProvider): EmbeddingSpec {
+    if (provider === 'qwen') {
+      const model = this.configService.get<string>('QWEN_EMBEDDING_MODEL') ?? 'qwen/qwen3-embedding-4b';
+      const fullDimensions = model === 'qwen/qwen3-embedding-4b' ? 2560 : model === 'qwen/qwen3-embedding-8b' ? 4096 : undefined;
+      if (!model.trim() || (fullDimensions === undefined && this.configService.get('QWEN_EMBEDDING_DIMENSIONS') === undefined))
+        throw new Error('Custom QWEN_EMBEDDING_MODEL requires QWEN_EMBEDDING_DIMENSIONS');
+      return { provider, queryModel: model, documentModel: model,
+        dimensions: this.getEmbeddingDimensions('QWEN_EMBEDDING_DIMENSIONS', fullDimensions!),
+        service: 'polza', baseURL: 'https://polza.ai/api/v1' };
     }
-
-    const data = (await response.json()) as YandexEmbeddingResponse;
-
-    return data.embedding.map(Number);
+    return provider === 'yandex'
+      ? { provider, queryModel: this.requireConfig('YANDEX_EMBEDDING_QUERY_MODEL'),
+          documentModel: this.requireConfig('YANDEX_EMBEDDING_DOCUMENT_MODEL'),
+          dimensions: this.getEmbeddingDimensions('YANDEX_EMBEDDING_DIMENSIONS', 768) }
+      : { provider, queryModel: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
+          documentModel: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
+          dimensions: this.getEmbeddingDimensions('OPENAI_EMBEDDING_DIMENSIONS', 1536) };
   }
 
-  public async createYandexQueryEmbedding(text: string): Promise<number[]> {
-    const modelUri = this.configService.getOrThrow<string>(
-      'YANDEX_EMBEDDING_QUERY_MODEL',
-    );
-
-    return this.createYandexEmbedding(text, modelUri);
+  public secondaryEmbeddingCollection(collection: string): string {
+    const key = collection === 'products' ? 'QDRANT_PRODUCTS_SECONDARY_COLLECTION'
+      : collection === 'store_knowledge' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : undefined;
+    if (!key) throw new Error('Unsupported logical embedding collection');
+    const name = this.configService.get(key) === undefined ? `${collection}_fallback` : this.requireConfig(key);
+    if (!/^[a-zA-Z0-9_-]+$/.test(name) || ['products','store_knowledge'].includes(name))
+      throw new Error(key + ' must name a separate collection');
+    const other = this.configService.get(collection === 'products' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : 'QDRANT_PRODUCTS_SECONDARY_COLLECTION') ?? (collection === 'products' ? 'store_knowledge_fallback' : 'products_fallback');
+    if (name === other) throw new Error('Secondary product and knowledge collections must be different');
+    return name;
   }
 
-  public async createYandexDocumentEmbedding(text: string): Promise<number[]> {
-    const modelUri = this.configService.getOrThrow<string>(
-      'YANDEX_EMBEDDING_DOCUMENT_MODEL',
-    );
-
-    return this.createYandexEmbedding(text, modelUri);
+  public async createEmbedding(text: string, provider: EmbeddingProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[]> {
+    return (await this.requestEmbedding(text, provider, kind, options))[0];
   }
 
-  public async createYandexDocumentEmbeddings(
-    texts: string[],
-  ): Promise<number[][]> {
-    if (texts.length === 0) {
-      return [];
+  private async requestEmbedding(text: string | string[], provider: EmbeddingProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[][]> {
+    options.signal?.throwIfAborted();
+    const apiKey = this.requireConfig(provider === 'yandex' ? 'YANDEX_API_KEY' : provider === 'qwen' ? 'POLZA_API_KEY' : 'OPENAI_API_KEY');
+    const spec = this.getEmbeddingSpec(provider);
+    const timeout = AbortSignal.timeout(this.embeddingTimeoutMs);
+    const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
+    try {
+      if (provider === 'openai' || provider === 'qwen') {
+        const client = provider === 'qwen'
+          ? (this.polzaEmbeddingClient ??= new OpenAI({ apiKey, baseURL: spec.baseURL, maxRetries: 0, timeout: this.embeddingTimeoutMs }))
+          : (this.openAiEmbeddingClient ??= new OpenAI({ apiKey, maxRetries: 0, timeout: this.embeddingTimeoutMs }));
+        const result = await client.embeddings.create({
+          model: kind === 'query' ? spec.queryModel : spec.documentModel, input: text,
+          ...(provider === 'openai' ? { dimensions: spec.dimensions } : {}), encoding_format: 'float',
+        }, { signal, maxRetries: 0, timeout: this.embeddingTimeoutMs });
+        signal.throwIfAborted();
+        const count = Array.isArray(text) ? text.length : 1;
+        if (!Array.isArray(result.data)) throw new EmbeddingRequestError('invalid-response', provider);
+        const ordered = [...result.data].sort((a, b) => a.index - b.index);
+        if (ordered.length !== count || ordered.some((row, index) => row.index !== index))
+          throw new EmbeddingRequestError('invalid-response', provider);
+        return ordered.map(row => validateEmbedding(row.embedding, spec));
+      }
+      const auth = this.configService.get<string>('YANDEX_EMBEDDING_AUTH_TYPE') ?? 'iam';
+      if (!['iam', 'api-key'].includes(auth)) throw new Error('YANDEX_EMBEDDING_AUTH_TYPE must be iam or api-key');
+      const response = await fetch(YANDEX_EMBEDDING_API_URL, {
+        method: 'POST', signal,
+        headers: { 'Content-Type': 'application/json', Authorization: (auth === 'iam' ? 'Bearer ' : 'Api-Key ') + apiKey,
+          'x-folder-id': this.requireConfig('YANDEX_FOLDER_ID') },
+        body: JSON.stringify({ modelUri: kind === 'query' ? spec.queryModel : spec.documentModel, text, dim: String(spec.dimensions) }),
+      });
+      const textBody = await response.text();
+      signal.throwIfAborted();
+      let body: any;
+      try { body = JSON.parse(textBody); } catch { /* Keep HTTP status classification for non-JSON error bodies. */ }
+      if (!response.ok) throw embeddingHttpFailure(provider, response.status, String(body?.error?.code ?? body?.code ?? ''));
+      return [validateEmbedding(body?.embedding, spec)];
+    } catch (error) {
+      options.signal?.throwIfAborted();
+      if (error instanceof EmbeddingRequestError) throw error;
+      if (!error || typeof error !== 'object') throw error;
+      const failure = error as { name?: string; status?: number; code?: string; cause?: { code?: string }; message?: string };
+      if (timeout.aborted || failure.name === 'APIConnectionTimeoutError')
+        throw new EmbeddingRequestError('availability', provider, undefined, { cause: error });
+      if (typeof failure.status === 'number') {
+        const classified = embeddingHttpFailure(provider, failure.status, failure.code);
+        throw new EmbeddingRequestError(classified.category, provider, failure.status, { cause: error });
+      }
+      if (failure.name === 'APIConnectionError' || (error as any)?.constructor?.name === 'APIConnectionError' ||
+        (failure.name === 'TypeError' && /^(fetch failed|Failed to fetch)$/.test(failure.message ?? ''))) {
+        let cause = error as any;
+        for (let depth = 0; cause && depth < 8; depth++, cause = cause.cause) {
+          if (/^(ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|UND_ERR_CONNECT_TIMEOUT|UND_ERR_SOCKET)$/.test(cause.code ?? ''))
+            throw new EmbeddingRequestError('availability', provider, undefined, { cause: error });
+        }
+      }
+      throw error;
     }
-
-    return Promise.all(
-      texts.map((text) => this.createYandexDocumentEmbedding(text)),
-    );
   }
 
-  public async createQueryEmbedding(text: string): Promise<number[]> {
-    const provider = this.getAiProvider();
-
-    if (provider === 'openai') {
-      return this.createOpenAiEmbedding(text);
-    }
-
-    return this.createYandexQueryEmbedding(text);
+  public createOpenAiEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, 'openai', 'document', options);
   }
-
-  public async createDocumentEmbedding(text: string): Promise<number[]> {
-    const provider = this.getAiProvider();
-
-    if (provider === 'openai') {
-      return this.createOpenAiEmbedding(text);
-    }
-
-    return this.createYandexDocumentEmbedding(text);
+  public async createOpenAiEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
+    if (!texts.length) return [];
+    return this.requestEmbedding(texts, 'openai', 'document', options);
   }
-
-  public async createDocumentEmbeddings(texts: string[]): Promise<number[][]> {
-    const provider = this.getAiProvider();
-
-    if (provider === 'openai') {
-      return this.createOpenAiEmbeddings(texts);
-    }
-
-    return this.createYandexDocumentEmbeddings(texts);
+  public createYandexQueryEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, 'yandex', 'query', options);
   }
-
-  public async createProductEmbedding(text: string): Promise<number[]> {
-    return this.createDocumentEmbedding(text);
+  public createYandexDocumentEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, 'yandex', 'document', options);
+  }
+  public async createYandexDocumentEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
+    const results: number[][] = [];
+    for (const text of texts) results.push(await this.createYandexDocumentEmbedding(text, options));
+    return results;
+  }
+  public createQueryEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, this.embeddingProvider, 'query', options);
+  }
+  public createDocumentEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createEmbedding(text, this.embeddingProvider, 'document', options);
+  }
+  public async createDocumentEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
+    if (this.embeddingProvider === 'openai') return this.createOpenAiEmbeddings(texts, options);
+    const results: number[][] = [];
+    for (const text of texts) results.push(await this.createDocumentEmbedding(text, options));
+    return results;
+  }
+  public createProductEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    return this.createDocumentEmbedding(text, options);
   }
 
   public async createProductSemanticRepresentation(
     product: ProductSemanticInputDto,
   ): Promise<ProductSemanticRepresentation> {
-    const model = this.getChatModel();
+    const model = this.getChatModel('STANDARD');
 
     const structuredModel = model.withStructuredOutput(
       ProductSemanticRepresentationSchema,
@@ -302,7 +421,9 @@ export class AiService {
 
     const prompt = await productSemanticRepresentationPrompt.invoke(product);
 
-    return structuredModel.invoke(prompt);
+    const result = await structuredModel.invoke(prompt);
+
+    return ProductSemanticRepresentationSchema.parse(result);
   }
 
   public buildProductSearchText(

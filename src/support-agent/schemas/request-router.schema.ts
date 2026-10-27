@@ -69,7 +69,8 @@ export const RequestRouterFallbackRouteSchema = z.enum([
 export const RequestRouterModelSchema = z.object({
   workerQueries: RequestRouterWorkerQueriesSchema,
 
-  orderRequest: OrderRequestSchema.nullable().describe(
+  // Strict model output requires every key; legacy internal requests stay optional.
+  orderRequest: OrderRequestSchema.required({ orderNumber: true }).nullable().describe(
     [
       'Заполняй только если workerQueries.orderAgent не null.',
       'LIST — список или история заказов.',

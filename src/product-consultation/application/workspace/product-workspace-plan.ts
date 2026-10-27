@@ -790,7 +790,43 @@ function preflightLane(
   for (const [index, action] of actions.entries()) {
     const proposal = action.decision.proposal;
 
+    // The plan DTO is already parsed. Only these actionable input conflicts
+    // become clarification; Core and service errors must still propagate.
+    if (proposal.action === 'DETAILS' && proposal.selection === null) {
+      return clarify(
+        'О каком товаре рассказать подробнее? Укажите номер в подборке.',
+      );
+    }
+
+    if (proposal.action === 'DETAILS' && proposal.searchPatch !== null) {
+      return clarify(
+        'Показать подробности выбранного товара или изменить условия подбора?',
+      );
+    }
+
+    if (
+      proposal.action === 'COMPARE' &&
+      proposal.selection?.kind === 'positions' &&
+      proposal.selection.positions.length < 2
+    ) {
+      return clarify(
+        'Для сравнения нужны хотя бы два товара. Какие номера сравнить?',
+      );
+    }
+
     assertConsultationProposalStructure(proposal);
+
+    const currentCategory = task.record.state?.search?.category;
+    if (
+      proposal.action === 'REFINE' &&
+      currentCategory != null &&
+      proposal.searchPatch?.category !== undefined &&
+      proposal.searchPatch.category !== currentCategory
+    ) {
+      return clarify(
+        'Начать новую подборку в другой категории или уточнить условия текущей?',
+      );
+    }
 
     if (index > 0 && proposal.taskTransition !== 'continue') {
       return clarify('Новый поиск должен принадлежать отдельной подборке.');

@@ -19,16 +19,16 @@ jest.mock('@langchain/core/callbacks/dispatch', () => ({
 }));
 
 function createAiService() {
-  const getYandexLiteChatModel = jest.fn(() => {
+  const getChatModel = jest.fn(() => {
     throw new Error('AggregateFinalAnswerNode must not call LLM.');
   });
 
   return {
     aiService: {
-      getYandexLiteChatModel,
+      getChatModel,
     } as unknown as AiService,
 
-    getYandexLiteChatModel,
+    getChatModel,
   };
 }
 
@@ -118,7 +118,7 @@ describe('AggregateFinalAnswerNode', () => {
     const {
       aiService,
 
-      getYandexLiteChatModel,
+      getChatModel,
     } = createAiService();
 
     const node = createAggregateFinalAnswerNode(aiService);
@@ -145,7 +145,7 @@ describe('AggregateFinalAnswerNode', () => {
       ].join('\n'),
     );
 
-    expect(getYandexLiteChatModel).not.toHaveBeenCalled();
+    expect(getChatModel).not.toHaveBeenCalled();
   });
 
   it('appends a product clarification exactly once and keeps it separate from customer help', async () => {
@@ -185,7 +185,7 @@ describe('AggregateFinalAnswerNode', () => {
     const {
       aiService,
 
-      getYandexLiteChatModel,
+      getChatModel,
     } = createAiService();
 
     const node = createAggregateFinalAnswerNode(aiService);
@@ -216,7 +216,7 @@ describe('AggregateFinalAnswerNode', () => {
 
     expect(message.split(question)).toHaveLength(2);
 
-    expect(getYandexLiteChatModel).not.toHaveBeenCalled();
+    expect(getChatModel).not.toHaveBeenCalled();
   });
 
   it('keeps product, order and store information in stable independent sections', async () => {
@@ -279,7 +279,7 @@ describe('AggregateFinalAnswerNode', () => {
     const {
       aiService,
 
-      getYandexLiteChatModel,
+      getChatModel,
     } = createAiService();
 
     const node = createAggregateFinalAnswerNode(aiService);
@@ -309,6 +309,6 @@ describe('AggregateFinalAnswerNode', () => {
       ].join('\n'),
     );
 
-    expect(getYandexLiteChatModel).not.toHaveBeenCalled();
+    expect(getChatModel).not.toHaveBeenCalled();
   });
 });

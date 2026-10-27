@@ -26,6 +26,9 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+AI-провайдеры, Yandex → Qwen/Polza fallback, embeddings и безопасная индексация:
+[инженерное руководство](docs/AI_PROVIDERS.md).
+
 ## Installation
 
 ```bash

@@ -27,7 +27,7 @@ export function createPlanProductNode(
   productAgentService: ProductAgentService,
 ): GraphNode<typeof ProductAgentState> {
   const planner = aiService
-    .getChatModel('yandex')
+    .getChatModel('STANDARD')
     .withStructuredOutput(ProductPlannerResultSchema, {
       name: 'plan_product_request',
 

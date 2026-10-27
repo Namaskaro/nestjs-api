@@ -172,7 +172,7 @@ Frontend покажет его сам.
 
 export function createProductRecommendationSynthesizer(aiService: AiService) {
   const model = aiService
-    .getChatModel('yandex')
+    .getChatModel('STANDARD')
     .withStructuredOutput(ProductRecommendationSynthesisSchema, {
       name: 'product_recommendation_response',
 

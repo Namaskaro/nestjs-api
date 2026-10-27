@@ -1,8 +1,12 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { z } from 'zod';
+
 import { ConsultationWriteOwner } from '../runtime/consultation-write-owner';
 
 import { productActionRequestId } from './product-workspace-plan';
+
+import { createProductWorkspace } from './product-workspace';
 
 import {
   action,
@@ -366,7 +370,44 @@ describe('Product ordered action lanes: real graph and offline model', () => {
     );
   });
 
-  it('validates an obviously invalid dependent DETAILS before executing any lane', async () => {
+  it('normalizes multi-position DETAILS into ordered actions without replaying tools', async () => {
+    const h = harness();
+    const first = await h.run();
+    // Initial search loads recommendation facts; count the DETAILS turn separately.
+    h.service.getProductDetails.mockClear();
+    h.setPlan(plan(lane('кроссовки', [action('DETAILS', positions(1, 2))])));
+
+    const result = await h.run(
+      'Подробнее о первых двух кроссовках',
+      first.workspace,
+      'details-1-2',
+    );
+
+    expect(result.workspace.pendingClarification).toBeNull();
+    expect(h.service.search).toHaveBeenCalledTimes(1);
+    expect(h.service.getProductDetails.mock.calls.map(([ids]) => ids)).toEqual([
+      ['кроссовки-1'],
+      ['кроссовки-2'],
+    ]);
+    expect(
+      result.groups[0].presentations.map((presentation) =>
+        presentation.kind === 'details' ? presentation.data.product.id : null,
+      ),
+    ).toEqual(['кроссовки-1', 'кроссовки-2']);
+
+    const replay = await h.run(
+      'Подробнее о первых двух кроссовках',
+      result.workspace,
+      'details-1-2',
+    );
+    expect(replay.workspace).toEqual(result.workspace);
+    expect(replay.groups).toEqual([]);
+    expect(h.decide).toHaveBeenCalledTimes(2);
+    expect(h.service.search).toHaveBeenCalledTimes(1);
+    expect(h.service.getProductDetails).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects dependent DETAILS without selection before executing any lane', async () => {
     const h = harness();
 
     const first = await h.run();
@@ -383,7 +424,7 @@ describe('Product ordered action lanes: real graph and offline model', () => {
               clear: [],
             },
           }),
-          action('DETAILS', positions(1, 2)),
+          action('DETAILS'),
         ]),
       ),
     );
@@ -403,42 +444,58 @@ describe('Product ordered action lanes: real graph and offline model', () => {
   });
 
   it.each([
-    action('DETAILS'),
-    action('DETAILS', {
-      ...positions(1),
+    [
+      action('DETAILS'),
+      'О каком товаре рассказать подробнее? Укажите номер в подборке.',
+    ],
+    [
+      action('DETAILS', {
+        ...positions(1),
 
-      searchPatch: {
-        set: [],
+        searchPatch: {
+          set: [],
 
-        clear: [],
-      },
-    }),
-    action('COMPARE', positions(1)),
-    action('REFINE', {
-      searchPatch: {
-        category: 'CLOTHES',
+          clear: [],
+        },
+      }),
+      'Показать подробности выбранного товара или изменить условия подбора?',
+    ],
+    [
+      action('COMPARE', positions(1)),
+      'Для сравнения нужны хотя бы два товара. Какие номера сравнить?',
+    ],
+    [
+      action('REFINE', {
+        searchPatch: {
+          category: 'CLOTHES',
 
-        set: [],
+          set: [],
 
-        clear: [],
-      },
-    }),
-    action('SEARCH', {
-      taskTransition: 'continue',
+          clear: [],
+        },
+      }),
+      'Начать новую подборку в другой категории или уточнить условия текущей?',
+    ],
+    [
+      action('SEARCH', {
+        taskTransition: 'continue',
 
-      search: {
-        category: 'SHOES',
+        search: {
+          category: 'SHOES',
 
-        semanticIntent: 'другая обувь',
+          semanticIntent: 'другая обувь',
 
-        constraints: [],
-      },
-    }),
-  ])(
+          constraints: [],
+        },
+      }),
+      'После поиска изменяйте условия текущей подборки через уточнение.',
+    ],
+  ] as const)(
     'preflights invalid action combinations after a pending search using Core rules',
-    async (invalid) => {
+    async (invalid, question) => {
       const h = harness(
         plan(
+          newSearch('платье', 'CLOTHES'),
           lane('кроссовки', [newSearch('кроссовки').actions[0], invalid], {
             kind: 'new',
           }),
@@ -451,11 +508,73 @@ describe('Product ordered action lanes: real graph and offline model', () => {
 
       expect(result.workspace.pendingClarification).not.toBeNull();
 
+      expect(result.workspace.pendingClarification?.question).toBe(question);
+
+      expect(result.message).toBe(question);
+
+      expect(h.decide).toHaveBeenCalledTimes(1);
+
       expect(h.service.search).not.toHaveBeenCalled();
 
       expect(h.service.getProductDetails).not.toHaveBeenCalled();
     },
   );
+
+  it.each([
+    new Error('Search capability service unavailable'),
+    new TypeError('Programming error in search validation'),
+    z.string().safeParse(42).error!,
+  ])('propagates unexpected preflight error unchanged: %s', async (error) => {
+    const h = harness(
+      plan(newSearch('кроссовки'), newSearch('платье', 'CLOTHES')),
+    );
+    const workspace = createProductWorkspace();
+    const before = structuredClone(workspace);
+    jest.spyOn(h.service, 'validate').mockImplementation(() => {
+      throw error;
+    });
+
+    await expect(h.run('Найди кроссовки и платье', workspace)).rejects.toBe(
+      error,
+    );
+
+    expect(workspace).toEqual(before);
+    expect(workspace.pendingClarification).toBeNull();
+    expect(h.decide).toHaveBeenCalledTimes(1);
+    expect(h.service.search).not.toHaveBeenCalled();
+    expect(h.service.getProductDetails).not.toHaveBeenCalled();
+  });
+
+  it('keeps an unclassified Core validation error visible without executing any lane', async () => {
+    const h = harness(
+      plan(
+        newSearch('платье', 'CLOTHES'),
+        lane(
+          'кроссовки',
+          [
+            newSearch('кроссовки').actions[0],
+            action('DETAILS', {
+              ...positions(1),
+              search:
+                newSearch('кроссовки').actions[0].decision.proposal.search,
+            }),
+          ],
+          { kind: 'new' },
+        ),
+      ),
+    );
+    await expect(h.run()).rejects.toMatchObject({
+      name: 'ZodError',
+      issues: expect.arrayContaining([
+        expect.objectContaining({
+          message: 'DETAILS cannot contain a complete SearchSpec.',
+        }),
+      ]),
+    });
+    expect(h.decide).toHaveBeenCalledTimes(1);
+    expect(h.service.search).not.toHaveBeenCalled();
+    expect(h.service.getProductDetails).not.toHaveBeenCalled();
+  });
 
   it('allows more than five lanes and more than five atomic actions without evicting explicitly appended tasks', async () => {
     const queries = Array.from(

@@ -13,7 +13,7 @@ import { HandoffContextSchema } from '../schemas/handoff.schema';
 export function createPrepareHandoffNode(
   aiService: AiService,
 ): GraphNode<typeof HandoffState> {
-  const model = aiService.getChatModel('yandex');
+  const model = aiService.getChatModel('STANDARD');
 
   const structuredModel = model.withStructuredOutput(HandoffContextSchema, {
     name: 'prepare_handoff_context',
