@@ -24,9 +24,16 @@ import { DirectGigaChat } from './gigachat-model';
 import { FallbackChatModel } from './chat-fallback';
 
 import { getChatTransport } from './chat-transport';
-import { chatPreset } from './chat-presets';
+import { CHAT_PRESETS, chatPreset } from './chat-presets';
 import { createChatFetch } from './chat-http';
-import { EmbeddingRequestError, embeddingHttpFailure, validateEmbedding, type EmbeddingProvider, type EmbeddingSpec, type EmbeddingOptions } from './embedding-execution';
+import {
+  EmbeddingRequestError,
+  embeddingHttpFailure,
+  validateEmbedding,
+  type EmbeddingProvider,
+  type EmbeddingSpec,
+  type EmbeddingOptions,
+} from './embedding-execution';
 
 export type AiProvider = 'openai' | 'yandex';
 
@@ -55,18 +62,32 @@ export class AiService {
   private polzaEmbeddingClient?: OpenAI;
 
   public constructor(private readonly configService: ConfigService) {
-    const failover = this.configService.get<unknown>('EMBEDDING_FAILOVER_ENABLED');
-    if (failover !== undefined && !['true', 'false', true, false].includes(failover as boolean))
+    const failover = this.configService.get<unknown>(
+      'EMBEDDING_FAILOVER_ENABLED',
+    );
+    if (
+      failover !== undefined &&
+      !['true', 'false', true, false].includes(failover as boolean)
+    )
       throw new Error('EMBEDDING_FAILOVER_ENABLED must be true or false');
     this.embeddingFailover = failover === true || failover === 'true';
     // Preserve existing OpenAI secondary deployments unless explicitly switched.
-    const embeddingFallback = this.configService.get('EMBEDDING_FALLBACK_PROVIDER') ?? 'openai';
+    const embeddingFallback =
+      this.configService.get('EMBEDDING_FALLBACK_PROVIDER') ?? 'openai';
     if (embeddingFallback !== 'openai' && embeddingFallback !== 'qwen')
       throw new Error('EMBEDDING_FALLBACK_PROVIDER must be openai or qwen');
     this.embeddingFallbackProvider = embeddingFallback;
-    this.embeddingTimeoutMs = Number(this.configService.get('EMBEDDING_REQUEST_TIMEOUT_MS') ?? 60000);
-    if (!Number.isInteger(this.embeddingTimeoutMs) || this.embeddingTimeoutMs <= 0 || this.embeddingTimeoutMs > 2147483647)
-      throw new Error('EMBEDDING_REQUEST_TIMEOUT_MS must be a positive integer <= 2147483647');
+    this.embeddingTimeoutMs = Number(
+      this.configService.get('EMBEDDING_REQUEST_TIMEOUT_MS') ?? 60000,
+    );
+    if (
+      !Number.isInteger(this.embeddingTimeoutMs) ||
+      this.embeddingTimeoutMs <= 0 ||
+      this.embeddingTimeoutMs > 2147483647
+    )
+      throw new Error(
+        'EMBEDDING_REQUEST_TIMEOUT_MS must be a positive integer <= 2147483647',
+      );
     const mode = this.configService.get<unknown>('CHAT_MODE') ?? 'direct';
     if (mode !== 'direct') {
       throw new Error(
@@ -74,12 +95,18 @@ export class AiService {
       );
     }
     this.chatProviders = {
-      FAST: chatPreset(this.configService.get('CHAT_FAST'), 'CHAT_FAST')?.provider ?? this.getChatProvider(this.chatProviderKey('FAST')),
-      STANDARD: chatPreset(this.configService.get('CHAT_STANDARD'), 'CHAT_STANDARD')?.provider ?? this.getChatProvider(this.chatProviderKey('STANDARD')),
+      FAST:
+        chatPreset(this.configService.get('CHAT_FAST'), 'CHAT_FAST')
+          ?.provider ?? this.getChatProvider(this.chatProviderKey('FAST')),
+      STANDARD:
+        chatPreset(this.configService.get('CHAT_STANDARD'), 'CHAT_STANDARD')
+          ?.provider ?? this.getChatProvider(this.chatProviderKey('STANDARD')),
     };
     this.embeddingProvider = this.getProvider('EMBEDDING_PROVIDER');
     if (this.embeddingFailover && this.embeddingProvider !== 'yandex')
-      throw new Error('Embedding failover requires primary EMBEDDING_PROVIDER=yandex');
+      throw new Error(
+        'Embedding failover requires primary EMBEDDING_PROVIDER=yandex',
+      );
     const configuredTimeout = this.configService.get<unknown>(
       'CHAT_REQUEST_TIMEOUT_MS',
     );
@@ -134,7 +161,12 @@ export class AiService {
 
   private getChatProvider(key: string): ChatProvider {
     const provider = this.configService.get<unknown>(key);
-    if (provider !== 'openai' && provider !== 'yandex' && provider !== 'qwen' && provider !== 'gigachat') {
+    if (
+      provider !== 'openai' &&
+      provider !== 'yandex' &&
+      provider !== 'qwen' &&
+      provider !== 'gigachat'
+    ) {
       throw new Error(
         `AiService configuration: ${key} must be "openai", "yandex", "qwen" or "gigachat". ` +
           `Set ${key} explicitly; AI_PROVIDER is no longer used.`,
@@ -176,21 +208,38 @@ export class AiService {
     const primary = this.createChatDeployment(role, this.chatProviders[role]);
     const fallbackKey = `CHAT_${role}_FALLBACK_PROVIDER`;
     const fallbackAliasKey = `CHAT_${role}_FALLBACK`;
-    const preset = chatPreset(this.configService.get(fallbackAliasKey), fallbackAliasKey);
-    const fallbackProvider = preset?.provider ?? (this.configService.get(fallbackKey) === undefined ? undefined : this.getChatProvider(fallbackKey));
-    const model = fallbackProvider === undefined ? primary : new FallbackChatModel(
-      primary, this.createChatDeployment(role, fallbackProvider, true), this.chatProviders[role], fallbackProvider,
+    const preset = chatPreset(
+      this.configService.get(fallbackAliasKey),
+      fallbackAliasKey,
     );
+    const fallbackProvider =
+      preset?.provider ??
+      (this.configService.get(fallbackKey) === undefined
+        ? undefined
+        : this.getChatProvider(fallbackKey));
+    const model =
+      fallbackProvider === undefined
+        ? primary
+        : new FallbackChatModel(
+            primary,
+            this.createChatDeployment(role, fallbackProvider, true),
+            this.chatProviders[role],
+            fallbackProvider,
+          );
     this.chatModels.set(role, model);
     return model;
   }
 
-  private createChatDeployment(role: 'FAST' | 'STANDARD', provider: ChatProvider, fallback = false): BaseChatModel {
+  private createChatDeployment(
+    role: 'FAST' | 'STANDARD',
+    provider: ChatProvider,
+    fallback = false,
+  ): BaseChatModel {
     const aliasKey = `CHAT_${role}${fallback ? '_FALLBACK' : ''}`;
     const preset = chatPreset(this.configService.get(aliasKey), aliasKey);
     const isYandex = provider === 'yandex';
     const legacyModelKey =
-      (provider === 'qwen' || provider === 'gigachat')
+      provider === 'qwen' || provider === 'gigachat'
         ? `CHAT_${role}_MODEL`
         : isYandex
         ? role === 'FAST'
@@ -199,25 +248,47 @@ export class AiService {
         : role === 'FAST'
         ? 'OPENAI_FAST_MODEL'
         : 'OPENAI_STANDARD_MODEL';
-    const roleModelKey = fallback ? `CHAT_${role}_FALLBACK_MODEL` : `CHAT_${role}_MODEL`;
-    const model = preset ? (preset.model ?? this.requireConfig(preset.modelEnv!)) : this.requireConfig(
-      !fallback && this.configService.get<unknown>(roleModelKey) === undefined
-        ? legacyModelKey
-        : roleModelKey,
-    );
-    const roleProfileKey = fallback ? `CHAT_${role}_FALLBACK_TRANSPORT_PROFILE` : `CHAT_${role}_TRANSPORT_PROFILE`;
+    const roleModelKey = fallback
+      ? `CHAT_${role}_FALLBACK_MODEL`
+      : `CHAT_${role}_MODEL`;
+    const model = preset
+      ? preset.model ?? this.requireConfig(preset.modelEnv!)
+      : this.requireConfig(
+          !fallback &&
+            this.configService.get<unknown>(roleModelKey) === undefined
+            ? legacyModelKey
+            : roleModelKey,
+        );
+    const roleProfileKey = fallback
+      ? `CHAT_${role}_FALLBACK_TRANSPORT_PROFILE`
+      : `CHAT_${role}_TRANSPORT_PROFILE`;
     const profileKey =
-      !fallback && this.configService.get<unknown>(roleProfileKey) === undefined &&
+      !fallback &&
+      this.configService.get<unknown>(roleProfileKey) === undefined &&
       provider === 'openai'
         ? `OPENAI_${role}_TRANSPORT_PROFILE`
         : roleProfileKey;
-    const profile = preset?.profile ?? this.configService.get<unknown>(profileKey);
+    const profile =
+      preset?.profile ?? this.configService.get<unknown>(profileKey);
     if (provider === 'gigachat') {
-      if (profile !== undefined && profile !== 'gigachat-native') throw new Error(profileKey + ' must be gigachat-native');
-      return new DirectGigaChat({ model, timeoutMs: this.chatTimeoutMs,
-        credentials: this.configService.get('GIGACHAT_CREDENTIALS'), accessToken: this.configService.get('GIGACHAT_ACCESS_TOKEN'),
-        scope: this.configService.get('GIGACHAT_SCOPE'), baseURL: this.configService.get('GIGACHAT_API_URL'), authURL: this.configService.get('GIGACHAT_AUTH_URL'),
-      }, { callbacks: [llmUsageCallback], tags: [`role:${role}`, `provider:${provider}`, `model:${model}`], metadata: { role, provider, model } });
+      if (profile !== undefined && profile !== 'gigachat-native')
+        throw new Error(profileKey + ' must be gigachat-native');
+      return new DirectGigaChat(
+        {
+          model,
+          timeoutMs: this.chatTimeoutMs,
+          credentials: this.configService.get('GIGACHAT_CREDENTIALS'),
+          accessToken: this.configService.get('GIGACHAT_ACCESS_TOKEN'),
+          scope: this.configService.get('GIGACHAT_SCOPE'),
+          baseURL: this.configService.get('GIGACHAT_API_URL'),
+          authURL: this.configService.get('GIGACHAT_AUTH_URL'),
+        },
+        {
+          callbacks: [llmUsageCallback],
+          tags: [`role:${role}`, `provider:${provider}`, `model:${model}`],
+          metadata: { role, provider, model },
+        },
+      );
     }
     const transport = getChatTransport(
       provider,
@@ -227,10 +298,18 @@ export class AiService {
       profileKey,
     );
     const polza = provider === 'qwen' && profile === 'polza-chat';
-    const service = preset?.service ?? (polza ? 'polza' : provider === 'qwen' ? 'alibaba' : provider);
-    const baseUrlKey = preset?.baseURLEnv ?? (isYandex ? 'YANDEX_API_URL' : 'QWEN_API_URL');
+    const service =
+      preset?.service ??
+      (polza ? 'polza' : provider === 'qwen' ? 'alibaba' : provider);
+    const baseUrlKey =
+      preset?.baseURLEnv ?? (isYandex ? 'YANDEX_API_URL' : 'QWEN_API_URL');
     const baseURL =
-      preset?.baseURL ?? (polza ? 'https://polza.ai/api/v1' : provider !== 'openai' ? this.requireConfig(baseUrlKey) : undefined);
+      preset?.baseURL ??
+      (polza
+        ? 'https://polza.ai/api/v1'
+        : provider !== 'openai'
+        ? this.requireConfig(baseUrlKey)
+        : undefined);
     if (baseURL) {
       let valid = false;
       try {
@@ -251,11 +330,14 @@ export class AiService {
     }
     const chatModel = new ChatOpenAI({
       apiKey: this.requireConfig(
-        preset?.credentialEnv ?? (polza ? 'POLZA_API_KEY' : isYandex
-          ? 'YANDEX_API_KEY'
-          : provider === 'qwen'
-          ? 'QWEN_API_KEY'
-          : 'OPENAI_API_KEY'),
+        preset?.credentialEnv ??
+          (polza
+            ? 'POLZA_API_KEY'
+            : isYandex
+            ? 'YANDEX_API_KEY'
+            : provider === 'qwen'
+            ? 'QWEN_API_KEY'
+            : 'OPENAI_API_KEY'),
       ),
       model,
       ...transport,
@@ -272,138 +354,337 @@ export class AiService {
       },
       callbacks: [llmUsageCallback],
       tags: [`role:${role}`, `provider:${provider}`, `model:${model}`],
-      metadata: { role, provider, model, ...(preset || polza ? { service } : {}) },
+      metadata: {
+        role,
+        provider,
+        model,
+        ...(preset || polza ? { service } : {}),
+      },
     });
+
+    if (
+      polza &&
+      (model === CHAT_PRESETS['qwen-max'].model ||
+        model === CHAT_PRESETS['qwen-flash'].model ||
+        model === 'qwen/qwen3-30b-a3b-instruct-2507')
+    ) {
+      // These deployments support JSON Schema, but reject named tool_choice.
+      // Keep LangChain's Zod parser/includeRaw; ordinary bindTools is unchanged.
+      const structuredOutput = chatModel.withStructuredOutput.bind(chatModel);
+      chatModel.withStructuredOutput = ((schema: any, config?: any) =>
+        structuredOutput(schema, {
+          ...config,
+          method:
+            config?.method === 'functionCalling' || config?.method === undefined
+              ? 'jsonSchema'
+              : config.method,
+        })) as typeof chatModel.withStructuredOutput;
+    }
 
     return chatModel;
   }
 
   public getEmbeddingSpec(provider: EmbeddingProvider): EmbeddingSpec {
     if (provider === 'qwen') {
-      const model = this.configService.get<string>('QWEN_EMBEDDING_MODEL') ?? 'qwen/qwen3-embedding-4b';
-      const fullDimensions = model === 'qwen/qwen3-embedding-4b' ? 2560 : model === 'qwen/qwen3-embedding-8b' ? 4096 : undefined;
-      if (!model.trim() || (fullDimensions === undefined && this.configService.get('QWEN_EMBEDDING_DIMENSIONS') === undefined))
-        throw new Error('Custom QWEN_EMBEDDING_MODEL requires QWEN_EMBEDDING_DIMENSIONS');
-      return { provider, queryModel: model, documentModel: model,
-        dimensions: this.getEmbeddingDimensions('QWEN_EMBEDDING_DIMENSIONS', fullDimensions!),
-        service: 'polza', baseURL: 'https://polza.ai/api/v1' };
+      const model =
+        this.configService.get<string>('QWEN_EMBEDDING_MODEL') ??
+        'qwen/qwen3-embedding-4b';
+      const fullDimensions =
+        model === 'qwen/qwen3-embedding-4b'
+          ? 2560
+          : model === 'qwen/qwen3-embedding-8b'
+          ? 4096
+          : undefined;
+      if (
+        !model.trim() ||
+        (fullDimensions === undefined &&
+          this.configService.get('QWEN_EMBEDDING_DIMENSIONS') === undefined)
+      )
+        throw new Error(
+          'Custom QWEN_EMBEDDING_MODEL requires QWEN_EMBEDDING_DIMENSIONS',
+        );
+      return {
+        provider,
+        queryModel: model,
+        documentModel: model,
+        dimensions: this.getEmbeddingDimensions(
+          'QWEN_EMBEDDING_DIMENSIONS',
+          fullDimensions!,
+        ),
+        service: 'polza',
+        baseURL: 'https://polza.ai/api/v1',
+      };
     }
     return provider === 'yandex'
-      ? { provider, queryModel: this.requireConfig('YANDEX_EMBEDDING_QUERY_MODEL'),
+      ? {
+          provider,
+          queryModel: this.requireConfig('YANDEX_EMBEDDING_QUERY_MODEL'),
           documentModel: this.requireConfig('YANDEX_EMBEDDING_DOCUMENT_MODEL'),
-          dimensions: this.getEmbeddingDimensions('YANDEX_EMBEDDING_DIMENSIONS', 768) }
-      : { provider, queryModel: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
+          dimensions: this.getEmbeddingDimensions(
+            'YANDEX_EMBEDDING_DIMENSIONS',
+            768,
+          ),
+        }
+      : {
+          provider,
+          queryModel: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
           documentModel: this.requireConfig('OPENAI_EMBEDDING_MODEL'),
-          dimensions: this.getEmbeddingDimensions('OPENAI_EMBEDDING_DIMENSIONS', 1536) };
+          dimensions: this.getEmbeddingDimensions(
+            'OPENAI_EMBEDDING_DIMENSIONS',
+            1536,
+          ),
+        };
   }
 
   public secondaryEmbeddingCollection(collection: string): string {
-    const key = collection === 'products' ? 'QDRANT_PRODUCTS_SECONDARY_COLLECTION'
-      : collection === 'store_knowledge' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : undefined;
+    const key =
+      collection === 'products'
+        ? 'QDRANT_PRODUCTS_SECONDARY_COLLECTION'
+        : collection === 'store_knowledge'
+        ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION'
+        : undefined;
     if (!key) throw new Error('Unsupported logical embedding collection');
-    const name = this.configService.get(key) === undefined ? `${collection}_fallback` : this.requireConfig(key);
-    if (!/^[a-zA-Z0-9_-]+$/.test(name) || ['products','store_knowledge'].includes(name))
+    const name =
+      this.configService.get(key) === undefined
+        ? `${collection}_fallback`
+        : this.requireConfig(key);
+    if (
+      !/^[a-zA-Z0-9_-]+$/.test(name) ||
+      ['products', 'store_knowledge'].includes(name)
+    )
       throw new Error(key + ' must name a separate collection');
-    const other = this.configService.get(collection === 'products' ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION' : 'QDRANT_PRODUCTS_SECONDARY_COLLECTION') ?? (collection === 'products' ? 'store_knowledge_fallback' : 'products_fallback');
-    if (name === other) throw new Error('Secondary product and knowledge collections must be different');
+    const other =
+      this.configService.get(
+        collection === 'products'
+          ? 'QDRANT_KNOWLEDGE_SECONDARY_COLLECTION'
+          : 'QDRANT_PRODUCTS_SECONDARY_COLLECTION',
+      ) ??
+      (collection === 'products'
+        ? 'store_knowledge_fallback'
+        : 'products_fallback');
+    if (name === other)
+      throw new Error(
+        'Secondary product and knowledge collections must be different',
+      );
     return name;
   }
 
-  public async createEmbedding(text: string, provider: EmbeddingProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[]> {
+  public async createEmbedding(
+    text: string,
+    provider: EmbeddingProvider,
+    kind: 'query' | 'document',
+    options: EmbeddingOptions = {},
+  ): Promise<number[]> {
     return (await this.requestEmbedding(text, provider, kind, options))[0];
   }
 
-  private async requestEmbedding(text: string | string[], provider: EmbeddingProvider, kind: 'query' | 'document', options: EmbeddingOptions = {}): Promise<number[][]> {
+  private async requestEmbedding(
+    text: string | string[],
+    provider: EmbeddingProvider,
+    kind: 'query' | 'document',
+    options: EmbeddingOptions = {},
+  ): Promise<number[][]> {
     options.signal?.throwIfAborted();
-    const apiKey = this.requireConfig(provider === 'yandex' ? 'YANDEX_API_KEY' : provider === 'qwen' ? 'POLZA_API_KEY' : 'OPENAI_API_KEY');
+    const apiKey = this.requireConfig(
+      provider === 'yandex'
+        ? 'YANDEX_API_KEY'
+        : provider === 'qwen'
+        ? 'POLZA_API_KEY'
+        : 'OPENAI_API_KEY',
+    );
     const spec = this.getEmbeddingSpec(provider);
     const timeout = AbortSignal.timeout(this.embeddingTimeoutMs);
-    const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
+    const signal = options.signal
+      ? AbortSignal.any([options.signal, timeout])
+      : timeout;
     try {
       if (provider === 'openai' || provider === 'qwen') {
-        const client = provider === 'qwen'
-          ? (this.polzaEmbeddingClient ??= new OpenAI({ apiKey, baseURL: spec.baseURL, maxRetries: 0, timeout: this.embeddingTimeoutMs }))
-          : (this.openAiEmbeddingClient ??= new OpenAI({ apiKey, maxRetries: 0, timeout: this.embeddingTimeoutMs }));
-        const result = await client.embeddings.create({
-          model: kind === 'query' ? spec.queryModel : spec.documentModel, input: text,
-          ...(provider === 'openai' ? { dimensions: spec.dimensions } : {}), encoding_format: 'float',
-        }, { signal, maxRetries: 0, timeout: this.embeddingTimeoutMs });
+        const client =
+          provider === 'qwen'
+            ? (this.polzaEmbeddingClient ??= new OpenAI({
+                apiKey,
+                baseURL: spec.baseURL,
+                maxRetries: 0,
+                timeout: this.embeddingTimeoutMs,
+              }))
+            : (this.openAiEmbeddingClient ??= new OpenAI({
+                apiKey,
+                maxRetries: 0,
+                timeout: this.embeddingTimeoutMs,
+              }));
+        const result = await client.embeddings.create(
+          {
+            model: kind === 'query' ? spec.queryModel : spec.documentModel,
+            input: text,
+            ...(provider === 'openai' ? { dimensions: spec.dimensions } : {}),
+            encoding_format: 'float',
+          },
+          { signal, maxRetries: 0, timeout: this.embeddingTimeoutMs },
+        );
         signal.throwIfAborted();
         const count = Array.isArray(text) ? text.length : 1;
-        if (!Array.isArray(result.data)) throw new EmbeddingRequestError('invalid-response', provider);
-        const ordered = [...result.data].sort((a, b) => a.index - b.index);
-        if (ordered.length !== count || ordered.some((row, index) => row.index !== index))
+        if (!Array.isArray(result.data))
           throw new EmbeddingRequestError('invalid-response', provider);
-        return ordered.map(row => validateEmbedding(row.embedding, spec));
+        const ordered = [...result.data].sort((a, b) => a.index - b.index);
+        if (
+          ordered.length !== count ||
+          ordered.some((row, index) => row.index !== index)
+        )
+          throw new EmbeddingRequestError('invalid-response', provider);
+        return ordered.map((row) => validateEmbedding(row.embedding, spec));
       }
-      const auth = this.configService.get<string>('YANDEX_EMBEDDING_AUTH_TYPE') ?? 'iam';
-      if (!['iam', 'api-key'].includes(auth)) throw new Error('YANDEX_EMBEDDING_AUTH_TYPE must be iam or api-key');
+      const auth =
+        this.configService.get<string>('YANDEX_EMBEDDING_AUTH_TYPE') ?? 'iam';
+      if (!['iam', 'api-key'].includes(auth))
+        throw new Error('YANDEX_EMBEDDING_AUTH_TYPE must be iam or api-key');
       const response = await fetch(YANDEX_EMBEDDING_API_URL, {
-        method: 'POST', signal,
-        headers: { 'Content-Type': 'application/json', Authorization: (auth === 'iam' ? 'Bearer ' : 'Api-Key ') + apiKey,
-          'x-folder-id': this.requireConfig('YANDEX_FOLDER_ID') },
-        body: JSON.stringify({ modelUri: kind === 'query' ? spec.queryModel : spec.documentModel, text, dim: String(spec.dimensions) }),
+        method: 'POST',
+        signal,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: (auth === 'iam' ? 'Bearer ' : 'Api-Key ') + apiKey,
+          'x-folder-id': this.requireConfig('YANDEX_FOLDER_ID'),
+        },
+        body: JSON.stringify({
+          modelUri: kind === 'query' ? spec.queryModel : spec.documentModel,
+          text,
+          dim: String(spec.dimensions),
+        }),
       });
       const textBody = await response.text();
       signal.throwIfAborted();
       let body: any;
-      try { body = JSON.parse(textBody); } catch { /* Keep HTTP status classification for non-JSON error bodies. */ }
-      if (!response.ok) throw embeddingHttpFailure(provider, response.status, String(body?.error?.code ?? body?.code ?? ''));
+      try {
+        body = JSON.parse(textBody);
+      } catch {
+        /* Keep HTTP status classification for non-JSON error bodies. */
+      }
+      if (!response.ok)
+        throw embeddingHttpFailure(
+          provider,
+          response.status,
+          String(body?.error?.code ?? body?.code ?? ''),
+        );
       return [validateEmbedding(body?.embedding, spec)];
     } catch (error) {
       options.signal?.throwIfAborted();
       if (error instanceof EmbeddingRequestError) throw error;
       if (!error || typeof error !== 'object') throw error;
-      const failure = error as { name?: string; status?: number; code?: string; cause?: { code?: string }; message?: string };
+      const failure = error as {
+        name?: string;
+        status?: number;
+        code?: string;
+        cause?: { code?: string };
+        message?: string;
+      };
       if (timeout.aborted || failure.name === 'APIConnectionTimeoutError')
-        throw new EmbeddingRequestError('availability', provider, undefined, { cause: error });
+        throw new EmbeddingRequestError('availability', provider, undefined, {
+          cause: error,
+        });
       if (typeof failure.status === 'number') {
-        const classified = embeddingHttpFailure(provider, failure.status, failure.code);
-        throw new EmbeddingRequestError(classified.category, provider, failure.status, { cause: error });
+        const classified = embeddingHttpFailure(
+          provider,
+          failure.status,
+          failure.code,
+        );
+        throw new EmbeddingRequestError(
+          classified.category,
+          provider,
+          failure.status,
+          { cause: error },
+        );
       }
-      if (failure.name === 'APIConnectionError' || (error as any)?.constructor?.name === 'APIConnectionError' ||
-        (failure.name === 'TypeError' && /^(fetch failed|Failed to fetch)$/.test(failure.message ?? ''))) {
+      if (
+        failure.name === 'APIConnectionError' ||
+        (error as any)?.constructor?.name === 'APIConnectionError' ||
+        (failure.name === 'TypeError' &&
+          /^(fetch failed|Failed to fetch)$/.test(failure.message ?? ''))
+      ) {
         let cause = error as any;
         for (let depth = 0; cause && depth < 8; depth++, cause = cause.cause) {
-          if (/^(ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|UND_ERR_CONNECT_TIMEOUT|UND_ERR_SOCKET)$/.test(cause.code ?? ''))
-            throw new EmbeddingRequestError('availability', provider, undefined, { cause: error });
+          if (
+            /^(ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|UND_ERR_CONNECT_TIMEOUT|UND_ERR_SOCKET)$/.test(
+              cause.code ?? '',
+            )
+          )
+            throw new EmbeddingRequestError(
+              'availability',
+              provider,
+              undefined,
+              { cause: error },
+            );
         }
       }
       throw error;
     }
   }
 
-  public createOpenAiEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  public createOpenAiEmbedding(
+    text: string,
+    options?: EmbeddingOptions,
+  ): Promise<number[]> {
     return this.createEmbedding(text, 'openai', 'document', options);
   }
-  public async createOpenAiEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
+  public async createOpenAiEmbeddings(
+    texts: string[],
+    options?: EmbeddingOptions,
+  ): Promise<number[][]> {
     if (!texts.length) return [];
     return this.requestEmbedding(texts, 'openai', 'document', options);
   }
-  public createYandexQueryEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  public createYandexQueryEmbedding(
+    text: string,
+    options?: EmbeddingOptions,
+  ): Promise<number[]> {
     return this.createEmbedding(text, 'yandex', 'query', options);
   }
-  public createYandexDocumentEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  public createYandexDocumentEmbedding(
+    text: string,
+    options?: EmbeddingOptions,
+  ): Promise<number[]> {
     return this.createEmbedding(text, 'yandex', 'document', options);
   }
-  public async createYandexDocumentEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
+  public async createYandexDocumentEmbeddings(
+    texts: string[],
+    options?: EmbeddingOptions,
+  ): Promise<number[][]> {
     const results: number[][] = [];
-    for (const text of texts) results.push(await this.createYandexDocumentEmbedding(text, options));
+    for (const text of texts)
+      results.push(await this.createYandexDocumentEmbedding(text, options));
     return results;
   }
-  public createQueryEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  public createQueryEmbedding(
+    text: string,
+    options?: EmbeddingOptions,
+  ): Promise<number[]> {
     return this.createEmbedding(text, this.embeddingProvider, 'query', options);
   }
-  public createDocumentEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
-    return this.createEmbedding(text, this.embeddingProvider, 'document', options);
+  public createDocumentEmbedding(
+    text: string,
+    options?: EmbeddingOptions,
+  ): Promise<number[]> {
+    return this.createEmbedding(
+      text,
+      this.embeddingProvider,
+      'document',
+      options,
+    );
   }
-  public async createDocumentEmbeddings(texts: string[], options?: EmbeddingOptions): Promise<number[][]> {
-    if (this.embeddingProvider === 'openai') return this.createOpenAiEmbeddings(texts, options);
+  public async createDocumentEmbeddings(
+    texts: string[],
+    options?: EmbeddingOptions,
+  ): Promise<number[][]> {
+    if (this.embeddingProvider === 'openai')
+      return this.createOpenAiEmbeddings(texts, options);
     const results: number[][] = [];
-    for (const text of texts) results.push(await this.createDocumentEmbedding(text, options));
+    for (const text of texts)
+      results.push(await this.createDocumentEmbedding(text, options));
     return results;
   }
-  public createProductEmbedding(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  public createProductEmbedding(
+    text: string,
+    options?: EmbeddingOptions,
+  ): Promise<number[]> {
     return this.createDocumentEmbedding(text, options);
   }
 

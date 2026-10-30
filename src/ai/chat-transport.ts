@@ -28,13 +28,20 @@ export function getChatTransport(
         `AiService configuration: ${profileKey} must be "qwen-chat" or "polza-chat" for Qwen.`,
       );
     }
-    // This profile targets text models supporting non-thinking + JSON Schema.
-    // Thinking-only / Omni deployments require separate conformance, not a silent fallback.
+    // Polza Max has mandatory reasoning (default xhigh); Flash supports disabling it.
+    // Use Polza's reasoning object, not Alibaba's enable_thinking or ignored top-level effort.
+    const polzaReasoning = model === 'qwen/qwen3.8-max'
+      ? { effort: 'minimal' }
+      : model === 'qwen/qwen3.8-flash'
+      ? { enabled: false }
+      : undefined;
     return {
       useResponsesApi: false,
       temperature: 0,
       streamUsage: false,
-      ...(configuredProfile === 'polza-chat' ? {} : { modelKwargs: { enable_thinking: false } }),
+      modelKwargs: configuredProfile === 'polza-chat'
+        ? (polzaReasoning ? { reasoning: polzaReasoning } : {})
+        : { enable_thinking: false },
     };
   }
 

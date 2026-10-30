@@ -117,6 +117,10 @@ FEEDBACK:
 
 Поля decision.
 
+selection — объект, а не массив позиций:
+{"kind":"positions","positions":[1,2]} или {"kind":"active"}.
+Поле kind обязательно; объект {"positions":[1,2]} невалиден.
+
 SEARCH:
 - search обязателен;
 - selection=null;

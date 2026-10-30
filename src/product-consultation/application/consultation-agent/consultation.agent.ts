@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { ZodError } from 'zod';
 
 import {
   HumanMessage,
@@ -69,8 +70,67 @@ const WORKSPACE_REPAIR_PROMPT = `
 Используй только usageScenarioIds, которые есть во входном usageScenarios.
 `.trim();
 
+const WORKSPACE_PLAIN_JSON_PROMPT = `
+Верни один JSON-объект без Markdown, пояснений и текста вокруг.
+
+Форма ответа:
+{
+  "operations": [
+    {
+      "kind": "consult",
+      "target": { "kind": "new" },
+      "query": "текст относящегося к задаче запроса",
+      "actions": [
+        {
+          "decision": {
+            "action": "SEARCH",
+            "search": {
+              "semanticIntent": "запрос для поиска",
+              "category": null,
+              "constraints": []
+            },
+            "searchPatch": null,
+            "selection": null,
+            "feedback": null,
+            "usageScenarioIds": [],
+            "factAttributeIds": [],
+            "terminalText": null
+          },
+          "view": null
+        }
+      ]
+    }
+  ],
+  "clarification": null
+}
+
+Это только пример СТРУКТУРЫ, а не указание всегда выбирать SEARCH.
+Выбирай правильные действия, target, selection, search и searchPatch
+по основному промпту и входному контексту.
+
+При неоднозначности без операций верни:
+{"operations":[],"clarification":"конкретный уточняющий вопрос"}.
+
+Для каждой независимой подборки создай отдельную operation.
+Для последовательных действий одной подборки используй массив actions.
+`.trim();
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parsePlainWorkspaceJson(response: BaseMessage): unknown | null {
+  const text = response.text.trim();
+
+  const fenced = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/iu);
+
+  try {
+    const candidate: unknown = JSON.parse(fenced ? fenced[1] : text);
+
+    return isRecord(candidate) ? candidate : null;
+  } catch {
+    return null;
+  }
 }
 
 function workspaceFallbackQuery(context: unknown): string | null {
@@ -190,15 +250,37 @@ export function createConsultationAgent(aiService: AiService) {
       stopAfterAttempt: 2,
     });
 
-  const workspaceDecisionModel = model.withStructuredOutput(
-    ProductWorkspaceModelPlanSchema,
-    {
-      name: 'product_workspace_decision',
-      method: 'functionCalling',
-      strict: false,
-      includeRaw: true,
-    },
+  /*
+   * Yandex продолжает использовать существующий structured output.
+   *
+   * Для Qwen и GigaChat не отправляем сложную JSON Schema
+   * на сервер провайдера при вызове Workspace Planner.
+   *
+   * Ответ остаётся JSON, но проверяется локально
+   * существующим нормализатором и Zod.
+   */
+  const provider = model.metadata?.provider;
+
+  const plainWorkspaceOutput =
+    provider === 'qwen' ||
+    provider === 'gigachat' ||
+    model.tags?.includes('provider:qwen') === true ||
+    model.tags?.includes('provider:gigachat') === true;
+
+  workspaceLogger.log(
+    `Workspace output mode: ${
+      plainWorkspaceOutput ? 'plain-json' : 'structured'
+    }`,
   );
+
+  const workspaceDecisionModel = plainWorkspaceOutput
+    ? null
+    : model.withStructuredOutput(ProductWorkspaceModelPlanSchema, {
+        name: 'product_workspace_decision',
+        method: 'functionCalling',
+        strict: false,
+        includeRaw: true,
+      });
 
   const completionModel = model.withStructuredOutput(
     ConsultationCompletionOutputSchema,
@@ -214,19 +296,52 @@ export function createConsultationAgent(aiService: AiService) {
     async decideWorkspace(context: unknown) {
       const fallbackQuery = workspaceFallbackQuery(context);
 
+      let repairDetails = '';
+
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const response = await workspaceDecisionModel.invoke([
-            new SystemMessage(productWorkspacePrompt),
+          const messages = [
+            new SystemMessage(
+              plainWorkspaceOutput
+                ? `${productWorkspacePrompt}\n\n${WORKSPACE_PLAIN_JSON_PROMPT}`
+                : productWorkspacePrompt,
+            ),
             ...(attempt === 0
               ? []
-              : [new SystemMessage(WORKSPACE_REPAIR_PROMPT)]),
+              : [
+                  new SystemMessage(
+                    `${WORKSPACE_REPAIR_PROMPT}\n${repairDetails}`,
+                  ),
+                ]),
             new HumanMessage(JSON.stringify(context)),
-          ]);
+          ];
 
-          const candidate = extractWorkspaceCandidate(response);
+          const response = plainWorkspaceOutput
+            ? await model.invoke(messages)
+            : await workspaceDecisionModel!.invoke(messages);
+
+          const candidate = plainWorkspaceOutput
+            ? parsePlainWorkspaceJson(response as BaseMessage)
+            : extractWorkspaceCandidate(response);
 
           if (candidate === null) {
+            if (!plainWorkspaceOutput) {
+              const raw = isRecord(response) ? response.raw : null;
+
+              if (
+                isRecord(raw) &&
+                isRecord(raw.additional_kwargs) &&
+                raw.additional_kwargs.refusal
+              ) {
+                throw new Error(
+                  'ProductWorkspacePlanner: model refused structured output.',
+                );
+              }
+            }
+
+            repairDetails =
+              'Ответ должен быть полным JSON-объектом нужной структуры.';
+
             workspaceLogger.warn(
               `Workspace structured output is empty on attempt ${
                 attempt + 1
@@ -239,6 +354,17 @@ export function createConsultationAgent(aiService: AiService) {
           try {
             return normalizeProductWorkspaceModelPlan(candidate, fallbackQuery);
           } catch (error) {
+            // Исправлять повторным запросом можно только
+            // ответ модели, отклонённый Zod.
+            if (!(error instanceof ZodError) || attempt > 0) {
+              throw error;
+            }
+
+            repairDetails = error.issues
+              .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+              .join('\n')
+              .slice(0, 1200);
+
             workspaceLogger.warn(
               `Workspace plan normalization failed on attempt ${attempt + 1}: ${
                 error instanceof Error ? error.message : String(error)
@@ -253,6 +379,9 @@ export function createConsultationAgent(aiService: AiService) {
               error instanceof Error ? error.message : String(error)
             }`,
           );
+
+          // Ошибки транспорта не исправляются повторным вызовом.
+          throw error;
         }
       }
 
