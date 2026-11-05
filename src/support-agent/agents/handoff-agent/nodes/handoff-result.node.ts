@@ -5,7 +5,6 @@ import type { GraphNode } from '@langchain/langgraph';
 import { readProductContext } from '../../../../product-consultation/application/context/product-context.schema';
 
 import { SupportAgentState } from '../../../graph/support-agent.state';
-import { markConsultationSessionHandedOff } from '@/src/product-consultation/application/session/consultation-session';
 
 export const handoffResultNode: GraphNode<typeof SupportAgentState> = (
   state,
@@ -13,9 +12,17 @@ export const handoffResultNode: GraphNode<typeof SupportAgentState> = (
   const productContext = readProductContext(state.productContext);
 
   if (state.handoff) {
-    markConsultationSessionHandedOff(productContext);
-
-    const message = state.handoff.handoffMessage;
+    /*
+     * Handoff здесь только подготовлен.
+     *
+     * Фактическое создание обращения и
+     * назначение оператора выполнит
+     * ChatHandoffService.
+     *
+     * Поэтому не отмечаем консультацию
+     * завершённой до успешной записи в БД.
+     */
+    const message = 'Запрос на передачу оператору подготовлен.';
 
     return {
       activeAgent: null,
@@ -26,7 +33,6 @@ export const handoffResultNode: GraphNode<typeof SupportAgentState> = (
 
       answer: {
         message,
-
         blocks: [],
       },
 
@@ -48,7 +54,6 @@ export const handoffResultNode: GraphNode<typeof SupportAgentState> = (
 
     answer: {
       message,
-
       blocks: [],
     },
 

@@ -1,9 +1,15 @@
 import { MailerService } from '@nestjs-modules/mailer';
+
 import { Inject, Injectable } from '@nestjs/common';
+
 import { ConfigService } from '@nestjs/config';
+
 import { render } from '@react-email/render';
+
 import React from 'react';
+
 import { Resend } from 'resend';
+
 import { ConfirmationTemplate } from './emails/confirmation.template';
 import { InviteOperatorTemplate } from './emails/invite-operator.template';
 import { ResetPasswordTemplate } from './emails/reset-password.template';
@@ -16,12 +22,20 @@ export class MailService {
   public constructor(
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
-    @Inject(RESEND_TOKEN) private readonly resend: Resend,
+
+    @Inject(RESEND_TOKEN)
+    private readonly resend: Resend,
   ) {}
 
   public async sendConfirmationEmail(email: string, token: string) {
     const domain = this.configService.getOrThrow<string>('ALLOWED_ORIGIN');
-    const html = await render(ConfirmationTemplate({ domain, token }));
+
+    const html = await render(
+      ConfirmationTemplate({
+        domain,
+        token,
+      }),
+    );
 
     return this.sendEmail(
       'german.saratov@gmail.com',
@@ -32,13 +46,23 @@ export class MailService {
 
   public async sendResetPassword(email: string, token: string) {
     const domain = this.configService.getOrThrow<string>('ALLOWED_ORIGIN');
-    const html = await render(ResetPasswordTemplate({ domain, token }));
+
+    const html = await render(
+      ResetPasswordTemplate({
+        domain,
+        token,
+      }),
+    );
 
     return this.sendEmail('german.saratov@gmail.com', 'Сброс пароля', html);
   }
 
   public async sendTwoFactorTokenEmail(email: string, token: string) {
-    const html = await render(TwoFactorAuthTemplate({ token }));
+    const html = await render(
+      TwoFactorAuthTemplate({
+        token,
+      }),
+    );
 
     return this.sendEmail(
       'german.saratov@gmail.com',
@@ -47,24 +71,46 @@ export class MailService {
     );
   }
 
+  /**
+   * Приглашение отправляется именно тому
+   * сотруднику, чей email передан в метод.
+   */
   public async sendInviteOperatorEmail(email: string, token: string) {
     const domain = this.configService.getOrThrow<string>('ALLOWED_ORIGIN');
-    const html = await render(InviteOperatorTemplate({ domain, token }));
-    return this.sendEmail(
-      'german.saratov@gmail.com',
-      'Пригласительная ссылка для менеджера',
-      html,
+
+    const html = await render(
+      InviteOperatorTemplate({
+        domain,
+        token,
+      }),
     );
+
+    const result = await this.resend.emails.send({
+      from: this.configService.getOrThrow<string>('EMAIL_FROM'),
+      to: email,
+      subject: 'Приглашение оператора магазина',
+      html,
+    });
+
+    if (result.error) {
+      throw new Error(
+        `Не удалось отправить приглашение: ${result.error.message}`,
+      );
+    }
+
+    return result.data;
   }
 
   private async sendEmail(email: string, subject: string, html: string) {
     console.log('Resend:', this.resend);
+
     const result = await this.resend.emails.send({
       from: this.configService.get<string>('EMAIL_FROM'),
       to: email,
       subject,
       html,
     });
+
     console.log('Resend error', result);
   }
 }

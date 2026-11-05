@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { AiModule } from '../ai/ai.module';
 
+import { PrismaModule } from '../core/prisma/prisma.module';
+
 import { ProductConsultationModule } from '../product-consultation/product-consultation.module';
 
 import { StoreKnowledgeModule } from '../store-knowledge/store-knowledge.module';
@@ -17,6 +19,8 @@ import { SupportAgentService } from './support-agent.service';
 @Module({
   imports: [
     AiModule,
+
+    PrismaModule,
 
     ProductConsultationModule,
 

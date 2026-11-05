@@ -1,8 +1,10 @@
 import {
+  BadGatewayException,
   BadRequestException,
   ConflictException,
   Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 
 import { createHash } from 'node:crypto';
@@ -17,12 +19,11 @@ import {
 import { PrismaService } from '../core/prisma/prisma.service';
 
 import {
-  YookassaPaymentResponse,
   YookassaService,
+  type YookassaPaymentResponse,
 } from './yookassa/yookassa.service';
 
 const RESERVATION_PREFIX = 'reservation:';
-
 const IDEMPOTENCE_RETRY_LIMIT_MS = 23 * 60 * 60 * 1000;
 
 type PaymentAdmission =
@@ -41,9 +42,7 @@ type PaymentAdmission =
       amount: number;
     };
 
-function isJsonObject(
-  value: Prisma.JsonValue | null,
-): value is Prisma.JsonObject {
+function isJsonObject(value: unknown): value is Prisma.JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
@@ -56,11 +55,7 @@ function readConfirmationUrl(
 
   const confirmation = rawResponse.confirmation;
 
-  if (
-    typeof confirmation !== 'object' ||
-    confirmation === null ||
-    Array.isArray(confirmation)
-  ) {
+  if (!isJsonObject(confirmation)) {
     return null;
   }
 
@@ -76,14 +71,10 @@ function readReservationKey(
     return null;
   }
 
-  if (
-    rawResponse.phase !== 'CREATING' ||
-    typeof rawResponse.idempotenceKey !== 'string'
-  ) {
-    return null;
-  }
-
-  return rawResponse.idempotenceKey;
+  return rawResponse.phase === 'CREATING' &&
+    typeof rawResponse.idempotenceKey === 'string'
+    ? rawResponse.idempotenceKey
+    : null;
 }
 
 function createPaymentIdempotenceKey(
@@ -103,20 +94,66 @@ function createPaymentIdempotenceKey(
     .digest('hex');
 }
 
+function paymentSnapshot(
+  payment: YookassaPaymentResponse,
+): Prisma.InputJsonObject {
+  return {
+    id: payment.id,
+    status: payment.status,
+    paid: payment.paid,
+
+    amount: {
+      value: payment.amount.value,
+      currency: payment.amount.currency,
+    },
+
+    created_at: payment.created_at,
+    test: payment.test,
+
+    ...(payment.confirmation
+      ? {
+          confirmation: {
+            type: payment.confirmation.type,
+
+            ...(payment.confirmation.confirmation_url
+              ? {
+                  confirmation_url: payment.confirmation.confirmation_url,
+                }
+              : {}),
+
+            ...(payment.confirmation.return_url
+              ? {
+                  return_url: payment.confirmation.return_url,
+                }
+              : {}),
+          },
+        }
+      : {}),
+
+    ...(payment.metadata
+      ? {
+          metadata: payment.metadata,
+        }
+      : {}),
+
+    ...(payment.cancellation_details
+      ? {
+          cancellation_details: payment.cancellation_details,
+        }
+      : {}),
+  };
+}
+
 @Injectable()
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
 
-  public constructor(
+  constructor(
     private readonly prismaService: PrismaService,
     private readonly yookassaService: YookassaService,
   ) {}
 
-  public async createPayment(userId: string, orderId: string) {
-    // Быстрая проверка до транзакции.
-    // Повторно проверяем условия уже
-    // под блокировкой строки Order.
-
+  async createPayment(userId: string, orderId: string) {
     const initialOrder = await this.prismaService.order.findFirstOrThrow({
       where: {
         id: orderId,
@@ -134,20 +171,15 @@ export class PaymentService {
 
     const admission = await this.prismaService.$transaction(
       async (tx): Promise<PaymentAdmission> => {
-        // Блокируем именно строку заказа.
-        //
-        // Создание платежа и отмена должны
-        // использовать одну и ту же блокировку.
+        const rows = await tx.$queryRaw<Array<{ id: string }>>`
+          SELECT "id"
+          FROM "order"
+          WHERE "id" = ${orderId}
+            AND "userId" = ${userId}
+          FOR UPDATE
+        `;
 
-        const lockedRows = await tx.$queryRaw<Array<{ id: string }>>`
-            SELECT "id"
-            FROM "order"
-            WHERE "id" = ${orderId}
-              AND "userId" = ${userId}
-            FOR UPDATE
-          `;
-
-        if (lockedRows.length !== 1) {
+        if (rows.length !== 1) {
           throw new ConflictException('Заказ недоступен для оплаты');
         }
 
@@ -157,9 +189,6 @@ export class PaymentService {
             userId,
           },
         });
-
-        // Состояние могло измениться между
-        // первой проверкой и блокировкой.
 
         if (order.status !== OrderStatus.PENDING_PAYMENT) {
           throw new ConflictException(
@@ -173,96 +202,81 @@ export class PaymentService {
           );
         }
 
-        const succeededPayment = await tx.payment.findFirst({
+        const succeeded = await tx.payment.findFirst({
           where: {
             orderId,
             status: PaymentStatus.SUCCEEDED,
           },
+
           select: {
             id: true,
           },
         });
 
-        if (succeededPayment) {
+        if (succeeded) {
           throw new ConflictException('Заказ уже оплачен');
         }
 
-        const pendingPayment = await tx.payment.findFirst({
+        const pending = await tx.payment.findFirst({
           where: {
             orderId,
             status: PaymentStatus.PENDING,
           },
+
           orderBy: {
             createdAt: 'desc',
           },
         });
 
-        if (pendingPayment) {
-          if (pendingPayment.amount !== order.finalAmount) {
+        if (pending) {
+          if (pending.amount !== order.finalAmount) {
             throw new ConflictException(
-              'Сумма заказа отличается от суммы уже начатой оплаты',
+              'Сумма заказа отличается от суммы начатой оплаты',
             );
           }
 
-          // Платёжная запись есть, но внешний
-          // запрос ещё не завершил регистрацию.
-          //
-          // Повторяем ту же операцию с тем же
-          // ключом, а не создаём новую попытку.
-
-          if (pendingPayment.providerPaymentId.startsWith(RESERVATION_PREFIX)) {
-            const idempotenceKey = readReservationKey(
-              pendingPayment.rawResponse,
-            );
+          if (pending.providerPaymentId.startsWith(RESERVATION_PREFIX)) {
+            const key = readReservationKey(pending.rawResponse);
 
             if (
-              !idempotenceKey ||
-              pendingPayment.providerPaymentId !==
-                `${RESERVATION_PREFIX}${idempotenceKey}`
+              !key ||
+              pending.providerPaymentId !== `${RESERVATION_PREFIX}${key}`
             ) {
               throw new ConflictException(
                 'Не удалось восстановить платёжную попытку',
               );
             }
 
-            const ageMs = Date.now() - pendingPayment.createdAt.getTime();
+            const age = Date.now() - pending.createdAt.getTime();
 
-            if (ageMs < 0 || ageMs >= IDEMPOTENCE_RETRY_LIMIT_MS) {
-              // Ключ мог выйти за безопасное окно
-              // идемпотентности ЮKassa.
-              //
-              // Создавать второй внешний платёж
-              // без сверки здесь нельзя.
-
+            if (age < 0 || age >= IDEMPOTENCE_RETRY_LIMIT_MS) {
               throw new ConflictException(
-                'Необходимо проверить состояние ранее начатой оплаты',
+                'Необходимо проверить ранее начатую оплату',
               );
             }
 
             return {
               kind: 'RESERVED',
-              paymentId: pendingPayment.id,
-              placeholderId: pendingPayment.providerPaymentId,
-              idempotenceKey,
-              amount: pendingPayment.amount,
+              paymentId: pending.id,
+              placeholderId: pending.providerPaymentId,
+              idempotenceKey: key,
+              amount: pending.amount,
             };
           }
 
-          const confirmationUrl = readConfirmationUrl(
-            pendingPayment.rawResponse,
-          );
+          const confirmationUrl = readConfirmationUrl(pending.rawResponse);
 
           if (!confirmationUrl) {
             throw new ConflictException(
-              'Платёж уже создан, но ссылка на оплату недоступна',
+              'Ссылка на уже созданный платёж недоступна',
             );
           }
 
           return {
             kind: 'EXISTING',
-            paymentId: pendingPayment.id,
-            providerPaymentId: pendingPayment.providerPaymentId,
-            status: pendingPayment.status,
+            paymentId: pending.id,
+            providerPaymentId: pending.providerPaymentId,
+            status: pending.status,
             confirmationUrl,
           };
         }
@@ -282,19 +296,12 @@ export class PaymentService {
 
         const placeholderId = `${RESERVATION_PREFIX}${idempotenceKey}`;
 
-        // Ключевое изменение:
-        // сохраняем попытку ДО вызова ЮKassa.
-
         const reservation = await tx.payment.create({
           data: {
             orderId,
-
             providerPaymentId: placeholderId,
-
             amount: order.finalAmount,
-
             status: PaymentStatus.PENDING,
-
             paidAt: null,
 
             rawResponse: {
@@ -309,30 +316,19 @@ export class PaymentService {
           paymentId: reservation.id,
           placeholderId,
           idempotenceKey,
-          amount: order.finalAmount,
+          amount: reservation.amount,
         };
       },
     );
 
-    // Активный внешний платёж уже существует.
-    // Новый запрос к ЮKassa не нужен.
-
     if (admission.kind === 'EXISTING') {
       return {
         paymentId: admission.paymentId,
-
         providerPaymentId: admission.providerPaymentId,
-
         status: admission.status,
-
         confirmationUrl: admission.confirmationUrl,
       };
     }
-
-    // Транзакция уже завершена.
-    //
-    // Даже если процесс сейчас упадёт,
-    // запись Payment(PENDING) сохранится.
 
     const yookassaPayment = await this.yookassaService.createPayment({
       orderId,
@@ -340,33 +336,20 @@ export class PaymentService {
       idempotenceKey: admission.idempotenceKey,
     });
 
-    const paymentStatus = this.mapPaymentStatus(yookassaPayment.status);
-
-    // Два одинаковых запроса с тем же ключом
-    // могут получить один ответ ЮKassa.
-    //
-    // Обновление выполняем по ID резервации
-    // и временному providerPaymentId.
-    // Поэтому повторная запись не создаёт
-    // дополнительный Payment.
+    const status = this.mapPaymentStatus(yookassaPayment.status);
 
     await this.prismaService.payment.updateMany({
       where: {
         id: admission.paymentId,
-
         providerPaymentId: admission.placeholderId,
-
         status: PaymentStatus.PENDING,
       },
 
       data: {
         providerPaymentId: yookassaPayment.id,
-
-        status: paymentStatus,
-
-        paidAt: paymentStatus === PaymentStatus.SUCCEEDED ? new Date() : null,
-
-        rawResponse: yookassaPayment as unknown as Prisma.InputJsonValue,
+        status,
+        paidAt: status === PaymentStatus.SUCCEEDED ? new Date() : null,
+        rawResponse: paymentSnapshot(yookassaPayment),
       },
     });
 
@@ -378,9 +361,7 @@ export class PaymentService {
 
     return {
       paymentId: savedPayment.id,
-
       providerPaymentId: savedPayment.providerPaymentId,
-
       status: savedPayment.status,
 
       confirmationUrl:
@@ -388,137 +369,167 @@ export class PaymentService {
     };
   }
 
-  public async syncPaymentStatus(userId: string, orderId: string) {
-    const payment = await this.prismaService.payment.findFirstOrThrow({
-      where: {
-        orderId,
+  async syncPaymentStatus(userId: string, orderId: string) {
+    try {
+      const payment = await this.prismaService.payment.findFirst({
+        where: {
+          orderId,
 
-        order: {
-          userId,
+          order: {
+            userId,
+          },
         },
-      },
 
-      orderBy: {
-        createdAt: 'desc',
-      },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
 
-      include: {
-        order: true,
-      },
-    });
+      if (!payment) {
+        throw new NotFoundException('Платёж для заказа не найден');
+      }
 
-    // Не отправляем временный ID резервации
-    // в GET /payments/{id} ЮKassa.
+      if (payment.providerPaymentId.startsWith(RESERVATION_PREFIX)) {
+        throw new ConflictException('Регистрация платежа ещё не завершена');
+      }
 
-    if (payment.providerPaymentId.startsWith(RESERVATION_PREFIX)) {
-      throw new ConflictException('Создание платежа ещё не завершено');
-    }
+      const providerPayment = await this.yookassaService.getPayment(
+        payment.providerPaymentId,
+      );
 
-    const yookassaPayment = await this.yookassaService.getPayment(
-      payment.providerPaymentId,
-    );
+      if (
+        providerPayment.id !== payment.providerPaymentId ||
+        providerPayment.amount.currency !== 'RUB' ||
+        Number(providerPayment.amount.value) !== payment.amount
+      ) {
+        throw new BadGatewayException(
+          'Данные платежа в YooKassa не совпадают с заказом',
+        );
+      }
 
-    const paymentStatus = this.mapPaymentStatus(yookassaPayment.status);
+      const status = this.mapPaymentStatus(providerPayment.status);
 
-    const rawResponse = yookassaPayment as unknown as Prisma.InputJsonValue;
+      const rawResponse = paymentSnapshot(providerPayment);
 
-    const orderStatus = await this.prismaService.$transaction(async (tx) => {
-      if (paymentStatus === PaymentStatus.SUCCEEDED) {
-        await tx.payment.update({
+      const orderStatus = await this.prismaService.$transaction(async (tx) => {
+        const rows = await tx.$queryRaw<Array<{ id: string }>>`
+            SELECT "id"
+            FROM "order"
+            WHERE "id" = ${orderId}
+              AND "userId" = ${userId}
+            FOR UPDATE
+          `;
+
+        if (rows.length !== 1) {
+          throw new NotFoundException('Заказ не найден');
+        }
+
+        const order = await tx.order.findFirstOrThrow({
           where: {
-            id: payment.id,
+            id: orderId,
+            userId,
           },
 
-          data: {
-            status: PaymentStatus.SUCCEEDED,
-
-            paidAt: payment.paidAt ?? new Date(),
-
-            rawResponse,
+          select: {
+            id: true,
+            status: true,
+            paymentType: true,
+            cartId: true,
           },
         });
 
-        const transition = await tx.order.updateMany({
-          where: {
-            id: payment.orderId,
-
-            status: OrderStatus.PENDING_PAYMENT,
-
-            paymentType: PaymentType.CARD,
-          },
-
-          data: {
-            status: OrderStatus.PAID,
-          },
-        });
-
-        if (transition.count === 1 && payment.order.cartId) {
-          await tx.cartItem.deleteMany({
+        if (status === PaymentStatus.SUCCEEDED) {
+          await tx.payment.update({
             where: {
-              cartId: payment.order.cartId,
+              id: payment.id,
+            },
+
+            data: {
+              status: PaymentStatus.SUCCEEDED,
+              paidAt: payment.paidAt ?? new Date(),
+              rawResponse,
             },
           });
+
+          if (
+            order.status === OrderStatus.PENDING_PAYMENT &&
+            order.paymentType === PaymentType.CARD
+          ) {
+            await tx.order.update({
+              where: {
+                id: order.id,
+              },
+
+              data: {
+                status: OrderStatus.PAID,
+              },
+            });
+
+            await tx.cartItem.deleteMany({
+              where: {
+                cartId: order.cartId,
+              },
+            });
+
+            return OrderStatus.PAID;
+          }
+
+          return order.status;
         }
-      } else {
+
         await tx.payment.updateMany({
           where: {
             id: payment.id,
-
             status: PaymentStatus.PENDING,
           },
 
           data: {
-            status: paymentStatus,
-
+            status,
             rawResponse,
           },
         });
-      }
 
-      const currentOrder = await tx.order.findUniqueOrThrow({
-        where: {
-          id: payment.orderId,
-        },
-
-        select: {
-          status: true,
-        },
+        return order.status;
       });
 
-      return currentOrder.status;
-    });
+      if (
+        status === PaymentStatus.SUCCEEDED &&
+        orderStatus === OrderStatus.CANCELLED
+      ) {
+        this.logger.warn(`Payment succeeded for cancelled order: ${orderId}`);
+      }
 
-    if (
-      paymentStatus === PaymentStatus.SUCCEEDED &&
-      orderStatus === OrderStatus.CANCELLED
-    ) {
-      this.logger.warn(
-        `Payment succeeded for cancelled order: ${payment.orderId}`,
+      return {
+        orderId,
+        providerPaymentId: payment.providerPaymentId,
+        orderStatus,
+        paymentStatus: status,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Ошибка синхронизации оплаты заказа ${orderId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        error instanceof Error ? error.stack : undefined,
       );
+
+      throw error;
     }
-
-    return {
-      orderId: payment.orderId,
-
-      providerPaymentId: payment.providerPaymentId,
-
-      orderStatus,
-
-      paymentStatus,
-    };
   }
 
   private mapPaymentStatus(
     status: YookassaPaymentResponse['status'],
   ): PaymentStatus {
-    if (status === 'succeeded') {
-      return PaymentStatus.SUCCEEDED;
-    }
+    switch (status) {
+      case 'succeeded':
+        return PaymentStatus.SUCCEEDED;
 
-    if (status === 'canceled') {
-      return PaymentStatus.FAILED;
-    }
+      case 'canceled':
+        return PaymentStatus.FAILED;
 
-    return PaymentStatus.PENDING;
+      case 'pending':
+      case 'waiting_for_capture':
+        return PaymentStatus.PENDING;
+    }
   }
 }

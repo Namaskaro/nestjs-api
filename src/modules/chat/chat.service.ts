@@ -12,7 +12,9 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   ChatMode,
   ConversationMessageRole,
+  OperatorStatus,
   Prisma,
+  Role,
   TokenType,
 } from '@/prisma/generated';
 
@@ -95,10 +97,17 @@ function patchConsultationFeedbackPayload(
 
   return {
     ...payload,
-
     blocks: nextBlocks,
   } as Prisma.InputJsonValue;
 }
+
+type LockedChat = {
+  id: string;
+  userId: string;
+  operatorId: string | null;
+  mode: ChatMode;
+  handoffVersion: number;
+};
 
 @Injectable()
 export class ChatService {
@@ -239,6 +248,191 @@ export class ChatService {
     return message;
   }
 
+  /**
+   * Сохраняет сообщение покупателя или оператора.
+   *
+   * Роль определяется по реальному назначению
+   * в PostgreSQL, а не по данным frontend.
+   */
+  async createParticipantMessage(params: {
+    chatId: string;
+    userId: string;
+    content: string;
+    payload?: Prisma.InputJsonValue;
+    requireBot?: boolean;
+  }) {
+    return this.prismaService.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<LockedChat[]>`
+        SELECT
+          "id",
+          "userId",
+          "operatorId",
+          "mode",
+          "handoffVersion"
+        FROM "Chat"
+        WHERE "id" = ${params.chatId}
+        FOR UPDATE
+      `;
+
+      const chat = rows[0];
+
+      if (!chat) {
+        throw new NotFoundException('Чат не найден.');
+      }
+
+      const isCustomer = chat.userId === params.userId;
+
+      let operatorUserId: string | null = null;
+
+      if (chat.operatorId) {
+        const operator = await tx.operatorProfile.findUnique({
+          where: {
+            id: chat.operatorId,
+          },
+          select: {
+            userId: true,
+            isActive: true,
+            user: {
+              select: {
+                role: true,
+              },
+            },
+          },
+        });
+
+        if (
+          operator?.isActive &&
+          (operator.user.role === Role.Manager ||
+            operator.user.role === Role.Admin)
+        ) {
+          operatorUserId = operator.userId;
+        }
+      }
+
+      const isCurrentOperator =
+        !isCustomer &&
+        chat.mode === ChatMode.OPERATOR &&
+        operatorUserId === params.userId;
+
+      if (!isCustomer && !isCurrentOperator) {
+        throw new ForbiddenException(
+          'Нет права отправлять сообщения в этот чат.',
+        );
+      }
+
+      if (params.requireBot && (!isCustomer || chat.mode !== ChatMode.BOT)) {
+        throw new ConflictException(
+          'AI-ассистент сейчас не управляет этим чатом.',
+        );
+      }
+
+      const role = isCustomer
+        ? ConversationMessageRole.USER
+        : ConversationMessageRole.OPERATOR;
+
+      const message = await tx.message.create({
+        data: {
+          chatId: chat.id,
+          authorId: params.userId,
+          role,
+          content: params.content,
+          payload: params.payload,
+        },
+      });
+
+      await tx.chat.update({
+        where: {
+          id: chat.id,
+        },
+        data: {
+          lastMessageAt: message.createdAt,
+        },
+      });
+
+      return {
+        message,
+        shouldRunAssistant: isCustomer && chat.mode === ChatMode.BOT,
+        handoffVersion: chat.handoffVersion,
+        operatorUserId,
+      };
+    });
+  }
+
+  /**
+   * Не позволяет опубликовать устаревший ответ AI,
+   * если чат за время генерации передали оператору.
+   */
+  async createAssistantMessageIfCurrent(params: {
+    chatId: string;
+    userId: string;
+    expectedHandoffVersion: number;
+    content: string;
+    payload?: Prisma.InputJsonValue;
+  }) {
+    return this.prismaService.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<LockedChat[]>`
+        SELECT
+          "id",
+          "userId",
+          "operatorId",
+          "mode",
+          "handoffVersion"
+        FROM "Chat"
+        WHERE "id" = ${params.chatId}
+        FOR UPDATE
+      `;
+
+      const chat = rows[0];
+
+      if (!chat || chat.userId !== params.userId) {
+        throw new ForbiddenException('Нет доступа к указанному чату.');
+      }
+
+      if (
+        chat.mode !== ChatMode.BOT ||
+        chat.operatorId !== null ||
+        chat.handoffVersion !== params.expectedHandoffVersion
+      ) {
+        throw new ConflictException(
+          'Результат AI устарел после изменения состояния чата.',
+        );
+      }
+
+      const message = await tx.message.create({
+        data: {
+          chatId: chat.id,
+          role: ConversationMessageRole.ASSISTANT,
+          content: params.content,
+          payload: params.payload,
+        },
+      });
+
+      await tx.chat.update({
+        where: {
+          id: chat.id,
+        },
+        data: {
+          lastMessageAt: message.createdAt,
+        },
+      });
+
+      return message;
+    });
+  }
+
+  async getOperatorUserId(operatorProfileId: string) {
+    const operator = await this.prismaService.operatorProfile.findUnique({
+      where: {
+        id: operatorProfileId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return operator?.userId ?? null;
+  }
+
   async updateConsultationFeedbackMessage(params: {
     chatId: string;
     sessionId: string;
@@ -281,6 +475,13 @@ export class ChatService {
     );
   }
 
+  /**
+   * Старый метод сохраняем для совместимости.
+   * Новый Gateway использует ChatHandoffService.
+   *
+   * Не следует вызывать этот метод из новых
+   * операторских сценариев.
+   */
   async assignOperator(chatId: string) {
     const operator = await this.prismaService.operatorProfile.findFirst({
       where: {
@@ -333,10 +534,37 @@ export class ChatService {
     return operator;
   }
 
-  async inviteOperator(email: string) {
-    const existingOperator = this.prismaService.user.findUnique({
+  /**
+   * Приглашать сотрудников может только Admin.
+   *
+   * Приглашённый пользователь получает роль
+   * Manager и активирует профиль по email.
+   */
+  async inviteOperator(email: string, adminUserId: string) {
+    const administrator = await this.prismaService.user.findUnique({
       where: {
-        email,
+        id: adminUserId,
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (administrator?.role !== Role.Admin) {
+      throw new ForbiddenException(
+        'Приглашать сотрудников может только администратор.',
+      );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      throw new BadRequestException('Email обязателен.');
+    }
+
+    const existingOperator = await this.prismaService.user.findUnique({
+      where: {
+        email: normalizedEmail,
       },
     });
 
@@ -346,100 +574,129 @@ export class ChatService {
 
     const token = uuidv4();
 
-    const expiresIn = new Date(new Date().getTime() + 3600 * 1000);
+    const expiresIn = new Date(Date.now() + 3600 * 1000);
 
-    const inviteToken = await this.prismaService.token.create({
-      data: {
-        email,
-        token,
-        expiresIn,
-        type: TokenType.INVITE,
-      },
-    });
+    const result = await this.prismaService.$transaction(async (tx) => {
+      const inviteToken = await tx.token.create({
+        data: {
+          email: normalizedEmail,
+          token,
+          expiresIn,
+          type: TokenType.INVITE,
+        },
+      });
 
-    const newOperator = await this.prismaService.user.create({
-      data: {
-        email,
-        role: 'Manager',
-        password: null,
+      const newOperator = await tx.user.create({
+        data: {
+          email: normalizedEmail,
+          role: Role.Manager,
+          password: null,
 
-        operatorProfile: {
-          create: {
-            inviteToken: token,
-            inviteExpires: expiresIn,
-            isActive: false,
-            status: 'AVAILABLE',
+          operatorProfile: {
+            create: {
+              inviteToken: token,
+              inviteExpires: expiresIn,
+              isActive: false,
+              status: OperatorStatus.OFFLINE,
+            },
           },
         },
-      },
+      });
 
-      include: {
-        operatorProfile: true,
-      },
+      return {
+        userId: newOperator.id,
+        email: newOperator.email,
+        inviteToken,
+        expiresAt: expiresIn,
+      };
     });
 
-    await this.emailService.sendInviteOperatorEmail(
-      newOperator.email,
-      inviteToken.token,
-    );
+    await this.emailService.sendInviteOperatorEmail(normalizedEmail, token);
 
-    return {
-      userId: newOperator.id,
-      email: newOperator.email,
-      inviteToken,
-      expiresAt: expiresIn,
-    };
+    return result;
   }
 
+  /**
+   * Приглашение подтверждает владение email.
+   * После установки пароля сотрудник может войти
+   * обычным способом.
+   */
   async activateOperator(token: string, passwordHash: string, name: string) {
+    if (passwordHash.length < 6) {
+      throw new BadRequestException(
+        'Пароль должен содержать не менее 6 символов.',
+      );
+    }
+
     const operatorProfile = await this.prismaService.operatorProfile.findUnique(
       {
         where: {
           inviteToken: token,
         },
-
         include: {
           user: true,
         },
       },
     );
 
-    if (!operatorProfile) {
-      throw new BadRequestException({
-        message: 'Пригласительный токен не валиден',
-      });
+    if (!operatorProfile || operatorProfile.isActive) {
+      throw new BadRequestException('Пригласительный токен недействителен.');
     }
 
     if (
       !operatorProfile.inviteExpires ||
       operatorProfile.inviteExpires < new Date()
     ) {
-      throw new BadRequestException({
-        message: 'У токена истек срок действия',
-      });
+      throw new BadRequestException('У токена истёк срок действия.');
     }
 
-    await this.prismaService.user.update({
-      where: {
-        id: operatorProfile.userId,
-      },
+    const password = await hash(passwordHash);
 
-      data: {
-        password: await hash(passwordHash),
-        name,
-      },
+    await this.prismaService.$transaction(async (tx) => {
+      const updated = await tx.operatorProfile.updateMany({
+        where: {
+          id: operatorProfile.id,
+          inviteToken: token,
+          isActive: false,
+          inviteExpires: {
+            gt: new Date(),
+          },
+        },
+        data: {
+          isActive: true,
+          status: OperatorStatus.OFFLINE,
+          inviteToken: null,
+          inviteExpires: null,
+        },
+      });
+
+      if (updated.count !== 1) {
+        throw new ConflictException(
+          'Приглашение уже использовано или истекло.',
+        );
+      }
+
+      await tx.user.update({
+        where: {
+          id: operatorProfile.userId,
+        },
+        data: {
+          password,
+          name,
+          emailVerified: true,
+        },
+      });
+
+      await tx.token.deleteMany({
+        where: {
+          token,
+          type: TokenType.INVITE,
+        },
+      });
     });
 
-    await this.prismaService.operatorProfile.update({
-      where: {
-        id: operatorProfile.id,
-      },
-
-      data: {
-        isActive: true,
-        inviteToken: null,
-        inviteExpires: null,
-      },
-    });
+    return {
+      success: true,
+    };
   }
 }

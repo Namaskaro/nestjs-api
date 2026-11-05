@@ -1,5 +1,3 @@
-import { PrismaService } from '@/src/core/prisma/prisma.service';
-
 import {
   BadRequestException,
   ConflictException,
@@ -16,6 +14,8 @@ import {
   ShipmentStatus as PrismaShipmentStatus,
   type Prisma,
 } from '@/prisma/generated';
+
+import { PrismaService } from '@/src/core/prisma/prisma.service';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CheckoutOrderDto } from './dto/checkout-order-dto';
@@ -65,14 +65,13 @@ function dateOrNull(value: string | null | undefined): Date | null {
 
 @Injectable()
 export class OrdersService {
-  public constructor(
+  constructor(
     @Inject(ORDER_PORT)
     private readonly orderPort: OrderPort,
-
     private readonly prismaService: PrismaService,
   ) {}
 
-  public async getAllOrders() {
+  async getAllOrders() {
     return this.prismaService.order.findMany({
       include: {
         user: true,
@@ -82,46 +81,39 @@ export class OrdersService {
           },
         },
       },
+
       orderBy: {
         createdAt: 'desc',
       },
     });
   }
 
-  public async getUserOrders(userId: string): Promise<OrderRecord[]> {
+  async getUserOrders(userId: string): Promise<OrderRecord[]> {
     return this.orderPort.getUserOrders(userId);
   }
 
-  public async getOrderById(
-    userId: string,
-    orderId: string,
-  ): Promise<OrderRecord> {
+  async getOrderById(userId: string, orderId: string): Promise<OrderRecord> {
     return this.orderPort.getOrderById(userId, orderId);
   }
 
-  public async getOrderByNumber(
+  async getOrderByNumber(
     userId: string,
     orderNumber: string,
   ): Promise<OrderRecord | null> {
     return this.orderPort.getOrderByNumber(userId, orderNumber);
   }
 
-  public async getLatestUserOrder(userId: string): Promise<OrderRecord | null> {
+  async getLatestUserOrder(userId: string): Promise<OrderRecord | null> {
     return this.orderPort.getLatestUserOrder(userId);
   }
 
-  public async getRelevantUserOrder(
-    userId: string,
-  ): Promise<OrderRecord | null> {
+  async getRelevantUserOrder(userId: string): Promise<OrderRecord | null> {
     const orders = await this.orderPort.getUserOrders(userId);
 
     return selectRelevantOrder(orders);
   }
 
-  public async getOrderCancellationEligibility(
-    userId: string,
-    orderId: string,
-  ) {
+  async getOrderCancellationEligibility(userId: string, orderId: string) {
     const order = await this.orderPort.getOrderById(userId, orderId);
 
     return {
@@ -130,10 +122,7 @@ export class OrdersService {
     };
   }
 
-  public async cancelOrder(
-    userId: string,
-    orderId: string,
-  ): Promise<OrderRecord> {
+  async cancelOrder(userId: string, orderId: string): Promise<OrderRecord> {
     const order = await this.orderPort.getOrderById(userId, orderId);
 
     const eligibility = evaluateOrderCancellation(order);
@@ -156,7 +145,7 @@ export class OrdersService {
     return cancelledOrder;
   }
 
-  public async createOrderShipment(
+  async createOrderShipment(
     orderId: string,
     data: CreateOrderShipmentDto,
   ): Promise<ShipmentRecord> {
@@ -171,6 +160,7 @@ export class OrdersService {
         where: {
           id: orderId,
         },
+
         select: {
           status: true,
           paymentType: true,
@@ -188,10 +178,6 @@ export class OrdersService {
         );
       }
 
-      // Новое правило:
-      // заказ можно передать в доставку
-      // только после подтверждения полной
-      // онлайн-оплаты.
       await this.assertConfirmedPrepayment(
         tx,
         orderId,
@@ -225,7 +211,7 @@ export class OrdersService {
     });
   }
 
-  public async updateOrderShipment(
+  async updateOrderShipment(
     orderId: string,
     shipmentId: string,
     data: UpdateOrderShipmentDto,
@@ -241,6 +227,7 @@ export class OrdersService {
         where: {
           id: orderId,
         },
+
         select: {
           status: true,
           paymentType: true,
@@ -263,6 +250,7 @@ export class OrdersService {
           id: shipmentId,
           orderId,
         },
+
         select: {
           id: true,
           status: true,
@@ -284,12 +272,6 @@ export class OrdersService {
         });
       }
 
-      // Изменение отправления также требует
-      // подтверждённой оплаты.
-      //
-      // Иначе существующее PENDING-отправление
-      // можно было бы перевести в IN_TRANSIT
-      // в обход проверки создания.
       await this.assertConfirmedPrepayment(
         tx,
         orderId,
@@ -345,6 +327,7 @@ export class OrdersService {
         where: {
           id: existingShipment.id,
         },
+
         data: updateData,
       });
 
@@ -372,6 +355,7 @@ export class OrdersService {
         status: PaymentStatus.SUCCEEDED,
         amount: finalAmount,
       },
+
       select: {
         id: true,
       },
@@ -392,6 +376,7 @@ export class OrdersService {
       where: {
         orderId,
       },
+
       select: {
         status: true,
       },
@@ -409,10 +394,12 @@ export class OrdersService {
       await tx.order.updateMany({
         where: {
           id: orderId,
+
           status: {
             in: FULFILLABLE_ORDER_STATUSES,
           },
         },
+
         data: {
           status: PrismaOrderStatus.DELIVERED,
         },
@@ -429,10 +416,12 @@ export class OrdersService {
       await tx.order.updateMany({
         where: {
           id: orderId,
+
           status: {
             in: [PrismaOrderStatus.PAID, PrismaOrderStatus.PROCESSING],
           },
         },
+
         data: {
           status: PrismaOrderStatus.SHIPPED,
         },
@@ -440,67 +429,162 @@ export class OrdersService {
     }
   }
 
-  public async createOrder(userId: string, data: CreateOrderDto) {
-    const currentCart = await this.prismaService.cart.findFirstOrThrow({
-      where: {
-        id: data.cartId,
-        userId,
-      },
-      include: {
-        items: {
+  async createOrder(userId: string, data: CreateOrderDto) {
+    return this.prismaService.$transaction(async (tx) => {
+      const lockedCart = await tx.$queryRaw<Array<{ id: string }>>`
+        SELECT "id"
+        FROM "cart"
+        WHERE "id" = ${data.cartId}
+          AND "userId" = ${userId}
+        FOR UPDATE
+      `;
+
+      if (lockedCart.length !== 1) {
+        throw new NotFoundException('Корзина не найдена');
+      }
+
+      const currentCart = await tx.cart.findFirstOrThrow({
+        where: {
+          id: data.cartId,
+          userId,
+        },
+
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      if (currentCart.items.length === 0) {
+        throw new BadRequestException('Корзина пуста');
+      }
+
+      const totalAmount = currentCart.items.reduce(
+        (total, item) => total + Number(item.product.price) * item.quantity,
+        0,
+      );
+
+      if (!Number.isSafeInteger(totalAmount) || totalAmount <= 0) {
+        throw new BadRequestException('Некорректная сумма товаров в корзине');
+      }
+
+      const orderItems = currentCart.items.map((item) => ({
+        productId: item.productId,
+        title: item.product.title,
+        image: item.product.images[0] ?? null,
+        quantity: item.quantity,
+        size: item.size,
+        price: item.product.price,
+      }));
+
+      const lastPaidOrder = await tx.order.findFirst({
+        where: {
+          userId,
+          cartId: currentCart.id,
+
+          payments: {
+            some: {
+              status: PaymentStatus.SUCCEEDED,
+            },
+          },
+        },
+
+        orderBy: {
+          createdAt: 'desc',
+        },
+
+        select: {
+          createdAt: true,
+        },
+      });
+
+      const existingOrder = await tx.order.findFirst({
+        where: {
+          userId,
+          cartId: currentCart.id,
+
+          status: {
+            in: [PrismaOrderStatus.DRAFT, PrismaOrderStatus.PENDING_PAYMENT],
+          },
+
+          ...(lastPaidOrder
+            ? {
+                createdAt: {
+                  gt: lastPaidOrder.createdAt,
+                },
+              }
+            : {}),
+        },
+
+        orderBy: [{ createdAt: 'desc' }, { number: 'desc' }],
+
+        include: {
+          payments: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      });
+
+      if (existingOrder) {
+        if (existingOrder.status === PrismaOrderStatus.PENDING_PAYMENT) {
+          return existingOrder;
+        }
+
+        return tx.order.update({
+          where: {
+            id: existingOrder.id,
+          },
+
+          data: {
+            items: orderItems,
+            totalAmount,
+            finalAmount: totalAmount,
+          },
+
           include: {
-            product: true,
+            payments: {
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+          },
+        });
+      }
+
+      return tx.order.create({
+        data: {
+          cartId: currentCart.id,
+
+          items: orderItems,
+
+          status: PrismaOrderStatus.DRAFT,
+
+          paymentType: PaymentType.CARD,
+
+          totalAmount,
+
+          finalAmount: totalAmount,
+
+          user: {
+            connect: {
+              id: userId,
+            },
           },
         },
-      },
-    });
 
-    const totalAmount = currentCart.items.reduce((total, item) => {
-      return total + Number(item.product.price) * item.quantity;
-    }, 0);
-
-    const orderItems = currentCart.items.map((item) => ({
-      productId: item.productId,
-
-      title: item.product.title,
-
-      image: item.product.images[0] ?? null,
-
-      quantity: item.quantity,
-
-      size: item.size,
-
-      price: item.product.price,
-    }));
-
-    return this.prismaService.order.create({
-      data: {
-        cartId: currentCart.id,
-
-        items: orderItems,
-
-        status: PrismaOrderStatus.DRAFT,
-
-        paymentType: PaymentType.CARD,
-
-        totalAmount,
-
-        finalAmount: totalAmount,
-
-        user: {
-          connect: {
-            id: userId,
-          },
+        include: {
+          payments: true,
         },
-      },
+      });
     });
   }
 
-  public async checkoutOrder(
-    userId: string,
-    orderId: string,
-    data: CheckoutOrderDto,
-  ) {
+  async checkoutOrder(userId: string, orderId: string, data: CheckoutOrderDto) {
     const order = await this.prismaService.order.findFirstOrThrow({
       where: {
         id: orderId,
@@ -527,6 +611,7 @@ export class OrdersService {
           in: [PaymentStatus.PENDING, PaymentStatus.SUCCEEDED],
         },
       },
+
       select: {
         id: true,
       },
@@ -570,31 +655,22 @@ export class OrdersService {
       where: {
         id: order.id,
       },
+
       data: {
         fullName: data.fullName,
-
         address: data.address,
-
         email: data.email,
-
         phone: data.phone,
-
         comment: data.comment,
-
         deliveryDate: new Date(data.deliveryDate),
-
         deliveryFee,
-
         deliveryTime: data.deliveryTime,
-
         paymentType: PaymentType.CARD,
-
         deliveryProvider: data.deliveryProvider,
-
         finalAmount,
-
         status: PrismaOrderStatus.PENDING_PAYMENT,
       },
+
       include: {
         payments: {
           orderBy: {
@@ -605,7 +681,7 @@ export class OrdersService {
     });
   }
 
-  public checkPromocode(code: string) {
+  checkPromocode(code: string) {
     const normalizedPromoCode = code.trim().toUpperCase();
 
     const promo = PROMOCODES.find((item) => item.code === normalizedPromoCode);

@@ -8,14 +8,14 @@ import { SupportCaseReason, SupportCaseStatus } from '@/prisma/generated';
 
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 
-import { OrdersService } from './orders.service';
+import { OrdersService } from '../orders.service';
 
 import {
   getOrderCancellationPlan,
   type OrderCancellationRoute,
-} from './core/order-policy';
+} from '../core/order-policy';
 
-import type { OrderRecord } from './core/order-record.schema';
+import type { OrderRecord } from '../core/order-record.schema';
 
 export interface OrderCancellationCaseReceipt {
   caseId: string;
@@ -27,85 +27,63 @@ export interface OrderCancellationCaseReceipt {
 
 const ROUTE_DESCRIPTIONS: Record<OrderCancellationRoute, string> = {
   DIRECT_CANCEL: 'Автоматическая отмена без возврата оплаты',
-
-  REFUND_BEFORE_SHIPPING: 'Отмена до отправки с обработкой возврата оплаты',
-
-  INTERCEPT_DELIVERY: 'Отказ от заказа с остановкой или возвратом отправления',
-
+  REFUND_BEFORE_SHIPPING: 'Отмена до отправки с возвратом оплаты',
+  INTERCEPT_DELIVERY: 'Остановка или возврат отправления',
   FINALIZE_RETURN: 'Завершение возврата отправления продавцу',
-
-  RETURN_AFTER_DELIVERY: 'Возврат товара после доставки покупателю',
-
+  RETURN_AFTER_DELIVERY: 'Возврат товара после доставки',
   ALREADY_CANCELLED: 'Заказ уже отменён',
-
   MANUAL_REVIEW: 'Проверка обстоятельств отмены заказа',
 };
 
 function createCaseIssue(order: OrderRecord): string {
-  const orderLabel = order.number
-    ? `№${order.number}`
-    : 'без публичного номера';
+  const label = order.number ? `№${order.number}` : 'без публичного номера';
 
-  return [
-    `Запрос на отмену или возврат заказа ${orderLabel}`,
-    `Order ID: ${order.id}`,
-  ].join('\n');
+  return `Запрос на отмену или возврат заказа ${label}\nOrder ID: ${order.id}`;
 }
 
 function createCaseSummary(
   order: OrderRecord,
   route: OrderCancellationRoute,
 ): string {
-  const hasSucceededPayment = order.payments.some(
-    (payment) => payment.status === 'SUCCEEDED',
-  );
+  const paid = order.payments.some((payment) => payment.status === 'SUCCEEDED');
 
-  const shipmentDescription =
+  const shipments =
     order.shipments == null
-      ? 'Источник данных об отправлениях недоступен'
+      ? 'Данные об отправлениях недоступны'
       : order.shipments.length === 0
       ? 'Зарегистрированных отправлений нет'
       : order.shipments
-          .map((shipment) => {
-            const provider = shipment.provider ?? 'Перевозчик не указан';
-
-            const trackingNumber =
-              shipment.trackingNumber ?? 'Трек-номер отсутствует';
-
-            return [provider, shipment.status, trackingNumber].join(' / ');
-          })
+          .map((shipment) =>
+            [
+              shipment.provider ?? 'Перевозчик не указан',
+              shipment.status,
+              shipment.trackingNumber ?? 'Трек-номер отсутствует',
+            ].join(' / '),
+          )
           .join('; ');
 
   return [
     `Сценарий: ${ROUTE_DESCRIPTIONS[route]}`,
     `Статус заказа: ${order.status}`,
-    `Успешная оплата: ${hasSucceededPayment ? 'да' : 'нет'}`,
-    `Отправления: ${shipmentDescription}`,
+    `Успешная оплата: ${paid ? 'да' : 'нет'}`,
+    `Отправления: ${shipments}`,
     'Покупатель запросил отмену или возврат.',
-    'Отмена заказа, остановка доставки и возврат денег',
-    'этим обращением ещё не выполнены.',
+    'Отмена заказа и возврат средств ещё не подтверждены.',
   ].join('\n');
 }
 
 @Injectable()
 export class OrderCancellationCaseService {
   constructor(
-    private readonly prismaService: PrismaService,
-
+    private readonly prisma: PrismaService,
     private readonly ordersService: OrdersService,
   ) {}
 
-  public async createOrGet(
+  async createOrGet(
     userId: string,
     chatId: string,
     orderId: string,
   ): Promise<OrderCancellationCaseReceipt> {
-    // Получаем заказ исключительно через userId
-    // авторизованного пользователя.
-    //
-    // Таким образом, пользователь не может
-    // зарегистрировать обращение по чужому заказу.
-
     const order = await this.ordersService.getOrderById(userId, orderId);
 
     const plan = getOrderCancellationPlan(order);
@@ -115,37 +93,22 @@ export class OrderCancellationCaseService {
     }
 
     if (plan.route === 'DIRECT_CANCEL') {
-      throw new ConflictException(
-        'Для заказа доступна обычная автоматическая отмена',
-      );
+      throw new ConflictException('Для заказа доступна прямая отмена');
     }
 
     const issue = createCaseIssue(order);
 
-    return this.prismaService.$transaction(async (tx) => {
-      // Проверяем, что chatId существует
-      // и действительно принадлежит userId.
-      //
-      // FOR UPDATE блокирует конкретный чат
-      // на время проверки и записи обращения.
-
+    return this.prisma.$transaction(async (tx) => {
       const chats = await tx.$queryRaw<Array<{ id: string }>>`
         SELECT "id"
         FROM "Chat"
-        WHERE "id" = ${chatId}
-          AND "userId" = ${userId}
+        WHERE "id" = ${chatId} AND "userId" = ${userId}
         FOR UPDATE
       `;
 
       if (chats.length !== 1) {
         throw new ForbiddenException('Нет доступа к указанному чату');
       }
-
-      // Ищем существующее активное обращение
-      // по тому же заказу в этом чате.
-      //
-      // issue формируется сервером одинаково,
-      // поэтому при повторном запросе совпадает.
 
       const existingCase = await tx.supportCase.findFirst({
         where: {
@@ -181,13 +144,9 @@ export class OrderCancellationCaseService {
         data: {
           userId,
           chatId,
-
           reason: SupportCaseReason.CUSTOMER_REQUEST,
-
           issue,
-
           summary: createCaseSummary(order, plan.route),
-
           status: SupportCaseStatus.WAITING_OPERATOR,
         },
       });

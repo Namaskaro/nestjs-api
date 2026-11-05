@@ -46,6 +46,7 @@ model OperatorProfile {
   updatedAt     DateTime       @updatedAt
   inviteExpires DateTime?
   inviteToken   String?        @unique
+  availableUntil DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -57,22 +58,23 @@ model OperatorProfile {
 }
 
 model SupportCase {
-  id         String  @id @default(uuid())
-  userId     String
-  chatId     String
-  operatorId String?
+  id              String            @id @default(uuid())
+  userId          String
+  chatId          String
+  operatorId      String?
+  kind SupportCaseKind @default(GENERAL)
 
-  reason SupportCaseReason
+  context Json?
+  requestId       String?           @unique
+  sourceMessageId String?
+  reason          SupportCaseReason
+  issue           String            @db.Text
+  summary         String?           @db.Text
 
-  issue String @db.Text
-
-  summary String? @db.Text
-
-  status SupportCaseStatus @default(WAITING_OPERATOR)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  closedAt  DateTime?
+  status          SupportCaseStatus @default(WAITING_OPERATOR)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  closedAt        DateTime?
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   chat     Chat             @relation(fields: [chatId], references: [id], onDelete: Cascade)
@@ -82,6 +84,13 @@ model SupportCase {
   @@index([operatorId, status])
   @@index([chatId, createdAt])
   @@index([status, createdAt])
+  @@index([chatId, kind, status])
+  @@index([kind, status, createdAt])
+}
+
+enum SupportCaseKind {
+  GENERAL
+  HANDOFF
 }
 
 model Chat {
@@ -92,6 +101,7 @@ model Chat {
   lastMessageAt DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  handoffVersion Int @default(0)
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   operator OperatorProfile? @relation(fields: [operatorId], references: [id], onDelete: SetNull)
@@ -256,6 +266,37 @@ model PromoCode {
   @@map("promocode")
 }
 
+// model Order {
+//   id               String            @id @default(uuid())
+//   number           Int               @unique @default(autoincrement())
+//   createdAt        DateTime          @default(now())
+//   updatedAt        DateTime          @updatedAt
+//   userId           String
+//   token            String?
+//   totalAmount      Int
+//   status           OrderStatus       @default(DRAFT)
+//   cartId           String
+//   items            Json
+//   fullName         String?
+//   address          String?
+//   email            String?
+//   phone            String?
+//   comment          String?
+//   deliveryDate     DateTime?
+//   deliveryFee      Int?
+//   deliveryTime     String?
+//   paymentType      PaymentType       @default(CARD)
+//   deliveryProvider DeliveryProvider?
+//   finalAmount      Int
+//   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   payments  Payment[]
+//   shipments Shipment[]
+
+//   @@index([userId, createdAt])
+//   @@map("order")
+// }
+
 model Order {
   id               String            @id @default(uuid())
   number           Int               @unique @default(autoincrement())
@@ -278,13 +319,68 @@ model Order {
   paymentType      PaymentType       @default(CARD)
   deliveryProvider DeliveryProvider?
   finalAmount      Int
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
 
   payments  Payment[]
   shipments Shipment[]
+  refund    Refund?
 
   @@index([userId, createdAt])
   @@map("order")
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderId String
+
+  providerPaymentId String        @unique
+  amount            Int
+  status            PaymentStatus @default(PENDING)
+  paidAt            DateTime?
+  rawResponse       Json?
+
+  order Order @relation(fields: [orderId],references: [id],onDelete: Cascade)
+
+  refund Refund?
+
+  @@index([orderId, createdAt])
+  @@map("payment")
+}
+
+model Refund {
+  id String @id @default(uuid())
+
+  orderId   String @unique
+  paymentId Int    @unique
+
+  providerRefundId String? @unique
+  idempotenceKey   String  @unique
+
+  amount Int
+
+  status RefundStatus @default(PENDING)
+
+  rawResponse Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order Order @relation(fields: [orderId],references: [id],onDelete: Cascade)
+
+  payment Payment @relation(fields: [paymentId],references: [id],onDelete:Cascade)
+
+  @@index([status, createdAt])
+  @@map("refund")
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  CANCELED
 }
 
 model Shipment {
@@ -306,24 +402,24 @@ model Shipment {
   @@map("shipment")
 }
 
-model Payment {
-  id                Int           @id @default(autoincrement())
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+// model Payment {
+//   id                Int           @id @default(autoincrement())
+//   createdAt         DateTime      @default(now())
+//   updatedAt         DateTime      @updatedAt
 
-  orderId String
+//   orderId String
 
-  providerPaymentId String        @unique
-  amount            Int
-  status            PaymentStatus @default(PENDING)
-  paidAt            DateTime?
-  rawResponse       Json?
-  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//   providerPaymentId String        @unique
+//   amount            Int
+//   status            PaymentStatus @default(PENDING)
+//   paidAt            DateTime?
+//   rawResponse       Json?
+//   order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
 
-  @@index([orderId, createdAt])
-  @@map("payment")
-}
+//   @@index([orderId, createdAt])
+//   @@map("payment")
+// }
 
 model CartItem {
   id        String   @id @default(uuid())

@@ -1,4 +1,9 @@
-import { Logger, UseGuards } from '@nestjs/common';
+import {
+  ConflictException,
+  Logger,
+  OnModuleInit,
+  UseGuards,
+} from '@nestjs/common';
 
 import {
   Ack,
@@ -10,9 +15,11 @@ import {
   WsException,
 } from '@nestjs/websockets';
 
-import { ChatMode, ConversationMessageRole, Prisma } from '@/prisma/generated';
+import { ChatMode, Prisma } from '@/prisma/generated';
 
 import { Server, Socket } from 'socket.io';
+
+import { v4 as uuidv4, v5 as uuidv5, validate as isUuid } from 'uuid';
 
 import {
   SupportAgentService,
@@ -35,10 +42,21 @@ import {
 } from '@/src/support-agent/config/clarification.config';
 
 import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
+
 import { ChatService } from './chat.service';
+
+import {
+  ChatHandoffService,
+  type HandoffTransition,
+} from './chat-handoff.service';
+
+import { ChatHandoffQueueService } from './chat-handoff-queue.service';
+
 import { JoinChatDto } from './dto/join-chat.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { SubmitConsultationFeedbackDto } from './dto/submit-consultation-feedback.dto';
+
+const HANDOFF_REQUEST_NAMESPACE = '57b68529-6b45-4dd1-9daa-af3ab633f933';
 
 function isRetryableAssistantError(error: unknown): boolean {
   if (!(error instanceof Error)) {
@@ -51,13 +69,6 @@ function isRetryableAssistantError(error: unknown): boolean {
     }
   ).lc_error_code;
 
-  /*
-   * Graph topology/state bugs не являются
-   * временными ошибками.
-   *
-   * Кнопка Retry здесь только зациклит
-   * пользователя на том же исключении.
-   */
   if (langGraphCode) {
     return false;
   }
@@ -106,6 +117,19 @@ function isRetryableAssistantError(error: unknown): boolean {
     'EPIPE',
     'EAI_AGAIN',
   ].includes(code ?? '');
+}
+
+function isStaleAssistantResult(error: unknown): boolean {
+  if (!(error instanceof ConflictException)) {
+    return false;
+  }
+
+  const message = error.message;
+
+  return (
+    message.includes('Результат AI устарел') ||
+    message.includes('Состояние чата изменилось во время обработки')
+  );
 }
 
 function isJsonObject(
@@ -167,7 +191,7 @@ function resumeDisplayText(value: SupportAgentResumeValue): string {
     credentials: true,
   },
 })
-export class ChatGateway {
+export class ChatGateway implements OnModuleInit {
   private readonly logger = new Logger(ChatGateway.name);
 
   private readonly activeAssistantChats = new Set<string>();
@@ -178,7 +202,15 @@ export class ChatGateway {
   constructor(
     private readonly chatService: ChatService,
     private readonly supportAgentService: SupportAgentService,
+    private readonly handoffService: ChatHandoffService,
+    private readonly handoffQueue: ChatHandoffQueueService,
   ) {}
+
+  onModuleInit() {
+    this.handoffQueue.setAssignmentListener(async (transition) => {
+      await this.publishHandoffTransition(transition);
+    });
+  }
 
   @SubscribeMessage('chat:start')
   async chatStart(
@@ -200,12 +232,34 @@ export class ChatGateway {
     @MessageBody()
     dto: JoinChatDto,
   ) {
-    await this.chatService.assertUserCanAccessChat(
+    const chat = await this.chatService.assertUserCanAccessChat(
       socket.data.user,
       dto.chatId,
     );
 
-    await socket.join(`chat:${dto.chatId}`);
+    const userId = socket.data.user.id;
+
+    if (chat.userId === userId) {
+      await socket.join(`chat:${dto.chatId}`);
+
+      return this.handoffService.getCustomerSnapshot(dto.chatId, userId);
+    }
+
+    /*
+     * Оператор НЕ присоединяется к комнате
+     * покупателя.
+     *
+     * Он получает уведомления через личную
+     * авторизованную комнату.
+     */
+    await this.handoffService.getOperatorInbox(userId);
+
+    await socket.join(`operator:${userId}`);
+
+    return {
+      chatId: dto.chatId,
+      mode: chat.mode,
+    };
   }
 
   @SubscribeMessage('chat:send_message')
@@ -224,27 +278,31 @@ export class ChatGateway {
       dto.chatId,
     );
 
-    const usesAssistant = chat.mode === ChatMode.BOT;
+    const userId = socket.data.user.id;
 
-    if (usesAssistant) {
+    const expectsAssistant =
+      chat.userId === userId && chat.mode === ChatMode.BOT;
+
+    if (expectsAssistant) {
       this.acquireAssistantSlot(dto.chatId);
     }
 
     try {
-      const userMessage = await this.chatService.createMessage({
+      const saved = await this.chatService.createParticipantMessage({
         chatId: dto.chatId,
+        userId,
         content: dto.content,
-        role: ConversationMessageRole.USER,
-        authorId: socket.data.user.id,
       });
 
-      this.server
-        .to(`chat:${dto.chatId}`)
-        .emit('chat:new_message', userMessage);
+      await this.publishChatMessage(
+        dto.chatId,
+        saved.message,
+        saved.operatorUserId,
+      );
 
-      ack(userMessage);
+      ack(saved.message);
 
-      if (!usesAssistant) {
+      if (!saved.shouldRunAssistant) {
         return;
       }
 
@@ -252,12 +310,13 @@ export class ChatGateway {
 
       await this.runAssistant(
         dto.chatId,
-        userMessage.content,
-        userMessage.id,
+        saved.message.content,
+        saved.message.id,
         context,
+        saved.handoffVersion,
       );
     } finally {
-      if (usesAssistant) {
+      if (expectsAssistant) {
         this.releaseAssistantSlot(dto.chatId);
       }
     }
@@ -274,12 +333,12 @@ export class ChatGateway {
     @Ack()
     ack: () => void,
   ) {
-    const chat = await this.chatService.assertUserCanAccessChat(
-      socket.data.user,
+    const snapshot = await this.handoffService.getCustomerSnapshot(
       dto.chatId,
+      socket.data.user.id,
     );
 
-    if (chat.mode !== ChatMode.BOT) {
+    if (snapshot.mode !== ChatMode.BOT) {
       throw new WsException({
         status: 'conflict',
         message: 'AI-ассистент сейчас не управляет этим чатом.',
@@ -299,7 +358,7 @@ export class ChatGateway {
         !currentChat ||
         currentChat.id !== dto.chatId ||
         !lastMessage ||
-        lastMessage.role !== ConversationMessageRole.USER
+        lastMessage.role !== 'USER'
       ) {
         throw new WsException({
           status: 'bad_request',
@@ -316,7 +375,13 @@ export class ChatGateway {
       );
 
       if (clarificationResume) {
-        await this.runAssistantResume(dto.chatId, clarificationResume, context);
+        await this.runAssistantResume(
+          dto.chatId,
+          clarificationResume,
+          context,
+          lastMessage.id,
+          snapshot.handoffVersion,
+        );
 
         return;
       }
@@ -326,6 +391,7 @@ export class ChatGateway {
         lastMessage.content,
         lastMessage.id,
         context,
+        snapshot.handoffVersion,
       );
     } finally {
       this.releaseAssistantSlot(dto.chatId);
@@ -343,9 +409,13 @@ export class ChatGateway {
     @Ack()
     ack: (payload: unknown) => void,
   ) {
-    await this.chatService.assertUserCanAccessChat(
-      socket.data.user,
+    /*
+     * Feedback принадлежит покупателю,
+     * а не назначенному оператору.
+     */
+    await this.handoffService.getCustomerSnapshot(
       dto.chatId,
+      socket.data.user.id,
     );
 
     this.acquireAssistantSlot(dto.chatId);
@@ -394,22 +464,69 @@ export class ChatGateway {
     }
   }
 
+  /**
+   * Ручной вызов оператора.
+   *
+   * Использует тот же application-service,
+   * что и Handoff через AI.
+   */
   @SubscribeMessage('chat:request_operator')
   async requestOperator(
     @ConnectedSocket()
     socket: Socket,
 
     @MessageBody()
-    dto: JoinChatDto,
+    dto: {
+      chatId: string;
+      requestId?: string;
+    },
   ) {
-    await this.chatService.assertUserCanAccessChat(
-      socket.data.user,
+    const userId = socket.data.user.id;
+
+    const snapshot = await this.handoffService.getCustomerSnapshot(
       dto.chatId,
+      userId,
     );
 
-    const chat = await this.chatService.assignOperator(dto.chatId);
+    if (dto.requestId && !isUuid(dto.requestId)) {
+      throw new WsException({
+        status: 'bad_request',
+        message: 'Некорректный requestId.',
+      });
+    }
 
-    this.server.to(`chat:${dto.chatId}`).emit('chat:status_changed', chat);
+    const result = await this.handoffService.request({
+      chatId: dto.chatId,
+      userId,
+      requestId: dto.requestId ?? uuidv4(),
+      expectedVersion: snapshot.handoffVersion,
+    });
+
+    await this.publishHandoffTransition(result);
+
+    return result;
+  }
+
+  /**
+   * Покупатель может отменить только ожидание,
+   * но не уже начавшийся разговор с оператором.
+   */
+  @SubscribeMessage('chat:cancel_operator_wait')
+  async cancelOperatorWait(
+    @ConnectedSocket()
+    socket: Socket,
+
+    @MessageBody()
+    dto: JoinChatDto,
+  ) {
+    const transition = await this.handoffService.cancelWaiting(
+      dto.chatId,
+      socket.data.user.id,
+    );
+
+    await this.publishHandoffTransition(transition);
+
+    return transition;
   }
 
   @SubscribeMessage('chat:clarification_resume')
@@ -426,38 +543,148 @@ export class ChatGateway {
     @Ack()
     ack: (message: unknown) => void,
   ) {
-    await this.chatService.assertUserCanAccessChat(
-      socket.data.user,
-      dto.chatId,
-    );
-
     const resumeValue = SupportAgentResumeSchema.parse(dto.value);
 
     this.acquireAssistantSlot(dto.chatId);
 
     try {
-      const userMessage = await this.chatService.createMessage({
+      const saved = await this.chatService.createParticipantMessage({
         chatId: dto.chatId,
+        userId: socket.data.user.id,
         content: resumeDisplayText(resumeValue),
-        role: ConversationMessageRole.USER,
-        authorId: socket.data.user.id,
+        requireBot: true,
         payload: {
           clarificationResume: resumeValue,
         } as Prisma.InputJsonValue,
       });
 
-      this.server
-        .to(`chat:${dto.chatId}`)
-        .emit('chat:new_message', userMessage);
+      await this.publishChatMessage(
+        dto.chatId,
+        saved.message,
+        saved.operatorUserId,
+      );
 
-      ack(userMessage);
+      ack(saved.message);
 
       const context = this.createSupportAgentContext(socket);
 
-      await this.runAssistantResume(dto.chatId, resumeValue, context);
+      await this.runAssistantResume(
+        dto.chatId,
+        resumeValue,
+        context,
+        saved.message.id,
+        saved.handoffVersion,
+      );
     } finally {
       this.releaseAssistantSlot(dto.chatId);
     }
+  }
+
+  /**
+   * Сотрудник получает только собственные
+   * назначенные обращения.
+   */
+  @SubscribeMessage('operator:bootstrap')
+  async operatorBootstrap(
+    @ConnectedSocket()
+    socket: Socket,
+  ) {
+    const userId = socket.data.user.id;
+
+    const inbox = await this.handoffService.getOperatorInbox(userId);
+
+    await socket.join(`operator:${userId}`);
+
+    return {
+      inbox,
+    };
+  }
+
+  /**
+   * Оператор подтверждает готовность
+   * принимать новые обращения.
+   */
+  @SubscribeMessage('operator:ready')
+  async operatorReady(
+    @ConnectedSocket()
+    socket: Socket,
+  ) {
+    const result = await this.handoffService.setAvailability(
+      socket.data.user.id,
+      true,
+    );
+
+    await socket.join(`operator:${socket.data.user.id}`);
+
+    void this.handoffQueue.flush();
+
+    return result;
+  }
+
+  /**
+   * Интерфейс оператора должен периодически
+   * продлевать доступность.
+   */
+  @SubscribeMessage('operator:heartbeat')
+  async operatorHeartbeat(
+    @ConnectedSocket()
+    socket: Socket,
+  ) {
+    return this.handoffService.setAvailability(socket.data.user.id, true);
+  }
+
+  @SubscribeMessage('operator:offline')
+  async operatorOffline(
+    @ConnectedSocket()
+    socket: Socket,
+  ) {
+    return this.handoffService.setAvailability(socket.data.user.id, false);
+  }
+
+  /**
+   * Получение приватного контекста обращения.
+   */
+  @SubscribeMessage('operator:case')
+  async operatorCase(
+    @ConnectedSocket()
+    socket: Socket,
+
+    @MessageBody()
+    dto: {
+      caseId: string;
+    },
+  ) {
+    return this.handoffService.getOperatorCase(dto.caseId, socket.data.user.id);
+  }
+
+  /**
+   * Завершение операторского обращения.
+   */
+  @SubscribeMessage('operator:finish')
+  async operatorFinish(
+    @ConnectedSocket()
+    socket: Socket,
+
+    @MessageBody()
+    dto: {
+      caseId: string;
+    },
+  ) {
+    const result = await this.handoffService.finish(
+      dto.caseId,
+      socket.data.user.id,
+    );
+
+    await this.publishHandoffTransition(result);
+
+    socket.emit('operator:case_finished', {
+      caseId: result.caseId,
+      chatId: result.chatId,
+    });
+
+    void this.handoffQueue.flush();
+
+    return result;
   }
 
   private async runAssistant(
@@ -465,6 +692,7 @@ export class ChatGateway {
     content: string,
     messageId: string,
     context: SupportAgentContext,
+    expectedHandoffVersion: number,
   ) {
     try {
       const result = await this.supportAgentService.run(
@@ -475,11 +703,18 @@ export class ChatGateway {
         messageId,
       );
 
-      await this.handleAgentResult(chatId, result);
+      await this.handleAgentResult(
+        chatId,
+        result,
+        context.userId,
+        messageId,
+        expectedHandoffVersion,
+      );
     } catch (error) {
-      this.logger.error(error);
-
-      this.emitAssistantError(chatId, error);
+      if (!isStaleAssistantResult(error)) {
+        this.logger.error(error);
+        this.emitAssistantError(chatId, error);
+      }
     } finally {
       this.emitAssistantIdle(chatId);
     }
@@ -489,6 +724,8 @@ export class ChatGateway {
     chatId: string,
     value: SupportAgentResumeValue,
     context: SupportAgentContext,
+    sourceMessageId: string,
+    expectedHandoffVersion: number,
   ) {
     try {
       const result = await this.supportAgentService.resume(
@@ -498,11 +735,18 @@ export class ChatGateway {
         (event) => this.emitAssistantEvent(chatId, event),
       );
 
-      await this.handleAgentResult(chatId, result);
+      await this.handleAgentResult(
+        chatId,
+        result,
+        context.userId,
+        sourceMessageId,
+        expectedHandoffVersion,
+      );
     } catch (error) {
-      this.logger.error(error);
-
-      this.emitAssistantError(chatId, error);
+      if (!isStaleAssistantResult(error)) {
+        this.logger.error(error);
+        this.emitAssistantError(chatId, error);
+      }
     } finally {
       this.emitAssistantIdle(chatId);
     }
@@ -510,13 +754,54 @@ export class ChatGateway {
 
   private async handleAgentResult(
     chatId: string,
-
     result: Awaited<ReturnType<SupportAgentService['run']>>,
+    userId: string,
+    sourceMessageId: string,
+    expectedHandoffVersion: number,
   ) {
     if (result.kind === 'interrupt') {
+      const snapshot = await this.handoffService.getCustomerSnapshot(
+        chatId,
+        userId,
+      );
+
+      if (
+        snapshot.mode !== ChatMode.BOT ||
+        snapshot.handoffVersion !== expectedHandoffVersion
+      ) {
+        return;
+      }
+
       this.server
         .to(`chat:${chatId}`)
         .emit('chat:clarification', result.interrupt);
+
+      return;
+    }
+
+    /*
+     * AI подготовил Handoff.
+     *
+     * Не сохраняем его предварительное сообщение.
+     * Сначала регистрируем реальное обращение.
+     */
+    if (result.handoff) {
+      const requestId = uuidv5(
+        `ai-handoff:${chatId}:${sourceMessageId}`,
+        HANDOFF_REQUEST_NAMESPACE,
+      );
+
+      const transition = await this.handoffService.request({
+        chatId,
+        userId,
+        requestId,
+        expectedVersion: expectedHandoffVersion,
+        sourceMessageId,
+        reason: result.handoff.reason,
+        context: result.handoff.context,
+      });
+
+      await this.publishHandoffTransition(transition);
 
       return;
     }
@@ -541,16 +826,84 @@ export class ChatGateway {
           ]
         : result.answer.blocks;
 
-    const assistantMessage = await this.chatService.createMessage({
-      chatId,
-      content: result.answer.message,
-      role: ConversationMessageRole.ASSISTANT,
-      payload: {
-        blocks,
-      } as Prisma.InputJsonValue,
-    });
+    const assistantMessage =
+      await this.chatService.createAssistantMessageIfCurrent({
+        chatId,
+        userId,
+        expectedHandoffVersion,
+        content: result.answer.message,
+        payload: {
+          blocks,
+        } as Prisma.InputJsonValue,
+      });
 
     this.server.to(`chat:${chatId}`).emit('chat:new_message', assistantMessage);
+  }
+
+  private async publishChatMessage(
+    chatId: string,
+    message: unknown,
+    operatorUserId: string | null,
+  ) {
+    this.server.to(`chat:${chatId}`).emit('chat:new_message', message);
+
+    if (operatorUserId) {
+      this.server
+        .to(`operator:${operatorUserId}`)
+        .emit('chat:new_message', message);
+    }
+  }
+
+  private async publishHandoffTransition(transition: HandoffTransition) {
+    try {
+      await this.supportAgentService.synchronizeOperatorHandoff(
+        transition.chatId,
+        transition.caseId,
+        transition.status,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Не удалось согласовать LangGraph после Handoff ${transition.caseId}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+
+    if (!transition.replayed) {
+      this.server
+        .to(`chat:${transition.chatId}`)
+        .emit('chat:new_message', transition.message);
+    }
+
+    const statusPayload = {
+      chatId: transition.chatId,
+      caseId: transition.caseId,
+      mode: transition.mode,
+      operatorId: transition.operatorId,
+      caseStatus: transition.status,
+      handoffVersion: transition.handoffVersion,
+    };
+
+    this.server
+      .to(`chat:${transition.chatId}`)
+      .emit('chat:status_changed', statusPayload);
+
+    if (transition.operatorId) {
+      const operatorUserId = await this.chatService.getOperatorUserId(
+        transition.operatorId,
+      );
+
+      if (operatorUserId) {
+        if (!transition.replayed) {
+          this.server
+            .to(`operator:${operatorUserId}`)
+            .emit('chat:new_message', transition.message);
+        }
+
+        this.server
+          .to(`operator:${operatorUserId}`)
+          .emit('operator:case_assigned', statusPayload);
+      }
+    }
   }
 
   private acquireAssistantSlot(chatId: string) {

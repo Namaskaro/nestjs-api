@@ -11,6 +11,7 @@ import {
   Column,
   Img,
 } from '@react-email/components';
+
 import * as React from 'react';
 
 interface ConfirmationTemplateProps {
@@ -23,6 +24,7 @@ export function InviteOperatorTemplate({
   token,
 }: ConfirmationTemplateProps) {
   const confirmLink = `${domain}/auth/operator/activate?token=${token}`;
+
   return (
     <Tailwind>
       <Html>
@@ -36,17 +38,30 @@ export function InviteOperatorTemplate({
                   height={250}
                 />
               </Column>
+
               <Column align="center">
                 <Heading>Приглашение менеджера</Heading>
+
                 <Text>
-                  Чтобы зарегистрировать рабочий аккаунт, перейдите по ссылке!
+                  Вас пригласили работать оператором интернет-магазина.
                 </Text>
+
+                <Text>
+                  Перейдите по ссылке, укажите имя и создайте пароль для
+                  рабочего аккаунта.
+                </Text>
+
                 <Link href={confirmLink}>
                   <Button className="rounded-md bg-black py-2 px-2 text-white">
-                    К аккаунту
+                    Активировать аккаунт
                   </Button>
                 </Link>
-                <Text>Эта ссылка действительна в течение 24 часов!</Text>
+
+                <Text>Ссылка действительна в течение 1 часа.</Text>
+
+                <Text>
+                  Если вы не ожидали приглашения, просто проигнорируйте письмо.
+                </Text>
               </Column>
             </Section>
           </Container>

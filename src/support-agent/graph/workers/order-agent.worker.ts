@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 
-import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
+import { ConflictException } from '@nestjs/common';
 
+import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { AIMessage } from '@langchain/core/messages';
 
 import {
@@ -13,6 +14,12 @@ import {
 } from '@langchain/langgraph';
 
 import { OrdersService } from '@/src/modules/orders/orders.service';
+
+import { RefundService } from '@/src/modules/orders/refund/refund.service';
+
+import { OrderCancellationCaseService } from '@/src/modules/orders/cancellation/order-cancellation-case.service';
+
+import { getOrderCancellationPlan } from '@/src/modules/orders/core/order-policy';
 
 import type {
   OrderRecord,
@@ -59,13 +66,14 @@ const SHIPMENT_STATUS_LABELS: Record<ShipmentRecord['status'], string> = {
 };
 
 const ORDER_CANCEL_DECLINE_ID = 'order_cancel_decline';
+const ORDER_CANCEL_ANOTHER_ID = 'Выбрать другой заказ';
+const ORDER_SELECTION_NEXT_ID = 'Показать ещё заказы';
+const ORDER_SELECTION_PREVIOUS_ID = 'Предыдущие заказы';
+const ORDER_SELECTION_DECLINE_ID = 'Не отменять заказ';
+const ORDER_SELECTION_PAGE_SIZE = 5;
 
 function orderLabel(order: OrderRecord): string {
-  if (order.number) {
-    return `Заказ №${order.number}`;
-  }
-
-  return 'Заказ';
+  return order.number ? `Заказ №${order.number}` : 'Заказ';
 }
 
 function orderSummary(order: OrderRecord): string {
@@ -103,9 +111,7 @@ function shipmentSummary(shipment: ShipmentRecord, index: number): string {
 function trackingSummary(order: OrderRecord): string {
   const lines = [orderSummary(order)];
 
-  const shipments = order.shipments;
-
-  if (shipments == null) {
+  if (order.shipments == null) {
     if (order.deliveryProvider) {
       lines.push(`Служба доставки заказа: ${order.deliveryProvider}.`);
     }
@@ -115,42 +121,13 @@ function trackingSummary(order: OrderRecord): string {
     );
 
     lines.push('Трек-номер и прогноз прибытия сейчас недоступны.');
-
-    return lines.join('\n');
-  }
-
-  if (shipments.length === 0) {
+  } else if (order.shipments.length === 0) {
     lines.push('Информации об отправлениях пока нет.');
-
-    return lines.join('\n');
+  } else {
+    lines.push(order.shipments.map(shipmentSummary).join('\n\n'));
   }
-
-  lines.push(
-    shipments
-      .map((shipment, index) => shipmentSummary(shipment, index))
-      .join('\n\n'),
-  );
 
   return lines.join('\n\n');
-}
-
-function cancellationDeniedMessage(reason: string): string {
-  switch (reason) {
-    case 'ALREADY_CANCELLED':
-      return 'Заказ уже отменён.';
-
-    case 'ALREADY_SHIPPED':
-      return 'Заказ уже отправлен, поэтому обычная отмена недоступна.';
-
-    case 'ALREADY_DELIVERED':
-      return 'Заказ уже доставлен, поэтому отменить его нельзя.';
-
-    case 'REFUND_REQUIRED':
-      return 'Заказ уже оплачен. Для него требуется отдельный процесс возврата денег.';
-
-    default:
-      return 'Этот заказ сейчас нельзя отменить.';
-  }
 }
 
 function finishOrderAgent(
@@ -163,9 +140,7 @@ function finishOrderAgent(
   if (state.executionMode === 'multi') {
     const block = OrderAnswerBlockSchema.parse({
       worker: 'order',
-      data: {
-        message,
-      },
+      data: { message },
     });
 
     return new Command({
@@ -221,12 +196,144 @@ function missingOrderMessage(request: OrderRequest): string {
   return 'У вас пока нет заказов.';
 }
 
+function isCancellationCandidate(order: OrderRecord): boolean {
+  return (
+    order.status === 'PAID' ||
+    order.status === 'PROCESSING' ||
+    order.status === 'SHIPPED' ||
+    order.status === 'DELIVERED'
+  );
+}
+
+function cancellationOptions(orders: OrderRecord[]): OrderRecord[] {
+  return orders
+    .filter((order) => isCancellationCandidate(order) && Boolean(order.number))
+    .sort(
+      (left, right) =>
+        right.createdAt.getTime() - left.createdAt.getTime() ||
+        Number(right.number) - Number(left.number),
+    );
+}
+
+function cancellationOptionLabel(order: OrderRecord): string {
+  const date = order.createdAt.toLocaleString('ru-RU', {
+    timeZone: 'Europe/Moscow',
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const item = order.items[0]?.title;
+
+  return [
+    orderLabel(order),
+    `${date} МСК`,
+    `${order.finalAmount.toLocaleString('ru-RU')} ₽`,
+    ORDER_STATUS_LABELS[order.status],
+    item,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
+function selectCancellationOrder(orders: OrderRecord[]): OrderRecord | null {
+  const candidates = cancellationOptions(orders);
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  if (candidates.length === 1) {
+    return candidates[0];
+  }
+
+  let page = 0;
+
+  while (true) {
+    const start = page * ORDER_SELECTION_PAGE_SIZE;
+
+    const visibleOrders = candidates.slice(
+      start,
+      start + ORDER_SELECTION_PAGE_SIZE,
+    );
+
+    const options = visibleOrders.map((order) => ({
+      id: orderLabel(order),
+      label: cancellationOptionLabel(order),
+    }));
+
+    if (page > 0) {
+      options.push({
+        id: ORDER_SELECTION_PREVIOUS_ID,
+        label: '← Предыдущие заказы',
+      });
+    }
+
+    if (start + ORDER_SELECTION_PAGE_SIZE < candidates.length) {
+      options.push({
+        id: ORDER_SELECTION_NEXT_ID,
+        label: 'Показать ещё заказы →',
+      });
+    }
+
+    options.push({
+      id: ORDER_SELECTION_DECLINE_ID,
+      label: 'Не отменять заказ',
+    });
+
+    const selected = ClarificationQuestionSelectedResumeSchema.parse(
+      interrupt(
+        ClarificationNodeSchema.parse({
+          kind: 'questions',
+          question: 'Какой именно заказ хотите отменить?',
+          topic: 'orders',
+          options,
+        }),
+      ),
+    );
+
+    if (selected.questionId === ORDER_SELECTION_DECLINE_ID) {
+      return null;
+    }
+
+    if (
+      selected.questionId === ORDER_SELECTION_NEXT_ID &&
+      start + ORDER_SELECTION_PAGE_SIZE < candidates.length
+    ) {
+      page++;
+      continue;
+    }
+
+    if (selected.questionId === ORDER_SELECTION_PREVIOUS_ID && page > 0) {
+      page--;
+      continue;
+    }
+
+    const order = visibleOrders.find(
+      (candidate) => orderLabel(candidate) === selected.questionId,
+    );
+
+    if (!order) {
+      throw new Error('OrderAgent: выбранный заказ отсутствует в списке');
+    }
+
+    return order;
+  }
+}
+
+function cancellationAcceptedMessage(order: OrderRecord): string {
+  return `${orderLabel(
+    order,
+  )}: заявка на отмену принята. Возврат денежных средств будет обработан. После оформления возврата срок зачисления зависит от банка.`;
+}
+
 export function createOrderAgentWorker(
   ordersService: OrdersService,
 ): GraphNode<typeof SupportAgentState> {
   return async (state, config: LangGraphRunnableConfig) => {
-    const context = SupportAgentContextSchema.parse(config.context);
-    const userId = context.userId;
+    const { userId } = SupportAgentContextSchema.parse(config.context);
+
     const request = state.requestRouter?.orderRequest;
 
     if (!request) {
@@ -235,9 +342,7 @@ export function createOrderAgentWorker(
 
     await dispatchCustomEvent(
       'assistant_status',
-      {
-        status: 'CHECKING_ORDER',
-      },
+      { status: 'CHECKING_ORDER' },
       config,
     );
 
@@ -246,16 +351,16 @@ export function createOrderAgentWorker(
     if (request.action === 'LIST') {
       const orders = await ordersService.getUserOrders(userId);
 
-      if (!orders.length) {
-        return finish('У вас пока нет заказов.');
-      }
-
-      const message = [
-        `У вас ${orders.length} заказ(а/ов):`,
-        ...orders.map((order, index) => `${index + 1}. ${orderSummary(order)}`),
-      ].join('\n');
-
-      return finish(message);
+      return finish(
+        orders.length === 0
+          ? 'У вас пока нет заказов.'
+          : [
+              `У вас ${orders.length} заказ(а/ов):`,
+              ...orders.map(
+                (order, index) => `${index + 1}. ${orderSummary(order)}`,
+              ),
+            ].join('\n'),
+      );
     }
 
     if (request.action === 'LATEST') {
@@ -287,19 +392,35 @@ export function createOrderAgentWorker(
         return finish(missingOrderMessage(request));
       }
 
-      if (request.action === 'TRACKING') {
-        return finish(trackingSummary(order));
-      }
-
-      return finish(orderSummary(order));
+      return finish(
+        request.action === 'TRACKING'
+          ? trackingSummary(order)
+          : orderSummary(order),
+      );
     }
 
     if (request.action === 'CANCEL') {
-      const targetOrder = await resolveTargetOrder(
-        ordersService,
-        userId,
-        request,
-      );
+      let targetOrder: OrderRecord | null;
+
+      if (request.orderNumber || request.orderId) {
+        targetOrder = await resolveTargetOrder(ordersService, userId, request);
+      } else {
+        const orders = await ordersService.getUserOrders(userId);
+
+        const candidates = cancellationOptions(orders);
+
+        if (candidates.length === 0) {
+          return finish('У вас нет оплаченных заказов для отмены.');
+        }
+
+        targetOrder = selectCancellationOrder(orders);
+
+        if (!targetOrder) {
+          return finish('Хорошо, заказ не отменяю.');
+        }
+
+        targetOrder = await ordersService.getOrderById(userId, targetOrder.id);
+      }
 
       if (!targetOrder) {
         return finish(
@@ -309,14 +430,8 @@ export function createOrderAgentWorker(
         );
       }
 
-      const { eligibility } =
-        await ordersService.getOrderCancellationEligibility(
-          userId,
-          targetOrder.id,
-        );
-
-      if (!eligibility.allowed) {
-        return finish(cancellationDeniedMessage(eligibility.reason));
+      if (getOrderCancellationPlan(targetOrder).route === 'ALREADY_CANCELLED') {
+        return finish(`${orderLabel(targetOrder)} уже отменён.`);
       }
 
       return new Command({
@@ -341,75 +456,133 @@ export function createOrderAgentWorker(
 
 export function createConfirmOrderCancellationNode(
   ordersService: OrdersService,
+  refundService: RefundService,
+  cancellationCaseService: OrderCancellationCaseService,
 ): GraphNode<typeof SupportAgentState> {
   return async (state, config: LangGraphRunnableConfig) => {
-    const context = SupportAgentContextSchema.parse(config.context);
-    const userId = context.userId;
+    const { userId } = SupportAgentContextSchema.parse(config.context);
 
+    const chatId = config.configurable?.thread_id;
     const pendingAction = state.pendingOrderAction;
 
-    if (!pendingAction || pendingAction.action !== 'CANCEL') {
+    if (typeof chatId !== 'string' || chatId.length === 0) {
       throw new Error(
-        'ConfirmOrderCancellation: отсутствует ожидающая операция отмены',
+        'ConfirmOrderCancellation: отсутствует идентификатор чата',
       );
     }
 
+    if (!pendingAction || pendingAction.action !== 'CANCEL') {
+      throw new Error('ConfirmOrderCancellation: нет ожидающей отмены');
+    }
+
     if (pendingAction.userId !== userId) {
-      throw new Error(
-        'ConfirmOrderCancellation: пользователь не соответствует ожидающей операции',
-      );
+      throw new Error('ConfirmOrderCancellation: пользователь не совпадает');
     }
 
     const finish = (message: string) => finishOrderAgent(state, message, true);
 
-    const orderId = pendingAction.orderId;
+    let selectedOrder = await ordersService.getOrderById(
+      userId,
+      pendingAction.orderId,
+    );
 
-    const displayOrder = pendingAction.orderNumber
-      ? `заказ №${pendingAction.orderNumber}`
-      : 'выбранный заказ';
+    while (true) {
+      const candidates = cancellationOptions(
+        await ordersService.getUserOrders(userId),
+      );
 
-    const confirmationPayload = ClarificationNodeSchema.parse({
-      kind: 'questions',
-      question: `Вы действительно хотите отменить ${displayOrder}?`,
-      topic: 'orders',
-      options: [
+      const confirmationId = `${pendingAction.confirmationId}:${selectedOrder.id}`;
+
+      const options = [
         {
-          id: pendingAction.confirmationId,
+          id: confirmationId,
           label: 'Да, отменить',
         },
+
+        ...(candidates.length > 1
+          ? [
+              {
+                id: ORDER_CANCEL_ANOTHER_ID,
+                label: ORDER_CANCEL_ANOTHER_ID,
+              },
+            ]
+          : []),
+
         {
           id: ORDER_CANCEL_DECLINE_ID,
           label: 'Нет',
         },
-      ],
-    });
+      ];
 
-    const rawResumeValue = interrupt(confirmationPayload);
-
-    const resumeValue =
-      ClarificationQuestionSelectedResumeSchema.parse(rawResumeValue);
-
-    if (resumeValue.questionId === ORDER_CANCEL_DECLINE_ID) {
-      return finish('Хорошо, заказ не отменяю.');
-    }
-
-    if (resumeValue.questionId !== pendingAction.confirmationId) {
-      throw new Error(
-        'ConfirmOrderCancellation: неизвестное или устаревшее подтверждение отмены',
+      const selected = ClarificationQuestionSelectedResumeSchema.parse(
+        interrupt(
+          ClarificationNodeSchema.parse({
+            kind: 'questions',
+            question: `Вы действительно хотите отменить ${orderLabel(
+              selectedOrder,
+            )}?`,
+            topic: 'orders',
+            options,
+          }),
+        ),
       );
+
+      if (selected.questionId === ORDER_CANCEL_DECLINE_ID) {
+        return finish('Хорошо, заказ не отменяю.');
+      }
+
+      if (
+        selected.questionId === ORDER_CANCEL_ANOTHER_ID &&
+        candidates.length > 1
+      ) {
+        const otherOrder = selectCancellationOrder(candidates);
+
+        if (!otherOrder) {
+          return finish('Хорошо, заказ не отменяю.');
+        }
+
+        selectedOrder = await ordersService.getOrderById(userId, otherOrder.id);
+
+        continue;
+      }
+
+      if (selected.questionId !== confirmationId) {
+        throw new Error(
+          'ConfirmOrderCancellation: неизвестное или устаревшее подтверждение',
+        );
+      }
+
+      const order = await ordersService.getOrderById(userId, selectedOrder.id);
+
+      const plan = getOrderCancellationPlan(order);
+
+      if (plan.route === 'ALREADY_CANCELLED') {
+        return finish(`${orderLabel(order)} уже отменён.`);
+      }
+
+      if (plan.route === 'DIRECT_CANCEL') {
+        const cancelled = await ordersService.cancelOrder(userId, order.id);
+
+        return finish(`${orderLabel(cancelled)} отменён.`);
+      }
+
+      const receipt = await cancellationCaseService.createOrGet(
+        userId,
+        chatId,
+        order.id,
+      );
+
+      if (plan.route === 'REFUND_BEFORE_SHIPPING') {
+        try {
+          await refundService.cancelAndRefund(userId, order.id, receipt.caseId);
+        } catch (error) {
+          if (!(error instanceof ConflictException)) {
+            throw error;
+          }
+        }
+      }
+
+      return finish(cancellationAcceptedMessage(order));
     }
-
-    const { eligibility } = await ordersService.getOrderCancellationEligibility(
-      userId,
-      orderId,
-    );
-
-    if (!eligibility.allowed) {
-      return finish(cancellationDeniedMessage(eligibility.reason));
-    }
-
-    const cancelledOrder = await ordersService.cancelOrder(userId, orderId);
-
-    return finish(`${orderLabel(cancelledOrder)} отменён.`);
   };
 }

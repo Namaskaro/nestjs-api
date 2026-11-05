@@ -1,20 +1,34 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
-import { HumanMessage } from '@langchain/core/messages';
+import { SupportCaseStatus } from '@/prisma/generated';
+
+import { AIMessage, HumanMessage } from '@langchain/core/messages';
 
 import { Command, END, START, StateGraph } from '@langchain/langgraph';
 
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 
 import { AiService } from '@/src/ai/ai.service';
+
 import { StoreKnowledgeService } from '@/src/store-knowledge/store-knowledge.service';
+
 import { OrdersService } from '@/src/modules/orders/orders.service';
 
+import { RefundService } from '@/src/modules/orders/refund/refund.service';
+
+import { OrderCancellationCaseService } from '@/src/modules/orders/cancellation/order-cancellation-case.service';
+
 import { createCustomerHelpAgent } from '../agents/customer-help-agent/customer-help.agent';
+
 import { createHandoffAgentGraph } from '../agents/handoff-agent/handoff-agent.graph';
+
 import { handoffResultNode } from '../agents/handoff-agent/nodes/handoff-result.node';
 
-import { submitConsultationFeedback as applyConsultationFeedback } from '@/src/product-consultation/application/session/consultation-session';
+import {
+  markConsultationSessionHandedOff,
+  submitConsultationFeedback as applyConsultationFeedback,
+} from '@/src/product-consultation/application/session/consultation-session';
+
 import {
   ConsultationFeedbackReceiptSchema,
   type ConsultationFeedbackReceipt,
@@ -27,38 +41,51 @@ import {
 } from '../config/support-agent-execution.config';
 
 import { RequestRouterWorkerSchema } from '../schemas/request-router.schema';
+
 import { readProductContext } from '@/src/product-consultation/application/context/product-context.schema';
+
 import { SupportAgentResumeValue } from '../schemas/support-agent-resume.schema';
+
 import {
   SupportAgentContextSchema,
   type SupportAgentContext,
 } from '../context/support-agent-context.schema';
 
 import { createAggregateFinalAnswerNode } from './nodes/aggregate-final-answer.node';
+
 import { createClarificationQuestionNode } from './nodes/clarification-question.node';
+
 import { createClarificationTopicNode } from './nodes/clarification-topic.node';
+
 import { preIntentNode } from './nodes/pre-intent.node';
+
 import { rejectNode } from './nodes/reject.node';
+
 import { createRequestRouterNode } from './nodes/request-router.node';
 
 import { afterPreIntentRoute } from './routers/after-pre-intent.route';
+
 import { afterRequestRoute } from './routers/after-request.route';
 
 import { SupportAgentState } from './support-agent.state';
 
 import { createCustomerHelpAgentWorker } from './workers/customer-help-agent.worker';
+
 import { createProductAgentWorker } from './workers/product-agent.worker';
+
 import {
   createOrderAgentWorker,
   createConfirmOrderCancellationNode,
 } from './workers/order-agent.worker';
 
 import { ProductAgentService } from '@/src/product-consultation/application/agent/product-agent.service';
+
 import { createProductAgent } from '@/src/product-consultation/application/agent/product.agent';
 
 @Injectable()
 export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
   private readonly graph;
+
   private readonly checkpointer: PostgresSaver;
 
   constructor(
@@ -66,6 +93,8 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
     private readonly productAgentService: ProductAgentService,
     private readonly storeKnowledgeService: StoreKnowledgeService,
     private readonly ordersService: OrdersService,
+    private readonly refundService: RefundService,
+    private readonly cancellationCaseService: OrderCancellationCaseService,
   ) {
     const postgresUri = process.env.POSTGRES_URI;
 
@@ -103,6 +132,8 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
     const confirmOrderCancellationNode = createConfirmOrderCancellationNode(
       this.ordersService,
+      this.refundService,
+      this.cancellationCaseService,
     );
 
     const aggregateAnswerNode = createAggregateFinalAnswerNode(this.aiService);
@@ -111,35 +142,50 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
 
     this.graph = new StateGraph(SupportAgentState, SupportAgentContextSchema)
       .addNode('preIntentNode', preIntentNode)
+
       .addNode('requestRouterNode', requestRouterNode, {
         retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
         timeout: SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
       })
+
       .addNode('reject', rejectNode)
+
       .addNode('clarificationTopic', clarificationTopicNode)
+
       .addNode('clarificationQuestion', clarificationQuestionNode, {
         ends: [END, 'preIntentNode', 'productAgent', 'orderAgent'],
       })
+
       .addNode('customerHelpAgent', customerHelpWorker, {
         ends: [END, 'aggregateAnswer', 'handoffAgent', ...agentNodes],
+
         retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
         timeout: SUPPORT_AGENT_AI_NODE_TIMEOUT_MS,
       })
+
       .addNode('productAgent', productAgentWorker, {
         ends: [END, 'aggregateAnswer', 'handoffAgent', ...agentNodes],
+
         retryPolicy: SUPPORT_AGENT_AI_NODE_RETRY_POLICY,
         timeout: SUPPORT_AGENT_PRODUCT_NODE_TIMEOUT_MS,
       })
+
       .addNode('orderAgent', orderAgentWorker, {
         ends: [END, 'aggregateAnswer', 'confirmOrderCancellation'],
       })
+
       .addNode('confirmOrderCancellation', confirmOrderCancellationNode, {
         ends: [END, 'aggregateAnswer'],
       })
+
       .addNode('aggregateAnswer', aggregateAnswerNode)
+
       .addNode('handoffAgent', handoffAgentGraph)
+
       .addNode('handoffResult', handoffResultNode)
+
       .addEdge(START, 'preIntentNode')
+
       .addConditionalEdges('preIntentNode', afterPreIntentRoute, {
         productAgent: 'productAgent',
         customerHelpAgent: 'customerHelpAgent',
@@ -147,6 +193,7 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
         reject: 'reject',
         clarificationTopic: 'clarificationTopic',
       })
+
       .addConditionalEdges('requestRouterNode', afterRequestRoute, {
         productAgent: 'productAgent',
         orderAgent: 'orderAgent',
@@ -156,10 +203,15 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
         clarificationQuestion: 'clarificationQuestion',
         handoffAgent: 'handoffAgent',
       })
+
       .addEdge('clarificationTopic', 'clarificationQuestion')
+
       .addEdge('aggregateAnswer', END)
+
       .addEdge('reject', END)
+
       .addEdge('handoffAgent', 'handoffResult')
+
       .compile({
         checkpointer: this.checkpointer,
       });
@@ -177,6 +229,80 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
     return this.graph;
   }
 
+  async hasPendingInterrupt(threadId: string): Promise<boolean> {
+    const snapshot = await this.graph.getState({
+      configurable: {
+        thread_id: threadId,
+      },
+    });
+
+    return snapshot.tasks.some((task) => (task.interrupts?.length ?? 0) > 0);
+  }
+
+  async synchronizeOperatorHandoff(
+    threadId: string,
+    caseId: string,
+    status: SupportCaseStatus,
+  ): Promise<void> {
+    const config = {
+      configurable: {
+        thread_id: threadId,
+      },
+    };
+
+    const snapshot = await this.graph.getState(config);
+
+    if (!snapshot.values.messages?.length) {
+      return;
+    }
+
+    const isClosed =
+      status === SupportCaseStatus.RESOLVED ||
+      status === SupportCaseStatus.CANCELLED;
+
+    const stage = isClosed ? 'closed' : 'opened';
+
+    const eventId = `operator-handoff:${stage}:${caseId}`;
+
+    if (snapshot.values.messages.some((message) => message.id === eventId)) {
+      return;
+    }
+
+    const eventText = isClosed
+      ? 'Операторское обращение завершено. Покупатель снова может общаться с AI-ассистентом. Подробности разговора с оператором в контекст AI не передавались.'
+      : 'Операторское обращение зарегистрировано. Общение с AI приостановлено до завершения операторского обращения.';
+
+    const productContext =
+      snapshot.values.productContext == null
+        ? null
+        : readProductContext(snapshot.values.productContext);
+
+    if (!isClosed && productContext) {
+      markConsultationSessionHandedOff(productContext);
+    }
+
+    await this.graph.updateState(
+      config,
+      {
+        activeAgent: null,
+        handoffRequest: null,
+        handoff: null,
+        answer: null,
+        pendingOrderAction: null,
+
+        ...(productContext ? { productContext } : {}),
+
+        messages: [
+          new AIMessage({
+            id: eventId,
+            content: eventText,
+          }),
+        ],
+      },
+      'handoffResult',
+    );
+  }
+
   invoke(
     query: string,
     threadId: string,
@@ -190,22 +316,22 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
     return this.graph.invoke(
       {
         query,
+
         messages: [
           new HumanMessage({
             content: query,
-            ...(messageId
-              ? {
-                  id: messageId,
-                }
-              : {}),
+            ...(messageId ? { id: messageId } : {}),
           }),
         ],
       },
+
       {
         configurable: {
           thread_id: threadId,
         },
+
         context,
+
         callbacks: onCustomEvent
           ? [
               {
@@ -223,11 +349,14 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
         query,
         messages: [new HumanMessage(query)],
       },
+
       {
         version: 'v3',
+
         configurable: {
           thread_id: threadId,
         },
+
         context,
       },
     );
@@ -246,11 +375,14 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
       new Command({
         resume: value,
       }),
+
       {
         configurable: {
           thread_id: threadId,
         },
+
         context,
+
         callbacks: onCustomEvent
           ? [
               {
@@ -271,11 +403,14 @@ export class SupportAgentGraph implements OnModuleInit, OnModuleDestroy {
       new Command({
         resume: value,
       }),
+
       {
         version: 'v3',
+
         configurable: {
           thread_id: threadId,
         },
+
         context,
       },
     );

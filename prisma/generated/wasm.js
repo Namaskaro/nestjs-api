@@ -139,7 +139,8 @@ exports.Prisma.OperatorProfileScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   inviteExpires: 'inviteExpires',
-  inviteToken: 'inviteToken'
+  inviteToken: 'inviteToken',
+  availableUntil: 'availableUntil'
 };
 
 exports.Prisma.SupportCaseScalarFieldEnum = {
@@ -147,6 +148,10 @@ exports.Prisma.SupportCaseScalarFieldEnum = {
   userId: 'userId',
   chatId: 'chatId',
   operatorId: 'operatorId',
+  kind: 'kind',
+  context: 'context',
+  requestId: 'requestId',
+  sourceMessageId: 'sourceMessageId',
   reason: 'reason',
   issue: 'issue',
   summary: 'summary',
@@ -163,7 +168,8 @@ exports.Prisma.ChatScalarFieldEnum = {
   mode: 'mode',
   lastMessageAt: 'lastMessageAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  handoffVersion: 'handoffVersion'
 };
 
 exports.Prisma.MessageScalarFieldEnum = {
@@ -302,6 +308,31 @@ exports.Prisma.OrderScalarFieldEnum = {
   finalAmount: 'finalAmount'
 };
 
+exports.Prisma.PaymentScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  orderId: 'orderId',
+  providerPaymentId: 'providerPaymentId',
+  amount: 'amount',
+  status: 'status',
+  paidAt: 'paidAt',
+  rawResponse: 'rawResponse'
+};
+
+exports.Prisma.RefundScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  paymentId: 'paymentId',
+  providerRefundId: 'providerRefundId',
+  idempotenceKey: 'idempotenceKey',
+  amount: 'amount',
+  status: 'status',
+  rawResponse: 'rawResponse',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ShipmentScalarFieldEnum = {
   id: 'id',
   orderId: 'orderId',
@@ -314,18 +345,6 @@ exports.Prisma.ShipmentScalarFieldEnum = {
   deliveredAt: 'deliveredAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
-};
-
-exports.Prisma.PaymentScalarFieldEnum = {
-  id: 'id',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  orderId: 'orderId',
-  providerPaymentId: 'providerPaymentId',
-  amount: 'amount',
-  status: 'status',
-  paidAt: 'paidAt',
-  rawResponse: 'rawResponse'
 };
 
 exports.Prisma.CartItemScalarFieldEnum = {
@@ -405,6 +424,11 @@ exports.OperatorStatus = exports.$Enums.OperatorStatus = {
   OFFLINE: 'OFFLINE'
 };
 
+exports.SupportCaseKind = exports.$Enums.SupportCaseKind = {
+  GENERAL: 'GENERAL',
+  HANDOFF: 'HANDOFF'
+};
+
 exports.SupportCaseReason = exports.$Enums.SupportCaseReason = {
   CUSTOMER_REQUEST: 'CUSTOMER_REQUEST',
   UNSUPPORTED_ACTION: 'UNSUPPORTED_ACTION',
@@ -476,6 +500,18 @@ exports.DeliveryProvider = exports.$Enums.DeliveryProvider = {
   SDEK: 'SDEK'
 };
 
+exports.PaymentStatus = exports.$Enums.PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED'
+};
+
+exports.RefundStatus = exports.$Enums.RefundStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  CANCELED: 'CANCELED'
+};
+
 exports.ShipmentStatus = exports.$Enums.ShipmentStatus = {
   PENDING: 'PENDING',
   SHIPPED: 'SHIPPED',
@@ -485,12 +521,6 @@ exports.ShipmentStatus = exports.$Enums.ShipmentStatus = {
   EXCEPTION: 'EXCEPTION',
   RETURNED: 'RETURNED',
   UNKNOWN: 'UNKNOWN'
-};
-
-exports.PaymentStatus = exports.$Enums.PaymentStatus = {
-  PENDING: 'PENDING',
-  SUCCEEDED: 'SUCCEEDED',
-  FAILED: 'FAILED'
 };
 
 exports.Prisma.ModelName = {
@@ -510,8 +540,9 @@ exports.Prisma.ModelName = {
   Review: 'Review',
   PromoCode: 'PromoCode',
   Order: 'Order',
-  Shipment: 'Shipment',
   Payment: 'Payment',
+  Refund: 'Refund',
+  Shipment: 'Shipment',
   CartItem: 'CartItem',
   Cart: 'Cart',
   StoreKnowledge: 'StoreKnowledge'

@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-import { HandoffRequestSchema } from '../agents/handoff-agent/schemas/handoff.schema';
+import {
+  HandoffRequestSchema,
+  HandoffRouterRequestSchema,
+} from '../agents/handoff-agent/schemas/handoff.schema';
 
 import { ClarificationTopicSchema } from './clarification-topic.schema';
 
@@ -66,29 +69,42 @@ export const RequestRouterFallbackRouteSchema = z.enum([
   'handoff',
 ]);
 
+/**
+ * Ответ языковой модели.
+ *
+ * Здесь используем HandoffRouterRequestSchema.
+ * У неё нет поля evidence.
+ *
+ * Модель маршрутизатора не должна
+ * выдавать предположения за результаты
+ * серверных проверок.
+ */
 export const RequestRouterModelSchema = z.object({
   workerQueries: RequestRouterWorkerQueriesSchema,
 
-  // Strict model output requires every key; legacy internal requests stay optional.
-  orderRequest: OrderRequestSchema.required({ orderNumber: true }).nullable().describe(
-    [
-      'Заполняй только если workerQueries.orderAgent не null.',
-      'LIST — список или история заказов.',
-      'GET — показать конкретный заказ без более точной операции.',
-      'LATEST — показать последний заказ.',
-      'RELEVANT — показать актуальный заказ.',
-      'STATUS — узнать состояние или стадию выполнения заказа.',
-      'TRACKING — узнать местоположение посылки, трек-номер, перевозчика, прогноз доставки или движение отправления.',
-      'CANCEL — пользователь действительно хочет отменить заказ.',
-      'Для STATUS и TRACKING можно указывать orderNumber или orderId.',
-      'Если конкретный заказ не указан, оба идентификатора null.',
-      'Публичный номер, например №10482, передавай в orderNumber как строку "10482".',
-      'Внутренний технический идентификатор передавай в orderId.',
-      'Не путай orderId и orderNumber и не придумывай значения.',
-      'Если пользователь спрашивает, где сейчас посылка, выбирай TRACKING, а не STATUS.',
-      'Если спрашивает только стадию обработки заказа, выбирай STATUS.',
-    ].join(' '),
-  ),
+  orderRequest: OrderRequestSchema.required({
+    orderNumber: true,
+  })
+    .nullable()
+    .describe(
+      [
+        'Заполняй только если workerQueries.orderAgent не null.',
+        'LIST — список или история заказов.',
+        'GET — показать конкретный заказ без более точной операции.',
+        'LATEST — показать последний заказ.',
+        'RELEVANT — показать актуальный заказ.',
+        'STATUS — узнать состояние или стадию выполнения заказа.',
+        'TRACKING — узнать местоположение посылки, трек-номер, перевозчика, прогноз доставки или движение отправления.',
+        'CANCEL — пользователь действительно хочет отменить заказ.',
+        'Для STATUS и TRACKING можно указывать orderNumber или orderId.',
+        'Если конкретный заказ не указан, оба идентификатора null.',
+        'Публичный номер, например №10482, передавай в orderNumber как строку "10482".',
+        'Внутренний технический идентификатор передавай в orderId.',
+        'Не путай orderId и orderNumber и не придумывай значения.',
+        'Если пользователь спрашивает, где сейчас посылка, выбирай TRACKING, а не STATUS.',
+        'Если спрашивает только стадию обработки заказа, выбирай STATUS.',
+      ].join(' '),
+    ),
 
   fallbackRoute: RequestRouterFallbackRouteSchema.nullable().describe(
     [
@@ -107,15 +123,25 @@ export const RequestRouterModelSchema = z.object({
     ].join(' '),
   ),
 
-  handoffRequest: HandoffRequestSchema.nullable().describe(
-    ['Заполняй только для fallbackRoute = handoff.', 'Иначе верни null.'].join(
-      ' ',
-    ),
+  handoffRequest: HandoffRouterRequestSchema.nullable().describe(
+    [
+      'Заполняй только для fallbackRoute = handoff.',
+      'Указывай только причину и триггер передачи.',
+      'Проверенные факты формируют специализированные компоненты.',
+      'Иначе верни null.',
+    ].join(' '),
   ),
 
   reason: z.string().describe('Кратко объясни принятое решение.'),
 });
 
+/**
+ * Внутреннее решение маршрутизатора.
+ *
+ * Здесь сохраняем расширенный HandoffRequestSchema,
+ * поскольку после маршрутизации запрос
+ * может дополняться специализированными агентами.
+ */
 export const RequestRouterSchema = z.object({
   route: z.enum(['execute', 'unsupported', 'clarification', 'handoff']),
 

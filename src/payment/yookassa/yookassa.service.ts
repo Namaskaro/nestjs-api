@@ -1,4 +1,8 @@
-import { BadGatewayException, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
 
 import { ConfigService } from '@nestjs/config';
 
@@ -8,8 +12,16 @@ type YookassaPaymentStatus =
   | 'succeeded'
   | 'canceled';
 
+export type YookassaRefundStatus = 'pending' | 'succeeded' | 'canceled';
+
 interface CreateYookassaPaymentParams {
   orderId: string;
+  amount: number;
+  idempotenceKey: string;
+}
+
+interface CreateFullRefundParams {
+  providerPaymentId: string;
   amount: number;
   idempotenceKey: string;
 }
@@ -42,6 +54,28 @@ export interface YookassaPaymentResponse {
   created_at: string;
 
   test: boolean;
+}
+
+export interface YookassaRefundResponse {
+  id: string;
+
+  payment_id: string;
+
+  status: YookassaRefundStatus;
+
+  amount: {
+    value: string;
+    currency: string;
+  };
+
+  created_at: string;
+
+  cancellation_details?: {
+    party: string;
+    reason: string;
+  };
+
+  metadata?: Record<string, string>;
 }
 
 @Injectable()
@@ -97,14 +131,14 @@ export class YookassaService {
       }),
     });
 
-    return this.parseResponse(response);
+    return this.parseResponse<YookassaPaymentResponse>(response);
   }
 
   public async getPayment(
     providerPaymentId: string,
   ): Promise<YookassaPaymentResponse> {
     const response = await fetch(
-      `${this.apiUrl}/payments/${providerPaymentId}`,
+      `${this.apiUrl}/payments/${encodeURIComponent(providerPaymentId)}`,
       {
         method: 'GET',
 
@@ -116,7 +150,95 @@ export class YookassaService {
       },
     );
 
-    return this.parseResponse(response);
+    return this.parseResponse<YookassaPaymentResponse>(response);
+  }
+
+  /**
+   * Создание ПОЛНОГО возврата.
+   *
+   * Метод вызывается только серверным
+   * сервисом возвратов после проверки заказа.
+   *
+   * amount — полная сумма исходного платежа
+   * в рублях, полученная из доверенной БД.
+   *
+   * idempotenceKey создаётся и сохраняется
+   * вызывающим сервисом ДО внешнего запроса.
+   *
+   * Метод не генерирует случайный ключ:
+   * повтор финансовой операции должен
+   * использовать тот же ключ.
+   */
+  public async createFullRefund({
+    providerPaymentId,
+    amount,
+    idempotenceKey,
+  }: CreateFullRefundParams): Promise<YookassaRefundResponse> {
+    if (!providerPaymentId.trim()) {
+      throw new BadRequestException('Не указан исходный платёж.');
+    }
+
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
+      throw new BadRequestException('Некорректная сумма возврата.');
+    }
+
+    if (!idempotenceKey || idempotenceKey.length > 64) {
+      throw new BadRequestException('Некорректный ключ идемпотентности.');
+    }
+
+    const response = await fetch(`${this.apiUrl}/refunds`, {
+      method: 'POST',
+
+      headers: {
+        Authorization: this.getAuthorizationHeader(),
+
+        'Idempotence-Key': idempotenceKey,
+
+        'Content-Type': 'application/json',
+      },
+
+      body: JSON.stringify({
+        payment_id: providerPaymentId,
+
+        amount: {
+          value: amount.toFixed(2),
+          currency: 'RUB',
+        },
+      }),
+    });
+
+    return this.parseResponse<YookassaRefundResponse>(response);
+  }
+
+  /**
+   * Получение актуального состояния возврата.
+   *
+   * Используется для проверки операции,
+   * которая уже была отправлена в ЮKassa.
+   *
+   * GET не инициирует новый возврат.
+   */
+  public async getRefund(
+    providerRefundId: string,
+  ): Promise<YookassaRefundResponse> {
+    if (!providerRefundId.trim()) {
+      throw new BadRequestException('Не указан идентификатор возврата.');
+    }
+
+    const response = await fetch(
+      `${this.apiUrl}/refunds/${encodeURIComponent(providerRefundId)}`,
+      {
+        method: 'GET',
+
+        headers: {
+          Authorization: this.getAuthorizationHeader(),
+
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    return this.parseResponse<YookassaRefundResponse>(response);
   }
 
   private getAuthorizationHeader(): string {
@@ -133,10 +255,8 @@ export class YookassaService {
     return `Basic ${authorization}`;
   }
 
-  private async parseResponse(
-    response: Response,
-  ): Promise<YookassaPaymentResponse> {
-    const body = await response.json();
+  private async parseResponse<T>(response: Response): Promise<T> {
+    const body: unknown = await response.json();
 
     if (!response.ok) {
       throw new BadGatewayException({
@@ -145,6 +265,6 @@ export class YookassaService {
       });
     }
 
-    return body as YookassaPaymentResponse;
+    return body as T;
   }
 }
