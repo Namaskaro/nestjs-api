@@ -353,7 +353,9 @@ describe('ReviewsService: публикация и принадлежность',
       deletedAt: null,
       upVotes: 0,
       downVotes: 0,
-      indexPending: false,
+      indexPending: true,
+      indexNextAttemptAt: expect.any(Date),
+      indexLeaseToken: null,
       publishedCorpusVersion: null,
     });
     expect(db.reviewAddendum.deleteMany).toHaveBeenCalledWith({

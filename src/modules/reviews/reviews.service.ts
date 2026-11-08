@@ -70,6 +70,17 @@ const reviewStateSelect = {
 type ReviewState = Prisma.ReviewGetPayload<{
   select: typeof reviewStateSelect;
 }>;
+
+// Отметка и публикация фиксируются одной транзакцией; сетевых вызовов здесь нет.
+function pendingReviewIndex() {
+  return {
+    indexPending: true,
+    indexNextAttemptAt: new Date(),
+    indexLeaseToken: null,
+    indexLeaseUntil: null,
+    indexAttempts: 0,
+  };
+}
 type ReviewOwnerRow = Prisma.ReviewGetPayload<{
   select: typeof ownerReviewSelect;
 }>;
@@ -382,11 +393,7 @@ export class ReviewsService {
             downVotes: 0,
             popularityScore: 0,
             publishedCorpusVersion: null,
-            indexPending: false,
-            indexNextAttemptAt: null,
-            indexLeaseToken: null,
-            indexLeaseUntil: null,
-            indexAttempts: 0,
+            ...pendingReviewIndex(),
           },
         });
         if (updated.count !== 1) changed();
@@ -453,6 +460,7 @@ export class ReviewsService {
           upVotes: 0,
           downVotes: 0,
           popularityScore: 0,
+          ...pendingReviewIndex(),
         },
       });
       if (result.count !== 1) changed();
@@ -546,6 +554,7 @@ export class ReviewsService {
           publishedAt: data.decision === 'PUBLISHED' ? now : null,
           stateVersion: { increment: 1 },
           ...verification,
+          ...(data.decision === 'PUBLISHED' ? pendingReviewIndex() : {}),
         },
       });
       if (result.count !== 1) changed();
@@ -604,6 +613,12 @@ export class ReviewsService {
         },
       });
       if (result.count !== 1) changed();
+      if (data.decision === 'PUBLISHED') {
+        await tx.review.updateMany({
+          where: { id: review.id, publicationId: review.publicationId },
+          data: pendingReviewIndex(),
+        });
+      }
       return tx.reviewAddendum.findUnique({
         where: { id: addendumId },
         select: addendumSelect,

@@ -4,11 +4,21 @@ import { ReviewsController } from './reviews.controller';
 import { PrismaModule } from '@/src/core/prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { ReviewModerationController } from './review-moderation.controller';
+import { ReviewIndexService } from './review-index.service';
+import { AiModule } from '@/src/ai/ai.module';
+import { QdrantModule } from '@/src/core/qdrant/qdrant.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => AuthModule)],
+  imports: [
+    PrismaModule,
+    ConfigModule,
+    AiModule,
+    QdrantModule,
+    forwardRef(() => AuthModule),
+  ],
   controllers: [ReviewModerationController, ReviewsController],
-  providers: [ReviewsService],
-  exports: [ReviewsService],
+  providers: [ReviewsService, ReviewIndexService],
+  exports: [ReviewsService, ReviewIndexService],
 })
 export class ReviewsModule {}
