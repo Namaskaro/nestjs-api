@@ -428,6 +428,7 @@ function createProductAgentService() {
 
   const service = {
     validate,
+    getReviewExperience: jest.fn(async () => new Map()),
 
     search,
 
@@ -454,6 +455,31 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     const ai = createAiService();
 
     const productAgent = createProductAgentService();
+    (productAgent.service.getReviewExperience as jest.Mock).mockResolvedValue(
+      new Map([
+        [
+          'adidas-2',
+          {
+            averageRating: 4.4,
+            ratingCount: 20,
+            positiveCount: 18,
+            neutralCount: 1,
+            negativeCount: 1,
+            positivePercent: 90,
+            summary: {
+              productId: 'adidas-2',
+              positiveImpressions: ['Комфортная носка'],
+              negativeImpressions: ['Жёсткая посадка'],
+              summary: 'Встречаются разные впечатления о посадке.',
+              generatedAt: '2026-11-08T00:00:00.000Z',
+              sourceReviewCount: 20,
+              sourceVersion: 20,
+              lastRetractionVersion: 0,
+            },
+          },
+        ],
+      ]),
+    );
 
     const node = createExecuteProductDecisionNode(
       ai.aiService,
@@ -496,6 +522,24 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     expect(ai.recommendationInvoke).toHaveBeenCalledTimes(1);
 
     const payload = recommendationPayload(ai.recommendationInvoke);
+    expect(payload.context.reviewExperience).toMatchObject([
+      {
+        position: 2,
+        averageRating: 4.4,
+        ratingCount: 20,
+        positivePercent: 90,
+        summary: {
+          positiveImpressions: ['Комфортная носка'],
+          negativeImpressions: ['Жёсткая посадка'],
+        },
+      },
+    ]);
+    expect(JSON.stringify(payload.context.reviewExperience)).not.toContain(
+      'sourceVersion',
+    );
+    expect(JSON.stringify(payload.context.reviewExperience)).not.toContain(
+      'adidas-2',
+    );
 
     expect(payload.context.semanticEvidence).toEqual([
       {

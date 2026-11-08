@@ -70,12 +70,55 @@ export const ProductSnapshotSchema = z.object({
   attributes: z.array(ProductPresentationAttributeSchema).max(128),
 });
 
+export const ProductReviewExperienceSchema = z.object({
+  averageRating: z.number().min(1).max(5).nullable(),
+  ratingCount: z.number().int().nonnegative(),
+  positiveCount: z.number().int().nonnegative(),
+  neutralCount: z.number().int().nonnegative(),
+  negativeCount: z.number().int().nonnegative(),
+  positivePercent: z.number().min(0).max(100),
+  summary: z
+    .object({
+      positiveImpressions: z.array(z.string()),
+      negativeImpressions: z.array(z.string()),
+      summary: z.string(),
+      generatedAt: z.string().datetime(),
+      sourceReviewCount: z.number().int().min(10),
+    })
+    .nullable(),
+});
+
+export const ProductReviewAnswerSchema = z.object({
+  message: z.string().min(1).max(2400),
+  sources: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        reviewId: z.string().uuid(),
+        publicationId: z.string().uuid(),
+        sourceId: z.string().uuid(),
+        sourceKind: z.enum(['review', 'addendum']),
+        text: z.string().min(1).max(4000),
+        publishedAt: z.string().datetime(),
+        authorName: z.string(),
+      }),
+    )
+    .max(4),
+});
+
+export type ProductReviewExperience = z.infer<
+  typeof ProductReviewExperienceSchema
+>;
+export type ProductReviewAnswer = z.infer<typeof ProductReviewAnswerSchema>;
+
 export const ProductDetailsPresentationSchema = z.object({
   needId: IdSchema,
 
   product: ProductSnapshotSchema,
 
   focusAttributeIds: z.array(IdSchema).max(32),
+  reviewExperience: ProductReviewExperienceSchema.nullable().optional(),
+  reviewAnswer: ProductReviewAnswerSchema.nullable().optional(),
 });
 
 export type ProductPresentationAttribute = z.infer<

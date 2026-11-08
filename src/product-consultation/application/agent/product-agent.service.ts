@@ -1,4 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { ReviewsService } from '@/src/modules/reviews/reviews.service';
+import {
+  ReviewIndexService,
+  type ReviewSourceRef,
+} from '@/src/modules/reviews/review-index.service';
 
 import { CurrentStoreCatalogService } from '@/src/product-consultation/adapters/current-store/current-store-catalog.service';
 
@@ -28,10 +33,27 @@ export class ProductAgentService implements ProductSearchPort {
     private readonly currentStoreProductSearchService: CurrentStoreProductSearchService,
 
     private readonly currentStoreSearchSpecAdapter: CurrentStoreSearchSpecAdapter,
+    private readonly reviews: ReviewsService,
+    private readonly reviewIndex: ReviewIndexService,
   ) {}
 
   public capabilities(): ProductSearchCapabilities {
     return this.currentStoreSearchSpecAdapter.capabilities();
+  }
+
+  public getReviewExperience(productIds: readonly string[]) {
+    return this.reviews.getReviewExperience(productIds);
+  }
+
+  public searchReviews(productId: string, query: string, signal?: AbortSignal) {
+    return this.reviewIndex.search(productId, query, signal);
+  }
+
+  public resolveReviewSources(
+    productId: string,
+    refs: readonly ReviewSourceRef[],
+  ) {
+    return this.reviewIndex.resolveSources(productId, refs);
   }
 
   public validate(search: SearchSpec): void {

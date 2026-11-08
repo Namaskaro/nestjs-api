@@ -28,6 +28,8 @@ import { executeProductConsultantCapability } from '@/src/product-consultation/a
 import { buildProductConsultationContext } from '@/src/product-consultation/application/context/product-consultation-context';
 
 import { createProductRecommendationSynthesizer } from '@/src/product-consultation/application/recommendation/product-recommendation-synthesizer';
+import { answerProductReviewQuestion } from '../../recommendation/product-review-answer';
+import { ProductReviewExperienceSchema } from '../../presentation/product-presentation.schema';
 
 import { finalizeComparisonPresentation } from '@/src/product-consultation/application/presentation/comparison-presentation';
 
@@ -339,20 +341,37 @@ export function createExecuteProductDecisionNode(
           );
         }
 
-        const message = `Вот подробная информация о ${product.title}.`;
+        const reviewAnswer = decision.reviewQuery
+          ? await answerProductReviewQuestion(aiService, productAgentService, {
+              productId: product.id,
+              query: decision.reviewQuery,
+              signal: _config?.signal,
+            })
+          : null;
+        const experience = (
+          await productAgentService.getReviewExperience([product.id])
+        ).get(product.id);
+        const message =
+          reviewAnswer?.message ??
+          `Вот подробная информация о ${product.title}.`;
+        const consultation = buildProductDetailsConsultation({
+          state: consultationState,
+          product,
+          focusAttributeIds: decision.factAttributeIds,
+          message,
+        });
+        consultation.productDetailsPresentation = {
+          ...consultation.productDetailsPresentation,
+          reviewExperience: experience
+            ? ProductReviewExperienceSchema.parse(experience)
+            : null,
+          reviewAnswer,
+        };
 
         return {
           consultationRecord: record,
 
-          consultation: buildProductDetailsConsultation({
-            state: consultationState,
-
-            product,
-
-            focusAttributeIds: decision.factAttributeIds,
-
-            message,
-          }),
+          consultation,
 
           consultationCompletion: null,
 
@@ -459,6 +478,9 @@ export function createExecuteProductDecisionNode(
               .catch(() => undefined)
           : undefined;
 
+      const reviewExperience = await productAgentService.getReviewExperience(
+        capability.selectedProducts.map((product) => product.id),
+      );
       const followup = buildProductConsultationContext({
         record,
 
@@ -475,13 +497,39 @@ export function createExecuteProductDecisionNode(
         usageScenarioIds: capability.usageScenarioIds,
 
         semanticRepresentations,
+        reviewExperience,
       });
 
       const synthesis = await recommendationSynthesizer.synthesize({
         context: followup.context,
 
         observation: capability.observation,
+        signal: _config?.signal,
       });
+
+      const currentExperience = await productAgentService.getReviewExperience([
+        ...reviewExperience.keys(),
+      ]);
+      for (const [id, used] of reviewExperience) {
+        const current = currentExperience.get(id);
+        if (
+          !current ||
+          current.ratingCount !== used.ratingCount ||
+          current.averageRating !== used.averageRating ||
+          (used.summary &&
+            (!current.summary ||
+              current.summary.lastRetractionVersion >
+                used.summary.sourceVersion))
+        )
+          return {
+            consultationRecord: record,
+            consultation: null,
+            consultationCompletion: null,
+            failed: true,
+            message:
+              'Отзывы изменились во время подготовки рекомендации. Повторите запрос для актуального ответа.',
+          };
+      }
 
       const selectedProductIds = capability.selectedProducts.map(
         (product) => product.id,

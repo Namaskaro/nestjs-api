@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+  ProductReviewExperienceSchema,
+  type ProductReviewExperience,
+} from '../presentation/product-presentation.schema';
 
 import {
   AgentComparisonViewSchema,
@@ -301,6 +305,14 @@ export const ProductConsultationLlmContextSchema = z
     semanticEvidence: z
       .array(ContextSemanticEvidenceSchema)
       .max(MAX_CONTEXT_FACT_PRODUCTS),
+    reviewExperience: z
+      .array(
+        ProductReviewExperienceSchema.extend({
+          position: z.number().int().positive(),
+        }),
+      )
+      .max(MAX_CONTEXT_FACT_PRODUCTS)
+      .optional(),
 
     comparison: ContextComparisonSchema.nullable(),
 
@@ -342,6 +354,7 @@ export type BuildProductConsultationContextInput = {
   selectedProducts?: readonly ProductDetails[];
 
   semanticRepresentations?: ReadonlyMap<string, ProductSemanticEvidenceSource>;
+  reviewExperience?: ReadonlyMap<string, ProductReviewExperience>;
 
   factAttributeIds?: readonly string[] | null;
 
@@ -1027,6 +1040,23 @@ export function buildProductConsultationContext(
 
       representations: input.semanticRepresentations ?? new Map(),
     }),
+
+    ...(input.reviewExperience
+      ? {
+          reviewExperience: selectedProducts
+            .flatMap((product) => {
+              const experience = input.reviewExperience.get(product.id);
+              const index =
+                snapshot?.products.findIndex(
+                  (row) => row.productId === product.id,
+                ) ?? -1;
+              return experience && index >= 0
+                ? [{ ...experience, position: index + 1 }]
+                : [];
+            })
+            .slice(0, MAX_CONTEXT_FACT_PRODUCTS),
+        }
+      : {}),
 
     comparison: comparisonContext({
       comparison: input.comparison ?? null,
