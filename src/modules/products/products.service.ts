@@ -441,10 +441,9 @@ export class ProductsService {
           },
         },
         brand: true,
-        reviews: publicReviewsQuery,
       },
     });
-    return products.map(withPublicReviews);
+    return products;
   }
 
   async getPaginatedProducts(filters: FilterQueryDto) {
@@ -491,7 +490,6 @@ export class ProductsService {
     const include = {
       brand: true,
       subcategory: { select: { name: true } },
-      reviews: publicReviewsQuery,
     } as const;
 
     // общий стабильный orderBy (по выбранному полю + tie-break по id)
@@ -519,7 +517,7 @@ export class ProductsService {
       });
 
       return {
-        items: items.map(withPublicReviews),
+        items,
         nextCursor: items.length === take ? items[items.length - 1].id : null,
       };
     }
@@ -539,7 +537,7 @@ export class ProductsService {
     ]);
 
     return {
-      items: items.map(withPublicReviews),
+      items,
       total,
       page,
       totalPages: Math.ceil(total / take),
@@ -563,7 +561,7 @@ export class ProductsService {
           },
         },
         brand: true,
-        reviews: publicReviewsQuery,
+        reviews: { ...publicReviewsQuery, take: 20 },
       },
     });
 
@@ -608,11 +606,10 @@ export class ProductsService {
           },
         },
         brand: true,
-        reviews: publicReviewsQuery,
       },
     });
 
-    return products.map(withPublicReviews);
+    return products;
   }
 
   async create(data: CreateProductDto, files: Express.Multer.File[]) {

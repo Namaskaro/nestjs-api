@@ -155,13 +155,11 @@ describe('ReviewsService: публикация и принадлежность',
   });
 
   it('одобрение повторно проверяет доставку и открывает публикацию; повторное решение идемпотентно', async () => {
-    db.review.findUnique
-      .mockResolvedValueOnce(state)
-      .mockResolvedValueOnce({
-        ...owner,
-        status: 'PUBLISHED',
-        publishedAt: now,
-      });
+    db.review.findUnique.mockResolvedValueOnce(state).mockResolvedValueOnce({
+      ...owner,
+      status: 'PUBLISHED',
+      publishedAt: now,
+    });
     await expect(
       service.moderateReview('manager', 'review', {
         publicationId,
@@ -397,15 +395,22 @@ describe('ReviewsService: публикация и принадлежность',
   });
 
   it('публичный запрос ограничен опубликованными подтверждёнными отзывами и безопасными полями автора', async () => {
-    await expect(service.getProductReviews(productId)).resolves.toEqual([]);
+    await expect(service.getProductReviews(productId)).resolves.toEqual({
+      items: [],
+      nextCursor: null,
+    });
     expect(db.review.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({
-          productId,
-          status: 'PUBLISHED',
-          deletedAt: null,
-          verifiedAt: { not: null },
-        }),
+        where: {
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              productId,
+              status: 'PUBLISHED',
+              deletedAt: null,
+              verifiedAt: { not: null },
+            }),
+          ]),
+        },
       }),
     );
     expect(publicReviewsQuery.select.user).toEqual({

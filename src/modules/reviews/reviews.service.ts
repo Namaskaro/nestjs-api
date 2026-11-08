@@ -17,7 +17,11 @@ import {
   publishedReviewWhere,
   publicReviewsQuery,
   toPublicReviews,
+  reviewPageRequest,
+  nextReviewCursor,
+  reviewPopularityScore,
 } from './review-publication';
+import { ReviewListQueryDto, ReviewVoteDto } from './dto/review-list.dto';
 
 const addendumSelect = {
   id: true,
@@ -58,6 +62,9 @@ const reviewStateSelect = {
   status: true,
   deletedAt: true,
   stateVersion: true,
+  upVotes: true,
+  downVotes: true,
+  popularityScore: true,
 } satisfies Prisma.ReviewSelect;
 
 type ReviewState = Prisma.ReviewGetPayload<{
@@ -138,14 +145,162 @@ function ownerView(row: ReviewOwnerRow) {
 export class ReviewsService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getProductReviews(productId: string) {
+  async getProductReviews(
+    productId: string,
+    query: ReviewListQueryDto = new ReviewListQueryDto(),
+  ) {
     await this.requireProduct(this.prismaService, productId);
-    return toPublicReviews(
-      await this.prismaService.review.findMany({
-        ...publicReviewsQuery,
-        where: { ...publishedReviewWhere, productId },
-      }),
+    const page = reviewPageRequest(productId, query);
+    const rows = await this.prismaService.review.findMany({
+      ...publicReviewsQuery,
+      where: page.where,
+      orderBy: page.orderBy,
+      take: page.take + 1,
+    });
+    const visible = rows.slice(0, page.take);
+    return {
+      items: toPublicReviews(visible),
+      nextCursor:
+        rows.length > page.take
+          ? nextReviewCursor(
+              productId,
+              page.sort,
+              page.asOf,
+              visible[visible.length - 1],
+            )
+          : null,
+    };
+  }
+
+  async getProductStats(productId: string) {
+    await this.requireProduct(this.prismaService, productId);
+    const where = { ...publishedReviewWhere, productId };
+    const totalsQuery = this.prismaService.review.aggregate({
+      where,
+      _avg: { rating: true },
+      _count: { _all: true },
+    });
+    const ratingsQuery = this.prismaService.review.groupBy({
+      by: ['rating'],
+      where,
+      _count: { _all: true },
+    });
+    const [totals, ratings] = await this.prismaService.$transaction(
+      [totalsQuery, ratingsQuery],
+      { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
     );
+    const positiveCount = ratings
+      .filter((row) => row.rating >= 4)
+      .reduce((sum, row) => sum + row._count._all, 0);
+    const neutralCount = ratings
+      .filter((row) => row.rating === 3)
+      .reduce((sum, row) => sum + row._count._all, 0);
+    const negativeCount = ratings
+      .filter((row) => row.rating <= 2)
+      .reduce((sum, row) => sum + row._count._all, 0);
+    const ratingCount = totals._count._all;
+    return {
+      averageRating: totals._avg.rating,
+      ratingCount,
+      positiveCount,
+      neutralCount,
+      negativeCount,
+      positivePercent: ratingCount ? (positiveCount * 100) / ratingCount : 0,
+    };
+  }
+
+  async getOwnVotes(userId: string, productId: string, ids: string[]) {
+    const rows = await this.prismaService.reviewVote.findMany({
+      where: {
+        userId,
+        reviewId: { in: ids },
+        review: { is: { ...publishedReviewWhere, productId } },
+      },
+      select: {
+        reviewId: true,
+        publicationId: true,
+        value: true,
+        review: { select: { publicationId: true } },
+      },
+    });
+    return rows
+      .filter((row) => row.publicationId === row.review.publicationId)
+      .map(({ review, ...vote }) => vote);
+  }
+
+  async setVote(userId: string, reviewId: string, data: ReviewVoteDto) {
+    if (!['UP', 'DOWN', null].includes(data.value))
+      throw new BadRequestException({ code: 'INVALID_REVIEW_VOTE' });
+    return this.transaction(async (tx) => {
+      const row = await tx.review.findFirst({
+        where: { ...publishedReviewWhere, id: reviewId },
+        select: reviewStateSelect,
+      });
+      if (!row) throw new NotFoundException({ code: 'REVIEW_NOT_FOUND' });
+      this.requireCurrentPublication(row, data.publicationId);
+      if (row.userId === userId)
+        throw new BadRequestException({
+          code: 'REVIEW_SELF_VOTE',
+          message: 'За собственный отзыв голосовать нельзя.',
+        });
+      const current = await tx.reviewVote.findUnique({
+        where: { reviewId_userId: { reviewId, userId } },
+      });
+      const previous =
+        current?.publicationId === row.publicationId ? current.value : null;
+      if (previous === data.value)
+        return {
+          reviewId,
+          publicationId: row.publicationId,
+          upVotes: row.upVotes,
+          downVotes: row.downVotes,
+          myVote: previous,
+        };
+      const upVotes =
+        row.upVotes - Number(previous === 'UP') + Number(data.value === 'UP');
+      const downVotes =
+        row.downVotes -
+        Number(previous === 'DOWN') +
+        Number(data.value === 'DOWN');
+      if (upVotes < 0 || downVotes < 0) changed();
+      const updated = await tx.review.updateMany({
+        where: {
+          ...publishedReviewWhere,
+          id: reviewId,
+          publicationId: row.publicationId,
+          stateVersion: row.stateVersion,
+        },
+        data: {
+          upVotes,
+          downVotes,
+          popularityScore: reviewPopularityScore(upVotes, downVotes),
+          stateVersion: { increment: 1 },
+        },
+      });
+      if (updated.count !== 1) changed();
+      if (data.value === null)
+        await tx.reviewVote.deleteMany({
+          where: { reviewId, userId, publicationId: row.publicationId },
+        });
+      else
+        await tx.reviewVote.upsert({
+          where: { reviewId_userId: { reviewId, userId } },
+          create: {
+            reviewId,
+            userId,
+            publicationId: row.publicationId,
+            value: data.value,
+          },
+          update: { publicationId: row.publicationId, value: data.value },
+        });
+      return {
+        reviewId,
+        publicationId: row.publicationId,
+        upVotes,
+        downVotes,
+        myVote: data.value,
+      };
+    });
   }
 
   async getMineAndEligibility(userId: string, productId: string) {

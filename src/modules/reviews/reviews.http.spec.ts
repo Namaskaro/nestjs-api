@@ -55,6 +55,9 @@ describe('Reviews HTTP: авторизация, роли и неизменяем
       [
         'createReview',
         'getProductReviews',
+        'getProductStats',
+        'getOwnVotes',
+        'setVote',
         'getMineAndEligibility',
         'addAddendum',
         'deleteReview',
@@ -79,6 +82,72 @@ describe('Reviews HTTP: авторизация, роли и неизменяем
 
   afterEach(async () => {
     await app.close();
+  });
+
+  it('публичные stats и список валидируют параметры пагинации', async () => {
+    await request(app.getHttpServer())
+      .get(`/reviews/${productId}/stats`)
+      .expect(200);
+    expect(service.getProductStats).toHaveBeenCalledWith(productId);
+    await request(app.getHttpServer())
+      .get(`/reviews/${productId}`)
+      .query({ sort: 'rating', take: 2 })
+      .expect(200);
+    expect(service.getProductReviews).toHaveBeenCalledWith(
+      productId,
+      expect.objectContaining({ sort: 'rating', take: 2 }),
+    );
+    await request(app.getHttpServer())
+      .get(`/reviews/${productId}`)
+      .query({ sort: 'unknown' })
+      .expect(400);
+    await request(app.getHttpServer())
+      .get(`/reviews/${productId}`)
+      .query({ take: 51 })
+      .expect(400);
+  });
+
+  it('голос и персональный batch используют JWT-автора; value null отменяет голос', async () => {
+    await request(app.getHttpServer())
+      .put(`/reviews/${reviewId}/vote`)
+      .send({ publicationId, value: 'UP' })
+      .expect(401);
+    await request(app.getHttpServer())
+      .put(`/reviews/${reviewId}/vote`)
+      .set('x-test-identity', 'client')
+      .send({ publicationId, value: null, userId: 'victim' })
+      .expect(200);
+    expect(service.setVote).toHaveBeenCalledWith('client', reviewId, {
+      publicationId,
+      value: null,
+    });
+    await request(app.getHttpServer())
+      .put(`/reviews/${reviewId}/vote`)
+      .set('x-test-identity', 'client')
+      .send({ publicationId, value: 'OTHER' })
+      .expect(400);
+    await request(app.getHttpServer())
+      .put(`/reviews/${reviewId}/vote`)
+      .set('x-test-identity', 'client')
+      .send({ publicationId })
+      .expect(400);
+    await request(app.getHttpServer())
+      .get(`/reviews/${productId}/my-votes`)
+      .query({ ids: reviewId })
+      .expect(401);
+    await request(app.getHttpServer())
+      .get(`/reviews/${productId}/my-votes`)
+      .query({ ids: reviewId })
+      .set('x-test-identity', 'client')
+      .expect(200);
+    expect(service.getOwnVotes).toHaveBeenCalledWith('client', productId, [
+      reviewId,
+    ]);
+    await request(app.getHttpServer())
+      .get(`/reviews/${productId}/my-votes`)
+      .query({ ids: 'invalid' })
+      .set('x-test-identity', 'client')
+      .expect(400);
   });
 
   it('не разрешает неавторизованные записи и чтение своей заявки', async () => {
@@ -259,7 +328,7 @@ describe('ProductsService: публичные вложенные reviews', () =>
     };
     const db = {
       product: {
-        findMany: jest.fn().mockResolvedValue([row]),
+        findMany: jest.fn().mockResolvedValue([{ id: productId }]),
         findUnique: jest.fn().mockResolvedValue(row),
         count: jest.fn().mockResolvedValue(1),
       },
@@ -282,23 +351,22 @@ describe('ProductsService: публичные вложенные reviews', () =>
     const offset = await products.getPaginatedProducts({ page: 1 });
     for (const product of [
       all[0],
-      detail,
       gender[0],
       cursor.items[0],
       offset.items[0],
     ]) {
-      expect(product.reviews).toHaveLength(1);
-      expect(product.reviews[0]).toMatchObject({
-        verifiedPurchase: true,
-        addenda: [],
-        user: { id: 'buyer', name: 'Покупатель', image: null },
-      });
+      expect(product).not.toHaveProperty('reviews');
     }
+    expect(detail.reviews[0]).toMatchObject({
+      verifiedPurchase: true,
+      addenda: [],
+      user: { id: 'buyer', name: 'Покупатель', image: null },
+    });
     for (const [query] of db.product.findMany.mock.calls)
-      expect(query.include.reviews).toBe(publicReviewsQuery);
+      expect(query.include).not.toHaveProperty('reviews');
     expect(
       db.product.findUnique.mock.calls.find(([query]) => query.include)?.[0]
         .include.reviews,
-    ).toBe(publicReviewsQuery);
+    ).toEqual({ ...publicReviewsQuery, take: 20 });
   });
 });
