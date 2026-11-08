@@ -84,6 +84,21 @@ export type Brand = $Result.DefaultSelection<Prisma.$BrandPayload>
  */
 export type Review = $Result.DefaultSelection<Prisma.$ReviewPayload>
 /**
+ * Model ReviewAddendum
+ *
+ */
+export type ReviewAddendum = $Result.DefaultSelection<Prisma.$ReviewAddendumPayload>
+/**
+ * Model ReviewVote
+ *
+ */
+export type ReviewVote = $Result.DefaultSelection<Prisma.$ReviewVotePayload>
+/**
+ * Model ReviewSummary
+ *
+ */
+export type ReviewSummary = $Result.DefaultSelection<Prisma.$ReviewSummaryPayload>
+/**
  * Model PromoCode
  * 
  */
@@ -134,6 +149,23 @@ export namespace $Enums {
 };
 
 export type SupportCaseKind = (typeof SupportCaseKind)[keyof typeof SupportCaseKind]
+
+
+export const ReviewModerationStatus: {
+  PENDING: 'PENDING',
+  PUBLISHED: 'PUBLISHED',
+  REJECTED: 'REJECTED'
+};
+
+export type ReviewModerationStatus = (typeof ReviewModerationStatus)[keyof typeof ReviewModerationStatus]
+
+
+export const ReviewVoteValue: {
+  UP: 'UP',
+  DOWN: 'DOWN'
+};
+
+export type ReviewVoteValue = (typeof ReviewVoteValue)[keyof typeof ReviewVoteValue]
 
 
 export const RefundStatus: {
@@ -305,6 +337,14 @@ export type ShipmentStatus = (typeof ShipmentStatus)[keyof typeof ShipmentStatus
 export type SupportCaseKind = $Enums.SupportCaseKind
 
 export const SupportCaseKind: typeof $Enums.SupportCaseKind
+
+export type ReviewModerationStatus = $Enums.ReviewModerationStatus
+
+export const ReviewModerationStatus: typeof $Enums.ReviewModerationStatus
+
+export type ReviewVoteValue = $Enums.ReviewVoteValue
+
+export const ReviewVoteValue: typeof $Enums.ReviewVoteValue
 
 export type RefundStatus = $Enums.RefundStatus
 
@@ -638,6 +678,36 @@ export class PrismaClient<
     * ```
     */
   get review(): Prisma.ReviewDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.reviewAddendum`: Exposes CRUD operations for the **ReviewAddendum** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReviewAddenda
+    * const reviewAddenda = await prisma.reviewAddendum.findMany()
+    * ```
+    */
+  get reviewAddendum(): Prisma.ReviewAddendumDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.reviewVote`: Exposes CRUD operations for the **ReviewVote** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReviewVotes
+    * const reviewVotes = await prisma.reviewVote.findMany()
+    * ```
+    */
+  get reviewVote(): Prisma.ReviewVoteDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.reviewSummary`: Exposes CRUD operations for the **ReviewSummary** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ReviewSummaries
+    * const reviewSummaries = await prisma.reviewSummary.findMany()
+    * ```
+    */
+  get reviewSummary(): Prisma.ReviewSummaryDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.promoCode`: Exposes CRUD operations for the **PromoCode** model.
@@ -1172,6 +1242,9 @@ export namespace Prisma {
     Subcategory: 'Subcategory',
     Brand: 'Brand',
     Review: 'Review',
+    ReviewAddendum: 'ReviewAddendum',
+    ReviewVote: 'ReviewVote',
+    ReviewSummary: 'ReviewSummary',
     PromoCode: 'PromoCode',
     Order: 'Order',
     Payment: 'Payment',
@@ -1195,7 +1268,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "operatorProfile" | "supportCase" | "chat" | "message" | "token" | "account" | "verificationToken" | "product" | "productEmbedding" | "category" | "subcategory" | "brand" | "review" | "promoCode" | "order" | "payment" | "refund" | "shipment" | "cartItem" | "cart" | "storeKnowledge"
+      modelProps: "user" | "operatorProfile" | "supportCase" | "chat" | "message" | "token" | "account" | "verificationToken" | "product" | "productEmbedding" | "category" | "subcategory" | "brand" | "review" | "reviewAddendum" | "reviewVote" | "reviewSummary" | "promoCode" | "order" | "payment" | "refund" | "shipment" | "cartItem" | "cart" | "storeKnowledge"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2219,6 +2292,228 @@ export namespace Prisma {
           }
         }
       }
+      ReviewAddendum: {
+        payload: Prisma.$ReviewAddendumPayload<ExtArgs>
+        fields: Prisma.ReviewAddendumFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReviewAddendumFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReviewAddendumFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>
+          }
+          findFirst: {
+            args: Prisma.ReviewAddendumFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReviewAddendumFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>
+          }
+          findMany: {
+            args: Prisma.ReviewAddendumFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>[]
+          }
+          create: {
+            args: Prisma.ReviewAddendumCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>
+          }
+          createMany: {
+            args: Prisma.ReviewAddendumCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReviewAddendumCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>[]
+          }
+          delete: {
+            args: Prisma.ReviewAddendumDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>
+          }
+          update: {
+            args: Prisma.ReviewAddendumUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>
+          }
+          deleteMany: {
+            args: Prisma.ReviewAddendumDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReviewAddendumUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ReviewAddendumUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>[]
+          }
+          upsert: {
+            args: Prisma.ReviewAddendumUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewAddendumPayload>
+          }
+          aggregate: {
+            args: Prisma.ReviewAddendumAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReviewAddendum>
+          }
+          groupBy: {
+            args: Prisma.ReviewAddendumGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReviewAddendumGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReviewAddendumCountArgs<ExtArgs>
+            result: $Utils.Optional<ReviewAddendumCountAggregateOutputType> | number
+          }
+        }
+      }
+      ReviewVote: {
+        payload: Prisma.$ReviewVotePayload<ExtArgs>
+        fields: Prisma.ReviewVoteFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReviewVoteFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReviewVoteFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>
+          }
+          findFirst: {
+            args: Prisma.ReviewVoteFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReviewVoteFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>
+          }
+          findMany: {
+            args: Prisma.ReviewVoteFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>[]
+          }
+          create: {
+            args: Prisma.ReviewVoteCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>
+          }
+          createMany: {
+            args: Prisma.ReviewVoteCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReviewVoteCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>[]
+          }
+          delete: {
+            args: Prisma.ReviewVoteDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>
+          }
+          update: {
+            args: Prisma.ReviewVoteUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>
+          }
+          deleteMany: {
+            args: Prisma.ReviewVoteDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReviewVoteUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ReviewVoteUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>[]
+          }
+          upsert: {
+            args: Prisma.ReviewVoteUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewVotePayload>
+          }
+          aggregate: {
+            args: Prisma.ReviewVoteAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReviewVote>
+          }
+          groupBy: {
+            args: Prisma.ReviewVoteGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReviewVoteGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReviewVoteCountArgs<ExtArgs>
+            result: $Utils.Optional<ReviewVoteCountAggregateOutputType> | number
+          }
+        }
+      }
+      ReviewSummary: {
+        payload: Prisma.$ReviewSummaryPayload<ExtArgs>
+        fields: Prisma.ReviewSummaryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ReviewSummaryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ReviewSummaryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>
+          }
+          findFirst: {
+            args: Prisma.ReviewSummaryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ReviewSummaryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>
+          }
+          findMany: {
+            args: Prisma.ReviewSummaryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>[]
+          }
+          create: {
+            args: Prisma.ReviewSummaryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>
+          }
+          createMany: {
+            args: Prisma.ReviewSummaryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ReviewSummaryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>[]
+          }
+          delete: {
+            args: Prisma.ReviewSummaryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>
+          }
+          update: {
+            args: Prisma.ReviewSummaryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>
+          }
+          deleteMany: {
+            args: Prisma.ReviewSummaryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ReviewSummaryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ReviewSummaryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>[]
+          }
+          upsert: {
+            args: Prisma.ReviewSummaryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ReviewSummaryPayload>
+          }
+          aggregate: {
+            args: Prisma.ReviewSummaryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateReviewSummary>
+          }
+          groupBy: {
+            args: Prisma.ReviewSummaryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ReviewSummaryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ReviewSummaryCountArgs<ExtArgs>
+            result: $Utils.Optional<ReviewSummaryCountAggregateOutputType> | number
+          }
+        }
+      }
       PromoCode: {
         payload: Prisma.$PromoCodePayload<ExtArgs>
         fields: Prisma.PromoCodeFieldRefs
@@ -2909,6 +3204,9 @@ export namespace Prisma {
     subcategory?: SubcategoryOmit
     brand?: BrandOmit
     review?: ReviewOmit
+    reviewAddendum?: ReviewAddendumOmit
+    reviewVote?: ReviewVoteOmit
+    reviewSummary?: ReviewSummaryOmit
     promoCode?: PromoCodeOmit
     order?: OrderOmit
     payment?: PaymentOmit
@@ -3014,6 +3312,7 @@ export namespace Prisma {
     sentMessages: number
     supportCases: number
     reviews: number
+    reviewVotes: number
     accounts: number
     orders: number
     favorites: number
@@ -3023,6 +3322,7 @@ export namespace Prisma {
     sentMessages?: boolean | UserCountOutputTypeCountSentMessagesArgs
     supportCases?: boolean | UserCountOutputTypeCountSupportCasesArgs
     reviews?: boolean | UserCountOutputTypeCountReviewsArgs
+    reviewVotes?: boolean | UserCountOutputTypeCountReviewVotesArgs
     accounts?: boolean | UserCountOutputTypeCountAccountsArgs
     orders?: boolean | UserCountOutputTypeCountOrdersArgs
     favorites?: boolean | UserCountOutputTypeCountFavoritesArgs
@@ -3058,6 +3358,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountReviewsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ReviewWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountReviewVotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReviewVoteWhereInput
   }
 
   /**
@@ -3292,6 +3599,46 @@ export namespace Prisma {
    */
   export type BrandCountOutputTypeCountProductsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProductWhereInput
+  }
+
+
+  /**
+   * Count Type ReviewCountOutputType
+   */
+
+  export type ReviewCountOutputType = {
+    addenda: number
+    votes: number
+  }
+
+  export type ReviewCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    addenda?: boolean | ReviewCountOutputTypeCountAddendaArgs
+    votes?: boolean | ReviewCountOutputTypeCountVotesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ReviewCountOutputType without action
+   */
+  export type ReviewCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewCountOutputType
+     */
+    select?: ReviewCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ReviewCountOutputType without action
+   */
+  export type ReviewCountOutputTypeCountAddendaArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReviewAddendumWhereInput
+  }
+
+  /**
+   * ReviewCountOutputType without action
+   */
+  export type ReviewCountOutputTypeCountVotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReviewVoteWhereInput
   }
 
 
@@ -3583,6 +3930,7 @@ export namespace Prisma {
     operatorProfile?: boolean | User$operatorProfileArgs<ExtArgs>
     supportCases?: boolean | User$supportCasesArgs<ExtArgs>
     reviews?: boolean | User$reviewsArgs<ExtArgs>
+    reviewVotes?: boolean | User$reviewVotesArgs<ExtArgs>
     accounts?: boolean | User$accountsArgs<ExtArgs>
     cart?: boolean | User$cartArgs<ExtArgs>
     orders?: boolean | User$ordersArgs<ExtArgs>
@@ -3639,6 +3987,7 @@ export namespace Prisma {
     operatorProfile?: boolean | User$operatorProfileArgs<ExtArgs>
     supportCases?: boolean | User$supportCasesArgs<ExtArgs>
     reviews?: boolean | User$reviewsArgs<ExtArgs>
+    reviewVotes?: boolean | User$reviewVotesArgs<ExtArgs>
     accounts?: boolean | User$accountsArgs<ExtArgs>
     cart?: boolean | User$cartArgs<ExtArgs>
     orders?: boolean | User$ordersArgs<ExtArgs>
@@ -3656,6 +4005,7 @@ export namespace Prisma {
       operatorProfile: Prisma.$OperatorProfilePayload<ExtArgs> | null
       supportCases: Prisma.$SupportCasePayload<ExtArgs>[]
       reviews: Prisma.$ReviewPayload<ExtArgs>[]
+      reviewVotes: Prisma.$ReviewVotePayload<ExtArgs>[]
       accounts: Prisma.$AccountPayload<ExtArgs>[]
       cart: Prisma.$CartPayload<ExtArgs> | null
       orders: Prisma.$OrderPayload<ExtArgs>[]
@@ -4072,6 +4422,7 @@ export namespace Prisma {
     operatorProfile<T extends User$operatorProfileArgs<ExtArgs> = {}>(args?: Subset<T, User$operatorProfileArgs<ExtArgs>>): Prisma__OperatorProfileClient<$Result.GetResult<Prisma.$OperatorProfilePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     supportCases<T extends User$supportCasesArgs<ExtArgs> = {}>(args?: Subset<T, User$supportCasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupportCasePayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
     reviews<T extends User$reviewsArgs<ExtArgs> = {}>(args?: Subset<T, User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    reviewVotes<T extends User$reviewVotesArgs<ExtArgs> = {}>(args?: Subset<T, User$reviewVotesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
     accounts<T extends User$accountsArgs<ExtArgs> = {}>(args?: Subset<T, User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
     cart<T extends User$cartArgs<ExtArgs> = {}>(args?: Subset<T, User$cartArgs<ExtArgs>>): Prisma__CartClient<$Result.GetResult<Prisma.$CartPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     orders<T extends User$ordersArgs<ExtArgs> = {}>(args?: Subset<T, User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
@@ -4611,6 +4962,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ReviewScalarFieldEnum | ReviewScalarFieldEnum[]
+  }
+
+  /**
+   * User.reviewVotes
+   */
+  export type User$reviewVotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    where?: ReviewVoteWhereInput
+    orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
+    cursor?: ReviewVoteWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReviewVoteScalarFieldEnum | ReviewVoteScalarFieldEnum[]
   }
 
   /**
@@ -12883,6 +13258,7 @@ export namespace Prisma {
     stock?: boolean
     details?: boolean
     reviews?: boolean | Product$reviewsArgs<ExtArgs>
+    reviewSummary?: boolean | Product$reviewSummaryArgs<ExtArgs>
     cartItems?: boolean | Product$cartItemsArgs<ExtArgs>
     brand?: boolean | Product$brandArgs<ExtArgs>
     subcategory?: boolean | Product$subcategoryArgs<ExtArgs>
@@ -12969,6 +13345,7 @@ export namespace Prisma {
   export type ProductOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "price" | "images" | "subcategoryId" | "brandId" | "userId" | "createdAt" | "updatedAt" | "gender" | "type" | "blurURL" | "sizes" | "color" | "discount" | "isNew" | "inStock" | "stock" | "details", ExtArgs["result"]["product"]>
   export type ProductInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     reviews?: boolean | Product$reviewsArgs<ExtArgs>
+    reviewSummary?: boolean | Product$reviewSummaryArgs<ExtArgs>
     cartItems?: boolean | Product$cartItemsArgs<ExtArgs>
     brand?: boolean | Product$brandArgs<ExtArgs>
     subcategory?: boolean | Product$subcategoryArgs<ExtArgs>
@@ -12991,6 +13368,7 @@ export namespace Prisma {
     name: "Product"
     objects: {
       reviews: Prisma.$ReviewPayload<ExtArgs>[]
+      reviewSummary: Prisma.$ReviewSummaryPayload<ExtArgs> | null
       cartItems: Prisma.$CartItemPayload<ExtArgs>[]
       brand: Prisma.$BrandPayload<ExtArgs> | null
       subcategory: Prisma.$SubcategoryPayload<ExtArgs> | null
@@ -13413,6 +13791,7 @@ export namespace Prisma {
   export interface Prisma__ProductClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     reviews<T extends Product$reviewsArgs<ExtArgs> = {}>(args?: Subset<T, Product$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    reviewSummary<T extends Product$reviewSummaryArgs<ExtArgs> = {}>(args?: Subset<T, Product$reviewSummaryArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     cartItems<T extends Product$cartItemsArgs<ExtArgs> = {}>(args?: Subset<T, Product$cartItemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CartItemPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
     brand<T extends Product$brandArgs<ExtArgs> = {}>(args?: Subset<T, Product$brandArgs<ExtArgs>>): Prisma__BrandClient<$Result.GetResult<Prisma.$BrandPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     subcategory<T extends Product$subcategoryArgs<ExtArgs> = {}>(args?: Subset<T, Product$subcategoryArgs<ExtArgs>>): Prisma__SubcategoryClient<$Result.GetResult<Prisma.$SubcategoryPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
@@ -13884,6 +14263,25 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ReviewScalarFieldEnum | ReviewScalarFieldEnum[]
+  }
+
+  /**
+   * Product.reviewSummary
+   */
+  export type Product$reviewSummaryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    where?: ReviewSummaryWhereInput
   }
 
   /**
@@ -18128,10 +18526,22 @@ export namespace Prisma {
 
   export type ReviewAvgAggregateOutputType = {
     rating: number | null
+    stateVersion: number | null
+    publishedCorpusVersion: number | null
+    upVotes: number | null
+    downVotes: number | null
+    popularityScore: number | null
+    indexAttempts: number | null
   }
 
   export type ReviewSumAggregateOutputType = {
     rating: number | null
+    stateVersion: number | null
+    publishedCorpusVersion: number | null
+    upVotes: number | null
+    downVotes: number | null
+    popularityScore: number | null
+    indexAttempts: number | null
   }
 
   export type ReviewMinAggregateOutputType = {
@@ -18142,6 +18552,26 @@ export namespace Prisma {
     productId: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    publicationId: string | null
+    status: $Enums.ReviewModerationStatus | null
+    submittedAt: Date | null
+    publishedAt: Date | null
+    moderatedAt: Date | null
+    moderatedBy: string | null
+    moderationReason: string | null
+    verifiedOrderId: string | null
+    verifiedAt: Date | null
+    deletedAt: Date | null
+    stateVersion: number | null
+    publishedCorpusVersion: number | null
+    upVotes: number | null
+    downVotes: number | null
+    popularityScore: number | null
+    indexPending: boolean | null
+    indexNextAttemptAt: Date | null
+    indexLeaseToken: string | null
+    indexLeaseUntil: Date | null
+    indexAttempts: number | null
   }
 
   export type ReviewMaxAggregateOutputType = {
@@ -18152,6 +18582,26 @@ export namespace Prisma {
     productId: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    publicationId: string | null
+    status: $Enums.ReviewModerationStatus | null
+    submittedAt: Date | null
+    publishedAt: Date | null
+    moderatedAt: Date | null
+    moderatedBy: string | null
+    moderationReason: string | null
+    verifiedOrderId: string | null
+    verifiedAt: Date | null
+    deletedAt: Date | null
+    stateVersion: number | null
+    publishedCorpusVersion: number | null
+    upVotes: number | null
+    downVotes: number | null
+    popularityScore: number | null
+    indexPending: boolean | null
+    indexNextAttemptAt: Date | null
+    indexLeaseToken: string | null
+    indexLeaseUntil: Date | null
+    indexAttempts: number | null
   }
 
   export type ReviewCountAggregateOutputType = {
@@ -18162,16 +18612,48 @@ export namespace Prisma {
     productId: number
     createdAt: number
     updatedAt: number
+    publicationId: number
+    status: number
+    submittedAt: number
+    publishedAt: number
+    moderatedAt: number
+    moderatedBy: number
+    moderationReason: number
+    verifiedOrderId: number
+    verifiedAt: number
+    deletedAt: number
+    stateVersion: number
+    publishedCorpusVersion: number
+    upVotes: number
+    downVotes: number
+    popularityScore: number
+    indexPending: number
+    indexNextAttemptAt: number
+    indexLeaseToken: number
+    indexLeaseUntil: number
+    indexAttempts: number
     _all: number
   }
 
 
   export type ReviewAvgAggregateInputType = {
     rating?: true
+    stateVersion?: true
+    publishedCorpusVersion?: true
+    upVotes?: true
+    downVotes?: true
+    popularityScore?: true
+    indexAttempts?: true
   }
 
   export type ReviewSumAggregateInputType = {
     rating?: true
+    stateVersion?: true
+    publishedCorpusVersion?: true
+    upVotes?: true
+    downVotes?: true
+    popularityScore?: true
+    indexAttempts?: true
   }
 
   export type ReviewMinAggregateInputType = {
@@ -18182,6 +18664,26 @@ export namespace Prisma {
     productId?: true
     createdAt?: true
     updatedAt?: true
+    publicationId?: true
+    status?: true
+    submittedAt?: true
+    publishedAt?: true
+    moderatedAt?: true
+    moderatedBy?: true
+    moderationReason?: true
+    verifiedOrderId?: true
+    verifiedAt?: true
+    deletedAt?: true
+    stateVersion?: true
+    publishedCorpusVersion?: true
+    upVotes?: true
+    downVotes?: true
+    popularityScore?: true
+    indexPending?: true
+    indexNextAttemptAt?: true
+    indexLeaseToken?: true
+    indexLeaseUntil?: true
+    indexAttempts?: true
   }
 
   export type ReviewMaxAggregateInputType = {
@@ -18192,6 +18694,26 @@ export namespace Prisma {
     productId?: true
     createdAt?: true
     updatedAt?: true
+    publicationId?: true
+    status?: true
+    submittedAt?: true
+    publishedAt?: true
+    moderatedAt?: true
+    moderatedBy?: true
+    moderationReason?: true
+    verifiedOrderId?: true
+    verifiedAt?: true
+    deletedAt?: true
+    stateVersion?: true
+    publishedCorpusVersion?: true
+    upVotes?: true
+    downVotes?: true
+    popularityScore?: true
+    indexPending?: true
+    indexNextAttemptAt?: true
+    indexLeaseToken?: true
+    indexLeaseUntil?: true
+    indexAttempts?: true
   }
 
   export type ReviewCountAggregateInputType = {
@@ -18202,6 +18724,26 @@ export namespace Prisma {
     productId?: true
     createdAt?: true
     updatedAt?: true
+    publicationId?: true
+    status?: true
+    submittedAt?: true
+    publishedAt?: true
+    moderatedAt?: true
+    moderatedBy?: true
+    moderationReason?: true
+    verifiedOrderId?: true
+    verifiedAt?: true
+    deletedAt?: true
+    stateVersion?: true
+    publishedCorpusVersion?: true
+    upVotes?: true
+    downVotes?: true
+    popularityScore?: true
+    indexPending?: true
+    indexNextAttemptAt?: true
+    indexLeaseToken?: true
+    indexLeaseUntil?: true
+    indexAttempts?: true
     _all?: true
   }
 
@@ -18299,6 +18841,26 @@ export namespace Prisma {
     productId: string | null
     createdAt: Date
     updatedAt: Date
+    publicationId: string
+    status: $Enums.ReviewModerationStatus
+    submittedAt: Date
+    publishedAt: Date | null
+    moderatedAt: Date | null
+    moderatedBy: string | null
+    moderationReason: string | null
+    verifiedOrderId: string | null
+    verifiedAt: Date | null
+    deletedAt: Date | null
+    stateVersion: number
+    publishedCorpusVersion: number | null
+    upVotes: number
+    downVotes: number
+    popularityScore: number
+    indexPending: boolean
+    indexNextAttemptAt: Date | null
+    indexLeaseToken: string | null
+    indexLeaseUntil: Date | null
+    indexAttempts: number
     _count: ReviewCountAggregateOutputType | null
     _avg: ReviewAvgAggregateOutputType | null
     _sum: ReviewSumAggregateOutputType | null
@@ -18328,8 +18890,31 @@ export namespace Prisma {
     productId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    publicationId?: boolean
+    status?: boolean
+    submittedAt?: boolean
+    publishedAt?: boolean
+    moderatedAt?: boolean
+    moderatedBy?: boolean
+    moderationReason?: boolean
+    verifiedOrderId?: boolean
+    verifiedAt?: boolean
+    deletedAt?: boolean
+    stateVersion?: boolean
+    publishedCorpusVersion?: boolean
+    upVotes?: boolean
+    downVotes?: boolean
+    popularityScore?: boolean
+    indexPending?: boolean
+    indexNextAttemptAt?: boolean
+    indexLeaseToken?: boolean
+    indexLeaseUntil?: boolean
+    indexAttempts?: boolean
     product?: boolean | Review$productArgs<ExtArgs>
     user?: boolean | Review$userArgs<ExtArgs>
+    addenda?: boolean | Review$addendaArgs<ExtArgs>
+    votes?: boolean | Review$votesArgs<ExtArgs>
+    _count?: boolean | ReviewCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
 
   export type ReviewSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -18340,6 +18925,26 @@ export namespace Prisma {
     productId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    publicationId?: boolean
+    status?: boolean
+    submittedAt?: boolean
+    publishedAt?: boolean
+    moderatedAt?: boolean
+    moderatedBy?: boolean
+    moderationReason?: boolean
+    verifiedOrderId?: boolean
+    verifiedAt?: boolean
+    deletedAt?: boolean
+    stateVersion?: boolean
+    publishedCorpusVersion?: boolean
+    upVotes?: boolean
+    downVotes?: boolean
+    popularityScore?: boolean
+    indexPending?: boolean
+    indexNextAttemptAt?: boolean
+    indexLeaseToken?: boolean
+    indexLeaseUntil?: boolean
+    indexAttempts?: boolean
     product?: boolean | Review$productArgs<ExtArgs>
     user?: boolean | Review$userArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
@@ -18352,6 +18957,26 @@ export namespace Prisma {
     productId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    publicationId?: boolean
+    status?: boolean
+    submittedAt?: boolean
+    publishedAt?: boolean
+    moderatedAt?: boolean
+    moderatedBy?: boolean
+    moderationReason?: boolean
+    verifiedOrderId?: boolean
+    verifiedAt?: boolean
+    deletedAt?: boolean
+    stateVersion?: boolean
+    publishedCorpusVersion?: boolean
+    upVotes?: boolean
+    downVotes?: boolean
+    popularityScore?: boolean
+    indexPending?: boolean
+    indexNextAttemptAt?: boolean
+    indexLeaseToken?: boolean
+    indexLeaseUntil?: boolean
+    indexAttempts?: boolean
     product?: boolean | Review$productArgs<ExtArgs>
     user?: boolean | Review$userArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
@@ -18364,12 +18989,35 @@ export namespace Prisma {
     productId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    publicationId?: boolean
+    status?: boolean
+    submittedAt?: boolean
+    publishedAt?: boolean
+    moderatedAt?: boolean
+    moderatedBy?: boolean
+    moderationReason?: boolean
+    verifiedOrderId?: boolean
+    verifiedAt?: boolean
+    deletedAt?: boolean
+    stateVersion?: boolean
+    publishedCorpusVersion?: boolean
+    upVotes?: boolean
+    downVotes?: boolean
+    popularityScore?: boolean
+    indexPending?: boolean
+    indexNextAttemptAt?: boolean
+    indexLeaseToken?: boolean
+    indexLeaseUntil?: boolean
+    indexAttempts?: boolean
   }
 
-  export type ReviewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "text" | "rating" | "userId" | "productId" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
+  export type ReviewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "text" | "rating" | "userId" | "productId" | "createdAt" | "updatedAt" | "publicationId" | "status" | "submittedAt" | "publishedAt" | "moderatedAt" | "moderatedBy" | "moderationReason" | "verifiedOrderId" | "verifiedAt" | "deletedAt" | "stateVersion" | "publishedCorpusVersion" | "upVotes" | "downVotes" | "popularityScore" | "indexPending" | "indexNextAttemptAt" | "indexLeaseToken" | "indexLeaseUntil" | "indexAttempts", ExtArgs["result"]["review"]>
   export type ReviewInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     product?: boolean | Review$productArgs<ExtArgs>
     user?: boolean | Review$userArgs<ExtArgs>
+    addenda?: boolean | Review$addendaArgs<ExtArgs>
+    votes?: boolean | Review$votesArgs<ExtArgs>
+    _count?: boolean | ReviewCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ReviewIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     product?: boolean | Review$productArgs<ExtArgs>
@@ -18385,6 +19033,8 @@ export namespace Prisma {
     objects: {
       product: Prisma.$ProductPayload<ExtArgs> | null
       user: Prisma.$UserPayload<ExtArgs> | null
+      addenda: Prisma.$ReviewAddendumPayload<ExtArgs>[]
+      votes: Prisma.$ReviewVotePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -18394,6 +19044,26 @@ export namespace Prisma {
       productId: string | null
       createdAt: Date
       updatedAt: Date
+      publicationId: string
+      status: $Enums.ReviewModerationStatus
+      submittedAt: Date
+      publishedAt: Date | null
+      moderatedAt: Date | null
+      moderatedBy: string | null
+      moderationReason: string | null
+      verifiedOrderId: string | null
+      verifiedAt: Date | null
+      deletedAt: Date | null
+      stateVersion: number
+      publishedCorpusVersion: number | null
+      upVotes: number
+      downVotes: number
+      popularityScore: number
+      indexPending: boolean
+      indexNextAttemptAt: Date | null
+      indexLeaseToken: string | null
+      indexLeaseUntil: Date | null
+      indexAttempts: number
     }, ExtArgs["result"]["review"]>
     composites: {}
   }
@@ -18790,6 +19460,8 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     product<T extends Review$productArgs<ExtArgs> = {}>(args?: Subset<T, Review$productArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     user<T extends Review$userArgs<ExtArgs> = {}>(args?: Subset<T, Review$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
+    addenda<T extends Review$addendaArgs<ExtArgs> = {}>(args?: Subset<T, Review$addendaArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    votes<T extends Review$votesArgs<ExtArgs> = {}>(args?: Subset<T, Review$votesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18817,7 +19489,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Review model
-   */ 
+   */
   interface ReviewFieldRefs {
     readonly id: FieldRef<"Review", 'String'>
     readonly text: FieldRef<"Review", 'String'>
@@ -18826,8 +19498,28 @@ export namespace Prisma {
     readonly productId: FieldRef<"Review", 'String'>
     readonly createdAt: FieldRef<"Review", 'DateTime'>
     readonly updatedAt: FieldRef<"Review", 'DateTime'>
+    readonly publicationId: FieldRef<"Review", 'String'>
+    readonly status: FieldRef<"Review", 'ReviewModerationStatus'>
+    readonly submittedAt: FieldRef<"Review", 'DateTime'>
+    readonly publishedAt: FieldRef<"Review", 'DateTime'>
+    readonly moderatedAt: FieldRef<"Review", 'DateTime'>
+    readonly moderatedBy: FieldRef<"Review", 'String'>
+    readonly moderationReason: FieldRef<"Review", 'String'>
+    readonly verifiedOrderId: FieldRef<"Review", 'String'>
+    readonly verifiedAt: FieldRef<"Review", 'DateTime'>
+    readonly deletedAt: FieldRef<"Review", 'DateTime'>
+    readonly stateVersion: FieldRef<"Review", 'Int'>
+    readonly publishedCorpusVersion: FieldRef<"Review", 'Int'>
+    readonly upVotes: FieldRef<"Review", 'Int'>
+    readonly downVotes: FieldRef<"Review", 'Int'>
+    readonly popularityScore: FieldRef<"Review", 'Int'>
+    readonly indexPending: FieldRef<"Review", 'Boolean'>
+    readonly indexNextAttemptAt: FieldRef<"Review", 'DateTime'>
+    readonly indexLeaseToken: FieldRef<"Review", 'String'>
+    readonly indexLeaseUntil: FieldRef<"Review", 'DateTime'>
+    readonly indexAttempts: FieldRef<"Review", 'Int'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -18896,31 +19588,31 @@ export namespace Prisma {
     where?: ReviewWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Reviews to fetch.
      */
     orderBy?: ReviewOrderByWithRelationInput | ReviewOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Reviews.
      */
     cursor?: ReviewWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Reviews from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Reviews.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Reviews.
      */
     distinct?: ReviewScalarFieldEnum | ReviewScalarFieldEnum[]
@@ -18948,31 +19640,31 @@ export namespace Prisma {
     where?: ReviewWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Reviews to fetch.
      */
     orderBy?: ReviewOrderByWithRelationInput | ReviewOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Reviews.
      */
     cursor?: ReviewWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Reviews from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Reviews.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Reviews.
      */
     distinct?: ReviewScalarFieldEnum | ReviewScalarFieldEnum[]
@@ -19000,25 +19692,25 @@ export namespace Prisma {
     where?: ReviewWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Reviews to fetch.
      */
     orderBy?: ReviewOrderByWithRelationInput | ReviewOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing Reviews.
      */
     cursor?: ReviewWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Reviews from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Reviews.
      */
     skip?: number
@@ -19260,6 +19952,54 @@ export namespace Prisma {
   }
 
   /**
+   * Review.addenda
+   */
+  export type Review$addendaArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    where?: ReviewAddendumWhereInput
+    orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
+    cursor?: ReviewAddendumWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReviewAddendumScalarFieldEnum | ReviewAddendumScalarFieldEnum[]
+  }
+
+  /**
+   * Review.votes
+   */
+  export type Review$votesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    where?: ReviewVoteWhereInput
+    orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
+    cursor?: ReviewVoteWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ReviewVoteScalarFieldEnum | ReviewVoteScalarFieldEnum[]
+  }
+
+  /**
    * Review without action
    */
   export type ReviewDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -19275,6 +20015,3532 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ReviewInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ReviewAddendum
+   */
+
+  export type AggregateReviewAddendum = {
+    _count: ReviewAddendumCountAggregateOutputType | null
+    _avg: ReviewAddendumAvgAggregateOutputType | null
+    _sum: ReviewAddendumSumAggregateOutputType | null
+    _min: ReviewAddendumMinAggregateOutputType | null
+    _max: ReviewAddendumMaxAggregateOutputType | null
+  }
+
+  export type ReviewAddendumAvgAggregateOutputType = {
+    publishedCorpusVersion: number | null
+  }
+
+  export type ReviewAddendumSumAggregateOutputType = {
+    publishedCorpusVersion: number | null
+  }
+
+  export type ReviewAddendumMinAggregateOutputType = {
+    id: string | null
+    reviewId: string | null
+    publicationId: string | null
+    text: string | null
+    status: $Enums.ReviewModerationStatus | null
+    createdAt: Date | null
+    publishedAt: Date | null
+    moderatedAt: Date | null
+    moderatedBy: string | null
+    moderationReason: string | null
+    publishedCorpusVersion: number | null
+  }
+
+  export type ReviewAddendumMaxAggregateOutputType = {
+    id: string | null
+    reviewId: string | null
+    publicationId: string | null
+    text: string | null
+    status: $Enums.ReviewModerationStatus | null
+    createdAt: Date | null
+    publishedAt: Date | null
+    moderatedAt: Date | null
+    moderatedBy: string | null
+    moderationReason: string | null
+    publishedCorpusVersion: number | null
+  }
+
+  export type ReviewAddendumCountAggregateOutputType = {
+    id: number
+    reviewId: number
+    publicationId: number
+    text: number
+    status: number
+    createdAt: number
+    publishedAt: number
+    moderatedAt: number
+    moderatedBy: number
+    moderationReason: number
+    publishedCorpusVersion: number
+    _all: number
+  }
+
+
+  export type ReviewAddendumAvgAggregateInputType = {
+    publishedCorpusVersion?: true
+  }
+
+  export type ReviewAddendumSumAggregateInputType = {
+    publishedCorpusVersion?: true
+  }
+
+  export type ReviewAddendumMinAggregateInputType = {
+    id?: true
+    reviewId?: true
+    publicationId?: true
+    text?: true
+    status?: true
+    createdAt?: true
+    publishedAt?: true
+    moderatedAt?: true
+    moderatedBy?: true
+    moderationReason?: true
+    publishedCorpusVersion?: true
+  }
+
+  export type ReviewAddendumMaxAggregateInputType = {
+    id?: true
+    reviewId?: true
+    publicationId?: true
+    text?: true
+    status?: true
+    createdAt?: true
+    publishedAt?: true
+    moderatedAt?: true
+    moderatedBy?: true
+    moderationReason?: true
+    publishedCorpusVersion?: true
+  }
+
+  export type ReviewAddendumCountAggregateInputType = {
+    id?: true
+    reviewId?: true
+    publicationId?: true
+    text?: true
+    status?: true
+    createdAt?: true
+    publishedAt?: true
+    moderatedAt?: true
+    moderatedBy?: true
+    moderationReason?: true
+    publishedCorpusVersion?: true
+    _all?: true
+  }
+
+  export type ReviewAddendumAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReviewAddendum to aggregate.
+     */
+    where?: ReviewAddendumWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewAddenda to fetch.
+     */
+    orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: ReviewAddendumWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewAddenda from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewAddenda.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned ReviewAddenda
+    **/
+    _count?: true | ReviewAddendumCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+    **/
+    _avg?: ReviewAddendumAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+    **/
+    _sum?: ReviewAddendumSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReviewAddendumMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReviewAddendumMaxAggregateInputType
+  }
+
+  export type GetReviewAddendumAggregateType<T extends ReviewAddendumAggregateArgs> = {
+        [P in keyof T & keyof AggregateReviewAddendum]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReviewAddendum[P]>
+      : GetScalarType<T[P], AggregateReviewAddendum[P]>
+  }
+
+
+
+
+  export type ReviewAddendumGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReviewAddendumWhereInput
+    orderBy?: ReviewAddendumOrderByWithAggregationInput | ReviewAddendumOrderByWithAggregationInput[]
+    by: ReviewAddendumScalarFieldEnum[] | ReviewAddendumScalarFieldEnum
+    having?: ReviewAddendumScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReviewAddendumCountAggregateInputType | true
+    _avg?: ReviewAddendumAvgAggregateInputType
+    _sum?: ReviewAddendumSumAggregateInputType
+    _min?: ReviewAddendumMinAggregateInputType
+    _max?: ReviewAddendumMaxAggregateInputType
+  }
+
+  export type ReviewAddendumGroupByOutputType = {
+    id: string
+    reviewId: string
+    publicationId: string
+    text: string
+    status: $Enums.ReviewModerationStatus
+    createdAt: Date
+    publishedAt: Date | null
+    moderatedAt: Date | null
+    moderatedBy: string | null
+    moderationReason: string | null
+    publishedCorpusVersion: number | null
+    _count: ReviewAddendumCountAggregateOutputType | null
+    _avg: ReviewAddendumAvgAggregateOutputType | null
+    _sum: ReviewAddendumSumAggregateOutputType | null
+    _min: ReviewAddendumMinAggregateOutputType | null
+    _max: ReviewAddendumMaxAggregateOutputType | null
+  }
+
+  type GetReviewAddendumGroupByPayload<T extends ReviewAddendumGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReviewAddendumGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReviewAddendumGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReviewAddendumGroupByOutputType[P]>
+            : GetScalarType<T[P], ReviewAddendumGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReviewAddendumSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    reviewId?: boolean
+    publicationId?: boolean
+    text?: boolean
+    status?: boolean
+    createdAt?: boolean
+    publishedAt?: boolean
+    moderatedAt?: boolean
+    moderatedBy?: boolean
+    moderationReason?: boolean
+    publishedCorpusVersion?: boolean
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewAddendum"]>
+
+  export type ReviewAddendumSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    reviewId?: boolean
+    publicationId?: boolean
+    text?: boolean
+    status?: boolean
+    createdAt?: boolean
+    publishedAt?: boolean
+    moderatedAt?: boolean
+    moderatedBy?: boolean
+    moderationReason?: boolean
+    publishedCorpusVersion?: boolean
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewAddendum"]>
+
+  export type ReviewAddendumSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    reviewId?: boolean
+    publicationId?: boolean
+    text?: boolean
+    status?: boolean
+    createdAt?: boolean
+    publishedAt?: boolean
+    moderatedAt?: boolean
+    moderatedBy?: boolean
+    moderationReason?: boolean
+    publishedCorpusVersion?: boolean
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewAddendum"]>
+
+  export type ReviewAddendumSelectScalar = {
+    id?: boolean
+    reviewId?: boolean
+    publicationId?: boolean
+    text?: boolean
+    status?: boolean
+    createdAt?: boolean
+    publishedAt?: boolean
+    moderatedAt?: boolean
+    moderatedBy?: boolean
+    moderationReason?: boolean
+    publishedCorpusVersion?: boolean
+  }
+
+  export type ReviewAddendumOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "reviewId" | "publicationId" | "text" | "status" | "createdAt" | "publishedAt" | "moderatedAt" | "moderatedBy" | "moderationReason" | "publishedCorpusVersion", ExtArgs["result"]["reviewAddendum"]>
+  export type ReviewAddendumInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+  }
+  export type ReviewAddendumIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+  }
+  export type ReviewAddendumIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+  }
+
+  export type $ReviewAddendumPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReviewAddendum"
+    objects: {
+      review: Prisma.$ReviewPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      reviewId: string
+      publicationId: string
+      text: string
+      status: $Enums.ReviewModerationStatus
+      createdAt: Date
+      publishedAt: Date | null
+      moderatedAt: Date | null
+      moderatedBy: string | null
+      moderationReason: string | null
+      publishedCorpusVersion: number | null
+    }, ExtArgs["result"]["reviewAddendum"]>
+    composites: {}
+  }
+
+  type ReviewAddendumGetPayload<S extends boolean | null | undefined | ReviewAddendumDefaultArgs> = $Result.GetResult<Prisma.$ReviewAddendumPayload, S>
+
+  type ReviewAddendumCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ReviewAddendumFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ReviewAddendumCountAggregateInputType | true
+    }
+
+  export interface ReviewAddendumDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReviewAddendum'], meta: { name: 'ReviewAddendum' } }
+    /**
+     * Find zero or one ReviewAddendum that matches the filter.
+     * @param {ReviewAddendumFindUniqueArgs} args - Arguments to find a ReviewAddendum
+     * @example
+     * // Get one ReviewAddendum
+     * const reviewAddendum = await prisma.reviewAddendum.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReviewAddendumFindUniqueArgs>(args: SelectSubset<T, ReviewAddendumFindUniqueArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one ReviewAddendum that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ReviewAddendumFindUniqueOrThrowArgs} args - Arguments to find a ReviewAddendum
+     * @example
+     * // Get one ReviewAddendum
+     * const reviewAddendum = await prisma.reviewAddendum.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReviewAddendumFindUniqueOrThrowArgs>(args: SelectSubset<T, ReviewAddendumFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ReviewAddendum that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewAddendumFindFirstArgs} args - Arguments to find a ReviewAddendum
+     * @example
+     * // Get one ReviewAddendum
+     * const reviewAddendum = await prisma.reviewAddendum.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReviewAddendumFindFirstArgs>(args?: SelectSubset<T, ReviewAddendumFindFirstArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ReviewAddendum that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewAddendumFindFirstOrThrowArgs} args - Arguments to find a ReviewAddendum
+     * @example
+     * // Get one ReviewAddendum
+     * const reviewAddendum = await prisma.reviewAddendum.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReviewAddendumFindFirstOrThrowArgs>(args?: SelectSubset<T, ReviewAddendumFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more ReviewAddenda that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewAddendumFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReviewAddenda
+     * const reviewAddenda = await prisma.reviewAddendum.findMany()
+     *
+     * // Get first 10 ReviewAddenda
+     * const reviewAddenda = await prisma.reviewAddendum.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const reviewAddendumWithIdOnly = await prisma.reviewAddendum.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends ReviewAddendumFindManyArgs>(args?: SelectSubset<T, ReviewAddendumFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a ReviewAddendum.
+     * @param {ReviewAddendumCreateArgs} args - Arguments to create a ReviewAddendum.
+     * @example
+     * // Create one ReviewAddendum
+     * const ReviewAddendum = await prisma.reviewAddendum.create({
+     *   data: {
+     *     // ... data to create a ReviewAddendum
+     *   }
+     * })
+     *
+     */
+    create<T extends ReviewAddendumCreateArgs>(args: SelectSubset<T, ReviewAddendumCreateArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many ReviewAddenda.
+     * @param {ReviewAddendumCreateManyArgs} args - Arguments to create many ReviewAddenda.
+     * @example
+     * // Create many ReviewAddenda
+     * const reviewAddendum = await prisma.reviewAddendum.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends ReviewAddendumCreateManyArgs>(args?: SelectSubset<T, ReviewAddendumCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReviewAddenda and returns the data saved in the database.
+     * @param {ReviewAddendumCreateManyAndReturnArgs} args - Arguments to create many ReviewAddenda.
+     * @example
+     * // Create many ReviewAddenda
+     * const reviewAddendum = await prisma.reviewAddendum.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many ReviewAddenda and only return the `id`
+     * const reviewAddendumWithIdOnly = await prisma.reviewAddendum.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends ReviewAddendumCreateManyAndReturnArgs>(args?: SelectSubset<T, ReviewAddendumCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a ReviewAddendum.
+     * @param {ReviewAddendumDeleteArgs} args - Arguments to delete one ReviewAddendum.
+     * @example
+     * // Delete one ReviewAddendum
+     * const ReviewAddendum = await prisma.reviewAddendum.delete({
+     *   where: {
+     *     // ... filter to delete one ReviewAddendum
+     *   }
+     * })
+     *
+     */
+    delete<T extends ReviewAddendumDeleteArgs>(args: SelectSubset<T, ReviewAddendumDeleteArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one ReviewAddendum.
+     * @param {ReviewAddendumUpdateArgs} args - Arguments to update one ReviewAddendum.
+     * @example
+     * // Update one ReviewAddendum
+     * const reviewAddendum = await prisma.reviewAddendum.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends ReviewAddendumUpdateArgs>(args: SelectSubset<T, ReviewAddendumUpdateArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more ReviewAddenda.
+     * @param {ReviewAddendumDeleteManyArgs} args - Arguments to filter ReviewAddenda to delete.
+     * @example
+     * // Delete a few ReviewAddenda
+     * const { count } = await prisma.reviewAddendum.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends ReviewAddendumDeleteManyArgs>(args?: SelectSubset<T, ReviewAddendumDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReviewAddenda.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewAddendumUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReviewAddenda
+     * const reviewAddendum = await prisma.reviewAddendum.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends ReviewAddendumUpdateManyArgs>(args: SelectSubset<T, ReviewAddendumUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReviewAddenda and returns the data updated in the database.
+     * @param {ReviewAddendumUpdateManyAndReturnArgs} args - Arguments to update many ReviewAddenda.
+     * @example
+     * // Update many ReviewAddenda
+     * const reviewAddendum = await prisma.reviewAddendum.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more ReviewAddenda and only return the `id`
+     * const reviewAddendumWithIdOnly = await prisma.reviewAddendum.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends ReviewAddendumUpdateManyAndReturnArgs>(args: SelectSubset<T, ReviewAddendumUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one ReviewAddendum.
+     * @param {ReviewAddendumUpsertArgs} args - Arguments to update or create a ReviewAddendum.
+     * @example
+     * // Update or create a ReviewAddendum
+     * const reviewAddendum = await prisma.reviewAddendum.upsert({
+     *   create: {
+     *     // ... data to create a ReviewAddendum
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReviewAddendum we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReviewAddendumUpsertArgs>(args: SelectSubset<T, ReviewAddendumUpsertArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of ReviewAddenda.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewAddendumCountArgs} args - Arguments to filter ReviewAddenda to count.
+     * @example
+     * // Count the number of ReviewAddenda
+     * const count = await prisma.reviewAddendum.count({
+     *   where: {
+     *     // ... the filter for the ReviewAddenda we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReviewAddendumCountArgs>(
+      args?: Subset<T, ReviewAddendumCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReviewAddendumCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReviewAddendum.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewAddendumAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReviewAddendumAggregateArgs>(args: Subset<T, ReviewAddendumAggregateArgs>): Prisma.PrismaPromise<GetReviewAddendumAggregateType<T>>
+
+    /**
+     * Group by ReviewAddendum.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewAddendumGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends ReviewAddendumGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReviewAddendumGroupByArgs['orderBy'] }
+        : { orderBy?: ReviewAddendumGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReviewAddendumGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReviewAddendumGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReviewAddendum model
+   */
+  readonly fields: ReviewAddendumFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReviewAddendum.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReviewAddendumClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    review<T extends ReviewDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ReviewDefaultArgs<ExtArgs>>): Prisma__ReviewClient<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReviewAddendum model
+   */
+  interface ReviewAddendumFieldRefs {
+    readonly id: FieldRef<"ReviewAddendum", 'String'>
+    readonly reviewId: FieldRef<"ReviewAddendum", 'String'>
+    readonly publicationId: FieldRef<"ReviewAddendum", 'String'>
+    readonly text: FieldRef<"ReviewAddendum", 'String'>
+    readonly status: FieldRef<"ReviewAddendum", 'ReviewModerationStatus'>
+    readonly createdAt: FieldRef<"ReviewAddendum", 'DateTime'>
+    readonly publishedAt: FieldRef<"ReviewAddendum", 'DateTime'>
+    readonly moderatedAt: FieldRef<"ReviewAddendum", 'DateTime'>
+    readonly moderatedBy: FieldRef<"ReviewAddendum", 'String'>
+    readonly moderationReason: FieldRef<"ReviewAddendum", 'String'>
+    readonly publishedCorpusVersion: FieldRef<"ReviewAddendum", 'Int'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * ReviewAddendum findUnique
+   */
+  export type ReviewAddendumFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewAddendum to fetch.
+     */
+    where: ReviewAddendumWhereUniqueInput
+  }
+
+  /**
+   * ReviewAddendum findUniqueOrThrow
+   */
+  export type ReviewAddendumFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewAddendum to fetch.
+     */
+    where: ReviewAddendumWhereUniqueInput
+  }
+
+  /**
+   * ReviewAddendum findFirst
+   */
+  export type ReviewAddendumFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewAddendum to fetch.
+     */
+    where?: ReviewAddendumWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewAddenda to fetch.
+     */
+    orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for ReviewAddenda.
+     */
+    cursor?: ReviewAddendumWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewAddenda from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewAddenda.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of ReviewAddenda.
+     */
+    distinct?: ReviewAddendumScalarFieldEnum | ReviewAddendumScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewAddendum findFirstOrThrow
+   */
+  export type ReviewAddendumFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewAddendum to fetch.
+     */
+    where?: ReviewAddendumWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewAddenda to fetch.
+     */
+    orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for ReviewAddenda.
+     */
+    cursor?: ReviewAddendumWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewAddenda from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewAddenda.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of ReviewAddenda.
+     */
+    distinct?: ReviewAddendumScalarFieldEnum | ReviewAddendumScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewAddendum findMany
+   */
+  export type ReviewAddendumFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewAddenda to fetch.
+     */
+    where?: ReviewAddendumWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewAddenda to fetch.
+     */
+    orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing ReviewAddenda.
+     */
+    cursor?: ReviewAddendumWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewAddenda from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewAddenda.
+     */
+    skip?: number
+    distinct?: ReviewAddendumScalarFieldEnum | ReviewAddendumScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewAddendum create
+   */
+  export type ReviewAddendumCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReviewAddendum.
+     */
+    data: XOR<ReviewAddendumCreateInput, ReviewAddendumUncheckedCreateInput>
+  }
+
+  /**
+   * ReviewAddendum createMany
+   */
+  export type ReviewAddendumCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReviewAddenda.
+     */
+    data: ReviewAddendumCreateManyInput | ReviewAddendumCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReviewAddendum createManyAndReturn
+   */
+  export type ReviewAddendumCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * The data used to create many ReviewAddenda.
+     */
+    data: ReviewAddendumCreateManyInput | ReviewAddendumCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReviewAddendum update
+   */
+  export type ReviewAddendumUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReviewAddendum.
+     */
+    data: XOR<ReviewAddendumUpdateInput, ReviewAddendumUncheckedUpdateInput>
+    /**
+     * Choose, which ReviewAddendum to update.
+     */
+    where: ReviewAddendumWhereUniqueInput
+  }
+
+  /**
+   * ReviewAddendum updateMany
+   */
+  export type ReviewAddendumUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReviewAddenda.
+     */
+    data: XOR<ReviewAddendumUpdateManyMutationInput, ReviewAddendumUncheckedUpdateManyInput>
+    /**
+     * Filter which ReviewAddenda to update
+     */
+    where?: ReviewAddendumWhereInput
+    /**
+     * Limit how many ReviewAddenda to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReviewAddendum updateManyAndReturn
+   */
+  export type ReviewAddendumUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * The data used to update ReviewAddenda.
+     */
+    data: XOR<ReviewAddendumUpdateManyMutationInput, ReviewAddendumUncheckedUpdateManyInput>
+    /**
+     * Filter which ReviewAddenda to update
+     */
+    where?: ReviewAddendumWhereInput
+    /**
+     * Limit how many ReviewAddenda to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReviewAddendum upsert
+   */
+  export type ReviewAddendumUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReviewAddendum to update in case it exists.
+     */
+    where: ReviewAddendumWhereUniqueInput
+    /**
+     * In case the ReviewAddendum found by the `where` argument doesn't exist, create a new ReviewAddendum with this data.
+     */
+    create: XOR<ReviewAddendumCreateInput, ReviewAddendumUncheckedCreateInput>
+    /**
+     * In case the ReviewAddendum was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReviewAddendumUpdateInput, ReviewAddendumUncheckedUpdateInput>
+  }
+
+  /**
+   * ReviewAddendum delete
+   */
+  export type ReviewAddendumDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+    /**
+     * Filter which ReviewAddendum to delete.
+     */
+    where: ReviewAddendumWhereUniqueInput
+  }
+
+  /**
+   * ReviewAddendum deleteMany
+   */
+  export type ReviewAddendumDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReviewAddenda to delete
+     */
+    where?: ReviewAddendumWhereInput
+    /**
+     * Limit how many ReviewAddenda to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReviewAddendum without action
+   */
+  export type ReviewAddendumDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewAddendum
+     */
+    select?: ReviewAddendumSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewAddendum
+     */
+    omit?: ReviewAddendumOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewAddendumInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ReviewVote
+   */
+
+  export type AggregateReviewVote = {
+    _count: ReviewVoteCountAggregateOutputType | null
+    _min: ReviewVoteMinAggregateOutputType | null
+    _max: ReviewVoteMaxAggregateOutputType | null
+  }
+
+  export type ReviewVoteMinAggregateOutputType = {
+    reviewId: string | null
+    userId: string | null
+    publicationId: string | null
+    value: $Enums.ReviewVoteValue | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ReviewVoteMaxAggregateOutputType = {
+    reviewId: string | null
+    userId: string | null
+    publicationId: string | null
+    value: $Enums.ReviewVoteValue | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ReviewVoteCountAggregateOutputType = {
+    reviewId: number
+    userId: number
+    publicationId: number
+    value: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ReviewVoteMinAggregateInputType = {
+    reviewId?: true
+    userId?: true
+    publicationId?: true
+    value?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ReviewVoteMaxAggregateInputType = {
+    reviewId?: true
+    userId?: true
+    publicationId?: true
+    value?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ReviewVoteCountAggregateInputType = {
+    reviewId?: true
+    userId?: true
+    publicationId?: true
+    value?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ReviewVoteAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReviewVote to aggregate.
+     */
+    where?: ReviewVoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewVotes to fetch.
+     */
+    orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: ReviewVoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewVotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewVotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned ReviewVotes
+    **/
+    _count?: true | ReviewVoteCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReviewVoteMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReviewVoteMaxAggregateInputType
+  }
+
+  export type GetReviewVoteAggregateType<T extends ReviewVoteAggregateArgs> = {
+        [P in keyof T & keyof AggregateReviewVote]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReviewVote[P]>
+      : GetScalarType<T[P], AggregateReviewVote[P]>
+  }
+
+
+
+
+  export type ReviewVoteGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReviewVoteWhereInput
+    orderBy?: ReviewVoteOrderByWithAggregationInput | ReviewVoteOrderByWithAggregationInput[]
+    by: ReviewVoteScalarFieldEnum[] | ReviewVoteScalarFieldEnum
+    having?: ReviewVoteScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReviewVoteCountAggregateInputType | true
+    _min?: ReviewVoteMinAggregateInputType
+    _max?: ReviewVoteMaxAggregateInputType
+  }
+
+  export type ReviewVoteGroupByOutputType = {
+    reviewId: string
+    userId: string
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt: Date
+    updatedAt: Date
+    _count: ReviewVoteCountAggregateOutputType | null
+    _min: ReviewVoteMinAggregateOutputType | null
+    _max: ReviewVoteMaxAggregateOutputType | null
+  }
+
+  type GetReviewVoteGroupByPayload<T extends ReviewVoteGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReviewVoteGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReviewVoteGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReviewVoteGroupByOutputType[P]>
+            : GetScalarType<T[P], ReviewVoteGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReviewVoteSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    reviewId?: boolean
+    userId?: boolean
+    publicationId?: boolean
+    value?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewVote"]>
+
+  export type ReviewVoteSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    reviewId?: boolean
+    userId?: boolean
+    publicationId?: boolean
+    value?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewVote"]>
+
+  export type ReviewVoteSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    reviewId?: boolean
+    userId?: boolean
+    publicationId?: boolean
+    value?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewVote"]>
+
+  export type ReviewVoteSelectScalar = {
+    reviewId?: boolean
+    userId?: boolean
+    publicationId?: boolean
+    value?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ReviewVoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"reviewId" | "userId" | "publicationId" | "value" | "createdAt" | "updatedAt", ExtArgs["result"]["reviewVote"]>
+  export type ReviewVoteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ReviewVoteIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type ReviewVoteIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    review?: boolean | ReviewDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $ReviewVotePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReviewVote"
+    objects: {
+      review: Prisma.$ReviewPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      reviewId: string
+      userId: string
+      publicationId: string
+      value: $Enums.ReviewVoteValue
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["reviewVote"]>
+    composites: {}
+  }
+
+  type ReviewVoteGetPayload<S extends boolean | null | undefined | ReviewVoteDefaultArgs> = $Result.GetResult<Prisma.$ReviewVotePayload, S>
+
+  type ReviewVoteCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ReviewVoteFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ReviewVoteCountAggregateInputType | true
+    }
+
+  export interface ReviewVoteDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReviewVote'], meta: { name: 'ReviewVote' } }
+    /**
+     * Find zero or one ReviewVote that matches the filter.
+     * @param {ReviewVoteFindUniqueArgs} args - Arguments to find a ReviewVote
+     * @example
+     * // Get one ReviewVote
+     * const reviewVote = await prisma.reviewVote.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReviewVoteFindUniqueArgs>(args: SelectSubset<T, ReviewVoteFindUniqueArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one ReviewVote that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ReviewVoteFindUniqueOrThrowArgs} args - Arguments to find a ReviewVote
+     * @example
+     * // Get one ReviewVote
+     * const reviewVote = await prisma.reviewVote.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReviewVoteFindUniqueOrThrowArgs>(args: SelectSubset<T, ReviewVoteFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ReviewVote that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewVoteFindFirstArgs} args - Arguments to find a ReviewVote
+     * @example
+     * // Get one ReviewVote
+     * const reviewVote = await prisma.reviewVote.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReviewVoteFindFirstArgs>(args?: SelectSubset<T, ReviewVoteFindFirstArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ReviewVote that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewVoteFindFirstOrThrowArgs} args - Arguments to find a ReviewVote
+     * @example
+     * // Get one ReviewVote
+     * const reviewVote = await prisma.reviewVote.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReviewVoteFindFirstOrThrowArgs>(args?: SelectSubset<T, ReviewVoteFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more ReviewVotes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewVoteFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReviewVotes
+     * const reviewVotes = await prisma.reviewVote.findMany()
+     *
+     * // Get first 10 ReviewVotes
+     * const reviewVotes = await prisma.reviewVote.findMany({ take: 10 })
+     *
+     * // Only select the `reviewId`
+     * const reviewVoteWithReviewIdOnly = await prisma.reviewVote.findMany({ select: { reviewId: true } })
+     *
+     */
+    findMany<T extends ReviewVoteFindManyArgs>(args?: SelectSubset<T, ReviewVoteFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a ReviewVote.
+     * @param {ReviewVoteCreateArgs} args - Arguments to create a ReviewVote.
+     * @example
+     * // Create one ReviewVote
+     * const ReviewVote = await prisma.reviewVote.create({
+     *   data: {
+     *     // ... data to create a ReviewVote
+     *   }
+     * })
+     *
+     */
+    create<T extends ReviewVoteCreateArgs>(args: SelectSubset<T, ReviewVoteCreateArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many ReviewVotes.
+     * @param {ReviewVoteCreateManyArgs} args - Arguments to create many ReviewVotes.
+     * @example
+     * // Create many ReviewVotes
+     * const reviewVote = await prisma.reviewVote.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends ReviewVoteCreateManyArgs>(args?: SelectSubset<T, ReviewVoteCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReviewVotes and returns the data saved in the database.
+     * @param {ReviewVoteCreateManyAndReturnArgs} args - Arguments to create many ReviewVotes.
+     * @example
+     * // Create many ReviewVotes
+     * const reviewVote = await prisma.reviewVote.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many ReviewVotes and only return the `reviewId`
+     * const reviewVoteWithReviewIdOnly = await prisma.reviewVote.createManyAndReturn({
+     *   select: { reviewId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends ReviewVoteCreateManyAndReturnArgs>(args?: SelectSubset<T, ReviewVoteCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a ReviewVote.
+     * @param {ReviewVoteDeleteArgs} args - Arguments to delete one ReviewVote.
+     * @example
+     * // Delete one ReviewVote
+     * const ReviewVote = await prisma.reviewVote.delete({
+     *   where: {
+     *     // ... filter to delete one ReviewVote
+     *   }
+     * })
+     *
+     */
+    delete<T extends ReviewVoteDeleteArgs>(args: SelectSubset<T, ReviewVoteDeleteArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one ReviewVote.
+     * @param {ReviewVoteUpdateArgs} args - Arguments to update one ReviewVote.
+     * @example
+     * // Update one ReviewVote
+     * const reviewVote = await prisma.reviewVote.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends ReviewVoteUpdateArgs>(args: SelectSubset<T, ReviewVoteUpdateArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more ReviewVotes.
+     * @param {ReviewVoteDeleteManyArgs} args - Arguments to filter ReviewVotes to delete.
+     * @example
+     * // Delete a few ReviewVotes
+     * const { count } = await prisma.reviewVote.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends ReviewVoteDeleteManyArgs>(args?: SelectSubset<T, ReviewVoteDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReviewVotes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewVoteUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReviewVotes
+     * const reviewVote = await prisma.reviewVote.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends ReviewVoteUpdateManyArgs>(args: SelectSubset<T, ReviewVoteUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReviewVotes and returns the data updated in the database.
+     * @param {ReviewVoteUpdateManyAndReturnArgs} args - Arguments to update many ReviewVotes.
+     * @example
+     * // Update many ReviewVotes
+     * const reviewVote = await prisma.reviewVote.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more ReviewVotes and only return the `reviewId`
+     * const reviewVoteWithReviewIdOnly = await prisma.reviewVote.updateManyAndReturn({
+     *   select: { reviewId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends ReviewVoteUpdateManyAndReturnArgs>(args: SelectSubset<T, ReviewVoteUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one ReviewVote.
+     * @param {ReviewVoteUpsertArgs} args - Arguments to update or create a ReviewVote.
+     * @example
+     * // Update or create a ReviewVote
+     * const reviewVote = await prisma.reviewVote.upsert({
+     *   create: {
+     *     // ... data to create a ReviewVote
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReviewVote we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReviewVoteUpsertArgs>(args: SelectSubset<T, ReviewVoteUpsertArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of ReviewVotes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewVoteCountArgs} args - Arguments to filter ReviewVotes to count.
+     * @example
+     * // Count the number of ReviewVotes
+     * const count = await prisma.reviewVote.count({
+     *   where: {
+     *     // ... the filter for the ReviewVotes we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReviewVoteCountArgs>(
+      args?: Subset<T, ReviewVoteCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReviewVoteCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReviewVote.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewVoteAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReviewVoteAggregateArgs>(args: Subset<T, ReviewVoteAggregateArgs>): Prisma.PrismaPromise<GetReviewVoteAggregateType<T>>
+
+    /**
+     * Group by ReviewVote.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewVoteGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends ReviewVoteGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReviewVoteGroupByArgs['orderBy'] }
+        : { orderBy?: ReviewVoteGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReviewVoteGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReviewVoteGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReviewVote model
+   */
+  readonly fields: ReviewVoteFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReviewVote.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReviewVoteClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    review<T extends ReviewDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ReviewDefaultArgs<ExtArgs>>): Prisma__ReviewClient<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReviewVote model
+   */
+  interface ReviewVoteFieldRefs {
+    readonly reviewId: FieldRef<"ReviewVote", 'String'>
+    readonly userId: FieldRef<"ReviewVote", 'String'>
+    readonly publicationId: FieldRef<"ReviewVote", 'String'>
+    readonly value: FieldRef<"ReviewVote", 'ReviewVoteValue'>
+    readonly createdAt: FieldRef<"ReviewVote", 'DateTime'>
+    readonly updatedAt: FieldRef<"ReviewVote", 'DateTime'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * ReviewVote findUnique
+   */
+  export type ReviewVoteFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewVote to fetch.
+     */
+    where: ReviewVoteWhereUniqueInput
+  }
+
+  /**
+   * ReviewVote findUniqueOrThrow
+   */
+  export type ReviewVoteFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewVote to fetch.
+     */
+    where: ReviewVoteWhereUniqueInput
+  }
+
+  /**
+   * ReviewVote findFirst
+   */
+  export type ReviewVoteFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewVote to fetch.
+     */
+    where?: ReviewVoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewVotes to fetch.
+     */
+    orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for ReviewVotes.
+     */
+    cursor?: ReviewVoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewVotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewVotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of ReviewVotes.
+     */
+    distinct?: ReviewVoteScalarFieldEnum | ReviewVoteScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewVote findFirstOrThrow
+   */
+  export type ReviewVoteFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewVote to fetch.
+     */
+    where?: ReviewVoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewVotes to fetch.
+     */
+    orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for ReviewVotes.
+     */
+    cursor?: ReviewVoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewVotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewVotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of ReviewVotes.
+     */
+    distinct?: ReviewVoteScalarFieldEnum | ReviewVoteScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewVote findMany
+   */
+  export type ReviewVoteFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewVotes to fetch.
+     */
+    where?: ReviewVoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewVotes to fetch.
+     */
+    orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing ReviewVotes.
+     */
+    cursor?: ReviewVoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewVotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewVotes.
+     */
+    skip?: number
+    distinct?: ReviewVoteScalarFieldEnum | ReviewVoteScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewVote create
+   */
+  export type ReviewVoteCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReviewVote.
+     */
+    data: XOR<ReviewVoteCreateInput, ReviewVoteUncheckedCreateInput>
+  }
+
+  /**
+   * ReviewVote createMany
+   */
+  export type ReviewVoteCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReviewVotes.
+     */
+    data: ReviewVoteCreateManyInput | ReviewVoteCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReviewVote createManyAndReturn
+   */
+  export type ReviewVoteCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * The data used to create many ReviewVotes.
+     */
+    data: ReviewVoteCreateManyInput | ReviewVoteCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReviewVote update
+   */
+  export type ReviewVoteUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReviewVote.
+     */
+    data: XOR<ReviewVoteUpdateInput, ReviewVoteUncheckedUpdateInput>
+    /**
+     * Choose, which ReviewVote to update.
+     */
+    where: ReviewVoteWhereUniqueInput
+  }
+
+  /**
+   * ReviewVote updateMany
+   */
+  export type ReviewVoteUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReviewVotes.
+     */
+    data: XOR<ReviewVoteUpdateManyMutationInput, ReviewVoteUncheckedUpdateManyInput>
+    /**
+     * Filter which ReviewVotes to update
+     */
+    where?: ReviewVoteWhereInput
+    /**
+     * Limit how many ReviewVotes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReviewVote updateManyAndReturn
+   */
+  export type ReviewVoteUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * The data used to update ReviewVotes.
+     */
+    data: XOR<ReviewVoteUpdateManyMutationInput, ReviewVoteUncheckedUpdateManyInput>
+    /**
+     * Filter which ReviewVotes to update
+     */
+    where?: ReviewVoteWhereInput
+    /**
+     * Limit how many ReviewVotes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReviewVote upsert
+   */
+  export type ReviewVoteUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReviewVote to update in case it exists.
+     */
+    where: ReviewVoteWhereUniqueInput
+    /**
+     * In case the ReviewVote found by the `where` argument doesn't exist, create a new ReviewVote with this data.
+     */
+    create: XOR<ReviewVoteCreateInput, ReviewVoteUncheckedCreateInput>
+    /**
+     * In case the ReviewVote was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReviewVoteUpdateInput, ReviewVoteUncheckedUpdateInput>
+  }
+
+  /**
+   * ReviewVote delete
+   */
+  export type ReviewVoteDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+    /**
+     * Filter which ReviewVote to delete.
+     */
+    where: ReviewVoteWhereUniqueInput
+  }
+
+  /**
+   * ReviewVote deleteMany
+   */
+  export type ReviewVoteDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReviewVotes to delete
+     */
+    where?: ReviewVoteWhereInput
+    /**
+     * Limit how many ReviewVotes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReviewVote without action
+   */
+  export type ReviewVoteDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewVote
+     */
+    select?: ReviewVoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewVote
+     */
+    omit?: ReviewVoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewVoteInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ReviewSummary
+   */
+
+  export type AggregateReviewSummary = {
+    _count: ReviewSummaryCountAggregateOutputType | null
+    _avg: ReviewSummaryAvgAggregateOutputType | null
+    _sum: ReviewSummarySumAggregateOutputType | null
+    _min: ReviewSummaryMinAggregateOutputType | null
+    _max: ReviewSummaryMaxAggregateOutputType | null
+  }
+
+  export type ReviewSummaryAvgAggregateOutputType = {
+    sourceReviewCount: number | null
+    sourceAuthorCount: number | null
+    corpusVersion: number | null
+    requestedVersion: number | null
+    sourceVersion: number | null
+    lastRetractionVersion: number | null
+    attemptCount: number | null
+  }
+
+  export type ReviewSummarySumAggregateOutputType = {
+    sourceReviewCount: number | null
+    sourceAuthorCount: number | null
+    corpusVersion: number | null
+    requestedVersion: number | null
+    sourceVersion: number | null
+    lastRetractionVersion: number | null
+    attemptCount: number | null
+  }
+
+  export type ReviewSummaryMinAggregateOutputType = {
+    productId: string | null
+    summary: string | null
+    generatedAt: Date | null
+    sourceReviewCount: number | null
+    sourceAuthorCount: number | null
+    corpusVersion: number | null
+    requestedVersion: number | null
+    sourceVersion: number | null
+    lastRetractionVersion: number | null
+    sourceHash: string | null
+    analyzerVersion: string | null
+    nextAttemptAt: Date | null
+    leaseToken: string | null
+    leaseUntil: Date | null
+    attemptCount: number | null
+    lastErrorCode: string | null
+  }
+
+  export type ReviewSummaryMaxAggregateOutputType = {
+    productId: string | null
+    summary: string | null
+    generatedAt: Date | null
+    sourceReviewCount: number | null
+    sourceAuthorCount: number | null
+    corpusVersion: number | null
+    requestedVersion: number | null
+    sourceVersion: number | null
+    lastRetractionVersion: number | null
+    sourceHash: string | null
+    analyzerVersion: string | null
+    nextAttemptAt: Date | null
+    leaseToken: string | null
+    leaseUntil: Date | null
+    attemptCount: number | null
+    lastErrorCode: string | null
+  }
+
+  export type ReviewSummaryCountAggregateOutputType = {
+    productId: number
+    positiveImpressions: number
+    negativeImpressions: number
+    summary: number
+    generatedAt: number
+    sourceReviewCount: number
+    sourceAuthorCount: number
+    corpusVersion: number
+    requestedVersion: number
+    sourceVersion: number
+    lastRetractionVersion: number
+    sourceHash: number
+    analyzerVersion: number
+    nextAttemptAt: number
+    leaseToken: number
+    leaseUntil: number
+    attemptCount: number
+    lastErrorCode: number
+    _all: number
+  }
+
+
+  export type ReviewSummaryAvgAggregateInputType = {
+    sourceReviewCount?: true
+    sourceAuthorCount?: true
+    corpusVersion?: true
+    requestedVersion?: true
+    sourceVersion?: true
+    lastRetractionVersion?: true
+    attemptCount?: true
+  }
+
+  export type ReviewSummarySumAggregateInputType = {
+    sourceReviewCount?: true
+    sourceAuthorCount?: true
+    corpusVersion?: true
+    requestedVersion?: true
+    sourceVersion?: true
+    lastRetractionVersion?: true
+    attemptCount?: true
+  }
+
+  export type ReviewSummaryMinAggregateInputType = {
+    productId?: true
+    summary?: true
+    generatedAt?: true
+    sourceReviewCount?: true
+    sourceAuthorCount?: true
+    corpusVersion?: true
+    requestedVersion?: true
+    sourceVersion?: true
+    lastRetractionVersion?: true
+    sourceHash?: true
+    analyzerVersion?: true
+    nextAttemptAt?: true
+    leaseToken?: true
+    leaseUntil?: true
+    attemptCount?: true
+    lastErrorCode?: true
+  }
+
+  export type ReviewSummaryMaxAggregateInputType = {
+    productId?: true
+    summary?: true
+    generatedAt?: true
+    sourceReviewCount?: true
+    sourceAuthorCount?: true
+    corpusVersion?: true
+    requestedVersion?: true
+    sourceVersion?: true
+    lastRetractionVersion?: true
+    sourceHash?: true
+    analyzerVersion?: true
+    nextAttemptAt?: true
+    leaseToken?: true
+    leaseUntil?: true
+    attemptCount?: true
+    lastErrorCode?: true
+  }
+
+  export type ReviewSummaryCountAggregateInputType = {
+    productId?: true
+    positiveImpressions?: true
+    negativeImpressions?: true
+    summary?: true
+    generatedAt?: true
+    sourceReviewCount?: true
+    sourceAuthorCount?: true
+    corpusVersion?: true
+    requestedVersion?: true
+    sourceVersion?: true
+    lastRetractionVersion?: true
+    sourceHash?: true
+    analyzerVersion?: true
+    nextAttemptAt?: true
+    leaseToken?: true
+    leaseUntil?: true
+    attemptCount?: true
+    lastErrorCode?: true
+    _all?: true
+  }
+
+  export type ReviewSummaryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReviewSummary to aggregate.
+     */
+    where?: ReviewSummaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of ReviewSummaries to fetch.
+     */
+    orderBy?: ReviewSummaryOrderByWithRelationInput | ReviewSummaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: ReviewSummaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` ReviewSummaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` ReviewSummaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned ReviewSummaries
+    **/
+    _count?: true | ReviewSummaryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+    **/
+    _avg?: ReviewSummaryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+    **/
+    _sum?: ReviewSummarySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: ReviewSummaryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: ReviewSummaryMaxAggregateInputType
+  }
+
+  export type GetReviewSummaryAggregateType<T extends ReviewSummaryAggregateArgs> = {
+        [P in keyof T & keyof AggregateReviewSummary]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateReviewSummary[P]>
+      : GetScalarType<T[P], AggregateReviewSummary[P]>
+  }
+
+
+
+
+  export type ReviewSummaryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ReviewSummaryWhereInput
+    orderBy?: ReviewSummaryOrderByWithAggregationInput | ReviewSummaryOrderByWithAggregationInput[]
+    by: ReviewSummaryScalarFieldEnum[] | ReviewSummaryScalarFieldEnum
+    having?: ReviewSummaryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ReviewSummaryCountAggregateInputType | true
+    _avg?: ReviewSummaryAvgAggregateInputType
+    _sum?: ReviewSummarySumAggregateInputType
+    _min?: ReviewSummaryMinAggregateInputType
+    _max?: ReviewSummaryMaxAggregateInputType
+  }
+
+  export type ReviewSummaryGroupByOutputType = {
+    productId: string
+    positiveImpressions: string[]
+    negativeImpressions: string[]
+    summary: string | null
+    generatedAt: Date | null
+    sourceReviewCount: number
+    sourceAuthorCount: number
+    corpusVersion: number
+    requestedVersion: number
+    sourceVersion: number
+    lastRetractionVersion: number
+    sourceHash: string | null
+    analyzerVersion: string | null
+    nextAttemptAt: Date | null
+    leaseToken: string | null
+    leaseUntil: Date | null
+    attemptCount: number
+    lastErrorCode: string | null
+    _count: ReviewSummaryCountAggregateOutputType | null
+    _avg: ReviewSummaryAvgAggregateOutputType | null
+    _sum: ReviewSummarySumAggregateOutputType | null
+    _min: ReviewSummaryMinAggregateOutputType | null
+    _max: ReviewSummaryMaxAggregateOutputType | null
+  }
+
+  type GetReviewSummaryGroupByPayload<T extends ReviewSummaryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ReviewSummaryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ReviewSummaryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ReviewSummaryGroupByOutputType[P]>
+            : GetScalarType<T[P], ReviewSummaryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ReviewSummarySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    productId?: boolean
+    positiveImpressions?: boolean
+    negativeImpressions?: boolean
+    summary?: boolean
+    generatedAt?: boolean
+    sourceReviewCount?: boolean
+    sourceAuthorCount?: boolean
+    corpusVersion?: boolean
+    requestedVersion?: boolean
+    sourceVersion?: boolean
+    lastRetractionVersion?: boolean
+    sourceHash?: boolean
+    analyzerVersion?: boolean
+    nextAttemptAt?: boolean
+    leaseToken?: boolean
+    leaseUntil?: boolean
+    attemptCount?: boolean
+    lastErrorCode?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewSummary"]>
+
+  export type ReviewSummarySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    productId?: boolean
+    positiveImpressions?: boolean
+    negativeImpressions?: boolean
+    summary?: boolean
+    generatedAt?: boolean
+    sourceReviewCount?: boolean
+    sourceAuthorCount?: boolean
+    corpusVersion?: boolean
+    requestedVersion?: boolean
+    sourceVersion?: boolean
+    lastRetractionVersion?: boolean
+    sourceHash?: boolean
+    analyzerVersion?: boolean
+    nextAttemptAt?: boolean
+    leaseToken?: boolean
+    leaseUntil?: boolean
+    attemptCount?: boolean
+    lastErrorCode?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewSummary"]>
+
+  export type ReviewSummarySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    productId?: boolean
+    positiveImpressions?: boolean
+    negativeImpressions?: boolean
+    summary?: boolean
+    generatedAt?: boolean
+    sourceReviewCount?: boolean
+    sourceAuthorCount?: boolean
+    corpusVersion?: boolean
+    requestedVersion?: boolean
+    sourceVersion?: boolean
+    lastRetractionVersion?: boolean
+    sourceHash?: boolean
+    analyzerVersion?: boolean
+    nextAttemptAt?: boolean
+    leaseToken?: boolean
+    leaseUntil?: boolean
+    attemptCount?: boolean
+    lastErrorCode?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["reviewSummary"]>
+
+  export type ReviewSummarySelectScalar = {
+    productId?: boolean
+    positiveImpressions?: boolean
+    negativeImpressions?: boolean
+    summary?: boolean
+    generatedAt?: boolean
+    sourceReviewCount?: boolean
+    sourceAuthorCount?: boolean
+    corpusVersion?: boolean
+    requestedVersion?: boolean
+    sourceVersion?: boolean
+    lastRetractionVersion?: boolean
+    sourceHash?: boolean
+    analyzerVersion?: boolean
+    nextAttemptAt?: boolean
+    leaseToken?: boolean
+    leaseUntil?: boolean
+    attemptCount?: boolean
+    lastErrorCode?: boolean
+  }
+
+  export type ReviewSummaryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"productId" | "positiveImpressions" | "negativeImpressions" | "summary" | "generatedAt" | "sourceReviewCount" | "sourceAuthorCount" | "corpusVersion" | "requestedVersion" | "sourceVersion" | "lastRetractionVersion" | "sourceHash" | "analyzerVersion" | "nextAttemptAt" | "leaseToken" | "leaseUntil" | "attemptCount" | "lastErrorCode", ExtArgs["result"]["reviewSummary"]>
+  export type ReviewSummaryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+  export type ReviewSummaryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+  export type ReviewSummaryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+
+  export type $ReviewSummaryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ReviewSummary"
+    objects: {
+      product: Prisma.$ProductPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      productId: string
+      positiveImpressions: string[]
+      negativeImpressions: string[]
+      summary: string | null
+      generatedAt: Date | null
+      sourceReviewCount: number
+      sourceAuthorCount: number
+      corpusVersion: number
+      requestedVersion: number
+      sourceVersion: number
+      lastRetractionVersion: number
+      sourceHash: string | null
+      analyzerVersion: string | null
+      nextAttemptAt: Date | null
+      leaseToken: string | null
+      leaseUntil: Date | null
+      attemptCount: number
+      lastErrorCode: string | null
+    }, ExtArgs["result"]["reviewSummary"]>
+    composites: {}
+  }
+
+  type ReviewSummaryGetPayload<S extends boolean | null | undefined | ReviewSummaryDefaultArgs> = $Result.GetResult<Prisma.$ReviewSummaryPayload, S>
+
+  type ReviewSummaryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ReviewSummaryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ReviewSummaryCountAggregateInputType | true
+    }
+
+  export interface ReviewSummaryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ReviewSummary'], meta: { name: 'ReviewSummary' } }
+    /**
+     * Find zero or one ReviewSummary that matches the filter.
+     * @param {ReviewSummaryFindUniqueArgs} args - Arguments to find a ReviewSummary
+     * @example
+     * // Get one ReviewSummary
+     * const reviewSummary = await prisma.reviewSummary.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ReviewSummaryFindUniqueArgs>(args: SelectSubset<T, ReviewSummaryFindUniqueArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one ReviewSummary that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ReviewSummaryFindUniqueOrThrowArgs} args - Arguments to find a ReviewSummary
+     * @example
+     * // Get one ReviewSummary
+     * const reviewSummary = await prisma.reviewSummary.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ReviewSummaryFindUniqueOrThrowArgs>(args: SelectSubset<T, ReviewSummaryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ReviewSummary that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewSummaryFindFirstArgs} args - Arguments to find a ReviewSummary
+     * @example
+     * // Get one ReviewSummary
+     * const reviewSummary = await prisma.reviewSummary.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ReviewSummaryFindFirstArgs>(args?: SelectSubset<T, ReviewSummaryFindFirstArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ReviewSummary that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewSummaryFindFirstOrThrowArgs} args - Arguments to find a ReviewSummary
+     * @example
+     * // Get one ReviewSummary
+     * const reviewSummary = await prisma.reviewSummary.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ReviewSummaryFindFirstOrThrowArgs>(args?: SelectSubset<T, ReviewSummaryFindFirstOrThrowArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more ReviewSummaries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewSummaryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ReviewSummaries
+     * const reviewSummaries = await prisma.reviewSummary.findMany()
+     *
+     * // Get first 10 ReviewSummaries
+     * const reviewSummaries = await prisma.reviewSummary.findMany({ take: 10 })
+     *
+     * // Only select the `productId`
+     * const reviewSummaryWithProductIdOnly = await prisma.reviewSummary.findMany({ select: { productId: true } })
+     *
+     */
+    findMany<T extends ReviewSummaryFindManyArgs>(args?: SelectSubset<T, ReviewSummaryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a ReviewSummary.
+     * @param {ReviewSummaryCreateArgs} args - Arguments to create a ReviewSummary.
+     * @example
+     * // Create one ReviewSummary
+     * const ReviewSummary = await prisma.reviewSummary.create({
+     *   data: {
+     *     // ... data to create a ReviewSummary
+     *   }
+     * })
+     *
+     */
+    create<T extends ReviewSummaryCreateArgs>(args: SelectSubset<T, ReviewSummaryCreateArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many ReviewSummaries.
+     * @param {ReviewSummaryCreateManyArgs} args - Arguments to create many ReviewSummaries.
+     * @example
+     * // Create many ReviewSummaries
+     * const reviewSummary = await prisma.reviewSummary.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends ReviewSummaryCreateManyArgs>(args?: SelectSubset<T, ReviewSummaryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ReviewSummaries and returns the data saved in the database.
+     * @param {ReviewSummaryCreateManyAndReturnArgs} args - Arguments to create many ReviewSummaries.
+     * @example
+     * // Create many ReviewSummaries
+     * const reviewSummary = await prisma.reviewSummary.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many ReviewSummaries and only return the `productId`
+     * const reviewSummaryWithProductIdOnly = await prisma.reviewSummary.createManyAndReturn({
+     *   select: { productId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends ReviewSummaryCreateManyAndReturnArgs>(args?: SelectSubset<T, ReviewSummaryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a ReviewSummary.
+     * @param {ReviewSummaryDeleteArgs} args - Arguments to delete one ReviewSummary.
+     * @example
+     * // Delete one ReviewSummary
+     * const ReviewSummary = await prisma.reviewSummary.delete({
+     *   where: {
+     *     // ... filter to delete one ReviewSummary
+     *   }
+     * })
+     *
+     */
+    delete<T extends ReviewSummaryDeleteArgs>(args: SelectSubset<T, ReviewSummaryDeleteArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one ReviewSummary.
+     * @param {ReviewSummaryUpdateArgs} args - Arguments to update one ReviewSummary.
+     * @example
+     * // Update one ReviewSummary
+     * const reviewSummary = await prisma.reviewSummary.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends ReviewSummaryUpdateArgs>(args: SelectSubset<T, ReviewSummaryUpdateArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more ReviewSummaries.
+     * @param {ReviewSummaryDeleteManyArgs} args - Arguments to filter ReviewSummaries to delete.
+     * @example
+     * // Delete a few ReviewSummaries
+     * const { count } = await prisma.reviewSummary.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends ReviewSummaryDeleteManyArgs>(args?: SelectSubset<T, ReviewSummaryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReviewSummaries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewSummaryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ReviewSummaries
+     * const reviewSummary = await prisma.reviewSummary.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends ReviewSummaryUpdateManyArgs>(args: SelectSubset<T, ReviewSummaryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ReviewSummaries and returns the data updated in the database.
+     * @param {ReviewSummaryUpdateManyAndReturnArgs} args - Arguments to update many ReviewSummaries.
+     * @example
+     * // Update many ReviewSummaries
+     * const reviewSummary = await prisma.reviewSummary.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more ReviewSummaries and only return the `productId`
+     * const reviewSummaryWithProductIdOnly = await prisma.reviewSummary.updateManyAndReturn({
+     *   select: { productId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends ReviewSummaryUpdateManyAndReturnArgs>(args: SelectSubset<T, ReviewSummaryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one ReviewSummary.
+     * @param {ReviewSummaryUpsertArgs} args - Arguments to update or create a ReviewSummary.
+     * @example
+     * // Update or create a ReviewSummary
+     * const reviewSummary = await prisma.reviewSummary.upsert({
+     *   create: {
+     *     // ... data to create a ReviewSummary
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ReviewSummary we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ReviewSummaryUpsertArgs>(args: SelectSubset<T, ReviewSummaryUpsertArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of ReviewSummaries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewSummaryCountArgs} args - Arguments to filter ReviewSummaries to count.
+     * @example
+     * // Count the number of ReviewSummaries
+     * const count = await prisma.reviewSummary.count({
+     *   where: {
+     *     // ... the filter for the ReviewSummaries we want to count
+     *   }
+     * })
+    **/
+    count<T extends ReviewSummaryCountArgs>(
+      args?: Subset<T, ReviewSummaryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ReviewSummaryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ReviewSummary.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewSummaryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ReviewSummaryAggregateArgs>(args: Subset<T, ReviewSummaryAggregateArgs>): Prisma.PrismaPromise<GetReviewSummaryAggregateType<T>>
+
+    /**
+     * Group by ReviewSummary.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ReviewSummaryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends ReviewSummaryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ReviewSummaryGroupByArgs['orderBy'] }
+        : { orderBy?: ReviewSummaryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ReviewSummaryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetReviewSummaryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ReviewSummary model
+   */
+  readonly fields: ReviewSummaryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ReviewSummary.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ReviewSummaryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ReviewSummary model
+   */ 
+  interface ReviewSummaryFieldRefs {
+    readonly productId: FieldRef<"ReviewSummary", 'String'>
+    readonly positiveImpressions: FieldRef<"ReviewSummary", 'String[]'>
+    readonly negativeImpressions: FieldRef<"ReviewSummary", 'String[]'>
+    readonly summary: FieldRef<"ReviewSummary", 'String'>
+    readonly generatedAt: FieldRef<"ReviewSummary", 'DateTime'>
+    readonly sourceReviewCount: FieldRef<"ReviewSummary", 'Int'>
+    readonly sourceAuthorCount: FieldRef<"ReviewSummary", 'Int'>
+    readonly corpusVersion: FieldRef<"ReviewSummary", 'Int'>
+    readonly requestedVersion: FieldRef<"ReviewSummary", 'Int'>
+    readonly sourceVersion: FieldRef<"ReviewSummary", 'Int'>
+    readonly lastRetractionVersion: FieldRef<"ReviewSummary", 'Int'>
+    readonly sourceHash: FieldRef<"ReviewSummary", 'String'>
+    readonly analyzerVersion: FieldRef<"ReviewSummary", 'String'>
+    readonly nextAttemptAt: FieldRef<"ReviewSummary", 'DateTime'>
+    readonly leaseToken: FieldRef<"ReviewSummary", 'String'>
+    readonly leaseUntil: FieldRef<"ReviewSummary", 'DateTime'>
+    readonly attemptCount: FieldRef<"ReviewSummary", 'Int'>
+    readonly lastErrorCode: FieldRef<"ReviewSummary", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ReviewSummary findUnique
+   */
+  export type ReviewSummaryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewSummary to fetch.
+     */
+    where: ReviewSummaryWhereUniqueInput
+  }
+
+  /**
+   * ReviewSummary findUniqueOrThrow
+   */
+  export type ReviewSummaryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewSummary to fetch.
+     */
+    where: ReviewSummaryWhereUniqueInput
+  }
+
+  /**
+   * ReviewSummary findFirst
+   */
+  export type ReviewSummaryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewSummary to fetch.
+     */
+    where?: ReviewSummaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReviewSummaries to fetch.
+     */
+    orderBy?: ReviewSummaryOrderByWithRelationInput | ReviewSummaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReviewSummaries.
+     */
+    cursor?: ReviewSummaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReviewSummaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReviewSummaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReviewSummaries.
+     */
+    distinct?: ReviewSummaryScalarFieldEnum | ReviewSummaryScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewSummary findFirstOrThrow
+   */
+  export type ReviewSummaryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewSummary to fetch.
+     */
+    where?: ReviewSummaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReviewSummaries to fetch.
+     */
+    orderBy?: ReviewSummaryOrderByWithRelationInput | ReviewSummaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ReviewSummaries.
+     */
+    cursor?: ReviewSummaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReviewSummaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReviewSummaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ReviewSummaries.
+     */
+    distinct?: ReviewSummaryScalarFieldEnum | ReviewSummaryScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewSummary findMany
+   */
+  export type ReviewSummaryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * Filter, which ReviewSummaries to fetch.
+     */
+    where?: ReviewSummaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ReviewSummaries to fetch.
+     */
+    orderBy?: ReviewSummaryOrderByWithRelationInput | ReviewSummaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ReviewSummaries.
+     */
+    cursor?: ReviewSummaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ReviewSummaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ReviewSummaries.
+     */
+    skip?: number
+    distinct?: ReviewSummaryScalarFieldEnum | ReviewSummaryScalarFieldEnum[]
+  }
+
+  /**
+   * ReviewSummary create
+   */
+  export type ReviewSummaryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ReviewSummary.
+     */
+    data: XOR<ReviewSummaryCreateInput, ReviewSummaryUncheckedCreateInput>
+  }
+
+  /**
+   * ReviewSummary createMany
+   */
+  export type ReviewSummaryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ReviewSummaries.
+     */
+    data: ReviewSummaryCreateManyInput | ReviewSummaryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ReviewSummary createManyAndReturn
+   */
+  export type ReviewSummaryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * The data used to create many ReviewSummaries.
+     */
+    data: ReviewSummaryCreateManyInput | ReviewSummaryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReviewSummary update
+   */
+  export type ReviewSummaryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ReviewSummary.
+     */
+    data: XOR<ReviewSummaryUpdateInput, ReviewSummaryUncheckedUpdateInput>
+    /**
+     * Choose, which ReviewSummary to update.
+     */
+    where: ReviewSummaryWhereUniqueInput
+  }
+
+  /**
+   * ReviewSummary updateMany
+   */
+  export type ReviewSummaryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ReviewSummaries.
+     */
+    data: XOR<ReviewSummaryUpdateManyMutationInput, ReviewSummaryUncheckedUpdateManyInput>
+    /**
+     * Filter which ReviewSummaries to update
+     */
+    where?: ReviewSummaryWhereInput
+    /**
+     * Limit how many ReviewSummaries to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReviewSummary updateManyAndReturn
+   */
+  export type ReviewSummaryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * The data used to update ReviewSummaries.
+     */
+    data: XOR<ReviewSummaryUpdateManyMutationInput, ReviewSummaryUncheckedUpdateManyInput>
+    /**
+     * Filter which ReviewSummaries to update
+     */
+    where?: ReviewSummaryWhereInput
+    /**
+     * Limit how many ReviewSummaries to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ReviewSummary upsert
+   */
+  export type ReviewSummaryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ReviewSummary to update in case it exists.
+     */
+    where: ReviewSummaryWhereUniqueInput
+    /**
+     * In case the ReviewSummary found by the `where` argument doesn't exist, create a new ReviewSummary with this data.
+     */
+    create: XOR<ReviewSummaryCreateInput, ReviewSummaryUncheckedCreateInput>
+    /**
+     * In case the ReviewSummary was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ReviewSummaryUpdateInput, ReviewSummaryUncheckedUpdateInput>
+  }
+
+  /**
+   * ReviewSummary delete
+   */
+  export type ReviewSummaryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
+    /**
+     * Filter which ReviewSummary to delete.
+     */
+    where: ReviewSummaryWhereUniqueInput
+  }
+
+  /**
+   * ReviewSummary deleteMany
+   */
+  export type ReviewSummaryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ReviewSummaries to delete
+     */
+    where?: ReviewSummaryWhereInput
+    /**
+     * Limit how many ReviewSummaries to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ReviewSummary without action
+   */
+  export type ReviewSummaryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ReviewSummary
+     */
+    select?: ReviewSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ReviewSummary
+     */
+    omit?: ReviewSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ReviewSummaryInclude<ExtArgs> | null
   }
 
 
@@ -28794,10 +33060,83 @@ export namespace Prisma {
     userId: 'userId',
     productId: 'productId',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    publicationId: 'publicationId',
+    status: 'status',
+    submittedAt: 'submittedAt',
+    publishedAt: 'publishedAt',
+    moderatedAt: 'moderatedAt',
+    moderatedBy: 'moderatedBy',
+    moderationReason: 'moderationReason',
+    verifiedOrderId: 'verifiedOrderId',
+    verifiedAt: 'verifiedAt',
+    deletedAt: 'deletedAt',
+    stateVersion: 'stateVersion',
+    publishedCorpusVersion: 'publishedCorpusVersion',
+    upVotes: 'upVotes',
+    downVotes: 'downVotes',
+    popularityScore: 'popularityScore',
+    indexPending: 'indexPending',
+    indexNextAttemptAt: 'indexNextAttemptAt',
+    indexLeaseToken: 'indexLeaseToken',
+    indexLeaseUntil: 'indexLeaseUntil',
+    indexAttempts: 'indexAttempts'
   };
 
   export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
+
+
+  export const ReviewAddendumScalarFieldEnum: {
+    id: 'id',
+    reviewId: 'reviewId',
+    publicationId: 'publicationId',
+    text: 'text',
+    status: 'status',
+    createdAt: 'createdAt',
+    publishedAt: 'publishedAt',
+    moderatedAt: 'moderatedAt',
+    moderatedBy: 'moderatedBy',
+    moderationReason: 'moderationReason',
+    publishedCorpusVersion: 'publishedCorpusVersion'
+  };
+
+  export type ReviewAddendumScalarFieldEnum = (typeof ReviewAddendumScalarFieldEnum)[keyof typeof ReviewAddendumScalarFieldEnum]
+
+
+  export const ReviewVoteScalarFieldEnum: {
+    reviewId: 'reviewId',
+    userId: 'userId',
+    publicationId: 'publicationId',
+    value: 'value',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ReviewVoteScalarFieldEnum = (typeof ReviewVoteScalarFieldEnum)[keyof typeof ReviewVoteScalarFieldEnum]
+
+
+  export const ReviewSummaryScalarFieldEnum: {
+    productId: 'productId',
+    positiveImpressions: 'positiveImpressions',
+    negativeImpressions: 'negativeImpressions',
+    summary: 'summary',
+    generatedAt: 'generatedAt',
+    sourceReviewCount: 'sourceReviewCount',
+    sourceAuthorCount: 'sourceAuthorCount',
+    corpusVersion: 'corpusVersion',
+    requestedVersion: 'requestedVersion',
+    sourceVersion: 'sourceVersion',
+    lastRetractionVersion: 'lastRetractionVersion',
+    sourceHash: 'sourceHash',
+    analyzerVersion: 'analyzerVersion',
+    nextAttemptAt: 'nextAttemptAt',
+    leaseToken: 'leaseToken',
+    leaseUntil: 'leaseUntil',
+    attemptCount: 'attemptCount',
+    lastErrorCode: 'lastErrorCode'
+  };
+
+  export type ReviewSummaryScalarFieldEnum = (typeof ReviewSummaryScalarFieldEnum)[keyof typeof ReviewSummaryScalarFieldEnum]
 
 
   export const PromoCodeScalarFieldEnum: {
@@ -29181,6 +33520,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'ReviewModerationStatus'
+   */
+  export type EnumReviewModerationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewModerationStatus'>
+
+
+
+  /**
+   * Reference to a field of type 'ReviewModerationStatus[]'
+   */
+  export type ListEnumReviewModerationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewModerationStatus[]'>
+
+
+
+  /**
+   * Reference to a field of type 'ReviewVoteValue'
+   */
+  export type EnumReviewVoteValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewVoteValue'>
+
+
+
+  /**
+   * Reference to a field of type 'ReviewVoteValue[]'
+   */
+  export type ListEnumReviewVoteValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewVoteValue[]'>
+
+
+
+  /**
    * Reference to a field of type 'DiscountType'
    */
   export type EnumDiscountTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DiscountType'>
@@ -29315,6 +33682,7 @@ export namespace Prisma {
     operatorProfile?: XOR<OperatorProfileNullableScalarRelationFilter, OperatorProfileWhereInput> | null
     supportCases?: SupportCaseListRelationFilter
     reviews?: ReviewListRelationFilter
+    reviewVotes?: ReviewVoteListRelationFilter
     accounts?: AccountListRelationFilter
     cart?: XOR<CartNullableScalarRelationFilter, CartWhereInput> | null
     orders?: OrderListRelationFilter
@@ -29338,6 +33706,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileOrderByWithRelationInput
     supportCases?: SupportCaseOrderByRelationAggregateInput
     reviews?: ReviewOrderByRelationAggregateInput
+    reviewVotes?: ReviewVoteOrderByRelationAggregateInput
     accounts?: AccountOrderByRelationAggregateInput
     cart?: CartOrderByWithRelationInput
     orders?: OrderOrderByRelationAggregateInput
@@ -29364,6 +33733,7 @@ export namespace Prisma {
     operatorProfile?: XOR<OperatorProfileNullableScalarRelationFilter, OperatorProfileWhereInput> | null
     supportCases?: SupportCaseListRelationFilter
     reviews?: ReviewListRelationFilter
+    reviewVotes?: ReviewVoteListRelationFilter
     accounts?: AccountListRelationFilter
     cart?: XOR<CartNullableScalarRelationFilter, CartWhereInput> | null
     orders?: OrderListRelationFilter
@@ -29958,6 +34328,7 @@ export namespace Prisma {
     stock?: IntFilter<"Product"> | number
     details?: StringNullableListFilter<"Product">
     reviews?: ReviewListRelationFilter
+    reviewSummary?: XOR<ReviewSummaryNullableScalarRelationFilter, ReviewSummaryWhereInput> | null
     cartItems?: CartItemListRelationFilter
     brand?: XOR<BrandNullableScalarRelationFilter, BrandWhereInput> | null
     subcategory?: XOR<SubcategoryNullableScalarRelationFilter, SubcategoryWhereInput> | null
@@ -29987,6 +34358,7 @@ export namespace Prisma {
     stock?: SortOrder
     details?: SortOrder
     reviews?: ReviewOrderByRelationAggregateInput
+    reviewSummary?: ReviewSummaryOrderByWithRelationInput
     cartItems?: CartItemOrderByRelationAggregateInput
     brand?: BrandOrderByWithRelationInput
     subcategory?: SubcategoryOrderByWithRelationInput
@@ -30019,6 +34391,7 @@ export namespace Prisma {
     stock?: IntFilter<"Product"> | number
     details?: StringNullableListFilter<"Product">
     reviews?: ReviewListRelationFilter
+    reviewSummary?: XOR<ReviewSummaryNullableScalarRelationFilter, ReviewSummaryWhereInput> | null
     cartItems?: CartItemListRelationFilter
     brand?: XOR<BrandNullableScalarRelationFilter, BrandWhereInput> | null
     subcategory?: XOR<SubcategoryNullableScalarRelationFilter, SubcategoryWhereInput> | null
@@ -30309,8 +34682,30 @@ export namespace Prisma {
     productId?: StringNullableFilter<"Review"> | string | null
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
+    publicationId?: StringFilter<"Review"> | string
+    status?: EnumReviewModerationStatusFilter<"Review"> | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFilter<"Review"> | Date | string
+    publishedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    moderatedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    moderatedBy?: StringNullableFilter<"Review"> | string | null
+    moderationReason?: StringNullableFilter<"Review"> | string | null
+    verifiedOrderId?: StringNullableFilter<"Review"> | string | null
+    verifiedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    deletedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    stateVersion?: IntFilter<"Review"> | number
+    publishedCorpusVersion?: IntNullableFilter<"Review"> | number | null
+    upVotes?: IntFilter<"Review"> | number
+    downVotes?: IntFilter<"Review"> | number
+    popularityScore?: IntFilter<"Review"> | number
+    indexPending?: BoolFilter<"Review"> | boolean
+    indexNextAttemptAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    indexLeaseToken?: StringNullableFilter<"Review"> | string | null
+    indexLeaseUntil?: DateTimeNullableFilter<"Review"> | Date | string | null
+    indexAttempts?: IntFilter<"Review"> | number
     product?: XOR<ProductNullableScalarRelationFilter, ProductWhereInput> | null
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    addenda?: ReviewAddendumListRelationFilter
+    votes?: ReviewVoteListRelationFilter
   }
 
   export type ReviewOrderByWithRelationInput = {
@@ -30321,12 +34716,36 @@ export namespace Prisma {
     productId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    publicationId?: SortOrder
+    status?: SortOrder
+    submittedAt?: SortOrder
+    publishedAt?: SortOrderInput | SortOrder
+    moderatedAt?: SortOrderInput | SortOrder
+    moderatedBy?: SortOrderInput | SortOrder
+    moderationReason?: SortOrderInput | SortOrder
+    verifiedOrderId?: SortOrderInput | SortOrder
+    verifiedAt?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    stateVersion?: SortOrder
+    publishedCorpusVersion?: SortOrderInput | SortOrder
+    upVotes?: SortOrder
+    downVotes?: SortOrder
+    popularityScore?: SortOrder
+    indexPending?: SortOrder
+    indexNextAttemptAt?: SortOrderInput | SortOrder
+    indexLeaseToken?: SortOrderInput | SortOrder
+    indexLeaseUntil?: SortOrderInput | SortOrder
+    indexAttempts?: SortOrder
     product?: ProductOrderByWithRelationInput
     user?: UserOrderByWithRelationInput
+    addenda?: ReviewAddendumOrderByRelationAggregateInput
+    votes?: ReviewVoteOrderByRelationAggregateInput
   }
 
   export type ReviewWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    publicationId?: string
+    userId_productId?: ReviewUserIdProductIdCompoundUniqueInput
     AND?: ReviewWhereInput | ReviewWhereInput[]
     OR?: ReviewWhereInput[]
     NOT?: ReviewWhereInput | ReviewWhereInput[]
@@ -30336,9 +34755,30 @@ export namespace Prisma {
     productId?: StringNullableFilter<"Review"> | string | null
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
+    status?: EnumReviewModerationStatusFilter<"Review"> | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFilter<"Review"> | Date | string
+    publishedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    moderatedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    moderatedBy?: StringNullableFilter<"Review"> | string | null
+    moderationReason?: StringNullableFilter<"Review"> | string | null
+    verifiedOrderId?: StringNullableFilter<"Review"> | string | null
+    verifiedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    deletedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    stateVersion?: IntFilter<"Review"> | number
+    publishedCorpusVersion?: IntNullableFilter<"Review"> | number | null
+    upVotes?: IntFilter<"Review"> | number
+    downVotes?: IntFilter<"Review"> | number
+    popularityScore?: IntFilter<"Review"> | number
+    indexPending?: BoolFilter<"Review"> | boolean
+    indexNextAttemptAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    indexLeaseToken?: StringNullableFilter<"Review"> | string | null
+    indexLeaseUntil?: DateTimeNullableFilter<"Review"> | Date | string | null
+    indexAttempts?: IntFilter<"Review"> | number
     product?: XOR<ProductNullableScalarRelationFilter, ProductWhereInput> | null
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
-  }, "id">
+    addenda?: ReviewAddendumListRelationFilter
+    votes?: ReviewVoteListRelationFilter
+  }, "id" | "publicationId" | "userId_productId">
 
   export type ReviewOrderByWithAggregationInput = {
     id?: SortOrder
@@ -30348,6 +34788,26 @@ export namespace Prisma {
     productId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    publicationId?: SortOrder
+    status?: SortOrder
+    submittedAt?: SortOrder
+    publishedAt?: SortOrderInput | SortOrder
+    moderatedAt?: SortOrderInput | SortOrder
+    moderatedBy?: SortOrderInput | SortOrder
+    moderationReason?: SortOrderInput | SortOrder
+    verifiedOrderId?: SortOrderInput | SortOrder
+    verifiedAt?: SortOrderInput | SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    stateVersion?: SortOrder
+    publishedCorpusVersion?: SortOrderInput | SortOrder
+    upVotes?: SortOrder
+    downVotes?: SortOrder
+    popularityScore?: SortOrder
+    indexPending?: SortOrder
+    indexNextAttemptAt?: SortOrderInput | SortOrder
+    indexLeaseToken?: SortOrderInput | SortOrder
+    indexLeaseUntil?: SortOrderInput | SortOrder
+    indexAttempts?: SortOrder
     _count?: ReviewCountOrderByAggregateInput
     _avg?: ReviewAvgOrderByAggregateInput
     _max?: ReviewMaxOrderByAggregateInput
@@ -30366,6 +34826,299 @@ export namespace Prisma {
     productId?: StringNullableWithAggregatesFilter<"Review"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
+    publicationId?: StringWithAggregatesFilter<"Review"> | string
+    status?: EnumReviewModerationStatusWithAggregatesFilter<"Review"> | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
+    publishedAt?: DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
+    moderatedAt?: DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
+    moderatedBy?: StringNullableWithAggregatesFilter<"Review"> | string | null
+    moderationReason?: StringNullableWithAggregatesFilter<"Review"> | string | null
+    verifiedOrderId?: StringNullableWithAggregatesFilter<"Review"> | string | null
+    verifiedAt?: DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
+    stateVersion?: IntWithAggregatesFilter<"Review"> | number
+    publishedCorpusVersion?: IntNullableWithAggregatesFilter<"Review"> | number | null
+    upVotes?: IntWithAggregatesFilter<"Review"> | number
+    downVotes?: IntWithAggregatesFilter<"Review"> | number
+    popularityScore?: IntWithAggregatesFilter<"Review"> | number
+    indexPending?: BoolWithAggregatesFilter<"Review"> | boolean
+    indexNextAttemptAt?: DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
+    indexLeaseToken?: StringNullableWithAggregatesFilter<"Review"> | string | null
+    indexLeaseUntil?: DateTimeNullableWithAggregatesFilter<"Review"> | Date | string | null
+    indexAttempts?: IntWithAggregatesFilter<"Review"> | number
+  }
+
+  export type ReviewAddendumWhereInput = {
+    AND?: ReviewAddendumWhereInput | ReviewAddendumWhereInput[]
+    OR?: ReviewAddendumWhereInput[]
+    NOT?: ReviewAddendumWhereInput | ReviewAddendumWhereInput[]
+    id?: StringFilter<"ReviewAddendum"> | string
+    reviewId?: StringFilter<"ReviewAddendum"> | string
+    publicationId?: StringFilter<"ReviewAddendum"> | string
+    text?: StringFilter<"ReviewAddendum"> | string
+    status?: EnumReviewModerationStatusFilter<"ReviewAddendum"> | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFilter<"ReviewAddendum"> | Date | string
+    publishedAt?: DateTimeNullableFilter<"ReviewAddendum"> | Date | string | null
+    moderatedAt?: DateTimeNullableFilter<"ReviewAddendum"> | Date | string | null
+    moderatedBy?: StringNullableFilter<"ReviewAddendum"> | string | null
+    moderationReason?: StringNullableFilter<"ReviewAddendum"> | string | null
+    publishedCorpusVersion?: IntNullableFilter<"ReviewAddendum"> | number | null
+    review?: XOR<ReviewScalarRelationFilter, ReviewWhereInput>
+  }
+
+  export type ReviewAddendumOrderByWithRelationInput = {
+    id?: SortOrder
+    reviewId?: SortOrder
+    publicationId?: SortOrder
+    text?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    publishedAt?: SortOrderInput | SortOrder
+    moderatedAt?: SortOrderInput | SortOrder
+    moderatedBy?: SortOrderInput | SortOrder
+    moderationReason?: SortOrderInput | SortOrder
+    publishedCorpusVersion?: SortOrderInput | SortOrder
+    review?: ReviewOrderByWithRelationInput
+  }
+
+  export type ReviewAddendumWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ReviewAddendumWhereInput | ReviewAddendumWhereInput[]
+    OR?: ReviewAddendumWhereInput[]
+    NOT?: ReviewAddendumWhereInput | ReviewAddendumWhereInput[]
+    reviewId?: StringFilter<"ReviewAddendum"> | string
+    publicationId?: StringFilter<"ReviewAddendum"> | string
+    text?: StringFilter<"ReviewAddendum"> | string
+    status?: EnumReviewModerationStatusFilter<"ReviewAddendum"> | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFilter<"ReviewAddendum"> | Date | string
+    publishedAt?: DateTimeNullableFilter<"ReviewAddendum"> | Date | string | null
+    moderatedAt?: DateTimeNullableFilter<"ReviewAddendum"> | Date | string | null
+    moderatedBy?: StringNullableFilter<"ReviewAddendum"> | string | null
+    moderationReason?: StringNullableFilter<"ReviewAddendum"> | string | null
+    publishedCorpusVersion?: IntNullableFilter<"ReviewAddendum"> | number | null
+    review?: XOR<ReviewScalarRelationFilter, ReviewWhereInput>
+  }, "id">
+
+  export type ReviewAddendumOrderByWithAggregationInput = {
+    id?: SortOrder
+    reviewId?: SortOrder
+    publicationId?: SortOrder
+    text?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    publishedAt?: SortOrderInput | SortOrder
+    moderatedAt?: SortOrderInput | SortOrder
+    moderatedBy?: SortOrderInput | SortOrder
+    moderationReason?: SortOrderInput | SortOrder
+    publishedCorpusVersion?: SortOrderInput | SortOrder
+    _count?: ReviewAddendumCountOrderByAggregateInput
+    _avg?: ReviewAddendumAvgOrderByAggregateInput
+    _max?: ReviewAddendumMaxOrderByAggregateInput
+    _min?: ReviewAddendumMinOrderByAggregateInput
+    _sum?: ReviewAddendumSumOrderByAggregateInput
+  }
+
+  export type ReviewAddendumScalarWhereWithAggregatesInput = {
+    AND?: ReviewAddendumScalarWhereWithAggregatesInput | ReviewAddendumScalarWhereWithAggregatesInput[]
+    OR?: ReviewAddendumScalarWhereWithAggregatesInput[]
+    NOT?: ReviewAddendumScalarWhereWithAggregatesInput | ReviewAddendumScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ReviewAddendum"> | string
+    reviewId?: StringWithAggregatesFilter<"ReviewAddendum"> | string
+    publicationId?: StringWithAggregatesFilter<"ReviewAddendum"> | string
+    text?: StringWithAggregatesFilter<"ReviewAddendum"> | string
+    status?: EnumReviewModerationStatusWithAggregatesFilter<"ReviewAddendum"> | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeWithAggregatesFilter<"ReviewAddendum"> | Date | string
+    publishedAt?: DateTimeNullableWithAggregatesFilter<"ReviewAddendum"> | Date | string | null
+    moderatedAt?: DateTimeNullableWithAggregatesFilter<"ReviewAddendum"> | Date | string | null
+    moderatedBy?: StringNullableWithAggregatesFilter<"ReviewAddendum"> | string | null
+    moderationReason?: StringNullableWithAggregatesFilter<"ReviewAddendum"> | string | null
+    publishedCorpusVersion?: IntNullableWithAggregatesFilter<"ReviewAddendum"> | number | null
+  }
+
+  export type ReviewVoteWhereInput = {
+    AND?: ReviewVoteWhereInput | ReviewVoteWhereInput[]
+    OR?: ReviewVoteWhereInput[]
+    NOT?: ReviewVoteWhereInput | ReviewVoteWhereInput[]
+    reviewId?: StringFilter<"ReviewVote"> | string
+    userId?: StringFilter<"ReviewVote"> | string
+    publicationId?: StringFilter<"ReviewVote"> | string
+    value?: EnumReviewVoteValueFilter<"ReviewVote"> | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFilter<"ReviewVote"> | Date | string
+    updatedAt?: DateTimeFilter<"ReviewVote"> | Date | string
+    review?: XOR<ReviewScalarRelationFilter, ReviewWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type ReviewVoteOrderByWithRelationInput = {
+    reviewId?: SortOrder
+    userId?: SortOrder
+    publicationId?: SortOrder
+    value?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    review?: ReviewOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type ReviewVoteWhereUniqueInput = Prisma.AtLeast<{
+    reviewId_userId?: ReviewVoteReviewIdUserIdCompoundUniqueInput
+    AND?: ReviewVoteWhereInput | ReviewVoteWhereInput[]
+    OR?: ReviewVoteWhereInput[]
+    NOT?: ReviewVoteWhereInput | ReviewVoteWhereInput[]
+    reviewId?: StringFilter<"ReviewVote"> | string
+    userId?: StringFilter<"ReviewVote"> | string
+    publicationId?: StringFilter<"ReviewVote"> | string
+    value?: EnumReviewVoteValueFilter<"ReviewVote"> | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFilter<"ReviewVote"> | Date | string
+    updatedAt?: DateTimeFilter<"ReviewVote"> | Date | string
+    review?: XOR<ReviewScalarRelationFilter, ReviewWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "reviewId_userId">
+
+  export type ReviewVoteOrderByWithAggregationInput = {
+    reviewId?: SortOrder
+    userId?: SortOrder
+    publicationId?: SortOrder
+    value?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ReviewVoteCountOrderByAggregateInput
+    _max?: ReviewVoteMaxOrderByAggregateInput
+    _min?: ReviewVoteMinOrderByAggregateInput
+  }
+
+  export type ReviewVoteScalarWhereWithAggregatesInput = {
+    AND?: ReviewVoteScalarWhereWithAggregatesInput | ReviewVoteScalarWhereWithAggregatesInput[]
+    OR?: ReviewVoteScalarWhereWithAggregatesInput[]
+    NOT?: ReviewVoteScalarWhereWithAggregatesInput | ReviewVoteScalarWhereWithAggregatesInput[]
+    reviewId?: StringWithAggregatesFilter<"ReviewVote"> | string
+    userId?: StringWithAggregatesFilter<"ReviewVote"> | string
+    publicationId?: StringWithAggregatesFilter<"ReviewVote"> | string
+    value?: EnumReviewVoteValueWithAggregatesFilter<"ReviewVote"> | $Enums.ReviewVoteValue
+    createdAt?: DateTimeWithAggregatesFilter<"ReviewVote"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ReviewVote"> | Date | string
+  }
+
+  export type ReviewSummaryWhereInput = {
+    AND?: ReviewSummaryWhereInput | ReviewSummaryWhereInput[]
+    OR?: ReviewSummaryWhereInput[]
+    NOT?: ReviewSummaryWhereInput | ReviewSummaryWhereInput[]
+    productId?: StringFilter<"ReviewSummary"> | string
+    positiveImpressions?: StringNullableListFilter<"ReviewSummary">
+    negativeImpressions?: StringNullableListFilter<"ReviewSummary">
+    summary?: StringNullableFilter<"ReviewSummary"> | string | null
+    generatedAt?: DateTimeNullableFilter<"ReviewSummary"> | Date | string | null
+    sourceReviewCount?: IntFilter<"ReviewSummary"> | number
+    sourceAuthorCount?: IntFilter<"ReviewSummary"> | number
+    corpusVersion?: IntFilter<"ReviewSummary"> | number
+    requestedVersion?: IntFilter<"ReviewSummary"> | number
+    sourceVersion?: IntFilter<"ReviewSummary"> | number
+    lastRetractionVersion?: IntFilter<"ReviewSummary"> | number
+    sourceHash?: StringNullableFilter<"ReviewSummary"> | string | null
+    analyzerVersion?: StringNullableFilter<"ReviewSummary"> | string | null
+    nextAttemptAt?: DateTimeNullableFilter<"ReviewSummary"> | Date | string | null
+    leaseToken?: StringNullableFilter<"ReviewSummary"> | string | null
+    leaseUntil?: DateTimeNullableFilter<"ReviewSummary"> | Date | string | null
+    attemptCount?: IntFilter<"ReviewSummary"> | number
+    lastErrorCode?: StringNullableFilter<"ReviewSummary"> | string | null
+    product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
+  }
+
+  export type ReviewSummaryOrderByWithRelationInput = {
+    productId?: SortOrder
+    positiveImpressions?: SortOrder
+    negativeImpressions?: SortOrder
+    summary?: SortOrderInput | SortOrder
+    generatedAt?: SortOrderInput | SortOrder
+    sourceReviewCount?: SortOrder
+    sourceAuthorCount?: SortOrder
+    corpusVersion?: SortOrder
+    requestedVersion?: SortOrder
+    sourceVersion?: SortOrder
+    lastRetractionVersion?: SortOrder
+    sourceHash?: SortOrderInput | SortOrder
+    analyzerVersion?: SortOrderInput | SortOrder
+    nextAttemptAt?: SortOrderInput | SortOrder
+    leaseToken?: SortOrderInput | SortOrder
+    leaseUntil?: SortOrderInput | SortOrder
+    attemptCount?: SortOrder
+    lastErrorCode?: SortOrderInput | SortOrder
+    product?: ProductOrderByWithRelationInput
+  }
+
+  export type ReviewSummaryWhereUniqueInput = Prisma.AtLeast<{
+    productId?: string
+    AND?: ReviewSummaryWhereInput | ReviewSummaryWhereInput[]
+    OR?: ReviewSummaryWhereInput[]
+    NOT?: ReviewSummaryWhereInput | ReviewSummaryWhereInput[]
+    positiveImpressions?: StringNullableListFilter<"ReviewSummary">
+    negativeImpressions?: StringNullableListFilter<"ReviewSummary">
+    summary?: StringNullableFilter<"ReviewSummary"> | string | null
+    generatedAt?: DateTimeNullableFilter<"ReviewSummary"> | Date | string | null
+    sourceReviewCount?: IntFilter<"ReviewSummary"> | number
+    sourceAuthorCount?: IntFilter<"ReviewSummary"> | number
+    corpusVersion?: IntFilter<"ReviewSummary"> | number
+    requestedVersion?: IntFilter<"ReviewSummary"> | number
+    sourceVersion?: IntFilter<"ReviewSummary"> | number
+    lastRetractionVersion?: IntFilter<"ReviewSummary"> | number
+    sourceHash?: StringNullableFilter<"ReviewSummary"> | string | null
+    analyzerVersion?: StringNullableFilter<"ReviewSummary"> | string | null
+    nextAttemptAt?: DateTimeNullableFilter<"ReviewSummary"> | Date | string | null
+    leaseToken?: StringNullableFilter<"ReviewSummary"> | string | null
+    leaseUntil?: DateTimeNullableFilter<"ReviewSummary"> | Date | string | null
+    attemptCount?: IntFilter<"ReviewSummary"> | number
+    lastErrorCode?: StringNullableFilter<"ReviewSummary"> | string | null
+    product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
+  }, "productId">
+
+  export type ReviewSummaryOrderByWithAggregationInput = {
+    productId?: SortOrder
+    positiveImpressions?: SortOrder
+    negativeImpressions?: SortOrder
+    summary?: SortOrderInput | SortOrder
+    generatedAt?: SortOrderInput | SortOrder
+    sourceReviewCount?: SortOrder
+    sourceAuthorCount?: SortOrder
+    corpusVersion?: SortOrder
+    requestedVersion?: SortOrder
+    sourceVersion?: SortOrder
+    lastRetractionVersion?: SortOrder
+    sourceHash?: SortOrderInput | SortOrder
+    analyzerVersion?: SortOrderInput | SortOrder
+    nextAttemptAt?: SortOrderInput | SortOrder
+    leaseToken?: SortOrderInput | SortOrder
+    leaseUntil?: SortOrderInput | SortOrder
+    attemptCount?: SortOrder
+    lastErrorCode?: SortOrderInput | SortOrder
+    _count?: ReviewSummaryCountOrderByAggregateInput
+    _avg?: ReviewSummaryAvgOrderByAggregateInput
+    _max?: ReviewSummaryMaxOrderByAggregateInput
+    _min?: ReviewSummaryMinOrderByAggregateInput
+    _sum?: ReviewSummarySumOrderByAggregateInput
+  }
+
+  export type ReviewSummaryScalarWhereWithAggregatesInput = {
+    AND?: ReviewSummaryScalarWhereWithAggregatesInput | ReviewSummaryScalarWhereWithAggregatesInput[]
+    OR?: ReviewSummaryScalarWhereWithAggregatesInput[]
+    NOT?: ReviewSummaryScalarWhereWithAggregatesInput | ReviewSummaryScalarWhereWithAggregatesInput[]
+    productId?: StringWithAggregatesFilter<"ReviewSummary"> | string
+    positiveImpressions?: StringNullableListFilter<"ReviewSummary">
+    negativeImpressions?: StringNullableListFilter<"ReviewSummary">
+    summary?: StringNullableWithAggregatesFilter<"ReviewSummary"> | string | null
+    generatedAt?: DateTimeNullableWithAggregatesFilter<"ReviewSummary"> | Date | string | null
+    sourceReviewCount?: IntWithAggregatesFilter<"ReviewSummary"> | number
+    sourceAuthorCount?: IntWithAggregatesFilter<"ReviewSummary"> | number
+    corpusVersion?: IntWithAggregatesFilter<"ReviewSummary"> | number
+    requestedVersion?: IntWithAggregatesFilter<"ReviewSummary"> | number
+    sourceVersion?: IntWithAggregatesFilter<"ReviewSummary"> | number
+    lastRetractionVersion?: IntWithAggregatesFilter<"ReviewSummary"> | number
+    sourceHash?: StringNullableWithAggregatesFilter<"ReviewSummary"> | string | null
+    analyzerVersion?: StringNullableWithAggregatesFilter<"ReviewSummary"> | string | null
+    nextAttemptAt?: DateTimeNullableWithAggregatesFilter<"ReviewSummary"> | Date | string | null
+    leaseToken?: StringNullableWithAggregatesFilter<"ReviewSummary"> | string | null
+    leaseUntil?: DateTimeNullableWithAggregatesFilter<"ReviewSummary"> | Date | string | null
+    attemptCount?: IntWithAggregatesFilter<"ReviewSummary"> | number
+    lastErrorCode?: StringNullableWithAggregatesFilter<"ReviewSummary"> | string | null
   }
 
   export type PromoCodeWhereInput = {
@@ -31070,6 +35823,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -31093,6 +35847,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -31116,6 +35871,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -31139,6 +35895,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -31773,6 +36530,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryCreateNestedOneWithoutProductInput
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
@@ -31802,6 +36560,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryUncheckedCreateNestedOneWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
     embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
@@ -31825,6 +36584,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
@@ -31854,6 +36614,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUncheckedUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
     embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
@@ -32146,8 +36907,30 @@ export namespace Prisma {
     rating: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
     product?: ProductCreateNestedOneWithoutReviewsInput
     user?: UserCreateNestedOneWithoutReviewsInput
+    addenda?: ReviewAddendumCreateNestedManyWithoutReviewInput
+    votes?: ReviewVoteCreateNestedManyWithoutReviewInput
   }
 
   export type ReviewUncheckedCreateInput = {
@@ -32158,6 +36941,28 @@ export namespace Prisma {
     productId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
+    addenda?: ReviewAddendumUncheckedCreateNestedManyWithoutReviewInput
+    votes?: ReviewVoteUncheckedCreateNestedManyWithoutReviewInput
   }
 
   export type ReviewUpdateInput = {
@@ -32166,8 +36971,30 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
     product?: ProductUpdateOneWithoutReviewsNestedInput
     user?: UserUpdateOneWithoutReviewsNestedInput
+    addenda?: ReviewAddendumUpdateManyWithoutReviewNestedInput
+    votes?: ReviewVoteUpdateManyWithoutReviewNestedInput
   }
 
   export type ReviewUncheckedUpdateInput = {
@@ -32178,6 +37005,28 @@ export namespace Prisma {
     productId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+    addenda?: ReviewAddendumUncheckedUpdateManyWithoutReviewNestedInput
+    votes?: ReviewVoteUncheckedUpdateManyWithoutReviewNestedInput
   }
 
   export type ReviewCreateManyInput = {
@@ -32188,6 +37037,26 @@ export namespace Prisma {
     productId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
   }
 
   export type ReviewUpdateManyMutationInput = {
@@ -32196,6 +37065,26 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
   }
 
   export type ReviewUncheckedUpdateManyInput = {
@@ -32206,6 +37095,330 @@ export namespace Prisma {
     productId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ReviewAddendumCreateInput = {
+    id?: string
+    publicationId: string
+    text: string
+    status?: $Enums.ReviewModerationStatus
+    createdAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    publishedCorpusVersion?: number | null
+    review: ReviewCreateNestedOneWithoutAddendaInput
+  }
+
+  export type ReviewAddendumUncheckedCreateInput = {
+    id?: string
+    reviewId: string
+    publicationId: string
+    text: string
+    status?: $Enums.ReviewModerationStatus
+    createdAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    publishedCorpusVersion?: number | null
+  }
+
+  export type ReviewAddendumUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    review?: ReviewUpdateOneRequiredWithoutAddendaNestedInput
+  }
+
+  export type ReviewAddendumUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reviewId?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type ReviewAddendumCreateManyInput = {
+    id?: string
+    reviewId: string
+    publicationId: string
+    text: string
+    status?: $Enums.ReviewModerationStatus
+    createdAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    publishedCorpusVersion?: number | null
+  }
+
+  export type ReviewAddendumUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type ReviewAddendumUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reviewId?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type ReviewVoteCreateInput = {
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    review: ReviewCreateNestedOneWithoutVotesInput
+    user: UserCreateNestedOneWithoutReviewVotesInput
+  }
+
+  export type ReviewVoteUncheckedCreateInput = {
+    reviewId: string
+    userId: string
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ReviewVoteUpdateInput = {
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    review?: ReviewUpdateOneRequiredWithoutVotesNestedInput
+    user?: UserUpdateOneRequiredWithoutReviewVotesNestedInput
+  }
+
+  export type ReviewVoteUncheckedUpdateInput = {
+    reviewId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReviewVoteCreateManyInput = {
+    reviewId: string
+    userId: string
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ReviewVoteUpdateManyMutationInput = {
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReviewVoteUncheckedUpdateManyInput = {
+    reviewId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReviewSummaryCreateInput = {
+    positiveImpressions?: ReviewSummaryCreatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryCreatenegativeImpressionsInput | string[]
+    summary?: string | null
+    generatedAt?: Date | string | null
+    sourceReviewCount?: number
+    sourceAuthorCount?: number
+    corpusVersion?: number
+    requestedVersion?: number
+    sourceVersion?: number
+    lastRetractionVersion?: number
+    sourceHash?: string | null
+    analyzerVersion?: string | null
+    nextAttemptAt?: Date | string | null
+    leaseToken?: string | null
+    leaseUntil?: Date | string | null
+    attemptCount?: number
+    lastErrorCode?: string | null
+    product: ProductCreateNestedOneWithoutReviewSummaryInput
+  }
+
+  export type ReviewSummaryUncheckedCreateInput = {
+    productId: string
+    positiveImpressions?: ReviewSummaryCreatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryCreatenegativeImpressionsInput | string[]
+    summary?: string | null
+    generatedAt?: Date | string | null
+    sourceReviewCount?: number
+    sourceAuthorCount?: number
+    corpusVersion?: number
+    requestedVersion?: number
+    sourceVersion?: number
+    lastRetractionVersion?: number
+    sourceHash?: string | null
+    analyzerVersion?: string | null
+    nextAttemptAt?: Date | string | null
+    leaseToken?: string | null
+    leaseUntil?: Date | string | null
+    attemptCount?: number
+    lastErrorCode?: string | null
+  }
+
+  export type ReviewSummaryUpdateInput = {
+    positiveImpressions?: ReviewSummaryUpdatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryUpdatenegativeImpressionsInput | string[]
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    generatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sourceReviewCount?: IntFieldUpdateOperationsInput | number
+    sourceAuthorCount?: IntFieldUpdateOperationsInput | number
+    corpusVersion?: IntFieldUpdateOperationsInput | number
+    requestedVersion?: IntFieldUpdateOperationsInput | number
+    sourceVersion?: IntFieldUpdateOperationsInput | number
+    lastRetractionVersion?: IntFieldUpdateOperationsInput | number
+    sourceHash?: NullableStringFieldUpdateOperationsInput | string | null
+    analyzerVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    nextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    product?: ProductUpdateOneRequiredWithoutReviewSummaryNestedInput
+  }
+
+  export type ReviewSummaryUncheckedUpdateInput = {
+    productId?: StringFieldUpdateOperationsInput | string
+    positiveImpressions?: ReviewSummaryUpdatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryUpdatenegativeImpressionsInput | string[]
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    generatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sourceReviewCount?: IntFieldUpdateOperationsInput | number
+    sourceAuthorCount?: IntFieldUpdateOperationsInput | number
+    corpusVersion?: IntFieldUpdateOperationsInput | number
+    requestedVersion?: IntFieldUpdateOperationsInput | number
+    sourceVersion?: IntFieldUpdateOperationsInput | number
+    lastRetractionVersion?: IntFieldUpdateOperationsInput | number
+    sourceHash?: NullableStringFieldUpdateOperationsInput | string | null
+    analyzerVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    nextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ReviewSummaryCreateManyInput = {
+    productId: string
+    positiveImpressions?: ReviewSummaryCreatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryCreatenegativeImpressionsInput | string[]
+    summary?: string | null
+    generatedAt?: Date | string | null
+    sourceReviewCount?: number
+    sourceAuthorCount?: number
+    corpusVersion?: number
+    requestedVersion?: number
+    sourceVersion?: number
+    lastRetractionVersion?: number
+    sourceHash?: string | null
+    analyzerVersion?: string | null
+    nextAttemptAt?: Date | string | null
+    leaseToken?: string | null
+    leaseUntil?: Date | string | null
+    attemptCount?: number
+    lastErrorCode?: string | null
+  }
+
+  export type ReviewSummaryUpdateManyMutationInput = {
+    positiveImpressions?: ReviewSummaryUpdatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryUpdatenegativeImpressionsInput | string[]
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    generatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sourceReviewCount?: IntFieldUpdateOperationsInput | number
+    sourceAuthorCount?: IntFieldUpdateOperationsInput | number
+    corpusVersion?: IntFieldUpdateOperationsInput | number
+    requestedVersion?: IntFieldUpdateOperationsInput | number
+    sourceVersion?: IntFieldUpdateOperationsInput | number
+    lastRetractionVersion?: IntFieldUpdateOperationsInput | number
+    sourceHash?: NullableStringFieldUpdateOperationsInput | string | null
+    analyzerVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    nextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ReviewSummaryUncheckedUpdateManyInput = {
+    productId?: StringFieldUpdateOperationsInput | string
+    positiveImpressions?: ReviewSummaryUpdatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryUpdatenegativeImpressionsInput | string[]
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    generatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sourceReviewCount?: IntFieldUpdateOperationsInput | number
+    sourceAuthorCount?: IntFieldUpdateOperationsInput | number
+    corpusVersion?: IntFieldUpdateOperationsInput | number
+    requestedVersion?: IntFieldUpdateOperationsInput | number
+    sourceVersion?: IntFieldUpdateOperationsInput | number
+    lastRetractionVersion?: IntFieldUpdateOperationsInput | number
+    sourceHash?: NullableStringFieldUpdateOperationsInput | string | null
+    analyzerVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    nextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type PromoCodeCreateInput = {
@@ -33067,6 +38280,12 @@ export namespace Prisma {
     none?: ReviewWhereInput
   }
 
+  export type ReviewVoteListRelationFilter = {
+    every?: ReviewVoteWhereInput
+    some?: ReviewVoteWhereInput
+    none?: ReviewVoteWhereInput
+  }
+
   export type AccountListRelationFilter = {
     every?: AccountWhereInput
     some?: AccountWhereInput
@@ -33104,6 +38323,10 @@ export namespace Prisma {
   }
 
   export type ReviewOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ReviewVoteOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -33764,6 +38987,11 @@ export namespace Prisma {
     not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
   }
 
+  export type ReviewSummaryNullableScalarRelationFilter = {
+    is?: ReviewSummaryWhereInput | null
+    isNot?: ReviewSummaryWhereInput | null
+  }
+
   export type CartItemListRelationFilter = {
     every?: CartItemWhereInput
     some?: CartItemWhereInput
@@ -33999,9 +39227,31 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type EnumReviewModerationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReviewModerationStatus | EnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReviewModerationStatus[] | ListEnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReviewModerationStatus[] | ListEnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReviewModerationStatusFilter<$PrismaModel> | $Enums.ReviewModerationStatus
+  }
+
   export type ProductNullableScalarRelationFilter = {
     is?: ProductWhereInput | null
     isNot?: ProductWhereInput | null
+  }
+
+  export type ReviewAddendumListRelationFilter = {
+    every?: ReviewAddendumWhereInput
+    some?: ReviewAddendumWhereInput
+    none?: ReviewAddendumWhereInput
+  }
+
+  export type ReviewAddendumOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ReviewUserIdProductIdCompoundUniqueInput = {
+    userId: string
+    productId: string
   }
 
   export type ReviewCountOrderByAggregateInput = {
@@ -34012,10 +39262,36 @@ export namespace Prisma {
     productId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    publicationId?: SortOrder
+    status?: SortOrder
+    submittedAt?: SortOrder
+    publishedAt?: SortOrder
+    moderatedAt?: SortOrder
+    moderatedBy?: SortOrder
+    moderationReason?: SortOrder
+    verifiedOrderId?: SortOrder
+    verifiedAt?: SortOrder
+    deletedAt?: SortOrder
+    stateVersion?: SortOrder
+    publishedCorpusVersion?: SortOrder
+    upVotes?: SortOrder
+    downVotes?: SortOrder
+    popularityScore?: SortOrder
+    indexPending?: SortOrder
+    indexNextAttemptAt?: SortOrder
+    indexLeaseToken?: SortOrder
+    indexLeaseUntil?: SortOrder
+    indexAttempts?: SortOrder
   }
 
   export type ReviewAvgOrderByAggregateInput = {
     rating?: SortOrder
+    stateVersion?: SortOrder
+    publishedCorpusVersion?: SortOrder
+    upVotes?: SortOrder
+    downVotes?: SortOrder
+    popularityScore?: SortOrder
+    indexAttempts?: SortOrder
   }
 
   export type ReviewMaxOrderByAggregateInput = {
@@ -34026,6 +39302,26 @@ export namespace Prisma {
     productId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    publicationId?: SortOrder
+    status?: SortOrder
+    submittedAt?: SortOrder
+    publishedAt?: SortOrder
+    moderatedAt?: SortOrder
+    moderatedBy?: SortOrder
+    moderationReason?: SortOrder
+    verifiedOrderId?: SortOrder
+    verifiedAt?: SortOrder
+    deletedAt?: SortOrder
+    stateVersion?: SortOrder
+    publishedCorpusVersion?: SortOrder
+    upVotes?: SortOrder
+    downVotes?: SortOrder
+    popularityScore?: SortOrder
+    indexPending?: SortOrder
+    indexNextAttemptAt?: SortOrder
+    indexLeaseToken?: SortOrder
+    indexLeaseUntil?: SortOrder
+    indexAttempts?: SortOrder
   }
 
   export type ReviewMinOrderByAggregateInput = {
@@ -34036,10 +39332,229 @@ export namespace Prisma {
     productId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    publicationId?: SortOrder
+    status?: SortOrder
+    submittedAt?: SortOrder
+    publishedAt?: SortOrder
+    moderatedAt?: SortOrder
+    moderatedBy?: SortOrder
+    moderationReason?: SortOrder
+    verifiedOrderId?: SortOrder
+    verifiedAt?: SortOrder
+    deletedAt?: SortOrder
+    stateVersion?: SortOrder
+    publishedCorpusVersion?: SortOrder
+    upVotes?: SortOrder
+    downVotes?: SortOrder
+    popularityScore?: SortOrder
+    indexPending?: SortOrder
+    indexNextAttemptAt?: SortOrder
+    indexLeaseToken?: SortOrder
+    indexLeaseUntil?: SortOrder
+    indexAttempts?: SortOrder
   }
 
   export type ReviewSumOrderByAggregateInput = {
     rating?: SortOrder
+    stateVersion?: SortOrder
+    publishedCorpusVersion?: SortOrder
+    upVotes?: SortOrder
+    downVotes?: SortOrder
+    popularityScore?: SortOrder
+    indexAttempts?: SortOrder
+  }
+
+  export type EnumReviewModerationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReviewModerationStatus | EnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReviewModerationStatus[] | ListEnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReviewModerationStatus[] | ListEnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReviewModerationStatusWithAggregatesFilter<$PrismaModel> | $Enums.ReviewModerationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReviewModerationStatusFilter<$PrismaModel>
+    _max?: NestedEnumReviewModerationStatusFilter<$PrismaModel>
+  }
+
+  export type ReviewScalarRelationFilter = {
+    is?: ReviewWhereInput
+    isNot?: ReviewWhereInput
+  }
+
+  export type ReviewAddendumCountOrderByAggregateInput = {
+    id?: SortOrder
+    reviewId?: SortOrder
+    publicationId?: SortOrder
+    text?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    publishedAt?: SortOrder
+    moderatedAt?: SortOrder
+    moderatedBy?: SortOrder
+    moderationReason?: SortOrder
+    publishedCorpusVersion?: SortOrder
+  }
+
+  export type ReviewAddendumAvgOrderByAggregateInput = {
+    publishedCorpusVersion?: SortOrder
+  }
+
+  export type ReviewAddendumMaxOrderByAggregateInput = {
+    id?: SortOrder
+    reviewId?: SortOrder
+    publicationId?: SortOrder
+    text?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    publishedAt?: SortOrder
+    moderatedAt?: SortOrder
+    moderatedBy?: SortOrder
+    moderationReason?: SortOrder
+    publishedCorpusVersion?: SortOrder
+  }
+
+  export type ReviewAddendumMinOrderByAggregateInput = {
+    id?: SortOrder
+    reviewId?: SortOrder
+    publicationId?: SortOrder
+    text?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    publishedAt?: SortOrder
+    moderatedAt?: SortOrder
+    moderatedBy?: SortOrder
+    moderationReason?: SortOrder
+    publishedCorpusVersion?: SortOrder
+  }
+
+  export type ReviewAddendumSumOrderByAggregateInput = {
+    publishedCorpusVersion?: SortOrder
+  }
+
+  export type EnumReviewVoteValueFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReviewVoteValue | EnumReviewVoteValueFieldRefInput<$PrismaModel>
+    in?: $Enums.ReviewVoteValue[] | ListEnumReviewVoteValueFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReviewVoteValue[] | ListEnumReviewVoteValueFieldRefInput<$PrismaModel>
+    not?: NestedEnumReviewVoteValueFilter<$PrismaModel> | $Enums.ReviewVoteValue
+  }
+
+  export type ReviewVoteReviewIdUserIdCompoundUniqueInput = {
+    reviewId: string
+    userId: string
+  }
+
+  export type ReviewVoteCountOrderByAggregateInput = {
+    reviewId?: SortOrder
+    userId?: SortOrder
+    publicationId?: SortOrder
+    value?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ReviewVoteMaxOrderByAggregateInput = {
+    reviewId?: SortOrder
+    userId?: SortOrder
+    publicationId?: SortOrder
+    value?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ReviewVoteMinOrderByAggregateInput = {
+    reviewId?: SortOrder
+    userId?: SortOrder
+    publicationId?: SortOrder
+    value?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumReviewVoteValueWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReviewVoteValue | EnumReviewVoteValueFieldRefInput<$PrismaModel>
+    in?: $Enums.ReviewVoteValue[] | ListEnumReviewVoteValueFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReviewVoteValue[] | ListEnumReviewVoteValueFieldRefInput<$PrismaModel>
+    not?: NestedEnumReviewVoteValueWithAggregatesFilter<$PrismaModel> | $Enums.ReviewVoteValue
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReviewVoteValueFilter<$PrismaModel>
+    _max?: NestedEnumReviewVoteValueFilter<$PrismaModel>
+  }
+
+  export type ReviewSummaryCountOrderByAggregateInput = {
+    productId?: SortOrder
+    positiveImpressions?: SortOrder
+    negativeImpressions?: SortOrder
+    summary?: SortOrder
+    generatedAt?: SortOrder
+    sourceReviewCount?: SortOrder
+    sourceAuthorCount?: SortOrder
+    corpusVersion?: SortOrder
+    requestedVersion?: SortOrder
+    sourceVersion?: SortOrder
+    lastRetractionVersion?: SortOrder
+    sourceHash?: SortOrder
+    analyzerVersion?: SortOrder
+    nextAttemptAt?: SortOrder
+    leaseToken?: SortOrder
+    leaseUntil?: SortOrder
+    attemptCount?: SortOrder
+    lastErrorCode?: SortOrder
+  }
+
+  export type ReviewSummaryAvgOrderByAggregateInput = {
+    sourceReviewCount?: SortOrder
+    sourceAuthorCount?: SortOrder
+    corpusVersion?: SortOrder
+    requestedVersion?: SortOrder
+    sourceVersion?: SortOrder
+    lastRetractionVersion?: SortOrder
+    attemptCount?: SortOrder
+  }
+
+  export type ReviewSummaryMaxOrderByAggregateInput = {
+    productId?: SortOrder
+    summary?: SortOrder
+    generatedAt?: SortOrder
+    sourceReviewCount?: SortOrder
+    sourceAuthorCount?: SortOrder
+    corpusVersion?: SortOrder
+    requestedVersion?: SortOrder
+    sourceVersion?: SortOrder
+    lastRetractionVersion?: SortOrder
+    sourceHash?: SortOrder
+    analyzerVersion?: SortOrder
+    nextAttemptAt?: SortOrder
+    leaseToken?: SortOrder
+    leaseUntil?: SortOrder
+    attemptCount?: SortOrder
+    lastErrorCode?: SortOrder
+  }
+
+  export type ReviewSummaryMinOrderByAggregateInput = {
+    productId?: SortOrder
+    summary?: SortOrder
+    generatedAt?: SortOrder
+    sourceReviewCount?: SortOrder
+    sourceAuthorCount?: SortOrder
+    corpusVersion?: SortOrder
+    requestedVersion?: SortOrder
+    sourceVersion?: SortOrder
+    lastRetractionVersion?: SortOrder
+    sourceHash?: SortOrder
+    analyzerVersion?: SortOrder
+    nextAttemptAt?: SortOrder
+    leaseToken?: SortOrder
+    leaseUntil?: SortOrder
+    attemptCount?: SortOrder
+    lastErrorCode?: SortOrder
+  }
+
+  export type ReviewSummarySumOrderByAggregateInput = {
+    sourceReviewCount?: SortOrder
+    sourceAuthorCount?: SortOrder
+    corpusVersion?: SortOrder
+    requestedVersion?: SortOrder
+    sourceVersion?: SortOrder
+    lastRetractionVersion?: SortOrder
+    attemptCount?: SortOrder
   }
 
   export type EnumDiscountTypeFilter<$PrismaModel = never> = {
@@ -34666,6 +40181,13 @@ export namespace Prisma {
     connect?: ReviewWhereUniqueInput | ReviewWhereUniqueInput[]
   }
 
+  export type ReviewVoteCreateNestedManyWithoutUserInput = {
+    create?: XOR<ReviewVoteCreateWithoutUserInput, ReviewVoteUncheckedCreateWithoutUserInput> | ReviewVoteCreateWithoutUserInput[] | ReviewVoteUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ReviewVoteCreateOrConnectWithoutUserInput | ReviewVoteCreateOrConnectWithoutUserInput[]
+    createMany?: ReviewVoteCreateManyUserInputEnvelope
+    connect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -34724,6 +40246,13 @@ export namespace Prisma {
     connectOrCreate?: ReviewCreateOrConnectWithoutUserInput | ReviewCreateOrConnectWithoutUserInput[]
     createMany?: ReviewCreateManyUserInputEnvelope
     connect?: ReviewWhereUniqueInput | ReviewWhereUniqueInput[]
+  }
+
+  export type ReviewVoteUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<ReviewVoteCreateWithoutUserInput, ReviewVoteUncheckedCreateWithoutUserInput> | ReviewVoteCreateWithoutUserInput[] | ReviewVoteUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ReviewVoteCreateOrConnectWithoutUserInput | ReviewVoteCreateOrConnectWithoutUserInput[]
+    createMany?: ReviewVoteCreateManyUserInputEnvelope
+    connect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
   }
 
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
@@ -34833,6 +40362,20 @@ export namespace Prisma {
     update?: ReviewUpdateWithWhereUniqueWithoutUserInput | ReviewUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: ReviewUpdateManyWithWhereWithoutUserInput | ReviewUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: ReviewScalarWhereInput | ReviewScalarWhereInput[]
+  }
+
+  export type ReviewVoteUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ReviewVoteCreateWithoutUserInput, ReviewVoteUncheckedCreateWithoutUserInput> | ReviewVoteCreateWithoutUserInput[] | ReviewVoteUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ReviewVoteCreateOrConnectWithoutUserInput | ReviewVoteCreateOrConnectWithoutUserInput[]
+    upsert?: ReviewVoteUpsertWithWhereUniqueWithoutUserInput | ReviewVoteUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ReviewVoteCreateManyUserInputEnvelope
+    set?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    disconnect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    delete?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    connect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    update?: ReviewVoteUpdateWithWhereUniqueWithoutUserInput | ReviewVoteUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ReviewVoteUpdateManyWithWhereWithoutUserInput | ReviewVoteUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ReviewVoteScalarWhereInput | ReviewVoteScalarWhereInput[]
   }
 
   export type AccountUpdateManyWithoutUserNestedInput = {
@@ -34947,6 +40490,20 @@ export namespace Prisma {
     update?: ReviewUpdateWithWhereUniqueWithoutUserInput | ReviewUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: ReviewUpdateManyWithWhereWithoutUserInput | ReviewUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: ReviewScalarWhereInput | ReviewScalarWhereInput[]
+  }
+
+  export type ReviewVoteUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ReviewVoteCreateWithoutUserInput, ReviewVoteUncheckedCreateWithoutUserInput> | ReviewVoteCreateWithoutUserInput[] | ReviewVoteUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ReviewVoteCreateOrConnectWithoutUserInput | ReviewVoteCreateOrConnectWithoutUserInput[]
+    upsert?: ReviewVoteUpsertWithWhereUniqueWithoutUserInput | ReviewVoteUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ReviewVoteCreateManyUserInputEnvelope
+    set?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    disconnect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    delete?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    connect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    update?: ReviewVoteUpdateWithWhereUniqueWithoutUserInput | ReviewVoteUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ReviewVoteUpdateManyWithWhereWithoutUserInput | ReviewVoteUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ReviewVoteScalarWhereInput | ReviewVoteScalarWhereInput[]
   }
 
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
@@ -35372,6 +40929,12 @@ export namespace Prisma {
     connect?: ReviewWhereUniqueInput | ReviewWhereUniqueInput[]
   }
 
+  export type ReviewSummaryCreateNestedOneWithoutProductInput = {
+    create?: XOR<ReviewSummaryCreateWithoutProductInput, ReviewSummaryUncheckedCreateWithoutProductInput>
+    connectOrCreate?: ReviewSummaryCreateOrConnectWithoutProductInput
+    connect?: ReviewSummaryWhereUniqueInput
+  }
+
   export type CartItemCreateNestedManyWithoutProductInput = {
     create?: XOR<CartItemCreateWithoutProductInput, CartItemUncheckedCreateWithoutProductInput> | CartItemCreateWithoutProductInput[] | CartItemUncheckedCreateWithoutProductInput[]
     connectOrCreate?: CartItemCreateOrConnectWithoutProductInput | CartItemCreateOrConnectWithoutProductInput[]
@@ -35406,6 +40969,12 @@ export namespace Prisma {
     connectOrCreate?: ReviewCreateOrConnectWithoutProductInput | ReviewCreateOrConnectWithoutProductInput[]
     createMany?: ReviewCreateManyProductInputEnvelope
     connect?: ReviewWhereUniqueInput | ReviewWhereUniqueInput[]
+  }
+
+  export type ReviewSummaryUncheckedCreateNestedOneWithoutProductInput = {
+    create?: XOR<ReviewSummaryCreateWithoutProductInput, ReviewSummaryUncheckedCreateWithoutProductInput>
+    connectOrCreate?: ReviewSummaryCreateOrConnectWithoutProductInput
+    connect?: ReviewSummaryWhereUniqueInput
   }
 
   export type CartItemUncheckedCreateNestedManyWithoutProductInput = {
@@ -35463,6 +41032,16 @@ export namespace Prisma {
     update?: ReviewUpdateWithWhereUniqueWithoutProductInput | ReviewUpdateWithWhereUniqueWithoutProductInput[]
     updateMany?: ReviewUpdateManyWithWhereWithoutProductInput | ReviewUpdateManyWithWhereWithoutProductInput[]
     deleteMany?: ReviewScalarWhereInput | ReviewScalarWhereInput[]
+  }
+
+  export type ReviewSummaryUpdateOneWithoutProductNestedInput = {
+    create?: XOR<ReviewSummaryCreateWithoutProductInput, ReviewSummaryUncheckedCreateWithoutProductInput>
+    connectOrCreate?: ReviewSummaryCreateOrConnectWithoutProductInput
+    upsert?: ReviewSummaryUpsertWithoutProductInput
+    disconnect?: ReviewSummaryWhereInput | boolean
+    delete?: ReviewSummaryWhereInput | boolean
+    connect?: ReviewSummaryWhereUniqueInput
+    update?: XOR<XOR<ReviewSummaryUpdateToOneWithWhereWithoutProductInput, ReviewSummaryUpdateWithoutProductInput>, ReviewSummaryUncheckedUpdateWithoutProductInput>
   }
 
   export type CartItemUpdateManyWithoutProductNestedInput = {
@@ -35528,6 +41107,16 @@ export namespace Prisma {
     update?: ReviewUpdateWithWhereUniqueWithoutProductInput | ReviewUpdateWithWhereUniqueWithoutProductInput[]
     updateMany?: ReviewUpdateManyWithWhereWithoutProductInput | ReviewUpdateManyWithWhereWithoutProductInput[]
     deleteMany?: ReviewScalarWhereInput | ReviewScalarWhereInput[]
+  }
+
+  export type ReviewSummaryUncheckedUpdateOneWithoutProductNestedInput = {
+    create?: XOR<ReviewSummaryCreateWithoutProductInput, ReviewSummaryUncheckedCreateWithoutProductInput>
+    connectOrCreate?: ReviewSummaryCreateOrConnectWithoutProductInput
+    upsert?: ReviewSummaryUpsertWithoutProductInput
+    disconnect?: ReviewSummaryWhereInput | boolean
+    delete?: ReviewSummaryWhereInput | boolean
+    connect?: ReviewSummaryWhereUniqueInput
+    update?: XOR<XOR<ReviewSummaryUpdateToOneWithWhereWithoutProductInput, ReviewSummaryUpdateWithoutProductInput>, ReviewSummaryUncheckedUpdateWithoutProductInput>
   }
 
   export type CartItemUncheckedUpdateManyWithoutProductNestedInput = {
@@ -35711,6 +41300,38 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type ReviewAddendumCreateNestedManyWithoutReviewInput = {
+    create?: XOR<ReviewAddendumCreateWithoutReviewInput, ReviewAddendumUncheckedCreateWithoutReviewInput> | ReviewAddendumCreateWithoutReviewInput[] | ReviewAddendumUncheckedCreateWithoutReviewInput[]
+    connectOrCreate?: ReviewAddendumCreateOrConnectWithoutReviewInput | ReviewAddendumCreateOrConnectWithoutReviewInput[]
+    createMany?: ReviewAddendumCreateManyReviewInputEnvelope
+    connect?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+  }
+
+  export type ReviewVoteCreateNestedManyWithoutReviewInput = {
+    create?: XOR<ReviewVoteCreateWithoutReviewInput, ReviewVoteUncheckedCreateWithoutReviewInput> | ReviewVoteCreateWithoutReviewInput[] | ReviewVoteUncheckedCreateWithoutReviewInput[]
+    connectOrCreate?: ReviewVoteCreateOrConnectWithoutReviewInput | ReviewVoteCreateOrConnectWithoutReviewInput[]
+    createMany?: ReviewVoteCreateManyReviewInputEnvelope
+    connect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+  }
+
+  export type ReviewAddendumUncheckedCreateNestedManyWithoutReviewInput = {
+    create?: XOR<ReviewAddendumCreateWithoutReviewInput, ReviewAddendumUncheckedCreateWithoutReviewInput> | ReviewAddendumCreateWithoutReviewInput[] | ReviewAddendumUncheckedCreateWithoutReviewInput[]
+    connectOrCreate?: ReviewAddendumCreateOrConnectWithoutReviewInput | ReviewAddendumCreateOrConnectWithoutReviewInput[]
+    createMany?: ReviewAddendumCreateManyReviewInputEnvelope
+    connect?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+  }
+
+  export type ReviewVoteUncheckedCreateNestedManyWithoutReviewInput = {
+    create?: XOR<ReviewVoteCreateWithoutReviewInput, ReviewVoteUncheckedCreateWithoutReviewInput> | ReviewVoteCreateWithoutReviewInput[] | ReviewVoteUncheckedCreateWithoutReviewInput[]
+    connectOrCreate?: ReviewVoteCreateOrConnectWithoutReviewInput | ReviewVoteCreateOrConnectWithoutReviewInput[]
+    createMany?: ReviewVoteCreateManyReviewInputEnvelope
+    connect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+  }
+
+  export type EnumReviewModerationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ReviewModerationStatus
+  }
+
   export type ProductUpdateOneWithoutReviewsNestedInput = {
     create?: XOR<ProductCreateWithoutReviewsInput, ProductUncheckedCreateWithoutReviewsInput>
     connectOrCreate?: ProductCreateOrConnectWithoutReviewsInput
@@ -35729,6 +41350,140 @@ export namespace Prisma {
     delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReviewsInput, UserUpdateWithoutReviewsInput>, UserUncheckedUpdateWithoutReviewsInput>
+  }
+
+  export type ReviewAddendumUpdateManyWithoutReviewNestedInput = {
+    create?: XOR<ReviewAddendumCreateWithoutReviewInput, ReviewAddendumUncheckedCreateWithoutReviewInput> | ReviewAddendumCreateWithoutReviewInput[] | ReviewAddendumUncheckedCreateWithoutReviewInput[]
+    connectOrCreate?: ReviewAddendumCreateOrConnectWithoutReviewInput | ReviewAddendumCreateOrConnectWithoutReviewInput[]
+    upsert?: ReviewAddendumUpsertWithWhereUniqueWithoutReviewInput | ReviewAddendumUpsertWithWhereUniqueWithoutReviewInput[]
+    createMany?: ReviewAddendumCreateManyReviewInputEnvelope
+    set?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+    disconnect?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+    delete?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+    connect?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+    update?: ReviewAddendumUpdateWithWhereUniqueWithoutReviewInput | ReviewAddendumUpdateWithWhereUniqueWithoutReviewInput[]
+    updateMany?: ReviewAddendumUpdateManyWithWhereWithoutReviewInput | ReviewAddendumUpdateManyWithWhereWithoutReviewInput[]
+    deleteMany?: ReviewAddendumScalarWhereInput | ReviewAddendumScalarWhereInput[]
+  }
+
+  export type ReviewVoteUpdateManyWithoutReviewNestedInput = {
+    create?: XOR<ReviewVoteCreateWithoutReviewInput, ReviewVoteUncheckedCreateWithoutReviewInput> | ReviewVoteCreateWithoutReviewInput[] | ReviewVoteUncheckedCreateWithoutReviewInput[]
+    connectOrCreate?: ReviewVoteCreateOrConnectWithoutReviewInput | ReviewVoteCreateOrConnectWithoutReviewInput[]
+    upsert?: ReviewVoteUpsertWithWhereUniqueWithoutReviewInput | ReviewVoteUpsertWithWhereUniqueWithoutReviewInput[]
+    createMany?: ReviewVoteCreateManyReviewInputEnvelope
+    set?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    disconnect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    delete?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    connect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    update?: ReviewVoteUpdateWithWhereUniqueWithoutReviewInput | ReviewVoteUpdateWithWhereUniqueWithoutReviewInput[]
+    updateMany?: ReviewVoteUpdateManyWithWhereWithoutReviewInput | ReviewVoteUpdateManyWithWhereWithoutReviewInput[]
+    deleteMany?: ReviewVoteScalarWhereInput | ReviewVoteScalarWhereInput[]
+  }
+
+  export type ReviewAddendumUncheckedUpdateManyWithoutReviewNestedInput = {
+    create?: XOR<ReviewAddendumCreateWithoutReviewInput, ReviewAddendumUncheckedCreateWithoutReviewInput> | ReviewAddendumCreateWithoutReviewInput[] | ReviewAddendumUncheckedCreateWithoutReviewInput[]
+    connectOrCreate?: ReviewAddendumCreateOrConnectWithoutReviewInput | ReviewAddendumCreateOrConnectWithoutReviewInput[]
+    upsert?: ReviewAddendumUpsertWithWhereUniqueWithoutReviewInput | ReviewAddendumUpsertWithWhereUniqueWithoutReviewInput[]
+    createMany?: ReviewAddendumCreateManyReviewInputEnvelope
+    set?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+    disconnect?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+    delete?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+    connect?: ReviewAddendumWhereUniqueInput | ReviewAddendumWhereUniqueInput[]
+    update?: ReviewAddendumUpdateWithWhereUniqueWithoutReviewInput | ReviewAddendumUpdateWithWhereUniqueWithoutReviewInput[]
+    updateMany?: ReviewAddendumUpdateManyWithWhereWithoutReviewInput | ReviewAddendumUpdateManyWithWhereWithoutReviewInput[]
+    deleteMany?: ReviewAddendumScalarWhereInput | ReviewAddendumScalarWhereInput[]
+  }
+
+  export type ReviewVoteUncheckedUpdateManyWithoutReviewNestedInput = {
+    create?: XOR<ReviewVoteCreateWithoutReviewInput, ReviewVoteUncheckedCreateWithoutReviewInput> | ReviewVoteCreateWithoutReviewInput[] | ReviewVoteUncheckedCreateWithoutReviewInput[]
+    connectOrCreate?: ReviewVoteCreateOrConnectWithoutReviewInput | ReviewVoteCreateOrConnectWithoutReviewInput[]
+    upsert?: ReviewVoteUpsertWithWhereUniqueWithoutReviewInput | ReviewVoteUpsertWithWhereUniqueWithoutReviewInput[]
+    createMany?: ReviewVoteCreateManyReviewInputEnvelope
+    set?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    disconnect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    delete?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    connect?: ReviewVoteWhereUniqueInput | ReviewVoteWhereUniqueInput[]
+    update?: ReviewVoteUpdateWithWhereUniqueWithoutReviewInput | ReviewVoteUpdateWithWhereUniqueWithoutReviewInput[]
+    updateMany?: ReviewVoteUpdateManyWithWhereWithoutReviewInput | ReviewVoteUpdateManyWithWhereWithoutReviewInput[]
+    deleteMany?: ReviewVoteScalarWhereInput | ReviewVoteScalarWhereInput[]
+  }
+
+  export type ReviewCreateNestedOneWithoutAddendaInput = {
+    create?: XOR<ReviewCreateWithoutAddendaInput, ReviewUncheckedCreateWithoutAddendaInput>
+    connectOrCreate?: ReviewCreateOrConnectWithoutAddendaInput
+    connect?: ReviewWhereUniqueInput
+  }
+
+  export type ReviewUpdateOneRequiredWithoutAddendaNestedInput = {
+    create?: XOR<ReviewCreateWithoutAddendaInput, ReviewUncheckedCreateWithoutAddendaInput>
+    connectOrCreate?: ReviewCreateOrConnectWithoutAddendaInput
+    upsert?: ReviewUpsertWithoutAddendaInput
+    connect?: ReviewWhereUniqueInput
+    update?: XOR<XOR<ReviewUpdateToOneWithWhereWithoutAddendaInput, ReviewUpdateWithoutAddendaInput>, ReviewUncheckedUpdateWithoutAddendaInput>
+  }
+
+  export type ReviewCreateNestedOneWithoutVotesInput = {
+    create?: XOR<ReviewCreateWithoutVotesInput, ReviewUncheckedCreateWithoutVotesInput>
+    connectOrCreate?: ReviewCreateOrConnectWithoutVotesInput
+    connect?: ReviewWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutReviewVotesInput = {
+    create?: XOR<UserCreateWithoutReviewVotesInput, UserUncheckedCreateWithoutReviewVotesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReviewVotesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumReviewVoteValueFieldUpdateOperationsInput = {
+    set?: $Enums.ReviewVoteValue
+  }
+
+  export type ReviewUpdateOneRequiredWithoutVotesNestedInput = {
+    create?: XOR<ReviewCreateWithoutVotesInput, ReviewUncheckedCreateWithoutVotesInput>
+    connectOrCreate?: ReviewCreateOrConnectWithoutVotesInput
+    upsert?: ReviewUpsertWithoutVotesInput
+    connect?: ReviewWhereUniqueInput
+    update?: XOR<XOR<ReviewUpdateToOneWithWhereWithoutVotesInput, ReviewUpdateWithoutVotesInput>, ReviewUncheckedUpdateWithoutVotesInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutReviewVotesNestedInput = {
+    create?: XOR<UserCreateWithoutReviewVotesInput, UserUncheckedCreateWithoutReviewVotesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReviewVotesInput
+    upsert?: UserUpsertWithoutReviewVotesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReviewVotesInput, UserUpdateWithoutReviewVotesInput>, UserUncheckedUpdateWithoutReviewVotesInput>
+  }
+
+  export type ReviewSummaryCreatepositiveImpressionsInput = {
+    set: string[]
+  }
+
+  export type ReviewSummaryCreatenegativeImpressionsInput = {
+    set: string[]
+  }
+
+  export type ProductCreateNestedOneWithoutReviewSummaryInput = {
+    create?: XOR<ProductCreateWithoutReviewSummaryInput, ProductUncheckedCreateWithoutReviewSummaryInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutReviewSummaryInput
+    connect?: ProductWhereUniqueInput
+  }
+
+  export type ReviewSummaryUpdatepositiveImpressionsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type ReviewSummaryUpdatenegativeImpressionsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type ProductUpdateOneRequiredWithoutReviewSummaryNestedInput = {
+    create?: XOR<ProductCreateWithoutReviewSummaryInput, ProductUncheckedCreateWithoutReviewSummaryInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutReviewSummaryInput
+    upsert?: ProductUpsertWithoutReviewSummaryInput
+    connect?: ProductWhereUniqueInput
+    update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutReviewSummaryInput, ProductUpdateWithoutReviewSummaryInput>, ProductUncheckedUpdateWithoutReviewSummaryInput>
   }
 
   export type EnumDiscountTypeFieldUpdateOperationsInput = {
@@ -36478,6 +42233,40 @@ export namespace Prisma {
     _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumReviewModerationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReviewModerationStatus | EnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReviewModerationStatus[] | ListEnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReviewModerationStatus[] | ListEnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReviewModerationStatusFilter<$PrismaModel> | $Enums.ReviewModerationStatus
+  }
+
+  export type NestedEnumReviewModerationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReviewModerationStatus | EnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReviewModerationStatus[] | ListEnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReviewModerationStatus[] | ListEnumReviewModerationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReviewModerationStatusWithAggregatesFilter<$PrismaModel> | $Enums.ReviewModerationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReviewModerationStatusFilter<$PrismaModel>
+    _max?: NestedEnumReviewModerationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumReviewVoteValueFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReviewVoteValue | EnumReviewVoteValueFieldRefInput<$PrismaModel>
+    in?: $Enums.ReviewVoteValue[] | ListEnumReviewVoteValueFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReviewVoteValue[] | ListEnumReviewVoteValueFieldRefInput<$PrismaModel>
+    not?: NestedEnumReviewVoteValueFilter<$PrismaModel> | $Enums.ReviewVoteValue
+  }
+
+  export type NestedEnumReviewVoteValueWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReviewVoteValue | EnumReviewVoteValueFieldRefInput<$PrismaModel>
+    in?: $Enums.ReviewVoteValue[] | ListEnumReviewVoteValueFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReviewVoteValue[] | ListEnumReviewVoteValueFieldRefInput<$PrismaModel>
+    not?: NestedEnumReviewVoteValueWithAggregatesFilter<$PrismaModel> | $Enums.ReviewVoteValue
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReviewVoteValueFilter<$PrismaModel>
+    _max?: NestedEnumReviewVoteValueFilter<$PrismaModel>
+  }
+
   export type NestedEnumDiscountTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.DiscountType | EnumDiscountTypeFieldRefInput<$PrismaModel>
     in?: $Enums.DiscountType[] | ListEnumDiscountTypeFieldRefInput<$PrismaModel>
@@ -36757,7 +42546,29 @@ export namespace Prisma {
     rating: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
     product?: ProductCreateNestedOneWithoutReviewsInput
+    addenda?: ReviewAddendumCreateNestedManyWithoutReviewInput
+    votes?: ReviewVoteCreateNestedManyWithoutReviewInput
   }
 
   export type ReviewUncheckedCreateWithoutUserInput = {
@@ -36767,6 +42578,28 @@ export namespace Prisma {
     productId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
+    addenda?: ReviewAddendumUncheckedCreateNestedManyWithoutReviewInput
+    votes?: ReviewVoteUncheckedCreateNestedManyWithoutReviewInput
   }
 
   export type ReviewCreateOrConnectWithoutUserInput = {
@@ -36776,6 +42609,32 @@ export namespace Prisma {
 
   export type ReviewCreateManyUserInputEnvelope = {
     data: ReviewCreateManyUserInput | ReviewCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReviewVoteCreateWithoutUserInput = {
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    review: ReviewCreateNestedOneWithoutVotesInput
+  }
+
+  export type ReviewVoteUncheckedCreateWithoutUserInput = {
+    reviewId: string
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ReviewVoteCreateOrConnectWithoutUserInput = {
+    where: ReviewVoteWhereUniqueInput
+    create: XOR<ReviewVoteCreateWithoutUserInput, ReviewVoteUncheckedCreateWithoutUserInput>
+  }
+
+  export type ReviewVoteCreateManyUserInputEnvelope = {
+    data: ReviewVoteCreateManyUserInput | ReviewVoteCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -36921,6 +42780,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryCreateNestedOneWithoutProductInput
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
@@ -36948,6 +42808,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryUncheckedCreateNestedOneWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
     embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
@@ -37127,6 +42988,54 @@ export namespace Prisma {
     productId?: StringNullableFilter<"Review"> | string | null
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
+    publicationId?: StringFilter<"Review"> | string
+    status?: EnumReviewModerationStatusFilter<"Review"> | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFilter<"Review"> | Date | string
+    publishedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    moderatedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    moderatedBy?: StringNullableFilter<"Review"> | string | null
+    moderationReason?: StringNullableFilter<"Review"> | string | null
+    verifiedOrderId?: StringNullableFilter<"Review"> | string | null
+    verifiedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    deletedAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    stateVersion?: IntFilter<"Review"> | number
+    publishedCorpusVersion?: IntNullableFilter<"Review"> | number | null
+    upVotes?: IntFilter<"Review"> | number
+    downVotes?: IntFilter<"Review"> | number
+    popularityScore?: IntFilter<"Review"> | number
+    indexPending?: BoolFilter<"Review"> | boolean
+    indexNextAttemptAt?: DateTimeNullableFilter<"Review"> | Date | string | null
+    indexLeaseToken?: StringNullableFilter<"Review"> | string | null
+    indexLeaseUntil?: DateTimeNullableFilter<"Review"> | Date | string | null
+    indexAttempts?: IntFilter<"Review"> | number
+  }
+
+  export type ReviewVoteUpsertWithWhereUniqueWithoutUserInput = {
+    where: ReviewVoteWhereUniqueInput
+    update: XOR<ReviewVoteUpdateWithoutUserInput, ReviewVoteUncheckedUpdateWithoutUserInput>
+    create: XOR<ReviewVoteCreateWithoutUserInput, ReviewVoteUncheckedCreateWithoutUserInput>
+  }
+
+  export type ReviewVoteUpdateWithWhereUniqueWithoutUserInput = {
+    where: ReviewVoteWhereUniqueInput
+    data: XOR<ReviewVoteUpdateWithoutUserInput, ReviewVoteUncheckedUpdateWithoutUserInput>
+  }
+
+  export type ReviewVoteUpdateManyWithWhereWithoutUserInput = {
+    where: ReviewVoteScalarWhereInput
+    data: XOR<ReviewVoteUpdateManyMutationInput, ReviewVoteUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type ReviewVoteScalarWhereInput = {
+    AND?: ReviewVoteScalarWhereInput | ReviewVoteScalarWhereInput[]
+    OR?: ReviewVoteScalarWhereInput[]
+    NOT?: ReviewVoteScalarWhereInput | ReviewVoteScalarWhereInput[]
+    reviewId?: StringFilter<"ReviewVote"> | string
+    userId?: StringFilter<"ReviewVote"> | string
+    publicationId?: StringFilter<"ReviewVote"> | string
+    value?: EnumReviewVoteValueFilter<"ReviewVote"> | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFilter<"ReviewVote"> | Date | string
+    updatedAt?: DateTimeFilter<"ReviewVote"> | Date | string
   }
 
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
@@ -37293,6 +43202,7 @@ export namespace Prisma {
     sentMessages?: MessageCreateNestedManyWithoutAuthorInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -37315,6 +43225,7 @@ export namespace Prisma {
     sentMessages?: MessageUncheckedCreateNestedManyWithoutAuthorInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -37431,6 +43342,7 @@ export namespace Prisma {
     sentMessages?: MessageUpdateManyWithoutAuthorNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -37453,6 +43365,7 @@ export namespace Prisma {
     sentMessages?: MessageUncheckedUpdateManyWithoutAuthorNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -37521,6 +43434,7 @@ export namespace Prisma {
     sentMessages?: MessageCreateNestedManyWithoutAuthorInput
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -37543,6 +43457,7 @@ export namespace Prisma {
     sentMessages?: MessageUncheckedCreateNestedManyWithoutAuthorInput
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -37641,6 +43556,7 @@ export namespace Prisma {
     sentMessages?: MessageUpdateManyWithoutAuthorNestedInput
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -37663,6 +43579,7 @@ export namespace Prisma {
     sentMessages?: MessageUncheckedUpdateManyWithoutAuthorNestedInput
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -37757,6 +43674,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -37779,6 +43697,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -37920,6 +43839,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -37942,6 +43862,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -38062,6 +43983,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -38084,6 +44006,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -38157,6 +44080,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -38179,6 +44103,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -38202,6 +44127,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
@@ -38224,6 +44150,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
@@ -38262,6 +44189,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
@@ -38284,6 +44212,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
@@ -38295,7 +44224,29 @@ export namespace Prisma {
     rating: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
     user?: UserCreateNestedOneWithoutReviewsInput
+    addenda?: ReviewAddendumCreateNestedManyWithoutReviewInput
+    votes?: ReviewVoteCreateNestedManyWithoutReviewInput
   }
 
   export type ReviewUncheckedCreateWithoutProductInput = {
@@ -38305,6 +44256,28 @@ export namespace Prisma {
     userId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
+    addenda?: ReviewAddendumUncheckedCreateNestedManyWithoutReviewInput
+    votes?: ReviewVoteUncheckedCreateNestedManyWithoutReviewInput
   }
 
   export type ReviewCreateOrConnectWithoutProductInput = {
@@ -38315,6 +44288,51 @@ export namespace Prisma {
   export type ReviewCreateManyProductInputEnvelope = {
     data: ReviewCreateManyProductInput | ReviewCreateManyProductInput[]
     skipDuplicates?: boolean
+  }
+
+  export type ReviewSummaryCreateWithoutProductInput = {
+    positiveImpressions?: ReviewSummaryCreatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryCreatenegativeImpressionsInput | string[]
+    summary?: string | null
+    generatedAt?: Date | string | null
+    sourceReviewCount?: number
+    sourceAuthorCount?: number
+    corpusVersion?: number
+    requestedVersion?: number
+    sourceVersion?: number
+    lastRetractionVersion?: number
+    sourceHash?: string | null
+    analyzerVersion?: string | null
+    nextAttemptAt?: Date | string | null
+    leaseToken?: string | null
+    leaseUntil?: Date | string | null
+    attemptCount?: number
+    lastErrorCode?: string | null
+  }
+
+  export type ReviewSummaryUncheckedCreateWithoutProductInput = {
+    positiveImpressions?: ReviewSummaryCreatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryCreatenegativeImpressionsInput | string[]
+    summary?: string | null
+    generatedAt?: Date | string | null
+    sourceReviewCount?: number
+    sourceAuthorCount?: number
+    corpusVersion?: number
+    requestedVersion?: number
+    sourceVersion?: number
+    lastRetractionVersion?: number
+    sourceHash?: string | null
+    analyzerVersion?: string | null
+    nextAttemptAt?: Date | string | null
+    leaseToken?: string | null
+    leaseUntil?: Date | string | null
+    attemptCount?: number
+    lastErrorCode?: string | null
+  }
+
+  export type ReviewSummaryCreateOrConnectWithoutProductInput = {
+    where: ReviewSummaryWhereUniqueInput
+    create: XOR<ReviewSummaryCreateWithoutProductInput, ReviewSummaryUncheckedCreateWithoutProductInput>
   }
 
   export type CartItemCreateWithoutProductInput = {
@@ -38410,6 +44428,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -38432,6 +44451,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -38456,6 +44476,57 @@ export namespace Prisma {
   export type ReviewUpdateManyWithWhereWithoutProductInput = {
     where: ReviewScalarWhereInput
     data: XOR<ReviewUpdateManyMutationInput, ReviewUncheckedUpdateManyWithoutProductInput>
+  }
+
+  export type ReviewSummaryUpsertWithoutProductInput = {
+    update: XOR<ReviewSummaryUpdateWithoutProductInput, ReviewSummaryUncheckedUpdateWithoutProductInput>
+    create: XOR<ReviewSummaryCreateWithoutProductInput, ReviewSummaryUncheckedCreateWithoutProductInput>
+    where?: ReviewSummaryWhereInput
+  }
+
+  export type ReviewSummaryUpdateToOneWithWhereWithoutProductInput = {
+    where?: ReviewSummaryWhereInput
+    data: XOR<ReviewSummaryUpdateWithoutProductInput, ReviewSummaryUncheckedUpdateWithoutProductInput>
+  }
+
+  export type ReviewSummaryUpdateWithoutProductInput = {
+    positiveImpressions?: ReviewSummaryUpdatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryUpdatenegativeImpressionsInput | string[]
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    generatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sourceReviewCount?: IntFieldUpdateOperationsInput | number
+    sourceAuthorCount?: IntFieldUpdateOperationsInput | number
+    corpusVersion?: IntFieldUpdateOperationsInput | number
+    requestedVersion?: IntFieldUpdateOperationsInput | number
+    sourceVersion?: IntFieldUpdateOperationsInput | number
+    lastRetractionVersion?: IntFieldUpdateOperationsInput | number
+    sourceHash?: NullableStringFieldUpdateOperationsInput | string | null
+    analyzerVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    nextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ReviewSummaryUncheckedUpdateWithoutProductInput = {
+    positiveImpressions?: ReviewSummaryUpdatepositiveImpressionsInput | string[]
+    negativeImpressions?: ReviewSummaryUpdatenegativeImpressionsInput | string[]
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    generatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    sourceReviewCount?: IntFieldUpdateOperationsInput | number
+    sourceAuthorCount?: IntFieldUpdateOperationsInput | number
+    corpusVersion?: IntFieldUpdateOperationsInput | number
+    requestedVersion?: IntFieldUpdateOperationsInput | number
+    sourceVersion?: IntFieldUpdateOperationsInput | number
+    lastRetractionVersion?: IntFieldUpdateOperationsInput | number
+    sourceHash?: NullableStringFieldUpdateOperationsInput | string | null
+    analyzerVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    nextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    leaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    leaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attemptCount?: IntFieldUpdateOperationsInput | number
+    lastErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CartItemUpsertWithWhereUniqueWithoutProductInput = {
@@ -38575,6 +44646,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -38597,6 +44669,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -38634,6 +44707,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryCreateNestedOneWithoutProductInput
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
@@ -38662,6 +44736,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryUncheckedCreateNestedOneWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
   }
 
@@ -38700,6 +44775,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
@@ -38728,6 +44804,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUncheckedUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
   }
 
@@ -38812,6 +44889,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryCreateNestedOneWithoutProductInput
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     brand?: BrandCreateNestedOneWithoutProductsInput
     user?: UserCreateNestedOneWithoutFavoritesInput
@@ -38839,6 +44917,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryUncheckedCreateNestedOneWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
     embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
@@ -38936,6 +45015,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryCreateNestedOneWithoutProductInput
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
     user?: UserCreateNestedOneWithoutFavoritesInput
@@ -38963,6 +45043,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryUncheckedCreateNestedOneWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
     embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
@@ -39011,6 +45092,7 @@ export namespace Prisma {
     inStock?: boolean
     stock?: number
     details?: ProductCreatedetailsInput | string[]
+    reviewSummary?: ReviewSummaryCreateNestedOneWithoutProductInput
     cartItems?: CartItemCreateNestedManyWithoutProductInput
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
@@ -39039,6 +45121,7 @@ export namespace Prisma {
     inStock?: boolean
     stock?: number
     details?: ProductCreatedetailsInput | string[]
+    reviewSummary?: ReviewSummaryUncheckedCreateNestedOneWithoutProductInput
     cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
     embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
@@ -39064,6 +45147,7 @@ export namespace Prisma {
     sentMessages?: MessageCreateNestedManyWithoutAuthorInput
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
@@ -39086,6 +45170,7 @@ export namespace Prisma {
     sentMessages?: MessageUncheckedCreateNestedManyWithoutAuthorInput
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
@@ -39095,6 +45180,68 @@ export namespace Prisma {
   export type UserCreateOrConnectWithoutReviewsInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutReviewsInput, UserUncheckedCreateWithoutReviewsInput>
+  }
+
+  export type ReviewAddendumCreateWithoutReviewInput = {
+    id?: string
+    publicationId: string
+    text: string
+    status?: $Enums.ReviewModerationStatus
+    createdAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    publishedCorpusVersion?: number | null
+  }
+
+  export type ReviewAddendumUncheckedCreateWithoutReviewInput = {
+    id?: string
+    publicationId: string
+    text: string
+    status?: $Enums.ReviewModerationStatus
+    createdAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    publishedCorpusVersion?: number | null
+  }
+
+  export type ReviewAddendumCreateOrConnectWithoutReviewInput = {
+    where: ReviewAddendumWhereUniqueInput
+    create: XOR<ReviewAddendumCreateWithoutReviewInput, ReviewAddendumUncheckedCreateWithoutReviewInput>
+  }
+
+  export type ReviewAddendumCreateManyReviewInputEnvelope = {
+    data: ReviewAddendumCreateManyReviewInput | ReviewAddendumCreateManyReviewInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ReviewVoteCreateWithoutReviewInput = {
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutReviewVotesInput
+  }
+
+  export type ReviewVoteUncheckedCreateWithoutReviewInput = {
+    userId: string
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ReviewVoteCreateOrConnectWithoutReviewInput = {
+    where: ReviewVoteWhereUniqueInput
+    create: XOR<ReviewVoteCreateWithoutReviewInput, ReviewVoteUncheckedCreateWithoutReviewInput>
+  }
+
+  export type ReviewVoteCreateManyReviewInputEnvelope = {
+    data: ReviewVoteCreateManyReviewInput | ReviewVoteCreateManyReviewInput[]
+    skipDuplicates?: boolean
   }
 
   export type ProductUpsertWithoutReviewsInput = {
@@ -39126,6 +45273,7 @@ export namespace Prisma {
     inStock?: BoolFieldUpdateOperationsInput | boolean
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
+    reviewSummary?: ReviewSummaryUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
@@ -39154,6 +45302,7 @@ export namespace Prisma {
     inStock?: BoolFieldUpdateOperationsInput | boolean
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
+    reviewSummary?: ReviewSummaryUncheckedUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
     embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
@@ -39185,6 +45334,7 @@ export namespace Prisma {
     sentMessages?: MessageUpdateManyWithoutAuthorNestedInput
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
@@ -39207,10 +45357,568 @@ export namespace Prisma {
     sentMessages?: MessageUncheckedUpdateManyWithoutAuthorNestedInput
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ReviewAddendumUpsertWithWhereUniqueWithoutReviewInput = {
+    where: ReviewAddendumWhereUniqueInput
+    update: XOR<ReviewAddendumUpdateWithoutReviewInput, ReviewAddendumUncheckedUpdateWithoutReviewInput>
+    create: XOR<ReviewAddendumCreateWithoutReviewInput, ReviewAddendumUncheckedCreateWithoutReviewInput>
+  }
+
+  export type ReviewAddendumUpdateWithWhereUniqueWithoutReviewInput = {
+    where: ReviewAddendumWhereUniqueInput
+    data: XOR<ReviewAddendumUpdateWithoutReviewInput, ReviewAddendumUncheckedUpdateWithoutReviewInput>
+  }
+
+  export type ReviewAddendumUpdateManyWithWhereWithoutReviewInput = {
+    where: ReviewAddendumScalarWhereInput
+    data: XOR<ReviewAddendumUpdateManyMutationInput, ReviewAddendumUncheckedUpdateManyWithoutReviewInput>
+  }
+
+  export type ReviewAddendumScalarWhereInput = {
+    AND?: ReviewAddendumScalarWhereInput | ReviewAddendumScalarWhereInput[]
+    OR?: ReviewAddendumScalarWhereInput[]
+    NOT?: ReviewAddendumScalarWhereInput | ReviewAddendumScalarWhereInput[]
+    id?: StringFilter<"ReviewAddendum"> | string
+    reviewId?: StringFilter<"ReviewAddendum"> | string
+    publicationId?: StringFilter<"ReviewAddendum"> | string
+    text?: StringFilter<"ReviewAddendum"> | string
+    status?: EnumReviewModerationStatusFilter<"ReviewAddendum"> | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFilter<"ReviewAddendum"> | Date | string
+    publishedAt?: DateTimeNullableFilter<"ReviewAddendum"> | Date | string | null
+    moderatedAt?: DateTimeNullableFilter<"ReviewAddendum"> | Date | string | null
+    moderatedBy?: StringNullableFilter<"ReviewAddendum"> | string | null
+    moderationReason?: StringNullableFilter<"ReviewAddendum"> | string | null
+    publishedCorpusVersion?: IntNullableFilter<"ReviewAddendum"> | number | null
+  }
+
+  export type ReviewVoteUpsertWithWhereUniqueWithoutReviewInput = {
+    where: ReviewVoteWhereUniqueInput
+    update: XOR<ReviewVoteUpdateWithoutReviewInput, ReviewVoteUncheckedUpdateWithoutReviewInput>
+    create: XOR<ReviewVoteCreateWithoutReviewInput, ReviewVoteUncheckedCreateWithoutReviewInput>
+  }
+
+  export type ReviewVoteUpdateWithWhereUniqueWithoutReviewInput = {
+    where: ReviewVoteWhereUniqueInput
+    data: XOR<ReviewVoteUpdateWithoutReviewInput, ReviewVoteUncheckedUpdateWithoutReviewInput>
+  }
+
+  export type ReviewVoteUpdateManyWithWhereWithoutReviewInput = {
+    where: ReviewVoteScalarWhereInput
+    data: XOR<ReviewVoteUpdateManyMutationInput, ReviewVoteUncheckedUpdateManyWithoutReviewInput>
+  }
+
+  export type ReviewCreateWithoutAddendaInput = {
+    id?: string
+    text: string
+    rating: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
+    product?: ProductCreateNestedOneWithoutReviewsInput
+    user?: UserCreateNestedOneWithoutReviewsInput
+    votes?: ReviewVoteCreateNestedManyWithoutReviewInput
+  }
+
+  export type ReviewUncheckedCreateWithoutAddendaInput = {
+    id?: string
+    text: string
+    rating: number
+    userId?: string | null
+    productId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
+    votes?: ReviewVoteUncheckedCreateNestedManyWithoutReviewInput
+  }
+
+  export type ReviewCreateOrConnectWithoutAddendaInput = {
+    where: ReviewWhereUniqueInput
+    create: XOR<ReviewCreateWithoutAddendaInput, ReviewUncheckedCreateWithoutAddendaInput>
+  }
+
+  export type ReviewUpsertWithoutAddendaInput = {
+    update: XOR<ReviewUpdateWithoutAddendaInput, ReviewUncheckedUpdateWithoutAddendaInput>
+    create: XOR<ReviewCreateWithoutAddendaInput, ReviewUncheckedCreateWithoutAddendaInput>
+    where?: ReviewWhereInput
+  }
+
+  export type ReviewUpdateToOneWithWhereWithoutAddendaInput = {
+    where?: ReviewWhereInput
+    data: XOR<ReviewUpdateWithoutAddendaInput, ReviewUncheckedUpdateWithoutAddendaInput>
+  }
+
+  export type ReviewUpdateWithoutAddendaInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    rating?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+    product?: ProductUpdateOneWithoutReviewsNestedInput
+    user?: UserUpdateOneWithoutReviewsNestedInput
+    votes?: ReviewVoteUpdateManyWithoutReviewNestedInput
+  }
+
+  export type ReviewUncheckedUpdateWithoutAddendaInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    rating?: IntFieldUpdateOperationsInput | number
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    productId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+    votes?: ReviewVoteUncheckedUpdateManyWithoutReviewNestedInput
+  }
+
+  export type ReviewCreateWithoutVotesInput = {
+    id?: string
+    text: string
+    rating: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
+    product?: ProductCreateNestedOneWithoutReviewsInput
+    user?: UserCreateNestedOneWithoutReviewsInput
+    addenda?: ReviewAddendumCreateNestedManyWithoutReviewInput
+  }
+
+  export type ReviewUncheckedCreateWithoutVotesInput = {
+    id?: string
+    text: string
+    rating: number
+    userId?: string | null
+    productId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
+    addenda?: ReviewAddendumUncheckedCreateNestedManyWithoutReviewInput
+  }
+
+  export type ReviewCreateOrConnectWithoutVotesInput = {
+    where: ReviewWhereUniqueInput
+    create: XOR<ReviewCreateWithoutVotesInput, ReviewUncheckedCreateWithoutVotesInput>
+  }
+
+  export type UserCreateWithoutReviewVotesInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    password?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    role?: $Enums.Role
+    bio?: NullableJsonNullValueInput | InputJsonValue
+    image?: string
+    emailVerified?: boolean
+    isTwoFactorEnabled?: boolean
+    chat?: ChatCreateNestedOneWithoutUserInput
+    sentMessages?: MessageCreateNestedManyWithoutAuthorInput
+    operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
+    supportCases?: SupportCaseCreateNestedManyWithoutUserInput
+    reviews?: ReviewCreateNestedManyWithoutUserInput
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    cart?: CartCreateNestedOneWithoutUserInput
+    orders?: OrderCreateNestedManyWithoutUserInput
+    favorites?: ProductCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutReviewVotesInput = {
+    id?: string
+    name?: string | null
+    email?: string | null
+    password?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    role?: $Enums.Role
+    bio?: NullableJsonNullValueInput | InputJsonValue
+    image?: string
+    emailVerified?: boolean
+    isTwoFactorEnabled?: boolean
+    chat?: ChatUncheckedCreateNestedOneWithoutUserInput
+    sentMessages?: MessageUncheckedCreateNestedManyWithoutAuthorInput
+    operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
+    supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
+    reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    cart?: CartUncheckedCreateNestedOneWithoutUserInput
+    orders?: OrderUncheckedCreateNestedManyWithoutUserInput
+    favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutReviewVotesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutReviewVotesInput, UserUncheckedCreateWithoutReviewVotesInput>
+  }
+
+  export type ReviewUpsertWithoutVotesInput = {
+    update: XOR<ReviewUpdateWithoutVotesInput, ReviewUncheckedUpdateWithoutVotesInput>
+    create: XOR<ReviewCreateWithoutVotesInput, ReviewUncheckedCreateWithoutVotesInput>
+    where?: ReviewWhereInput
+  }
+
+  export type ReviewUpdateToOneWithWhereWithoutVotesInput = {
+    where?: ReviewWhereInput
+    data: XOR<ReviewUpdateWithoutVotesInput, ReviewUncheckedUpdateWithoutVotesInput>
+  }
+
+  export type ReviewUpdateWithoutVotesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    rating?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+    product?: ProductUpdateOneWithoutReviewsNestedInput
+    user?: UserUpdateOneWithoutReviewsNestedInput
+    addenda?: ReviewAddendumUpdateManyWithoutReviewNestedInput
+  }
+
+  export type ReviewUncheckedUpdateWithoutVotesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    rating?: IntFieldUpdateOperationsInput | number
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    productId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+    addenda?: ReviewAddendumUncheckedUpdateManyWithoutReviewNestedInput
+  }
+
+  export type UserUpsertWithoutReviewVotesInput = {
+    update: XOR<UserUpdateWithoutReviewVotesInput, UserUncheckedUpdateWithoutReviewVotesInput>
+    create: XOR<UserCreateWithoutReviewVotesInput, UserUncheckedCreateWithoutReviewVotesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutReviewVotesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutReviewVotesInput, UserUncheckedUpdateWithoutReviewVotesInput>
+  }
+
+  export type UserUpdateWithoutReviewVotesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableJsonNullValueInput | InputJsonValue
+    image?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    chat?: ChatUpdateOneWithoutUserNestedInput
+    sentMessages?: MessageUpdateManyWithoutAuthorNestedInput
+    operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
+    supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
+    reviews?: ReviewUpdateManyWithoutUserNestedInput
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    cart?: CartUpdateOneWithoutUserNestedInput
+    orders?: OrderUpdateManyWithoutUserNestedInput
+    favorites?: ProductUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutReviewVotesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    bio?: NullableJsonNullValueInput | InputJsonValue
+    image?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    isTwoFactorEnabled?: BoolFieldUpdateOperationsInput | boolean
+    chat?: ChatUncheckedUpdateOneWithoutUserNestedInput
+    sentMessages?: MessageUncheckedUpdateManyWithoutAuthorNestedInput
+    operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
+    supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
+    reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    cart?: CartUncheckedUpdateOneWithoutUserNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
+    favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ProductCreateWithoutReviewSummaryInput = {
+    id?: string
+    title: string
+    description: string
+    price: string
+    images?: ProductCreateimagesInput | string[]
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    gender: $Enums.UserGender
+    type: $Enums.ProductType
+    blurURL?: ProductCreateblurURLInput | string[]
+    sizes?: ProductCreatesizesInput | string[]
+    color?: string | null
+    discount?: string | null
+    isNew?: boolean | null
+    inStock?: boolean
+    stock?: number
+    details?: ProductCreatedetailsInput | string[]
+    reviews?: ReviewCreateNestedManyWithoutProductInput
+    cartItems?: CartItemCreateNestedManyWithoutProductInput
+    brand?: BrandCreateNestedOneWithoutProductsInput
+    subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
+    user?: UserCreateNestedOneWithoutFavoritesInput
+    embedding?: ProductEmbeddingCreateNestedOneWithoutProductInput
+  }
+
+  export type ProductUncheckedCreateWithoutReviewSummaryInput = {
+    id?: string
+    title: string
+    description: string
+    price: string
+    images?: ProductCreateimagesInput | string[]
+    subcategoryId?: string | null
+    brandId?: string | null
+    userId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    gender: $Enums.UserGender
+    type: $Enums.ProductType
+    blurURL?: ProductCreateblurURLInput | string[]
+    sizes?: ProductCreatesizesInput | string[]
+    color?: string | null
+    discount?: string | null
+    isNew?: boolean | null
+    inStock?: boolean
+    stock?: number
+    details?: ProductCreatedetailsInput | string[]
+    reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    cartItems?: CartItemUncheckedCreateNestedManyWithoutProductInput
+    embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
+  }
+
+  export type ProductCreateOrConnectWithoutReviewSummaryInput = {
+    where: ProductWhereUniqueInput
+    create: XOR<ProductCreateWithoutReviewSummaryInput, ProductUncheckedCreateWithoutReviewSummaryInput>
+  }
+
+  export type ProductUpsertWithoutReviewSummaryInput = {
+    update: XOR<ProductUpdateWithoutReviewSummaryInput, ProductUncheckedUpdateWithoutReviewSummaryInput>
+    create: XOR<ProductCreateWithoutReviewSummaryInput, ProductUncheckedCreateWithoutReviewSummaryInput>
+    where?: ProductWhereInput
+  }
+
+  export type ProductUpdateToOneWithWhereWithoutReviewSummaryInput = {
+    where?: ProductWhereInput
+    data: XOR<ProductUpdateWithoutReviewSummaryInput, ProductUncheckedUpdateWithoutReviewSummaryInput>
+  }
+
+  export type ProductUpdateWithoutReviewSummaryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    price?: StringFieldUpdateOperationsInput | string
+    images?: ProductUpdateimagesInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    gender?: EnumUserGenderFieldUpdateOperationsInput | $Enums.UserGender
+    type?: EnumProductTypeFieldUpdateOperationsInput | $Enums.ProductType
+    blurURL?: ProductUpdateblurURLInput | string[]
+    sizes?: ProductUpdatesizesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    discount?: NullableStringFieldUpdateOperationsInput | string | null
+    isNew?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    inStock?: BoolFieldUpdateOperationsInput | boolean
+    stock?: IntFieldUpdateOperationsInput | number
+    details?: ProductUpdatedetailsInput | string[]
+    reviews?: ReviewUpdateManyWithoutProductNestedInput
+    cartItems?: CartItemUpdateManyWithoutProductNestedInput
+    brand?: BrandUpdateOneWithoutProductsNestedInput
+    subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
+    user?: UserUpdateOneWithoutFavoritesNestedInput
+    embedding?: ProductEmbeddingUpdateOneWithoutProductNestedInput
+  }
+
+  export type ProductUncheckedUpdateWithoutReviewSummaryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    price?: StringFieldUpdateOperationsInput | string
+    images?: ProductUpdateimagesInput | string[]
+    subcategoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    gender?: EnumUserGenderFieldUpdateOperationsInput | $Enums.UserGender
+    type?: EnumProductTypeFieldUpdateOperationsInput | $Enums.ProductType
+    blurURL?: ProductUpdateblurURLInput | string[]
+    sizes?: ProductUpdatesizesInput | string[]
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    discount?: NullableStringFieldUpdateOperationsInput | string | null
+    isNew?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    inStock?: BoolFieldUpdateOperationsInput | boolean
+    stock?: IntFieldUpdateOperationsInput | number
+    details?: ProductUpdatedetailsInput | string[]
+    reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
+    embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
 
   export type UserCreateWithoutOrdersInput = {
@@ -39230,6 +45938,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     cart?: CartCreateNestedOneWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
@@ -39252,6 +45961,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     cart?: CartUncheckedCreateNestedOneWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
@@ -39388,6 +46098,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     cart?: CartUpdateOneWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
@@ -39410,6 +46121,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     cart?: CartUncheckedUpdateOneWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
@@ -40039,6 +46751,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryCreateNestedOneWithoutProductInput
     brand?: BrandCreateNestedOneWithoutProductsInput
     subcategory?: SubcategoryCreateNestedOneWithoutProductsInput
     user?: UserCreateNestedOneWithoutFavoritesInput
@@ -40067,6 +46780,7 @@ export namespace Prisma {
     stock?: number
     details?: ProductCreatedetailsInput | string[]
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    reviewSummary?: ReviewSummaryUncheckedCreateNestedOneWithoutProductInput
     embedding?: ProductEmbeddingUncheckedCreateNestedOneWithoutProductInput
   }
 
@@ -40134,6 +46848,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUpdateOneWithoutProductNestedInput
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
     user?: UserUpdateOneWithoutFavoritesNestedInput
@@ -40162,6 +46877,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUncheckedUpdateOneWithoutProductNestedInput
     embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
 
@@ -40182,6 +46898,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseCreateNestedManyWithoutUserInput
     reviews?: ReviewCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     orders?: OrderCreateNestedManyWithoutUserInput
     favorites?: ProductCreateNestedManyWithoutUserInput
@@ -40204,6 +46921,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedCreateNestedOneWithoutUserInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutUserInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutUserInput
+    reviewVotes?: ReviewVoteUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     orders?: OrderUncheckedCreateNestedManyWithoutUserInput
     favorites?: ProductUncheckedCreateNestedManyWithoutUserInput
@@ -40270,6 +46988,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUpdateManyWithoutUserNestedInput
     reviews?: ReviewUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     orders?: OrderUpdateManyWithoutUserNestedInput
     favorites?: ProductUpdateManyWithoutUserNestedInput
@@ -40292,6 +47011,7 @@ export namespace Prisma {
     operatorProfile?: OperatorProfileUncheckedUpdateOneWithoutUserNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutUserNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutUserNestedInput
+    reviewVotes?: ReviewVoteUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     orders?: OrderUncheckedUpdateManyWithoutUserNestedInput
     favorites?: ProductUncheckedUpdateManyWithoutUserNestedInput
@@ -40344,6 +47064,34 @@ export namespace Prisma {
     text: string
     rating: number
     productId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
+  }
+
+  export type ReviewVoteCreateManyUserInput = {
+    reviewId: string
+    publicationId: string
+    value: $Enums.ReviewVoteValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -40491,7 +47239,29 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
     product?: ProductUpdateOneWithoutReviewsNestedInput
+    addenda?: ReviewAddendumUpdateManyWithoutReviewNestedInput
+    votes?: ReviewVoteUpdateManyWithoutReviewNestedInput
   }
 
   export type ReviewUncheckedUpdateWithoutUserInput = {
@@ -40501,6 +47271,28 @@ export namespace Prisma {
     productId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+    addenda?: ReviewAddendumUncheckedUpdateManyWithoutReviewNestedInput
+    votes?: ReviewVoteUncheckedUpdateManyWithoutReviewNestedInput
   }
 
   export type ReviewUncheckedUpdateManyWithoutUserInput = {
@@ -40508,6 +47300,50 @@ export namespace Prisma {
     text?: StringFieldUpdateOperationsInput | string
     rating?: IntFieldUpdateOperationsInput | number
     productId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ReviewVoteUpdateWithoutUserInput = {
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    review?: ReviewUpdateOneRequiredWithoutVotesNestedInput
+  }
+
+  export type ReviewVoteUncheckedUpdateWithoutUserInput = {
+    reviewId?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReviewVoteUncheckedUpdateManyWithoutUserInput = {
+    reviewId?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -40647,6 +47483,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     brand?: BrandUpdateOneWithoutProductsNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
@@ -40674,6 +47511,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUncheckedUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
     embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
@@ -40923,6 +47761,26 @@ export namespace Prisma {
     userId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    publicationId?: string
+    status?: $Enums.ReviewModerationStatus
+    submittedAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    verifiedOrderId?: string | null
+    verifiedAt?: Date | string | null
+    deletedAt?: Date | string | null
+    stateVersion?: number
+    publishedCorpusVersion?: number | null
+    upVotes?: number
+    downVotes?: number
+    popularityScore?: number
+    indexPending?: boolean
+    indexNextAttemptAt?: Date | string | null
+    indexLeaseToken?: string | null
+    indexLeaseUntil?: Date | string | null
+    indexAttempts?: number
   }
 
   export type CartItemCreateManyProductInput = {
@@ -40940,7 +47798,29 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
     user?: UserUpdateOneWithoutReviewsNestedInput
+    addenda?: ReviewAddendumUpdateManyWithoutReviewNestedInput
+    votes?: ReviewVoteUpdateManyWithoutReviewNestedInput
   }
 
   export type ReviewUncheckedUpdateWithoutProductInput = {
@@ -40950,6 +47830,28 @@ export namespace Prisma {
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
+    addenda?: ReviewAddendumUncheckedUpdateManyWithoutReviewNestedInput
+    votes?: ReviewVoteUncheckedUpdateManyWithoutReviewNestedInput
   }
 
   export type ReviewUncheckedUpdateManyWithoutProductInput = {
@@ -40959,6 +47861,26 @@ export namespace Prisma {
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    stateVersion?: IntFieldUpdateOperationsInput | number
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    upVotes?: IntFieldUpdateOperationsInput | number
+    downVotes?: IntFieldUpdateOperationsInput | number
+    popularityScore?: IntFieldUpdateOperationsInput | number
+    indexPending?: BoolFieldUpdateOperationsInput | boolean
+    indexNextAttemptAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexLeaseToken?: NullableStringFieldUpdateOperationsInput | string | null
+    indexLeaseUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    indexAttempts?: IntFieldUpdateOperationsInput | number
   }
 
   export type CartItemUpdateWithoutProductInput = {
@@ -41071,6 +47993,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     brand?: BrandUpdateOneWithoutProductsNestedInput
     user?: UserUpdateOneWithoutFavoritesNestedInput
@@ -41098,6 +48021,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUncheckedUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
     embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
@@ -41165,6 +48089,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUpdateManyWithoutProductNestedInput
     subcategory?: SubcategoryUpdateOneWithoutProductsNestedInput
     user?: UserUpdateOneWithoutFavoritesNestedInput
@@ -41192,6 +48117,7 @@ export namespace Prisma {
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    reviewSummary?: ReviewSummaryUncheckedUpdateOneWithoutProductNestedInput
     cartItems?: CartItemUncheckedUpdateManyWithoutProductNestedInput
     embedding?: ProductEmbeddingUncheckedUpdateOneWithoutProductNestedInput
   }
@@ -41216,6 +48142,90 @@ export namespace Prisma {
     inStock?: BoolFieldUpdateOperationsInput | boolean
     stock?: IntFieldUpdateOperationsInput | number
     details?: ProductUpdatedetailsInput | string[]
+  }
+
+  export type ReviewAddendumCreateManyReviewInput = {
+    id?: string
+    publicationId: string
+    text: string
+    status?: $Enums.ReviewModerationStatus
+    createdAt?: Date | string
+    publishedAt?: Date | string | null
+    moderatedAt?: Date | string | null
+    moderatedBy?: string | null
+    moderationReason?: string | null
+    publishedCorpusVersion?: number | null
+  }
+
+  export type ReviewVoteCreateManyReviewInput = {
+    userId: string
+    publicationId: string
+    value: $Enums.ReviewVoteValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ReviewAddendumUpdateWithoutReviewInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type ReviewAddendumUncheckedUpdateWithoutReviewInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type ReviewAddendumUncheckedUpdateManyWithoutReviewInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    text?: StringFieldUpdateOperationsInput | string
+    status?: EnumReviewModerationStatusFieldUpdateOperationsInput | $Enums.ReviewModerationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    moderatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    moderationReason?: NullableStringFieldUpdateOperationsInput | string | null
+    publishedCorpusVersion?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type ReviewVoteUpdateWithoutReviewInput = {
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutReviewVotesNestedInput
+  }
+
+  export type ReviewVoteUncheckedUpdateWithoutReviewInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ReviewVoteUncheckedUpdateManyWithoutReviewInput = {
+    userId?: StringFieldUpdateOperationsInput | string
+    publicationId?: StringFieldUpdateOperationsInput | string
+    value?: EnumReviewVoteValueFieldUpdateOperationsInput | $Enums.ReviewVoteValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PaymentCreateManyOrderInput = {

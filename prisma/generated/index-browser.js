@@ -272,7 +272,71 @@ exports.Prisma.ReviewScalarFieldEnum = {
   userId: 'userId',
   productId: 'productId',
   createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  publicationId: 'publicationId',
+  status: 'status',
+  submittedAt: 'submittedAt',
+  publishedAt: 'publishedAt',
+  moderatedAt: 'moderatedAt',
+  moderatedBy: 'moderatedBy',
+  moderationReason: 'moderationReason',
+  verifiedOrderId: 'verifiedOrderId',
+  verifiedAt: 'verifiedAt',
+  deletedAt: 'deletedAt',
+  stateVersion: 'stateVersion',
+  publishedCorpusVersion: 'publishedCorpusVersion',
+  upVotes: 'upVotes',
+  downVotes: 'downVotes',
+  popularityScore: 'popularityScore',
+  indexPending: 'indexPending',
+  indexNextAttemptAt: 'indexNextAttemptAt',
+  indexLeaseToken: 'indexLeaseToken',
+  indexLeaseUntil: 'indexLeaseUntil',
+  indexAttempts: 'indexAttempts'
+};
+
+exports.Prisma.ReviewAddendumScalarFieldEnum = {
+  id: 'id',
+  reviewId: 'reviewId',
+  publicationId: 'publicationId',
+  text: 'text',
+  status: 'status',
+  createdAt: 'createdAt',
+  publishedAt: 'publishedAt',
+  moderatedAt: 'moderatedAt',
+  moderatedBy: 'moderatedBy',
+  moderationReason: 'moderationReason',
+  publishedCorpusVersion: 'publishedCorpusVersion'
+};
+
+exports.Prisma.ReviewVoteScalarFieldEnum = {
+  reviewId: 'reviewId',
+  userId: 'userId',
+  publicationId: 'publicationId',
+  value: 'value',
+  createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReviewSummaryScalarFieldEnum = {
+  productId: 'productId',
+  positiveImpressions: 'positiveImpressions',
+  negativeImpressions: 'negativeImpressions',
+  summary: 'summary',
+  generatedAt: 'generatedAt',
+  sourceReviewCount: 'sourceReviewCount',
+  sourceAuthorCount: 'sourceAuthorCount',
+  corpusVersion: 'corpusVersion',
+  requestedVersion: 'requestedVersion',
+  sourceVersion: 'sourceVersion',
+  lastRetractionVersion: 'lastRetractionVersion',
+  sourceHash: 'sourceHash',
+  analyzerVersion: 'analyzerVersion',
+  nextAttemptAt: 'nextAttemptAt',
+  leaseToken: 'leaseToken',
+  leaseUntil: 'leaseUntil',
+  attemptCount: 'attemptCount',
+  lastErrorCode: 'lastErrorCode'
 };
 
 exports.Prisma.PromoCodeScalarFieldEnum = {
@@ -473,6 +537,17 @@ exports.ProductType = exports.$Enums.ProductType = {
   ACCESSORIES: 'ACCESSORIES'
 };
 
+exports.ReviewModerationStatus = exports.$Enums.ReviewModerationStatus = {
+  PENDING: 'PENDING',
+  PUBLISHED: 'PUBLISHED',
+  REJECTED: 'REJECTED'
+};
+
+exports.ReviewVoteValue = exports.$Enums.ReviewVoteValue = {
+  UP: 'UP',
+  DOWN: 'DOWN'
+};
+
 exports.DiscountType = exports.$Enums.DiscountType = {
   PERCENT: 'PERCENT',
   FIXED: 'FIXED'
@@ -538,6 +613,9 @@ exports.Prisma.ModelName = {
   Subcategory: 'Subcategory',
   Brand: 'Brand',
   Review: 'Review',
+  ReviewAddendum: 'ReviewAddendum',
+  ReviewVote: 'ReviewVote',
+  ReviewSummary: 'ReviewSummary',
   PromoCode: 'PromoCode',
   Order: 'Order',
   Payment: 'Payment',

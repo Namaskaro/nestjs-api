@@ -407,6 +407,10 @@ import { QdrantCollections } from '@/src/core/qdrant/qdrant.collections';
 // START CHANGES — ЕДИНАЯ НОРМАЛИЗАЦИЯ EXACT FILTER VALUES
 
 import { normalizeSearchFilterValue } from '@/src/shared/utils/normalize-search-filter-value';
+import {
+  publicReviewsQuery,
+  withPublicReviews,
+} from '../reviews/review-publication';
 
 // END CHANGES — ЕДИНАЯ НОРМАЛИЗАЦИЯ EXACT FILTER VALUES
 
@@ -425,7 +429,7 @@ export class ProductsService {
   ) {}
 
   async getAllProducts(searchTerm?: string) {
-    return this.prismaService.product.findMany({
+    const products = await this.prismaService.product.findMany({
       where: searchTerm ? this.getSearchFilter(searchTerm) : undefined,
       orderBy: {
         title: 'desc',
@@ -437,15 +441,10 @@ export class ProductsService {
           },
         },
         brand: true,
-        reviews: {
-          select: {
-            user: true,
-            rating: true,
-            text: true,
-          },
-        },
+        reviews: publicReviewsQuery,
       },
     });
+    return products.map(withPublicReviews);
   }
 
   async getPaginatedProducts(filters: FilterQueryDto) {
@@ -492,7 +491,7 @@ export class ProductsService {
     const include = {
       brand: true,
       subcategory: { select: { name: true } },
-      reviews: { select: { user: true, rating: true, text: true } },
+      reviews: publicReviewsQuery,
     } as const;
 
     // общий стабильный orderBy (по выбранному полю + tie-break по id)
@@ -520,7 +519,7 @@ export class ProductsService {
       });
 
       return {
-        items,
+        items: items.map(withPublicReviews),
         nextCursor: items.length === take ? items[items.length - 1].id : null,
       };
     }
@@ -540,7 +539,7 @@ export class ProductsService {
     ]);
 
     return {
-      items,
+      items: items.map(withPublicReviews),
       total,
       page,
       totalPages: Math.ceil(total / take),
@@ -564,13 +563,7 @@ export class ProductsService {
           },
         },
         brand: true,
-        reviews: {
-          select: {
-            user: true,
-            rating: true,
-            text: true,
-          },
-        },
+        reviews: publicReviewsQuery,
       },
     });
 
@@ -578,7 +571,7 @@ export class ProductsService {
       throw new NotFoundException('Товар не найден');
     }
 
-    return product;
+    return withPublicReviews(product);
   }
 
   private getSearchFilter(searchTerm: string) {
@@ -615,17 +608,11 @@ export class ProductsService {
           },
         },
         brand: true,
-        reviews: {
-          select: {
-            user: true,
-            rating: true,
-            text: true,
-          },
-        },
+        reviews: publicReviewsQuery,
       },
     });
 
-    return products;
+    return products.map(withPublicReviews);
   }
 
   async create(data: CreateProductDto, files: Express.Multer.File[]) {
