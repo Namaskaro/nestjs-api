@@ -22,6 +22,10 @@ import {
   reviewPopularityScore,
 } from './review-publication';
 import { ReviewListQueryDto, ReviewVoteDto } from './dto/review-list.dto';
+import {
+  isReviewSummaryMilestone,
+  nextReviewSummaryCount,
+} from './review-summary.model';
 
 const addendumSelect = {
   id: true,
@@ -65,6 +69,7 @@ const reviewStateSelect = {
   upVotes: true,
   downVotes: true,
   popularityScore: true,
+  publishedCorpusVersion: true,
 } satisfies Prisma.ReviewSelect;
 
 type ReviewState = Prisma.ReviewGetPayload<{
@@ -237,6 +242,96 @@ export class ReviewsService {
     return rows
       .filter((row) => row.publicationId === row.review.publicationId)
       .map(({ review, ...vote }) => vote);
+  }
+
+  async getProductStatsBatch(
+    productIds: readonly string[],
+    db: Pick<Prisma.TransactionClient, 'review'> = this.prismaService,
+  ) {
+    const ids = [...new Set(productIds)];
+    const stats = new Map(
+      ids.map((id) => [
+        id,
+        {
+          averageRating: null as number | null,
+          ratingCount: 0,
+          positiveCount: 0,
+          neutralCount: 0,
+          negativeCount: 0,
+          positivePercent: 0,
+        },
+      ]),
+    );
+    if (!ids.length) return stats;
+    const groups = await db.review.groupBy({
+      by: ['productId', 'rating'],
+      where: { ...publishedReviewWhere, productId: { in: ids } },
+      _count: { _all: true },
+    });
+    const sums = new Map<string, number>();
+    for (const row of groups) {
+      const current = stats.get(row.productId);
+      const n = row._count._all;
+      current.ratingCount += n;
+      sums.set(row.productId, (sums.get(row.productId) ?? 0) + row.rating * n);
+      if (row.rating >= 4) current.positiveCount += n;
+      else if (row.rating === 3) current.neutralCount += n;
+      else current.negativeCount += n;
+    }
+    for (const [id, current] of stats)
+      if (current.ratingCount) {
+        current.averageRating = sums.get(id) / current.ratingCount;
+        current.positivePercent =
+          (current.positiveCount * 100) / current.ratingCount;
+      }
+    return stats;
+  }
+
+  async getReviewExperience(productIds: readonly string[]) {
+    return this.prismaService.$transaction(
+      async (tx) => {
+        const stats = await this.getProductStatsBatch(productIds, tx);
+        const summaries = await tx.reviewSummary.findMany({
+          where: {
+            productId: { in: [...stats.keys()] },
+            summary: { not: null },
+            generatedAt: { not: null },
+            sourceReviewCount: { gte: 10 },
+            sourceAuthorCount: { gte: 10 },
+          },
+          select: {
+            productId: true,
+            positiveImpressions: true,
+            negativeImpressions: true,
+            summary: true,
+            generatedAt: true,
+            sourceReviewCount: true,
+            sourceVersion: true,
+            lastRetractionVersion: true,
+          },
+        });
+        return new Map(
+          [...stats].map(([productId, rating]) => {
+            const summary = summaries.find(
+              (row) => row.productId === productId,
+            );
+            return [
+              productId,
+              {
+                ...rating,
+                summary: summary
+                  ? {
+                      ...summary,
+                      generatedAt: summary.generatedAt.toISOString(),
+                    }
+                  : null,
+              },
+            ];
+          }),
+        );
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
+    );
   }
 
   async setVote(userId: string, reviewId: string, data: ReviewVoteDto) {
@@ -465,6 +560,8 @@ export class ReviewsService {
       });
       if (result.count !== 1) changed();
       await tx.reviewVote.deleteMany({ where: { reviewId } });
+      if (review.status === 'PUBLISHED' && review.productId)
+        await this.recordCorpusChange(tx, review, 'delete');
     });
   }
 
@@ -558,6 +655,8 @@ export class ReviewsService {
         },
       });
       if (result.count !== 1) changed();
+      if (data.decision === 'PUBLISHED')
+        await this.recordCorpusChange(tx, review, 'review');
       return this.readOwner(tx, reviewId);
     });
   }
@@ -618,11 +717,101 @@ export class ReviewsService {
           where: { id: review.id, publicationId: review.publicationId },
           data: pendingReviewIndex(),
         });
+        await this.recordCorpusChange(tx, review, 'addendum', addendumId);
       }
       return tx.reviewAddendum.findUnique({
         where: { id: addendumId },
         select: addendumSelect,
       });
+    });
+  }
+
+  private async recordCorpusChange(
+    tx: Prisma.TransactionClient,
+    review: ReviewState,
+    kind: 'review' | 'addendum' | 'delete',
+    addendumId?: string,
+  ) {
+    const productId = review.productId;
+    const state = await tx.reviewSummary.upsert({
+      where: { productId },
+      create: { productId, corpusVersion: 1 },
+      update: { corpusVersion: { increment: 1 } },
+    });
+    if (kind === 'review')
+      await tx.review.updateMany({
+        where: { id: review.id, publicationId: review.publicationId },
+        data: { publishedCorpusVersion: state.corpusVersion },
+      });
+    if (kind === 'addendum') {
+      await tx.reviewAddendum.updateMany({
+        where: {
+          id: addendumId,
+          reviewId: review.id,
+          publicationId: review.publicationId,
+        },
+        data: { publishedCorpusVersion: state.corpusVersion },
+      });
+      return; // Дополнения не меняют requestedVersion или очередь генерации.
+    }
+    const count = await tx.review.count({
+      where: { ...publishedReviewWhere, productId },
+    });
+    const now = new Date();
+    const due =
+      state.nextAttemptAt &&
+      state.nextAttemptAt < new Date(now.getTime() + 30_000)
+        ? state.nextAttemptAt
+        : new Date(now.getTime() + 30_000);
+    if (kind === 'review') {
+      const base = state.summary === null ? 0 : state.sourceReviewCount;
+      if (
+        count >= nextReviewSummaryCount(base) &&
+        (!state.nextAttemptAt || isReviewSummaryMilestone(base, count))
+      )
+        await tx.reviewSummary.update({
+          where: { productId },
+          data: {
+            requestedVersion: state.corpusVersion,
+            nextAttemptAt: due,
+            attemptCount: 0,
+            lastErrorCode: null,
+          },
+        });
+      return;
+    }
+    const included =
+      state.summary !== null &&
+      (review.publishedCorpusVersion === null ||
+        review.publishedCorpusVersion <= state.sourceVersion);
+    const invalidate = included || count < 10;
+    const requested = count >= 10 && (included || state.nextAttemptAt !== null);
+    await tx.reviewSummary.update({
+      where: { productId },
+      data: {
+        lastRetractionVersion: state.corpusVersion,
+        ...(invalidate
+          ? {
+              summary: null,
+              generatedAt: null,
+              positiveImpressions: [],
+              negativeImpressions: [],
+              sourceHash: null,
+            }
+          : {}),
+        ...(requested
+          ? {
+              requestedVersion: state.corpusVersion,
+              nextAttemptAt: due,
+              attemptCount: 0,
+              lastErrorCode: null,
+            }
+          : {}),
+        ...(count < 10 ? { nextAttemptAt: null } : {}),
+        // Немедленная отмена lease старого задания; heartbeat также остановит LLM.
+        leaseToken: null,
+        leaseUntil: null,
+      },
     });
   }
 

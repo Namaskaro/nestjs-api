@@ -47,6 +47,7 @@ describe('ReviewsService: публикация и принадлежность',
       product: { findUnique: jest.fn().mockResolvedValue({ id: productId }) },
       order: { findMany: jest.fn().mockResolvedValue([purchase]) },
       review: {
+        count: jest.fn().mockResolvedValue(1),
         findUnique: jest.fn().mockResolvedValue(null),
         findFirst: jest.fn().mockResolvedValue(state),
         findMany: jest.fn().mockResolvedValue([]),
@@ -63,6 +64,17 @@ describe('ReviewsService: публикация и принадлежность',
         deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
       },
       reviewVote: { deleteMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      reviewSummary: {
+        upsert: jest.fn().mockResolvedValue({
+          productId,
+          corpusVersion: 1,
+          sourceReviewCount: 0,
+          summary: null,
+          nextAttemptAt: null,
+          sourceVersion: 0,
+        }),
+        update: jest.fn(),
+      },
     };
     db.$transaction = jest.fn((action) => action(db));
     service = new ReviewsService(db as PrismaService);
