@@ -423,6 +423,9 @@ export function createExecuteProductDecisionNode(
           comparison: capability.comparison,
 
           products: capability.selectedProducts,
+          averageRatings: await productAgentService.getProductRatings(
+            capability.selectedProducts.map((product) => product.id),
+          ),
 
           state: consultationState,
 

@@ -429,6 +429,7 @@ function createProductAgentService() {
   const service = {
     validate,
     getReviewExperience: jest.fn(async () => new Map()),
+    getProductRatings: jest.fn(async () => new Map()),
 
     search,
 
@@ -682,6 +683,12 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     const ai = createAiService();
 
     const productAgent = createProductAgentService();
+    (productAgent.service.getProductRatings as jest.Mock).mockResolvedValue(
+      new Map([
+        ['adidas-1', 4.4],
+        ['adidas-2', null],
+      ]),
+    );
 
     productAgent.getProductSemanticRepresentations.mockResolvedValueOnce(
       new Map([
@@ -764,6 +771,10 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     const presentation = result.consultation?.comparisonPresentation;
 
     expect(presentation).not.toBeNull();
+    expect(
+      presentation?.products.map((product) => product.averageRating),
+    ).toEqual([4.4, null]);
+    expect(productAgent.service.getReviewExperience).not.toHaveBeenCalled();
 
     expect(presentation?.rows.map((row) => row.attributeId)).toEqual([
       'price',

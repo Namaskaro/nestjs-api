@@ -3,6 +3,7 @@ import {
   PRODUCT_INDEX_SOURCE_INCLUDE,
 } from '@/src/ai/product-index-version';
 import { Injectable, Logger } from '@nestjs/common';
+import { ReviewsService } from '@/src/modules/reviews/reviews.service';
 
 import {
   ProductQdrantPayloadSchema,
@@ -50,9 +51,22 @@ const PRODUCT_SEARCH_CANDIDATE_LIMIT = 20;
 
 const PRODUCT_SEARCH_RESULT_LIMIT = 6;
 
+export function reviewRatingAdjustment(
+  averageRating: number | null,
+  count: number,
+  weight: number,
+): number {
+  if (!count || averageRating === null) return 0;
+  const smoothed = (count * averageRating + 20 * 3) / (count + 20);
+  return (weight * (smoothed - 3)) / 2;
+}
+
 @Injectable()
 export class CurrentStoreProductSearchService {
   private readonly logger = new Logger(CurrentStoreProductSearchService.name);
+  private readonly ratingWeight = Number(
+    process.env.REVIEW_RATING_WEIGHT ?? 0.005,
+  );
 
   constructor(
     private readonly aiService: AiService,
@@ -60,7 +74,15 @@ export class CurrentStoreProductSearchService {
     private readonly rerankerService: RerankerService,
     private readonly prismaService: PrismaService,
     private readonly currentStoreCatalogService: CurrentStoreCatalogService,
-  ) {}
+    private readonly reviews: ReviewsService,
+  ) {
+    if (
+      !Number.isFinite(this.ratingWeight) ||
+      this.ratingWeight < 0 ||
+      this.ratingWeight > 0.02
+    )
+      throw new Error('REVIEW_RATING_WEIGHT must be between 0 and 0.02');
+  }
 
   public async searchProducts(
     productNeed: ProductNeed,
@@ -241,7 +263,32 @@ export class CurrentStoreProductSearchService {
         PRODUCT_SEARCH_RESULT_LIMIT,
       );
 
-      return reranked.map(({ item }) => item.product);
+      if (!this.ratingWeight) return reranked.map(({ item }) => item.product);
+      const stats = await this.reviews
+        .getProductStatsBatch(reranked.map(({ item }) => item.product.id))
+        .catch(() => {
+          this.logger.warn(
+            'Review rating statistics unavailable; preserving catalog top-6 order',
+          );
+          return new Map();
+        });
+      return reranked
+        .map(({ item, score }, rank) => {
+          const rating = stats.get(item.product.id);
+          return {
+            item,
+            rank,
+            score:
+              score +
+              reviewRatingAdjustment(
+                rating?.averageRating ?? null,
+                rating?.ratingCount ?? 0,
+                this.ratingWeight,
+              ),
+          };
+        })
+        .sort((a, b) => b.score - a.score || a.rank - b.rank)
+        .map(({ item }) => item.product);
     } catch (error) {
       this.logger.warn(
         `Reranker failed, fallback to hybrid-search order: ${
