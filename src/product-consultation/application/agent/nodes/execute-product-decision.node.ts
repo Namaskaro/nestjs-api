@@ -515,6 +515,8 @@ export function createExecuteProductDecisionNode(
       ]);
       for (const [id, used] of reviewExperience) {
         const current = currentExperience.get(id);
+        // Готовая сводка может пережить удаление ещё не учтённого отзыва.
+        // Блокируем новое изъятие после входного snapshot, а не старую его отметку.
         if (
           !current ||
           current.ratingCount !== used.ratingCount ||
@@ -522,7 +524,7 @@ export function createExecuteProductDecisionNode(
           (used.summary &&
             (!current.summary ||
               current.summary.lastRetractionVersion >
-                used.summary.sourceVersion))
+                used.summary.lastRetractionVersion))
         )
           return {
             consultationRecord: record,

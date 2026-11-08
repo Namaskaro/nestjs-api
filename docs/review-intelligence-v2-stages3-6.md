@@ -132,7 +132,7 @@ Exactly-once платный расход при crash после ответа п
 | Backend npm run build | PASS на итоговом source после snapshot repair |
 | Существующий targeted backend Jest | 114/114, 13 suites, PASS |
 | Существующий frontend Jest AI/reviews | 16/16, 3 suites, PASS |
-| Изолированные scripted проверки с mocked IO | 8 index, 10 Summary/snapshot, 6 Q&A, 6 ranking/search; PASS |
+| Изолированные scripted проверки с mocked IO | 8 index, 10 Summary/snapshot, 6 Q&A, 6 ranking/search, 6 Recommendation freshness; PASS |
 | Frontend production compile | PASS |
 | Полный frontend build | FAIL prerender /checkout/payment-result: useSearchParams/Suspense, файл не изменён |
 | Scoped frontend TypeScript vs HEAD | baseline0/current0/introduced0, четыре изменённых файла |
@@ -155,6 +155,10 @@ UI-preview — локальная SSR-визуальная проверка, н�
 2. Раздельное чтение stats/Summary: общий RepeatableRead snapshot устранил возможность
    смешать состояния до/после удаления. Проверены общий tx и настоящий read-only PG.
 3. Старые test doubles дополнены новым review/rating методом; прежние assertions сохранены.
+4. Проверка Recommendation ошибочно отклоняла неизменившуюся готовую Summary после
+   удаления ещё не учтённого отзыва. Теперь сравниваются отметки изъятия текущего и
+   входного snapshots. Новое удаление во время генерации по-прежнему блокирует ответ;
+   существующий executor-тест воспроизвёл ошибку и проверяет исправление.
 
 Не проверены и не объявляются выполненными:
 

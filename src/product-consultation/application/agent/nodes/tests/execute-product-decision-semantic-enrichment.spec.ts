@@ -475,7 +475,8 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
               generatedAt: '2026-11-08T00:00:00.000Z',
               sourceReviewCount: 20,
               sourceVersion: 20,
-              lastRetractionVersion: 0,
+              // Удалённый новый отзыв не входил в эту готовую сводку.
+              lastRetractionVersion: 22,
             },
           },
         ],
