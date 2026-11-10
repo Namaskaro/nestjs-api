@@ -549,6 +549,31 @@ describe('Product workspace: real graph with offline model boundary', () => {
     ]);
   });
 
+  it('captures successful lane changes privately for the admitted source', async () => {
+    const h = harness();
+    const capture = jest.fn();
+    const result = await h.agent.invoke({
+      query: 'Найди мужские кроссовки Nike и женское платье',
+      sourceQuery: 'Найди мужские кроссовки Nike и женское платье',
+      workspace: createProductWorkspace(),
+      requestId: 'source-memory-1',
+      conversationId: 'conversation-1',
+    }, { context: { memorySourceMessageId: 'source-memory-1', memoryCapture: capture } });
+
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(capture).toHaveBeenCalledWith({
+      sourceMessageId: 'source-memory-1',
+      changes: [
+        expect.objectContaining({ kind: 'start', criteria: expect.objectContaining({
+          set: expect.arrayContaining([expect.objectContaining({ attributeId: 'brand', value: 'Nike' })]),
+        }) }),
+        expect.objectContaining({ kind: 'start', criteria: expect.objectContaining({ profileId: 'CLOTHES' }) }),
+      ],
+    });
+    expect(result.workspace.tasks.map((task) => task.memorySourceMessageId)).toEqual(['source-memory-1', 'source-memory-1']);
+    expect(result.groups).not.toEqual(expect.arrayContaining([expect.objectContaining({ memorySourceMessageId: expect.any(String) })]));
+  });
+
   it('MI-04 adding a task preserves existing task, memory, results and revision', async () => {
     const h = harness(plan(search('Nike')));
 

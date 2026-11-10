@@ -1,8 +1,12 @@
-import { IsString, IsUUID, MinLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
 export class SendMessageDto {
   @IsUUID()
   chatId: string;
+
+  @IsOptional()
+  @IsUUID()
+  clientMessageId?: string;
 
   @IsString()
   @MinLength(1)

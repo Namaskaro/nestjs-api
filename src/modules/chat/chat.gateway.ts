@@ -1,3 +1,6 @@
+import { ConsultationMemoryService } from '@/src/consultation-memory/consultation-memory.service';
+import type { ConsultationMemoryAdmission, ConsultationMemoryBasis, ConsultationMemoryCandidate } from '@/src/consultation-memory/consultation-memory.types';
+import { Optional } from '@nestjs/common';
 import {
   ConflictException,
   Logger,
@@ -184,6 +187,21 @@ function resumeDisplayText(value: SupportAgentResumeValue): string {
     : 'Продолжить без оператора';
 }
 
+function publicChatMessage<T>(message: T) {
+  if (!message || typeof message !== 'object') return message;
+  const { consultationInputSeq, clientMessageId, assistantSourceMessageId, expectsEpisodeProjection, alreadyAccepted, ...view } =
+    message as Record<string, unknown>;
+  return view;
+}
+
+function publicChat<T>(chat: T) {
+  if (!chat || typeof chat !== 'object') return chat;
+  const { consultationInputSeq, consultationAttemptId, consultationSourceMessageId, ...view } =
+    chat as Record<string, unknown>;
+  if (Array.isArray(view.messages)) view.messages = view.messages.map(publicChatMessage);
+  return view;
+}
+
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
   cors: {
@@ -204,6 +222,7 @@ export class ChatGateway implements OnModuleInit {
     private readonly supportAgentService: SupportAgentService,
     private readonly handoffService: ChatHandoffService,
     private readonly handoffQueue: ChatHandoffQueueService,
+    @Optional() private readonly consultationMemory?: ConsultationMemoryService,
   ) {}
 
   onModuleInit() {
@@ -221,7 +240,7 @@ export class ChatGateway implements OnModuleInit {
 
     await socket.join(`chat:${chat.id}`);
 
-    return chat;
+    return publicChat(chat);
   }
 
   @SubscribeMessage('chat:join')
@@ -292,7 +311,15 @@ export class ChatGateway implements OnModuleInit {
         chatId: dto.chatId,
         userId,
         content: dto.content,
+        ...(dto.clientMessageId ? { clientMessageId: dto.clientMessageId } : {}),
+        ...(this.consultationMemory?.enabled && socket.data.user.role === 'Client' ? { trackConsultation: true } : {}),
       });
+
+      if (saved.duplicate) {
+        ack(publicChatMessage(saved.message));
+        if (saved.previousReply) socket.emit('chat:new_message', publicChatMessage(saved.previousReply));
+        return;
+      }
 
       await this.publishChatMessage(
         dto.chatId,
@@ -300,7 +327,7 @@ export class ChatGateway implements OnModuleInit {
         saved.operatorUserId,
       );
 
-      ack(saved.message);
+      ack(publicChatMessage(saved.message));
 
       if (!saved.shouldRunAssistant) {
         return;
@@ -314,6 +341,8 @@ export class ChatGateway implements OnModuleInit {
         saved.message.id,
         context,
         saved.handoffVersion,
+        saved.admission,
+        Boolean(dto.clientMessageId),
       );
     } finally {
       if (expectsAssistant) {
@@ -392,6 +421,10 @@ export class ChatGateway implements OnModuleInit {
         lastMessage.id,
         context,
         snapshot.handoffVersion,
+        this.consultationMemory?.enabled && socket.data.user.role === 'Client'
+          ? await this.chatService.claimConsultationRetry(dto.chatId, socket.data.user.id, lastMessage.id, snapshot.handoffVersion)
+          : null,
+        Boolean(lastMessage.clientMessageId || (this.consultationMemory?.enabled && socket.data.user.role === 'Client')),
       );
     } finally {
       this.releaseAssistantSlot(dto.chatId);
@@ -438,7 +471,7 @@ export class ChatGateway implements OnModuleInit {
 
       this.server
         .to(`chat:${dto.chatId}`)
-        .emit('chat:message_updated', assistantMessage);
+        .emit('chat:message_updated', publicChatMessage(assistantMessage));
 
       ack({
         sessionId: feedback.sessionId,
@@ -553,6 +586,7 @@ export class ChatGateway implements OnModuleInit {
         userId: socket.data.user.id,
         content: resumeDisplayText(resumeValue),
         requireBot: true,
+        ...(this.consultationMemory?.enabled && socket.data.user.role === 'Client' ? { trackConsultation: true } : {}),
         payload: {
           clarificationResume: resumeValue,
         } as Prisma.InputJsonValue,
@@ -564,7 +598,7 @@ export class ChatGateway implements OnModuleInit {
         saved.operatorUserId,
       );
 
-      ack(saved.message);
+      ack(publicChatMessage(saved.message));
 
       const context = this.createSupportAgentContext(socket);
 
@@ -693,12 +727,30 @@ export class ChatGateway implements OnModuleInit {
     messageId: string,
     context: SupportAgentContext,
     expectedHandoffVersion: number,
+    admission?: ConsultationMemoryAdmission | null,
+    deduplicate = false,
   ) {
     try {
+      let basis: ConsultationMemoryBasis | null = null;
+      let candidate: ConsultationMemoryCandidate | undefined;
+      if (admission && this.consultationMemory) {
+        try {
+          basis = await this.consultationMemory.getBasis(admission);
+        } catch {
+          this.logger.warn('Consultation memory basis unavailable');
+        }
+      }
+      const runtimeContext = basis ? {
+        ...context,
+        memorySourceMessageId: messageId,
+        memoryCapture: (value: ConsultationMemoryCandidate) => {
+          if (value.sourceMessageId === messageId) candidate = value;
+        },
+      } : context;
       const result = await this.supportAgentService.run(
         content,
         chatId,
-        context,
+        runtimeContext,
         (event) => this.emitAssistantEvent(chatId, event),
         messageId,
       );
@@ -709,6 +761,7 @@ export class ChatGateway implements OnModuleInit {
         context.userId,
         messageId,
         expectedHandoffVersion,
+        admission || deduplicate ? { basis, candidate } : undefined,
       );
     } catch (error) {
       if (!isStaleAssistantResult(error)) {
@@ -758,6 +811,7 @@ export class ChatGateway implements OnModuleInit {
     userId: string,
     sourceMessageId: string,
     expectedHandoffVersion: number,
+    memory?: { basis: ConsultationMemoryBasis | null; candidate?: ConsultationMemoryCandidate },
   ) {
     if (result.kind === 'interrupt') {
       const snapshot = await this.handoffService.getCustomerSnapshot(
@@ -832,12 +886,23 @@ export class ChatGateway implements OnModuleInit {
         userId,
         expectedHandoffVersion,
         content: result.answer.message,
+        ...(memory ? { sourceMessageId, expectsEpisodeProjection: Boolean(memory.basis && memory.candidate) } : {}),
         payload: {
           blocks,
         } as Prisma.InputJsonValue,
       });
 
-    this.server.to(`chat:${chatId}`).emit('chat:new_message', assistantMessage);
+    this.server.to(`chat:${chatId}`).emit('chat:new_message', publicChatMessage(assistantMessage));
+    const { basis, candidate } = memory ?? {};
+    if (basis && candidate && !('alreadyAccepted' in assistantMessage)) {
+      setImmediate(() => {
+        void this.consultationMemory.project(basis, assistantMessage.id, candidate)
+          .then((status) => {
+            if (status === 'STALE') this.logger.warn('Consultation memory projection skipped: stale');
+          })
+          .catch(() => this.logger.warn('Consultation memory projection failed'));
+      });
+    }
   }
 
   private async publishChatMessage(
@@ -845,12 +910,12 @@ export class ChatGateway implements OnModuleInit {
     message: unknown,
     operatorUserId: string | null,
   ) {
-    this.server.to(`chat:${chatId}`).emit('chat:new_message', message);
+    this.server.to(`chat:${chatId}`).emit('chat:new_message', publicChatMessage(message));
 
     if (operatorUserId) {
       this.server
         .to(`operator:${operatorUserId}`)
-        .emit('chat:new_message', message);
+        .emit('chat:new_message', publicChatMessage(message));
     }
   }
 
@@ -871,7 +936,7 @@ export class ChatGateway implements OnModuleInit {
     if (!transition.replayed) {
       this.server
         .to(`chat:${transition.chatId}`)
-        .emit('chat:new_message', transition.message);
+        .emit('chat:new_message', publicChatMessage(transition.message));
     }
 
     const statusPayload = {
@@ -896,7 +961,7 @@ export class ChatGateway implements OnModuleInit {
         if (!transition.replayed) {
           this.server
             .to(`operator:${operatorUserId}`)
-            .emit('chat:new_message', transition.message);
+            .emit('chat:new_message', publicChatMessage(transition.message));
         }
 
         this.server

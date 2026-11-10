@@ -18,6 +18,8 @@ import { MailModule } from '@/src/mail/mail.module';
 
 import { AuthModule } from '../auth/auth.module';
 
+import { ConsultationMemoryController } from '@/src/consultation-memory/consultation-memory.controller';
+import { ConsultationMemoryModule } from '@/src/consultation-memory/consultation-memory.module';
 import { SupportAgentModule } from '@/src/support-agent/support-agent.module';
 
 @Module({
@@ -25,9 +27,10 @@ import { SupportAgentModule } from '@/src/support-agent/support-agent.module';
     forwardRef(() => MailModule),
     forwardRef(() => AuthModule),
     SupportAgentModule,
+    ConsultationMemoryModule,
   ],
 
-  controllers: [OperatorInvitationController],
+  controllers: [OperatorInvitationController, ConsultationMemoryController],
 
   providers: [
     ChatGateway,

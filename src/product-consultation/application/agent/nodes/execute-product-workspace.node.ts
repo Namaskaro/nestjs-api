@@ -11,6 +11,8 @@ import { ProductAgentService } from '../product-agent.service';
 import { ProductAgentState } from '../product-agent.state';
 
 import { executeProductLane } from '../../workspace/execute-product-lane';
+import { captureEpisodeChange } from '../../workspace/capture-episode-change';
+import type { SupportAgentContext } from '@/src/support-agent/context/support-agent-context.schema';
 
 import { productActionPresentations } from '../../presentation/product-action-presentations';
 
@@ -405,6 +407,23 @@ export function createExecuteProductWorkspaceNode(
         : workspace.focus.filter((reference) =>
             workspace.tasks.some((task) => task.taskId === reference.taskId),
           );
+
+    const capture = config.context as Partial<SupportAgentContext> | undefined;
+    if (!handoffRequested && capture?.memoryCapture && capture.memorySourceMessageId === state.requestId) {
+      try {
+        const changes = outcomes.flatMap((outcome, index) => {
+          const displayed = groups.find((group) => group.taskId === outcome.task.taskId)?.products ?? [];
+          const change = captureEpisodeChange(operations[index].task, outcome, displayed.map(({ id }) => id));
+          if (!change) return [];
+          const task = workspace.tasks.find(({ taskId }) => taskId === change.taskKey);
+          if (task) task.memorySourceMessageId = state.requestId;
+          return [change];
+        });
+        if (changes.length) capture.memoryCapture({ sourceMessageId: state.requestId, changes });
+      } catch {
+        workspaceLogger.warn('Consultation memory evidence skipped');
+      }
+    }
 
     const single =
       outcomes.length === 1 && outcomes[0].actions.length === 1

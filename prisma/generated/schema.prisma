@@ -93,14 +93,18 @@ enum SupportCaseKind {
 }
 
 model Chat {
-  id             String   @id @default(uuid())
-  userId         String   @unique
-  operatorId     String?
-  mode           ChatMode @default(BOT)
-  lastMessageAt  DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  handoffVersion Int      @default(0)
+  consultationInputSeq        Int                       @default(0)
+  consultationAttemptId       String?
+  consultationSourceMessageId String?
+  consultationMemoryScopes    ConsultationMemoryScope[]
+  id                          String                    @id @default(uuid())
+  userId                      String                    @unique
+  operatorId                  String?
+  mode                        ChatMode                  @default(BOT)
+  lastMessageAt               DateTime                  @default(now())
+  createdAt                   DateTime                  @default(now())
+  updatedAt                   DateTime                  @updatedAt
+  handoffVersion              Int                       @default(0)
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   operator OperatorProfile? @relation(fields: [operatorId], references: [id], onDelete: SetNull)
@@ -114,17 +118,23 @@ model Chat {
 }
 
 model Message {
-  id        String                  @id @default(uuid())
-  chatId    String
-  authorId  String?
-  role      ConversationMessageRole
-  content   String                  @db.Text
-  payload   Json?
-  createdAt DateTime                @default(now())
+  consultationInputSeq     Int?
+  clientMessageId          String?
+  assistantSourceMessageId String?
+  expectsEpisodeProjection Boolean                 @default(false)
+  id                       String                  @id @default(uuid())
+  chatId                   String
+  authorId                 String?
+  role                     ConversationMessageRole
+  content                  String                  @db.Text
+  payload                  Json?
+  createdAt                DateTime                @default(now())
 
   chat   Chat  @relation(fields: [chatId], references: [id], onDelete: Cascade)
   author User? @relation("MessageAuthor", fields: [authorId], references: [id], onDelete: SetNull)
 
+  @@unique([chatId, clientMessageId])
+  @@unique([chatId, assistantSourceMessageId])
   @@index([chatId, createdAt])
   @@index([authorId])
 }
@@ -582,4 +592,96 @@ enum ShipmentStatus {
   EXCEPTION
   RETURNED
   UNKNOWN
+}
+
+enum ConsultationEpisodeStatus {
+  OPEN
+  CLOSED
+}
+
+enum ConsultationEpisodeOutcome {
+  PRODUCT_SELECTED
+  NO_MATCH
+  USER_CANCELLED
+  FINISHED_UNSPECIFIED
+}
+
+model ConsultationMemoryScope {
+  id                   String    @id @default(uuid())
+  storeKey             String
+  subjectKey           String
+  sourceKind           String
+  sourceKey            String
+  chatId               String?
+  memoryEpoch          Int       @default(0)
+  purgedThroughSeq     Int       @default(0)
+  offerSuppressedUntil DateTime?
+
+  chat     Chat?                     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  episodes ConsultationEpisode[]
+  offers   ConsultationResumeOffer[]
+  receipts ConsultationTurnReceipt[]
+
+  @@unique([storeKey, subjectKey, sourceKind, sourceKey], map: "consultation_memory_source_key")
+  @@unique([storeKey, chatId], map: "consultation_memory_chat_key")
+}
+
+model ConsultationEpisode {
+  id               String                      @id @default(uuid())
+  scopeId          String
+  taskKey          String
+  type             String                      @default("PRODUCT_SELECTION")
+  status           ConsultationEpisodeStatus   @default(OPEN)
+  outcome          ConsultationEpisodeOutcome?
+  schemaVersion    Int                         @default(1)
+  revision         Int                         @default(1)
+  contentRevision  Int                         @default(1)
+  snapshot         Json
+  lastMeaningfulAt DateTime
+  expiresAt        DateTime
+  closedAt         DateTime?
+
+  scope  ConsultationMemoryScope   @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+  offers ConsultationResumeOffer[]
+
+  @@unique([scopeId, taskKey])
+  @@index([scopeId, status, lastMeaningfulAt])
+  @@index([expiresAt])
+}
+
+model ConsultationResumeOffer {
+  id              String    @id @default(uuid())
+  scopeId         String
+  episodeId       String
+  episodeRevision Int
+  contentRevision Int
+  memoryEpoch     Int
+  inputSeq        Int
+  handoffVersion  Int
+  expiresAt       DateTime
+  decision        String?
+  decidedAt       DateTime?
+  consumedAt      DateTime?
+
+  scope   ConsultationMemoryScope @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+  episode ConsultationEpisode     @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@unique([episodeId, contentRevision])
+  @@index([scopeId, expiresAt])
+}
+
+model ConsultationTurnReceipt {
+  id                 String   @id @default(uuid())
+  scopeId            String
+  sourceMessageId    String
+  assistantMessageId String
+  inputSeq           Int
+  payloadHash        String
+  appliedRevisions   Json
+  expiresAt          DateTime
+
+  scope ConsultationMemoryScope @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+
+  @@unique([scopeId, sourceMessageId])
+  @@index([expiresAt])
 }

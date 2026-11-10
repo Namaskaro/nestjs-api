@@ -16,6 +16,7 @@ export const ProductWorkspaceSchema = z
       z
         .object({
           taskId: TaskIdSchema,
+          memorySourceMessageId: TaskIdSchema.optional(),
 
           query: z.string().trim().min(1).max(4000),
 
