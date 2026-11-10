@@ -10,6 +10,8 @@ import {
 } from '@langchain/langgraph';
 
 import type { OrdersService } from '@/src/modules/orders/orders.service';
+import type { RefundService } from '@/src/modules/orders/refund/refund.service';
+import type { OrderCancellationCaseService } from '@/src/modules/orders/cancellation/order-cancellation-case.service';
 
 import type { OrderRecord } from '@/src/modules/orders/core/order-record.schema';
 
@@ -27,6 +29,9 @@ import {
 } from '../order-agent.worker';
 
 const TRUSTED_USER_ID = 'trusted-user';
+const CANCELLATION_CASE_ID = 'cancellation-case-A';
+const INVALID_CONFIRMATION_MESSAGE =
+  'ConfirmOrderCancellation: неизвестное или устаревшее подтверждение';
 
 function createOrder(overrides: Partial<OrderRecord> = {}): OrderRecord {
   const date = new Date('2026-10-04T00:00:00.000Z');
@@ -55,7 +60,29 @@ function createOrder(overrides: Partial<OrderRecord> = {}): OrderRecord {
     deliveryProvider: null,
     paymentType: 'CARD',
     payments: [],
+    shipments: [],
     ...overrides,
+  };
+}
+
+function createPaidOrder(): OrderRecord {
+  const order = createOrder();
+
+  return {
+    ...order,
+    payments: [
+      {
+        id: 'payment-A',
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        orderId: order.id,
+        providerPaymentId: 'provider-payment-A',
+        amount: order.finalAmount,
+        status: 'SUCCEEDED',
+        paidAt: order.createdAt,
+        rawResponse: null,
+      },
+    ],
   };
 }
 
@@ -120,19 +147,46 @@ function createOrdersServiceMock(): jest.Mocked<OrdersService> {
     getOrderByNumber: jest.fn(),
     getLatestUserOrder: jest.fn(),
     getRelevantUserOrder: jest.fn(),
-    getOrderCancellationEligibility: jest.fn(),
     cancelOrder: jest.fn(),
   } as unknown as jest.Mocked<OrdersService>;
 }
 
-function createTestGraph(ordersService: OrdersService) {
+function createCancellationPortsMock() {
+  return {
+    refund: {
+      cancelAndRefund: jest
+        .fn<RefundService['cancelAndRefund']>()
+        .mockResolvedValue('SUCCEEDED'),
+    },
+    cancellationCase: {
+      createOrGet: jest
+        .fn<OrderCancellationCaseService['createOrGet']>()
+        .mockResolvedValue({
+          caseId: CANCELLATION_CASE_ID,
+          orderId: 'order-A',
+          orderNumber: '10482',
+          route: 'REFUND_BEFORE_SHIPPING',
+          alreadyExists: false,
+        }),
+    },
+  };
+}
+
+function createTestGraph(
+  ordersService: OrdersService,
+  ports: ReturnType<typeof createCancellationPortsMock>,
+) {
   return new StateGraph(SupportAgentState, SupportAgentContextSchema)
     .addNode('orderAgent', createOrderAgentWorker(ordersService), {
       ends: [END, 'aggregateAnswer', 'confirmOrderCancellation'],
     })
     .addNode(
       'confirmOrderCancellation',
-      createConfirmOrderCancellationNode(ordersService),
+      createConfirmOrderCancellationNode(
+        ordersService,
+        ports.refund as unknown as RefundService,
+        ports.cancellationCase as unknown as OrderCancellationCaseService,
+      ),
       {
         ends: [END, 'aggregateAnswer'],
       },
@@ -163,16 +217,16 @@ function selected(questionId: string) {
   });
 }
 
-function allowCancellation(
+function stubCancellationOrder(
   ordersService: jest.Mocked<OrdersService>,
   order: OrderRecord,
 ): void {
-  ordersService.getOrderCancellationEligibility.mockResolvedValue({
-    order,
-    eligibility: {
-      allowed: true,
-      reason: 'ALLOWED',
-    },
+  ordersService.getUserOrders.mockResolvedValue([order]);
+  ordersService.getOrderById.mockImplementation(async (userId, orderId) => {
+    expect(userId).toBe(TRUSTED_USER_ID);
+    expect(orderId).toBe(order.id);
+
+    return order;
   });
 }
 
@@ -219,19 +273,41 @@ async function interruptForConfirmation(
 
 describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
   let ordersService: jest.Mocked<OrdersService>;
+  let ports: ReturnType<typeof createCancellationPortsMock>;
 
   beforeEach(() => {
     ordersService = createOrdersServiceMock();
+    ports = createCancellationPortsMock();
   });
 
-  it('NO: does not call cancelOrder after declining', async () => {
-    const orderA = createOrder();
+  function expectNoCancellation() {
+    expect(ordersService.cancelOrder).not.toHaveBeenCalled();
+    expect(ports.cancellationCase.createOrGet).not.toHaveBeenCalled();
+    expect(ports.refund.cancelAndRefund).not.toHaveBeenCalled();
+  }
 
-    ordersService.getRelevantUserOrder.mockResolvedValue(orderA);
+  function expectPaidCancellation(chatId: string, orderId: string) {
+    expect(ordersService.cancelOrder).not.toHaveBeenCalled();
+    expect(ports.cancellationCase.createOrGet).toHaveBeenCalledTimes(1);
+    expect(ports.cancellationCase.createOrGet).toHaveBeenCalledWith(
+      TRUSTED_USER_ID,
+      chatId,
+      orderId,
+    );
+    expect(ports.refund.cancelAndRefund).toHaveBeenCalledTimes(1);
+    expect(ports.refund.cancelAndRefund).toHaveBeenCalledWith(
+      TRUSTED_USER_ID,
+      orderId,
+      CANCELLATION_CASE_ID,
+    );
+  }
 
-    allowCancellation(ordersService, orderA);
+  it('NO: does not start cancellation after declining', async () => {
+    const orderA = createPaidOrder();
 
-    const graph = createTestGraph(ordersService);
+    stubCancellationOrder(ordersService, orderA);
+
+    const graph = createTestGraph(ordersService, ports);
     const config = createConfig('cancel-no');
 
     const prompt = await interruptForConfirmation(graph, config);
@@ -239,11 +315,11 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
     expect(prompt.question).toContain('№10482');
     expect(prompt.question).not.toContain(orderA.id);
 
-    expect(ordersService.cancelOrder).not.toHaveBeenCalled();
+    expectNoCancellation();
 
     const result = await graph.invoke(selected(prompt.declineId), config);
 
-    expect(ordersService.cancelOrder).not.toHaveBeenCalled();
+    expectNoCancellation();
 
     expect(result.answer?.message).toContain('не отменяю');
 
@@ -252,21 +328,12 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
     expect(checkpoint.values.pendingOrderAction).toBeNull();
   });
 
-  it('YES: cancels precisely the order shown before interrupt', async () => {
-    const orderA = createOrder();
+  it('YES: requests refund and cancellation for the order shown before interrupt', async () => {
+    const orderA = createPaidOrder();
 
-    ordersService.getRelevantUserOrder.mockResolvedValue(orderA);
+    stubCancellationOrder(ordersService, orderA);
 
-    allowCancellation(ordersService, orderA);
-
-    ordersService.cancelOrder.mockResolvedValue(
-      createOrder({
-        id: orderA.id,
-        status: 'CANCELLED',
-      }),
-    );
-
-    const graph = createTestGraph(ordersService);
+    const graph = createTestGraph(ordersService, ports);
     const config = createConfig('cancel-yes');
 
     const prompt = await interruptForConfirmation(graph, config);
@@ -274,20 +341,14 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
     expect(prompt.question).toContain('№10482');
     expect(prompt.question).not.toContain(orderA.id);
 
+    expectNoCancellation();
     const result = await graph.invoke(selected(prompt.confirmId), config);
 
-    expect(ordersService.cancelOrder).toHaveBeenCalledTimes(1);
-
-    expect(ordersService.cancelOrder).toHaveBeenCalledWith(
+    expectPaidCancellation('cancel-yes', orderA.id);
+    expect(ordersService.getOrderById).toHaveBeenLastCalledWith(
       TRUSTED_USER_ID,
       orderA.id,
     );
-
-    expect(ordersService.getOrderCancellationEligibility).toHaveBeenCalledTimes(
-      2,
-    );
-
-    expect(ordersService.getRelevantUserOrder).toHaveBeenCalledTimes(1);
 
     expect(result.answer?.message).toContain('№10482');
     expect(result.answer?.message).not.toContain(orderA.id);
@@ -298,53 +359,16 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
   });
 
   it('TARGET CHANGED: cancels original A even when B becomes relevant', async () => {
-    const orderA = createOrder({
-      id: 'order-A',
-      number: '10482',
-      status: 'PROCESSING',
-    });
-
+    const orderA = createPaidOrder();
     const orderB = createOrder({
       id: 'order-B',
       number: '10483',
       status: 'SHIPPED',
     });
 
-    ordersService.getRelevantUserOrder
-      .mockResolvedValueOnce(orderA)
-      .mockResolvedValueOnce(orderB);
+    stubCancellationOrder(ordersService, orderA);
 
-    ordersService.getOrderCancellationEligibility.mockImplementation(
-      async (_userId: string, orderId: string) => {
-        if (orderId === orderA.id) {
-          return {
-            order: orderA,
-            eligibility: {
-              allowed: true,
-              reason: 'ALLOWED' as const,
-            },
-          };
-        }
-
-        return {
-          order: orderB,
-          eligibility: {
-            allowed: false,
-            reason: 'ALREADY_SHIPPED' as const,
-          },
-        };
-      },
-    );
-
-    ordersService.cancelOrder.mockResolvedValue(
-      createOrder({
-        id: orderA.id,
-        number: orderA.number,
-        status: 'CANCELLED',
-      }),
-    );
-
-    const graph = createTestGraph(ordersService);
+    const graph = createTestGraph(ordersService, ports);
 
     const config = createConfig('cancel-relevant-changed');
 
@@ -353,36 +377,30 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
     expect(prompt.question).toContain('№10482');
     expect(prompt.question).not.toContain(orderA.id);
 
+    ordersService.getUserOrders.mockResolvedValue([orderB, orderA]);
     const result = await graph.invoke(selected(prompt.confirmId), config);
 
-    expect(ordersService.getRelevantUserOrder).toHaveBeenCalledTimes(1);
-
-    expect(ordersService.getOrderCancellationEligibility).toHaveBeenCalledTimes(
-      2,
-    );
-
-    expect(
-      ordersService.getOrderCancellationEligibility,
-    ).not.toHaveBeenCalledWith(TRUSTED_USER_ID, orderB.id);
-
-    expect(ordersService.cancelOrder).toHaveBeenCalledTimes(1);
-
-    expect(ordersService.cancelOrder).toHaveBeenCalledWith(
+    expect(ordersService.getUserOrders).toHaveBeenLastCalledWith(TRUSTED_USER_ID);
+    expect(ordersService.getOrderById).toHaveBeenLastCalledWith(
       TRUSTED_USER_ID,
       orderA.id,
     );
+    expect(ordersService.getOrderById).not.toHaveBeenCalledWith(
+      TRUSTED_USER_ID,
+      orderB.id,
+    );
+    expectPaidCancellation('cancel-relevant-changed', orderA.id);
 
     expect(result.answer?.message).toContain('№10482');
+    expect(result.answer?.message).not.toContain('№10483');
   });
 
   it('TAMPERING: rejects forged confirmation for another order', async () => {
-    const orderA = createOrder();
+    const orderA = createPaidOrder();
 
-    ordersService.getRelevantUserOrder.mockResolvedValue(orderA);
+    stubCancellationOrder(ordersService, orderA);
 
-    allowCancellation(ordersService, orderA);
-
-    const graph = createTestGraph(ordersService);
+    const graph = createTestGraph(ordersService, ports);
 
     const config = createConfig('cancel-tampered');
 
@@ -395,20 +413,18 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
     expect(forgedId).not.toBe(prompt.confirmId);
 
     await expect(graph.invoke(selected(forgedId), config)).rejects.toThrow(
-      'неизвестное или устаревшее подтверждение отмены',
+      new Error(INVALID_CONFIRMATION_MESSAGE),
     );
 
-    expect(ordersService.cancelOrder).not.toHaveBeenCalled();
+    expectNoCancellation();
   });
 
   it('STALE CONFIRMATION: rejects confirmation from an older operation', async () => {
-    const orderA = createOrder();
+    const orderA = createPaidOrder();
 
-    ordersService.getRelevantUserOrder.mockResolvedValue(orderA);
+    stubCancellationOrder(ordersService, orderA);
 
-    allowCancellation(ordersService, orderA);
-
-    const graph = createTestGraph(ordersService);
+    const graph = createTestGraph(ordersService, ports);
 
     const config = createConfig('cancel-stale-confirmation');
 
@@ -416,7 +432,7 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
 
     await graph.invoke(selected(firstPrompt.declineId), config);
 
-    expect(ordersService.cancelOrder).not.toHaveBeenCalled();
+    expectNoCancellation();
 
     const secondPrompt = await interruptForConfirmation(graph, config);
 
@@ -424,9 +440,9 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
 
     await expect(
       graph.invoke(selected(firstPrompt.confirmId), config),
-    ).rejects.toThrow('неизвестное или устаревшее подтверждение отмены');
+    ).rejects.toThrow(new Error(INVALID_CONFIRMATION_MESSAGE));
 
-    expect(ordersService.cancelOrder).not.toHaveBeenCalled();
+    expectNoCancellation();
   });
 
   it('GET BY NUMBER: returns the requested order without exposing UUID', async () => {
@@ -434,7 +450,7 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
 
     ordersService.getOrderByNumber.mockResolvedValue(orderA);
 
-    const graph = createTestGraph(ordersService);
+    const graph = createTestGraph(ordersService, ports);
 
     const result = await graph.invoke(
       createState('GET', '10482'),
@@ -455,7 +471,7 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
   it('GET BY NUMBER: does not fall back to a different order', async () => {
     ordersService.getOrderByNumber.mockResolvedValue(null);
 
-    const graph = createTestGraph(ordersService);
+    const graph = createTestGraph(ordersService, ports);
 
     const result = await graph.invoke(
       createState('GET', '99999'),
@@ -472,11 +488,12 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
     const orderA = createOrder({
       id: 'internal-order-id',
       number: '10482',
+      status: 'PENDING_PAYMENT',
     });
 
     ordersService.getOrderByNumber.mockResolvedValue(orderA);
 
-    allowCancellation(ordersService, orderA);
+    stubCancellationOrder(ordersService, orderA);
 
     ordersService.cancelOrder.mockResolvedValue(
       createOrder({
@@ -486,7 +503,7 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
       }),
     );
 
-    const graph = createTestGraph(ordersService);
+    const graph = createTestGraph(ordersService, ports);
     const config = createConfig('cancel-by-number');
 
     const prompt = await interruptForConfirmation(graph, config, '10482');
@@ -509,5 +526,7 @@ describe('OrderAgentWorker: offline LangGraph CANCEL interrupt/resume', () => {
     );
 
     expect(ordersService.getOrderByNumber).toHaveBeenCalledTimes(1);
+    expect(ports.cancellationCase.createOrGet).not.toHaveBeenCalled();
+    expect(ports.refund.cancelAndRefund).not.toHaveBeenCalled();
   });
 });

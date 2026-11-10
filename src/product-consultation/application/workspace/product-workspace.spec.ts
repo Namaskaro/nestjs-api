@@ -495,30 +495,41 @@ describe('Product workspace: real graph with offline model boundary', () => {
       'CLOTHES',
     );
 
-    suit.decision.proposal.memoryObservations = [
-      {
-        kind: 'goal',
-
-        operation: 'remember',
-
-        text: 'на свадьбу',
-
-        importance: 'normal',
-
-        sourceText: 'костюм на свадьбу',
-      },
-    ];
-
-    const h = harness(
-      plan(
-        nike,
-
-        suit,
-      ),
+    const h = harness(plan(nike, suit));
+    const first = await h.run(
+      'Найди женские Nike 42 размера и костюм на свадьбу',
     );
 
+    // Persisted backend-owned memory is the input to REFINE.
+    const weddingGoal = {
+      goalId: 'goal-wedding',
+      text: 'на свадьбу',
+      importance: 'normal',
+      sourceText: 'костюм на свадьбу',
+    } as const;
+    const suitMemory = first.workspace.tasks[1].record.state!.memory;
+    suitMemory.memory.goals.push(weddingGoal);
+    suitMemory.revision += 1;
+
+    const refine = (index: number, sourceText: string, semanticIntent: string) =>
+      existing(
+        'REFINE',
+        { searchPatch: { semanticIntent, set: [], clear: [] } },
+        named(first.workspace, index, sourceText),
+        semanticIntent,
+      );
+
+    h.setPlan(
+      plan(
+        refine(0, 'Nike', 'женские Nike 42 размера для прогулок'),
+        refine(1, 'костюм', 'костюм на свадьбу из лёгкой ткани'),
+      ),
+    );
+    h.service.search.mockClear();
+
     const result = await h.run(
-      'Найди женские Nike 42 размера и костюм на свадьбу',
+      'Nike нужны для прогулок, а костюм на свадьбу из лёгкой ткани',
+      first.workspace,
     );
 
     expect(
@@ -533,9 +544,9 @@ describe('Product workspace: real graph with offline model boundary', () => {
       [],
     );
 
-    expect(
-      result.workspace.tasks[1].record.state!.memory.memory.goals[0].text,
-    ).toBe('на свадьбу');
+    expect(result.workspace.tasks[1].record.state!.memory.memory.goals).toEqual([
+      weddingGoal,
+    ]);
   });
 
   it('MI-04 adding a task preserves existing task, memory, results and revision', async () => {
