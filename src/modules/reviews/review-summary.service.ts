@@ -108,17 +108,22 @@ export class ReviewSummaryService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.generate(job.productId, token, signal, renew);
     } catch (error) {
-      const row = await this.prisma.reviewSummary.findUnique({
-        where: { productId: job.productId },
+      const row = await this.prisma.reviewSummary.findFirst({
+        where: {
+          productId: job.productId,
+          leaseToken: token,
+          nextAttemptAt: { not: null },
+        },
         select: { attemptCount: true },
       });
+      if (!row) return;
       const code =
         error instanceof Error && /^REVIEW_SUMMARY_[A-Z_]+$/.test(error.message)
           ? error.message
           : 'REVIEW_SUMMARY_GENERATION_FAILED';
       const retryable = !/BUDGET|CONFIGURATION|EMPTY_CORPUS/.test(code);
       const delay = [30_000, 120_000, 600_000, 3_600_000][
-        Math.min((row?.attemptCount ?? 1) - 1, 3)
+        Math.min(Math.max(row.attemptCount - 1, 0), 3)
       ];
       await this.prisma.reviewSummary.updateMany({
         // Удаление могло уже отменить задачу — не восстанавливаем её из catch.
@@ -139,7 +144,7 @@ export class ReviewSummaryService implements OnModuleInit, OnModuleDestroy {
         event: 'review_summary_attempt_failed',
         productId: job.productId,
         code,
-        attempt: row?.attemptCount,
+        attempt: row.attemptCount,
       });
     } finally {
       clearInterval(heartbeat);

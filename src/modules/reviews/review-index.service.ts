@@ -304,12 +304,13 @@ export class ReviewIndexService implements OnModuleInit, OnModuleDestroy {
           },
         });
       } catch {
-        const state = await this.prisma.review.findUnique({
-          where: { id: job.id },
+        const state = await this.prisma.review.findFirst({
+          where: { id: job.id, indexLeaseToken: token },
           select: { indexAttempts: true },
         });
+        if (!state) continue;
         const delay = [30_000, 120_000, 600_000, 3_600_000][
-          Math.min((state?.indexAttempts ?? 1) - 1, 3)
+          Math.min(Math.max(state.indexAttempts - 1, 0), 3)
         ];
         await this.prisma.review.updateMany({
           where: { id: job.id, indexLeaseToken: token },
@@ -322,8 +323,8 @@ export class ReviewIndexService implements OnModuleInit, OnModuleDestroy {
         this.logger.warn({
           event: 'review_index_attempt_failed',
           reviewId: job.id,
-          attempts: state?.indexAttempts,
-          exhausted: (state?.indexAttempts ?? 0) >= MAX_ATTEMPTS,
+          attempts: state.indexAttempts,
+          exhausted: state.indexAttempts >= MAX_ATTEMPTS,
         });
       } finally {
         clearInterval(heartbeat);

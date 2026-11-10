@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: pgvector/pgvector@sha256:18d16372b8406bb38a9f94cbff15d125c463d71fde2770aa8b5c64bfcc1578ee
+    environment:
+      POSTGRES_USER: support_engine_it
+      POSTGRES_PASSWORD: ${SUPPORT_ENGINE_IT_KEY:?Use the integration runner}
+      POSTGRES_DB: support_engine_it
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - '127.0.0.1::5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [test]
+    healthcheck:
+      test: [CMD, pg_isready, -h, 127.0.0.1, -U, support_engine_it, -d, support_engine_it]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  qdrant:
+    image: qdrant/qdrant:v1.19.0@sha256:057ee3a8da769fe7310dd3537b4dc7583bf87a95ce8ac43c0af5a46bc580d1fc
+    environment:
+      QDRANT__SERVICE__API_KEY: ${SUPPORT_ENGINE_IT_KEY:?Use the integration runner}
+      QDRANT__TELEMETRY_DISABLED: 'true'
+    ports:
+      - '127.0.0.1::6333'
+    volumes:
+      - qdrantdata:/qdrant/storage
+    networks: [test]
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -ec
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/6333;
+          printf 'GET /readyz HTTP/1.0\r\n\r\n' >&3;
+          IFS= read -r status <&3;
+          [[ "$$status" == "HTTP/1."*" 200 "* ]]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+networks:
+  test:
+    driver: bridge
+
+volumes:
+  pgdata:
+  qdrantdata:
