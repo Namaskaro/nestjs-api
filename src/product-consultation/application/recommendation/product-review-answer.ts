@@ -93,7 +93,7 @@ export async function answerProductReviewQuestion(
   return {
     message: output.message,
     sources: output.usedPositions.map((position) => {
-      const row = selected[position - 1];
+      const row = current[position - 1];
       return {
         productId: row.productId,
         reviewId: row.reviewId,
@@ -103,6 +103,7 @@ export async function answerProductReviewQuestion(
         text: row.text,
         publishedAt: row.publishedAt.toISOString(),
         authorName: row.author.name,
+        ...(row.sourceKind === 'review' ? { rating: row.rating } : {}),
       };
     }),
   };

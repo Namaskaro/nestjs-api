@@ -101,6 +101,7 @@ export const ProductReviewAnswerSchema = z.object({
         text: z.string().min(1).max(4000),
         publishedAt: z.string().datetime(),
         authorName: z.string(),
+        rating: z.number().int().min(1).max(5).optional(),
       }),
     )
     .max(4),
@@ -110,6 +111,25 @@ export type ProductReviewExperience = z.infer<
   typeof ProductReviewExperienceSchema
 >;
 export type ProductReviewAnswer = z.infer<typeof ProductReviewAnswerSchema>;
+
+export const RecommendationReviewEvidenceSchema = z.object({
+  products: z
+    .array(
+      z.object({
+        productId: IdSchema,
+        title: z.string(),
+        averageRating: ProductReviewExperienceSchema.shape.averageRating,
+        ratingCount: ProductReviewExperienceSchema.shape.ratingCount,
+      }),
+    )
+    .min(1)
+    .max(25),
+  summary: ProductReviewExperienceSchema.shape.summary,
+});
+
+export type RecommendationReviewEvidence = z.infer<
+  typeof RecommendationReviewEvidenceSchema
+>;
 
 export const ProductDetailsPresentationSchema = z.object({
   needId: IdSchema,

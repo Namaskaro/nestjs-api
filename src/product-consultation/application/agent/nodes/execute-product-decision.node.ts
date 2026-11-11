@@ -29,7 +29,11 @@ import { buildProductConsultationContext } from '@/src/product-consultation/appl
 
 import { createProductRecommendationSynthesizer } from '@/src/product-consultation/application/recommendation/product-recommendation-synthesizer';
 import { answerProductReviewQuestion } from '../../recommendation/product-review-answer';
-import { ProductReviewExperienceSchema } from '../../presentation/product-presentation.schema';
+import {
+  ProductReviewExperienceSchema,
+  RecommendationReviewEvidenceSchema,
+  type RecommendationReviewEvidence,
+} from '../../presentation/product-presentation.schema';
 
 import { finalizeComparisonPresentation } from '@/src/product-consultation/application/presentation/comparison-presentation';
 
@@ -64,6 +68,7 @@ export type ProductTaskExecutionResult = Pick<
   recommendationProductIds?: string[];
 
   recommendationProduct?: ProductItem;
+  recommendationReviewEvidence?: RecommendationReviewEvidence;
 
   recovery?: ZeroResultRecovery;
 };
@@ -423,7 +428,7 @@ export function createExecuteProductDecisionNode(
           comparison: capability.comparison,
 
           products: capability.selectedProducts,
-          averageRatings: await productAgentService.getProductRatings(
+          reviewStats: await productAgentService.getProductReviewStats(
             capability.selectedProducts.map((product) => product.id),
           ),
 
@@ -554,6 +559,21 @@ export function createExecuteProductDecisionNode(
         );
       }
 
+      const reviewRatings = capability.selectedProducts.flatMap(
+        ({ id, title }) => {
+          const experience = reviewExperience.get(id);
+          return experience
+            ? [
+                {
+                  productId: id,
+                  title,
+                  averageRating: experience.averageRating,
+                  ratingCount: experience.ratingCount,
+                },
+              ]
+            : [];
+        },
+      );
       return {
         consultationRecord: record,
 
@@ -566,6 +586,17 @@ export function createExecuteProductDecisionNode(
         recommendationProductIds: [recommendationProduct.id],
 
         recommendationProduct,
+        ...(reviewRatings.length
+          ? {
+              recommendationReviewEvidence:
+                RecommendationReviewEvidenceSchema.parse({
+                  products: reviewRatings,
+                  summary:
+                    reviewExperience.get(recommendationProduct.id)?.summary ??
+                    null,
+                }),
+            }
+          : {}),
       };
     } catch {
       return {

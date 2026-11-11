@@ -43,6 +43,7 @@ export const ComparisonPresentationProductSchema = ProductSnapshotSchema.extend(
   {
     position: z.number().int().min(1).max(4),
     averageRating: z.number().min(1).max(5).nullable().optional(),
+    ratingCount: z.number().int().nonnegative().optional(),
   },
 );
 

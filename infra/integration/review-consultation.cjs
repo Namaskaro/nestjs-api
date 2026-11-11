@@ -208,14 +208,27 @@ async function consultationCases(context, f) {
   const compare = await run('COMPARE', [1, 2]);
   assert.deepEqual(
     compare.consultation?.comparisonPresentation?.products.map(
-      ({ averageRating }) => averageRating,
+      ({ averageRating, ratingCount }) => [averageRating, ratingCount],
     ),
-    [5, 1],
+    [
+      [5, 1],
+      [1, 1],
+    ],
   );
   assert.equal(ai.modelCalls.length, count);
   assert.equal(ai.queryCalls.length, embeddingCount);
   const recommend = await run('RECOMMEND', [1, 3]);
   assert.deepEqual(recommend.recommendationProductIds, [f.main]);
+  assert.deepEqual(
+    recommend.recommendationReviewEvidence.products.map(
+      ({ productId, ratingCount }) => [productId, ratingCount],
+    ),
+    [
+      [f.main, 1],
+      [f.corpus, 19],
+    ],
+  );
+  assert.equal(recommend.recommendationReviewEvidence.summary, null);
   const recoCalls = ai.modelCalls.slice(count);
   assert.deepEqual(
     recoCalls.map(({ name }) => name),
@@ -235,11 +248,12 @@ async function consultationCases(context, f) {
   const presentation = qa.consultation?.productDetailsPresentation;
   assert.equal(presentation?.reviewExperience.averageRating, 5);
   assert.deepEqual(
-    presentation.reviewAnswer.sources.map(({ sourceId, productId }) => [
+    presentation.reviewAnswer.sources.map(({ sourceId, productId, rating }) => [
       sourceId,
       productId,
+      rating,
     ]),
-    [[f.primary.publicationId, f.main]],
+    [[f.primary.publicationId, f.main, 5]],
   );
   const qaCall = ai.modelCalls.at(-1);
   assert.equal(qaCall.name, 'product_review_answer');

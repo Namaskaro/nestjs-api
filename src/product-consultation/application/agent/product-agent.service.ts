@@ -49,9 +49,14 @@ export class ProductAgentService implements ProductSearchPort {
     return this.reviewIndex.search(productId, query, signal);
   }
 
-  public async getProductRatings(productIds: readonly string[]) {
+  public async getProductReviewStats(productIds: readonly string[]) {
     const stats = await this.reviews.getProductStatsBatch(productIds);
-    return new Map([...stats].map(([id, value]) => [id, value.averageRating]));
+    return new Map(
+      [...stats].map(
+        ([id, { averageRating, ratingCount }]) =>
+          [id, { averageRating, ratingCount }] as const,
+      ),
+    );
   }
 
   public resolveReviewSources(

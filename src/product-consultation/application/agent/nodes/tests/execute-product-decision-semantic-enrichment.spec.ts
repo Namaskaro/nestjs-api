@@ -429,7 +429,7 @@ function createProductAgentService() {
   const service = {
     validate,
     getReviewExperience: jest.fn(async () => new Map()),
-    getProductRatings: jest.fn(async () => new Map()),
+    getProductReviewStats: jest.fn(async () => new Map()),
 
     search,
 
@@ -580,6 +580,18 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     expect(result.message).toBe('Для этой задачи лучше подходит Campus 00s.');
 
     expect(result.recommendationProductIds).toEqual(['adidas-2']);
+    expect(result.recommendationReviewEvidence).toMatchObject({
+      products: [
+        { productId: 'adidas-2', averageRating: 4.4, ratingCount: 20 },
+      ],
+      summary: {
+        sourceReviewCount: 20,
+        negativeImpressions: ['Жёсткая посадка'],
+      },
+    });
+    expect(result.recommendationReviewEvidence?.summary).not.toHaveProperty(
+      'sourceVersion',
+    );
 
     expect(result.recommendationProduct).toEqual({
       id: 'adidas-2',
@@ -642,6 +654,7 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     expect(result.recommendationProductIds).toEqual(['adidas-2']);
 
     expect(result.recommendationProduct?.id).toBe('adidas-2');
+    expect(result.recommendationReviewEvidence).toBeUndefined();
   });
 
   it('does not read semantic representations for DETAILS', async () => {
@@ -684,10 +697,10 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     const ai = createAiService();
 
     const productAgent = createProductAgentService();
-    (productAgent.service.getProductRatings as jest.Mock).mockResolvedValue(
+    (productAgent.service.getProductReviewStats as jest.Mock).mockResolvedValue(
       new Map([
-        ['adidas-1', 4.4],
-        ['adidas-2', null],
+        ['adidas-1', { averageRating: 4.4, ratingCount: 20 }],
+        ['adidas-2', { averageRating: null, ratingCount: 0 }],
       ]),
     );
 
@@ -775,6 +788,10 @@ describe('ExecuteProductDecision semantic enrichment wiring', () => {
     expect(
       presentation?.products.map((product) => product.averageRating),
     ).toEqual([4.4, null]);
+    expect(
+      presentation?.products.map(({ ratingCount }) => ratingCount),
+    ).toEqual([20, 0]);
+    expect(productAgent.service.getProductReviewStats).toHaveBeenCalledTimes(1);
     expect(productAgent.service.getReviewExperience).not.toHaveBeenCalled();
 
     expect(presentation?.rows.map((row) => row.attributeId)).toEqual([

@@ -362,7 +362,7 @@ export function harness(initial = plan(newSearch('кроссовки'))) {
       async (_ids: readonly string[]) => new Map(),
     ),
     getReviewExperience: jest.fn(async () => new Map()),
-    getProductRatings: jest.fn(async () => new Map()),
+    getProductReviewStats: jest.fn(async () => new Map()),
   };
 
   const agent = createProductAgent(
