@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
 export class SendMessageDto {
   @IsUUID()
@@ -11,6 +11,10 @@ export class SendMessageDto {
   @IsOptional()
   @IsUUID()
   continuationOfferId?: string;
+
+  @IsOptional()
+  @IsIn(['resume_unchanged'])
+  consultationAction?: 'resume_unchanged';
 
   @IsString()
   @MinLength(1)

@@ -3,6 +3,7 @@ import type { ConsultationMemoryCandidate, ConsultationMemoryContinuation } from
 
 export const SupportAgentContextSchema = z.object({
   userId: z.string().trim().min(1),
+  consultationAction: z.enum(['resume_unchanged', 'start_new']).optional(),
   memorySourceMessageId: z.string().optional(),
   memoryContinuation: z.custom<ConsultationMemoryContinuation>().optional(),
   memoryWitnesses: z.record(z.string(), z.object({ revision: z.number(), sourceMessageId: z.string().nullable() })).optional(),

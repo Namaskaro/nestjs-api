@@ -1,21 +1,19 @@
 import { z } from 'zod';
+import type { MemoryConstraint } from './memory.contract';
 
 const ref = z.string().trim().min(1).max(160);
 const key = z.object({
-  attributeId: z.enum(['category', 'subcategory', 'brand', 'color', 'price', 'sizes']),
+  attributeId: z.string().min(1).max(80).regex(/^[a-zA-Z0-9_.-]+$/),
   operator: z.enum(['eq', 'contains', 'lte', 'gte']),
 });
 const constraint = key.extend({
   value: z.union([z.string().trim().min(1).max(120), z.number().finite(), z.boolean()]),
   unit: z.string().trim().min(1).max(24).nullable(),
-}).superRefine((value, ctx) => {
-  if (value.attributeId === 'price' &&
-      (typeof value.value !== 'number' || value.value < 0 || value.value > 1_000_000_000 || value.operator === 'contains')) {
-    ctx.addIssue({ code: 'custom', message: 'Invalid price constraint' });
-  }
 });
+
 const criteria = z.object({
   profileId: ref.nullable().optional(),
+  goalKey: ref.nullable().optional(),
   set: z.array(constraint).max(24).optional(),
   clear: z.array(key).max(24).optional(),
 }).strict();
@@ -42,16 +40,27 @@ export const memoryCandidateSchema = z.object({
 
 export const memorySnapshotSchema = z.object({
   profileId: ref.nullable(),
+  goalKey: ref.nullable().optional(),
   constraints: z.array(constraint).max(24),
   considered: z.array(ref).max(20),
   compared: z.array(ref).max(20),
   recommended: z.array(ref).max(5),
   lastSourceMessageId: ref.nullable(),
 }).strict();
-export type MemorySnapshot = z.infer<typeof memorySnapshotSchema>;
+export interface MemorySnapshot {
+  profileId: string | null;
+  goalKey?: string | null;
+  constraints: MemoryConstraint[];
+  considered: string[];
+  compared: string[];
+  recommended: string[];
+  lastSourceMessageId: string | null;
+}
 
 export const MEMORY_DAY_MS = 86_400_000;
 export const MEMORY_RETENTION_MS = 90 * MEMORY_DAY_MS;
+export const MEMORY_OFFER_AFTER_MS = 7 * MEMORY_DAY_MS;
+export const MEMORY_PAUSE_AFTER_MS = 14 * MEMORY_DAY_MS;
 
 const emptySnapshot: MemorySnapshot = {
   profileId: null, constraints: [], considered: [], compared: [], recommended: [], lastSourceMessageId: null,
@@ -69,10 +78,11 @@ export function applyEpisodeChange(
   const old = previous ?? emptySnapshot;
   const constraints = new Map<string, MemorySnapshot['constraints'][number]>(old.constraints.map((value) => [constraintKey(value), value]));
   for (const cleared of change.criteria?.clear ?? []) constraints.delete(constraintKey(cleared));
-  for (const value of change.criteria?.set ?? []) constraints.set(constraintKey(value), value);
+  for (const value of change.criteria?.set ?? []) constraints.set(constraintKey(value), value as MemoryConstraint);
 
   const next = memorySnapshotSchema.parse({
     profileId: change.criteria?.profileId === undefined ? old.profileId : change.criteria.profileId,
+    ...(change.criteria?.goalKey !== undefined ? { goalKey: change.criteria.goalKey } : old.goalKey !== undefined ? { goalKey: old.goalKey } : {}),
     constraints: [...constraints.values()].sort((a, b) => constraintKey(a).localeCompare(constraintKey(b))),
     considered: [...new Set([...(change.considered ?? []), ...old.considered])].slice(0, 20),
     compared: change.compared ? [...new Set(change.compared)] : old.compared,
@@ -81,5 +91,5 @@ export function applyEpisodeChange(
   });
   const { lastSourceMessageId: ignoredOld, ...oldContent } = old;
   const { lastSourceMessageId: ignoredNew, ...newContent } = next;
-  return { snapshot: next, contentChanged: JSON.stringify(oldContent) !== JSON.stringify(newContent) };
+  return { snapshot: next as MemorySnapshot, contentChanged: JSON.stringify(oldContent) !== JSON.stringify(newContent) };
 }

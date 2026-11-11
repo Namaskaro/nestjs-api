@@ -124,16 +124,16 @@ export function createProductAgentWorker(
 
     touchConsultationSession(productContext, []);
 
-    const guarded = filterMemoryContext(
-      state.productWorkspace, state.messages, config.context as Partial<SupportAgentContext> | undefined,
-    );
+    const context = config.context as Partial<SupportAgentContext> | undefined;
+    const guarded = filterMemoryContext(state.productWorkspace, state.messages, context);
     const result = await productAgent.invoke(
       {
         query: state.query,
         sourceQuery: sourceQueryFromState(state),
         conversationId: conversationIdFromConfig(config),
         requestId: requestIdFromState(state),
-        recentMessages: recentMessagesFromState({ ...state, messages: guarded.messages }),
+        recentMessages: context?.consultationAction === 'start_new' ? [] : recentMessagesFromState({ ...state, messages: guarded.messages }),
+        resumeUnchanged: context?.consultationAction === 'resume_unchanged',
         workspace:
           guarded.workspace ??
           createProductWorkspace(state.productConsultationRecord),

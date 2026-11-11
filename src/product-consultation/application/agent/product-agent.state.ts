@@ -14,6 +14,8 @@ import { ProductAgentAnswerSchema } from './agreagte-answer.schema';
 export const ProductAgentState = new StateSchema({
   query: z.string().min(1),
 
+  resumeUnchanged: z.boolean().default(false),
+
   sourceQuery: z.string().trim().min(1).max(4000).nullable().default(null),
 
   conversationId: z.string().trim().min(1),

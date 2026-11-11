@@ -95,6 +95,8 @@ enum SupportCaseKind {
 
 model Chat {
   consultationInputSeq Int @default(0)
+  consultationNextInputSeq Int?
+  consultationNextHandoffVersion Int?
   consultationAttemptId String?
   consultationSourceMessageId String?
   consultationMemoryScopes ConsultationMemoryScope[]
@@ -688,4 +690,38 @@ model ConsultationTurnReceipt {
 
   @@unique([scopeId, sourceMessageId])
   @@index([expiresAt])
+}
+
+model UserContextScope {
+  id         String            @id @default(uuid())
+  storeKey   String
+  subjectKey String
+  revision   Int               @default(0)
+  facts      UserContextFact[]
+
+  @@unique([storeKey, subjectKey])
+}
+
+model UserContextFact {
+  id                  String           @id @default(uuid())
+  scopeId             String
+  domainKey           String
+  preferenceKey       String
+  value               Json
+  confirmation        String           @default("CONFIRMED")
+  commandId           String
+  sourceKind          String
+  sourceKey           String
+  sourceEpisodeId     String
+  sourceEpisodeRevision Int
+  sourceAttributeId   String
+  sourceOperator      String
+  observedAt          DateTime
+  confirmedAt         DateTime
+  updatedAt           DateTime
+
+  scope UserContextScope @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+
+  @@unique([scopeId, domainKey, preferenceKey])
+  @@index([scopeId, sourceKind, sourceKey, sourceEpisodeId])
 }

@@ -415,6 +415,17 @@ export class AuthService {
     return safeUser;
   }
 
+  public async getSocketIdentity(token: string) {
+    const { sub } = await this.verifyAccess<{ sub: string }>(token);
+    if (typeof sub !== 'string' || !sub) throw new UnauthorizedException();
+    const user = await this.prismaService.user.findUnique({
+      where: { id: sub },
+      select: { id: true, role: true },
+    });
+    if (!user) throw new UnauthorizedException();
+    return user;
+  }
+
   public async getUserByAccessToken(accessToken: string): Promise<User> {
     try {
       const payload = await this.verifyAccess<{

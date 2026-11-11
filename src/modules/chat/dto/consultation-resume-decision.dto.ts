@@ -7,6 +7,6 @@ export class ConsultationResumeDecisionDto {
   @IsUUID()
   offerId: string;
 
-  @IsIn(['continue', 'later'])
-  decision: 'continue' | 'later';
+  @IsIn(['continue', 'later', 'start_new'])
+  decision: 'continue' | 'later' | 'start_new';
 }

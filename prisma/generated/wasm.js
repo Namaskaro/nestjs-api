@@ -163,6 +163,8 @@ exports.Prisma.SupportCaseScalarFieldEnum = {
 
 exports.Prisma.ChatScalarFieldEnum = {
   consultationInputSeq: 'consultationInputSeq',
+  consultationNextInputSeq: 'consultationNextInputSeq',
+  consultationNextHandoffVersion: 'consultationNextHandoffVersion',
   consultationAttemptId: 'consultationAttemptId',
   consultationSourceMessageId: 'consultationSourceMessageId',
   id: 'id',
@@ -443,6 +445,32 @@ exports.Prisma.ConsultationTurnReceiptScalarFieldEnum = {
   expiresAt: 'expiresAt'
 };
 
+exports.Prisma.UserContextScopeScalarFieldEnum = {
+  id: 'id',
+  storeKey: 'storeKey',
+  subjectKey: 'subjectKey',
+  revision: 'revision'
+};
+
+exports.Prisma.UserContextFactScalarFieldEnum = {
+  id: 'id',
+  scopeId: 'scopeId',
+  domainKey: 'domainKey',
+  preferenceKey: 'preferenceKey',
+  value: 'value',
+  confirmation: 'confirmation',
+  commandId: 'commandId',
+  sourceKind: 'sourceKind',
+  sourceKey: 'sourceKey',
+  sourceEpisodeId: 'sourceEpisodeId',
+  sourceEpisodeRevision: 'sourceEpisodeRevision',
+  sourceAttributeId: 'sourceAttributeId',
+  sourceOperator: 'sourceOperator',
+  observedAt: 'observedAt',
+  confirmedAt: 'confirmedAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -622,7 +650,9 @@ exports.Prisma.ModelName = {
   ConsultationMemoryScope: 'ConsultationMemoryScope',
   ConsultationEpisode: 'ConsultationEpisode',
   ConsultationResumeOffer: 'ConsultationResumeOffer',
-  ConsultationTurnReceipt: 'ConsultationTurnReceipt'
+  ConsultationTurnReceipt: 'ConsultationTurnReceipt',
+  UserContextScope: 'UserContextScope',
+  UserContextFact: 'UserContextFact'
 };
 
 /**

@@ -27,7 +27,9 @@ import { UserService } from '../user/user.service';
 import { WsUser } from './entities/ws-user.entity';
 import { ConsultationMemoryService } from '@/src/consultation-memory/consultation-memory.service';
 import {
+  consultationActionField,
   consultationContinuationOfferIdField,
+  getConsultationAction,
   getConsultationContinuationOfferId,
   type ConsultationMemoryAdmission,
   type ConsultationMemoryBasis,
@@ -273,16 +275,23 @@ export class ChatService {
     clientMessageId?: string;
     continuationOfferId?: string;
     continuationAllowed?: boolean;
+    consultationAction?: 'resume_unchanged';
   }) {
     return this.prismaService.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<Array<LockedChat & { consultationInputSeq: number }>>`
+      const rows = await tx.$queryRaw<Array<LockedChat & {
+        consultationInputSeq: number;
+        consultationNextInputSeq: number | null;
+        consultationNextHandoffVersion: number | null;
+      }>>`
         SELECT
           "id",
           "userId",
           "operatorId",
           "mode",
           "handoffVersion",
-          "consultationInputSeq"
+          "consultationInputSeq",
+          "consultationNextInputSeq",
+          "consultationNextHandoffVersion"
         FROM "Chat"
         WHERE "id" = ${params.chatId}
         FOR UPDATE
@@ -350,7 +359,8 @@ export class ChatService {
         });
         if (message) {
           if (message.authorId !== params.userId || message.content !== params.content ||
-              getConsultationContinuationOfferId(message.payload) !== params.continuationOfferId) {
+              getConsultationContinuationOfferId(message.payload) !== params.continuationOfferId ||
+              (getConsultationAction(message.payload) === 'resume_unchanged') !== (params.consultationAction === 'resume_unchanged')) {
             throw new ConflictException('Идентификатор сообщения уже используется.');
           }
           const previousReply = await tx.message.findUnique({
@@ -363,6 +373,13 @@ export class ChatService {
       const inputSeq = isCustomer && chat.mode === ChatMode.BOT && params.trackConsultation
         ? chat.consultationInputSeq + 1 : null;
       const attemptId = inputSeq === null ? null : uuidv4();
+      const fresh = inputSeq !== null && params.continuationAllowed !== false &&
+        chat.consultationNextInputSeq === chat.consultationInputSeq &&
+        chat.consultationNextHandoffVersion === chat.handoffVersion;
+      if (params.consultationAction && (!params.continuationOfferId || !clientMessageId)) {
+        throw new BadRequestException('Для продолжения нужен действующий выбор подбора.');
+      }
+      const consultationAction = fresh ? 'start_new' : params.consultationAction;
       if (params.continuationOfferId) {
         if (inputSeq === null || params.continuationAllowed === false || !this.consultationMemory) {
           throw new ConflictException('Продолжение подбора недоступно.');
@@ -377,8 +394,14 @@ export class ChatService {
           role,
           content: params.content,
           payload: params.continuationOfferId
-            ? { [consultationContinuationOfferIdField]: params.continuationOfferId }
-            : params.payload,
+            ? {
+                [consultationContinuationOfferIdField]: params.continuationOfferId,
+                ...(consultationAction ? { [consultationActionField]: consultationAction } : {}),
+              }
+            : consultationAction ? {
+                ...(isJsonObject(params.payload as Prisma.JsonValue) ? params.payload as Prisma.InputJsonObject : {}),
+                [consultationActionField]: consultationAction,
+              } : params.payload,
           ...(clientMessageId ? { clientMessageId } : {}),
           ...(inputSeq !== null ? { consultationInputSeq: inputSeq } : {}),
         },
@@ -392,6 +415,7 @@ export class ChatService {
           lastMessageAt: message.createdAt,
           ...(inputSeq !== null ? { consultationInputSeq: inputSeq, consultationAttemptId: attemptId,
             consultationSourceMessageId: message.id } : {}),
+          ...(isCustomer ? { consultationNextInputSeq: null, consultationNextHandoffVersion: null } : {}),
         },
       });
       const admission: ConsultationMemoryAdmission | null = inputSeq === null ? null : {

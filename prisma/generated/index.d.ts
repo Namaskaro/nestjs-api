@@ -143,6 +143,16 @@ export type ConsultationResumeOffer = $Result.DefaultSelection<Prisma.$Consultat
  *
  */
 export type ConsultationTurnReceipt = $Result.DefaultSelection<Prisma.$ConsultationTurnReceiptPayload>
+/**
+ * Model UserContextScope
+ *
+ */
+export type UserContextScope = $Result.DefaultSelection<Prisma.$UserContextScopePayload>
+/**
+ * Model UserContextFact
+ *
+ */
+export type UserContextFact = $Result.DefaultSelection<Prisma.$UserContextFactPayload>
 
 /**
  * Enums
@@ -804,6 +814,26 @@ export class PrismaClient<
     * ```
     */
   get consultationTurnReceipt(): Prisma.ConsultationTurnReceiptDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userContextScope`: Exposes CRUD operations for the **UserContextScope** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserContextScopes
+    * const userContextScopes = await prisma.userContextScope.findMany()
+    * ```
+    */
+  get userContextScope(): Prisma.UserContextScopeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userContextFact`: Exposes CRUD operations for the **UserContextFact** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserContextFacts
+    * const userContextFacts = await prisma.userContextFact.findMany()
+    * ```
+    */
+  get userContextFact(): Prisma.UserContextFactDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1269,7 +1299,9 @@ export namespace Prisma {
     ConsultationMemoryScope: 'ConsultationMemoryScope',
     ConsultationEpisode: 'ConsultationEpisode',
     ConsultationResumeOffer: 'ConsultationResumeOffer',
-    ConsultationTurnReceipt: 'ConsultationTurnReceipt'
+    ConsultationTurnReceipt: 'ConsultationTurnReceipt',
+    UserContextScope: 'UserContextScope',
+    UserContextFact: 'UserContextFact'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1285,7 +1317,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "operatorProfile" | "supportCase" | "chat" | "message" | "token" | "account" | "verificationToken" | "product" | "productEmbedding" | "category" | "subcategory" | "brand" | "review" | "promoCode" | "order" | "payment" | "refund" | "shipment" | "cartItem" | "cart" | "storeKnowledge" | "consultationMemoryScope" | "consultationEpisode" | "consultationResumeOffer" | "consultationTurnReceipt"
+      modelProps: "user" | "operatorProfile" | "supportCase" | "chat" | "message" | "token" | "account" | "verificationToken" | "product" | "productEmbedding" | "category" | "subcategory" | "brand" | "review" | "promoCode" | "order" | "payment" | "refund" | "shipment" | "cartItem" | "cart" | "storeKnowledge" | "consultationMemoryScope" | "consultationEpisode" | "consultationResumeOffer" | "consultationTurnReceipt" | "userContextScope" | "userContextFact"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3197,6 +3229,154 @@ export namespace Prisma {
           }
         }
       }
+      UserContextScope: {
+        payload: Prisma.$UserContextScopePayload<ExtArgs>
+        fields: Prisma.UserContextScopeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserContextScopeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserContextScopeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          findFirst: {
+            args: Prisma.UserContextScopeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserContextScopeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          findMany: {
+            args: Prisma.UserContextScopeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>[]
+          }
+          create: {
+            args: Prisma.UserContextScopeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          createMany: {
+            args: Prisma.UserContextScopeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserContextScopeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>[]
+          }
+          delete: {
+            args: Prisma.UserContextScopeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          update: {
+            args: Prisma.UserContextScopeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          deleteMany: {
+            args: Prisma.UserContextScopeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserContextScopeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserContextScopeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>[]
+          }
+          upsert: {
+            args: Prisma.UserContextScopeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          aggregate: {
+            args: Prisma.UserContextScopeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserContextScope>
+          }
+          groupBy: {
+            args: Prisma.UserContextScopeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserContextScopeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserContextScopeCountArgs<ExtArgs>
+            result: $Utils.Optional<UserContextScopeCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserContextFact: {
+        payload: Prisma.$UserContextFactPayload<ExtArgs>
+        fields: Prisma.UserContextFactFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserContextFactFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserContextFactFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          findFirst: {
+            args: Prisma.UserContextFactFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserContextFactFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          findMany: {
+            args: Prisma.UserContextFactFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>[]
+          }
+          create: {
+            args: Prisma.UserContextFactCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          createMany: {
+            args: Prisma.UserContextFactCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserContextFactCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>[]
+          }
+          delete: {
+            args: Prisma.UserContextFactDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          update: {
+            args: Prisma.UserContextFactUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserContextFactDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserContextFactUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserContextFactUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserContextFactUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          aggregate: {
+            args: Prisma.UserContextFactAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserContextFact>
+          }
+          groupBy: {
+            args: Prisma.UserContextFactGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserContextFactGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserContextFactCountArgs<ExtArgs>
+            result: $Utils.Optional<UserContextFactCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3307,6 +3487,8 @@ export namespace Prisma {
     consultationEpisode?: ConsultationEpisodeOmit
     consultationResumeOffer?: ConsultationResumeOfferOmit
     consultationTurnReceipt?: ConsultationTurnReceiptOmit
+    userContextScope?: UserContextScopeOmit
+    userContextFact?: UserContextFactOmit
   }
 
   /* Types for Logging */
@@ -3842,6 +4024,37 @@ export namespace Prisma {
    */
   export type ConsultationEpisodeCountOutputTypeCountOffersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ConsultationResumeOfferWhereInput
+  }
+
+
+  /**
+   * Count Type UserContextScopeCountOutputType
+   */
+
+  export type UserContextScopeCountOutputType = {
+    facts: number
+  }
+
+  export type UserContextScopeCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    facts?: boolean | UserContextScopeCountOutputTypeCountFactsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * UserContextScopeCountOutputType without action
+   */
+  export type UserContextScopeCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScopeCountOutputType
+     */
+    select?: UserContextScopeCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UserContextScopeCountOutputType without action
+   */
+  export type UserContextScopeCountOutputTypeCountFactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserContextFactWhereInput
   }
 
 
@@ -7603,16 +7816,22 @@ export namespace Prisma {
 
   export type ChatAvgAggregateOutputType = {
     consultationInputSeq: number | null
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
     handoffVersion: number | null
   }
 
   export type ChatSumAggregateOutputType = {
     consultationInputSeq: number | null
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
     handoffVersion: number | null
   }
 
   export type ChatMinAggregateOutputType = {
     consultationInputSeq: number | null
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
     consultationAttemptId: string | null
     consultationSourceMessageId: string | null
     id: string | null
@@ -7627,6 +7846,8 @@ export namespace Prisma {
 
   export type ChatMaxAggregateOutputType = {
     consultationInputSeq: number | null
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
     consultationAttemptId: string | null
     consultationSourceMessageId: string | null
     id: string | null
@@ -7641,6 +7862,8 @@ export namespace Prisma {
 
   export type ChatCountAggregateOutputType = {
     consultationInputSeq: number
+    consultationNextInputSeq: number
+    consultationNextHandoffVersion: number
     consultationAttemptId: number
     consultationSourceMessageId: number
     id: number
@@ -7657,16 +7880,22 @@ export namespace Prisma {
 
   export type ChatAvgAggregateInputType = {
     consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
     handoffVersion?: true
   }
 
   export type ChatSumAggregateInputType = {
     consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
     handoffVersion?: true
   }
 
   export type ChatMinAggregateInputType = {
     consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
     consultationAttemptId?: true
     consultationSourceMessageId?: true
     id?: true
@@ -7681,6 +7910,8 @@ export namespace Prisma {
 
   export type ChatMaxAggregateInputType = {
     consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
     consultationAttemptId?: true
     consultationSourceMessageId?: true
     id?: true
@@ -7695,6 +7926,8 @@ export namespace Prisma {
 
   export type ChatCountAggregateInputType = {
     consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
     consultationAttemptId?: true
     consultationSourceMessageId?: true
     id?: true
@@ -7796,6 +8029,8 @@ export namespace Prisma {
 
   export type ChatGroupByOutputType = {
     consultationInputSeq: number
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
     consultationAttemptId: string | null
     consultationSourceMessageId: string | null
     id: string
@@ -7829,6 +8064,8 @@ export namespace Prisma {
 
   export type ChatSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     consultationInputSeq?: boolean
+    consultationNextInputSeq?: boolean
+    consultationNextHandoffVersion?: boolean
     consultationAttemptId?: boolean
     consultationSourceMessageId?: boolean
     id?: boolean
@@ -7849,6 +8086,8 @@ export namespace Prisma {
 
   export type ChatSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     consultationInputSeq?: boolean
+    consultationNextInputSeq?: boolean
+    consultationNextHandoffVersion?: boolean
     consultationAttemptId?: boolean
     consultationSourceMessageId?: boolean
     id?: boolean
@@ -7865,6 +8104,8 @@ export namespace Prisma {
 
   export type ChatSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     consultationInputSeq?: boolean
+    consultationNextInputSeq?: boolean
+    consultationNextHandoffVersion?: boolean
     consultationAttemptId?: boolean
     consultationSourceMessageId?: boolean
     id?: boolean
@@ -7881,6 +8122,8 @@ export namespace Prisma {
 
   export type ChatSelectScalar = {
     consultationInputSeq?: boolean
+    consultationNextInputSeq?: boolean
+    consultationNextHandoffVersion?: boolean
     consultationAttemptId?: boolean
     consultationSourceMessageId?: boolean
     id?: boolean
@@ -7893,7 +8136,7 @@ export namespace Prisma {
     handoffVersion?: boolean
   }
 
-  export type ChatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"consultationInputSeq" | "consultationAttemptId" | "consultationSourceMessageId" | "id" | "userId" | "operatorId" | "mode" | "lastMessageAt" | "createdAt" | "updatedAt" | "handoffVersion", ExtArgs["result"]["chat"]>
+  export type ChatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"consultationInputSeq" | "consultationNextInputSeq" | "consultationNextHandoffVersion" | "consultationAttemptId" | "consultationSourceMessageId" | "id" | "userId" | "operatorId" | "mode" | "lastMessageAt" | "createdAt" | "updatedAt" | "handoffVersion", ExtArgs["result"]["chat"]>
   export type ChatInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     consultationMemoryScopes?: boolean | Chat$consultationMemoryScopesArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -7922,6 +8165,8 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       consultationInputSeq: number
+      consultationNextInputSeq: number | null
+      consultationNextHandoffVersion: number | null
       consultationAttemptId: string | null
       consultationSourceMessageId: string | null
       id: string
@@ -8361,6 +8606,8 @@ export namespace Prisma {
    */ 
   interface ChatFieldRefs {
     readonly consultationInputSeq: FieldRef<"Chat", 'Int'>
+    readonly consultationNextInputSeq: FieldRef<"Chat", 'Int'>
+    readonly consultationNextHandoffVersion: FieldRef<"Chat", 'Int'>
     readonly consultationAttemptId: FieldRef<"Chat", 'String'>
     readonly consultationSourceMessageId: FieldRef<"Chat", 'String'>
     readonly id: FieldRef<"Chat", 'String'>
@@ -34040,6 +34287,2328 @@ export namespace Prisma {
 
 
   /**
+   * Model UserContextScope
+   */
+
+  export type AggregateUserContextScope = {
+    _count: UserContextScopeCountAggregateOutputType | null
+    _avg: UserContextScopeAvgAggregateOutputType | null
+    _sum: UserContextScopeSumAggregateOutputType | null
+    _min: UserContextScopeMinAggregateOutputType | null
+    _max: UserContextScopeMaxAggregateOutputType | null
+  }
+
+  export type UserContextScopeAvgAggregateOutputType = {
+    revision: number | null
+  }
+
+  export type UserContextScopeSumAggregateOutputType = {
+    revision: number | null
+  }
+
+  export type UserContextScopeMinAggregateOutputType = {
+    id: string | null
+    storeKey: string | null
+    subjectKey: string | null
+    revision: number | null
+  }
+
+  export type UserContextScopeMaxAggregateOutputType = {
+    id: string | null
+    storeKey: string | null
+    subjectKey: string | null
+    revision: number | null
+  }
+
+  export type UserContextScopeCountAggregateOutputType = {
+    id: number
+    storeKey: number
+    subjectKey: number
+    revision: number
+    _all: number
+  }
+
+
+  export type UserContextScopeAvgAggregateInputType = {
+    revision?: true
+  }
+
+  export type UserContextScopeSumAggregateInputType = {
+    revision?: true
+  }
+
+  export type UserContextScopeMinAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    revision?: true
+  }
+
+  export type UserContextScopeMaxAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    revision?: true
+  }
+
+  export type UserContextScopeCountAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    revision?: true
+    _all?: true
+  }
+
+  export type UserContextScopeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserContextScope to aggregate.
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of UserContextScopes to fetch.
+     */
+    orderBy?: UserContextScopeOrderByWithRelationInput | UserContextScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: UserContextScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` UserContextScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` UserContextScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned UserContextScopes
+    **/
+    _count?: true | UserContextScopeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+    **/
+    _avg?: UserContextScopeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+    **/
+    _sum?: UserContextScopeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserContextScopeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserContextScopeMaxAggregateInputType
+  }
+
+  export type GetUserContextScopeAggregateType<T extends UserContextScopeAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserContextScope]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserContextScope[P]>
+      : GetScalarType<T[P], AggregateUserContextScope[P]>
+  }
+
+
+
+
+  export type UserContextScopeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserContextScopeWhereInput
+    orderBy?: UserContextScopeOrderByWithAggregationInput | UserContextScopeOrderByWithAggregationInput[]
+    by: UserContextScopeScalarFieldEnum[] | UserContextScopeScalarFieldEnum
+    having?: UserContextScopeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserContextScopeCountAggregateInputType | true
+    _avg?: UserContextScopeAvgAggregateInputType
+    _sum?: UserContextScopeSumAggregateInputType
+    _min?: UserContextScopeMinAggregateInputType
+    _max?: UserContextScopeMaxAggregateInputType
+  }
+
+  export type UserContextScopeGroupByOutputType = {
+    id: string
+    storeKey: string
+    subjectKey: string
+    revision: number
+    _count: UserContextScopeCountAggregateOutputType | null
+    _avg: UserContextScopeAvgAggregateOutputType | null
+    _sum: UserContextScopeSumAggregateOutputType | null
+    _min: UserContextScopeMinAggregateOutputType | null
+    _max: UserContextScopeMaxAggregateOutputType | null
+  }
+
+  type GetUserContextScopeGroupByPayload<T extends UserContextScopeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserContextScopeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserContextScopeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserContextScopeGroupByOutputType[P]>
+            : GetScalarType<T[P], UserContextScopeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserContextScopeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    revision?: boolean
+    facts?: boolean | UserContextScope$factsArgs<ExtArgs>
+    _count?: boolean | UserContextScopeCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userContextScope"]>
+
+  export type UserContextScopeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    revision?: boolean
+  }, ExtArgs["result"]["userContextScope"]>
+
+  export type UserContextScopeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    revision?: boolean
+  }, ExtArgs["result"]["userContextScope"]>
+
+  export type UserContextScopeSelectScalar = {
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    revision?: boolean
+  }
+
+  export type UserContextScopeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "storeKey" | "subjectKey" | "revision", ExtArgs["result"]["userContextScope"]>
+  export type UserContextScopeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    facts?: boolean | UserContextScope$factsArgs<ExtArgs>
+    _count?: boolean | UserContextScopeCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type UserContextScopeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type UserContextScopeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $UserContextScopePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserContextScope"
+    objects: {
+      facts: Prisma.$UserContextFactPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      storeKey: string
+      subjectKey: string
+      revision: number
+    }, ExtArgs["result"]["userContextScope"]>
+    composites: {}
+  }
+
+  type UserContextScopeGetPayload<S extends boolean | null | undefined | UserContextScopeDefaultArgs> = $Result.GetResult<Prisma.$UserContextScopePayload, S>
+
+  type UserContextScopeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserContextScopeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserContextScopeCountAggregateInputType | true
+    }
+
+  export interface UserContextScopeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserContextScope'], meta: { name: 'UserContextScope' } }
+    /**
+     * Find zero or one UserContextScope that matches the filter.
+     * @param {UserContextScopeFindUniqueArgs} args - Arguments to find a UserContextScope
+     * @example
+     * // Get one UserContextScope
+     * const userContextScope = await prisma.userContextScope.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserContextScopeFindUniqueArgs>(args: SelectSubset<T, UserContextScopeFindUniqueArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one UserContextScope that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserContextScopeFindUniqueOrThrowArgs} args - Arguments to find a UserContextScope
+     * @example
+     * // Get one UserContextScope
+     * const userContextScope = await prisma.userContextScope.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserContextScopeFindUniqueOrThrowArgs>(args: SelectSubset<T, UserContextScopeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first UserContextScope that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeFindFirstArgs} args - Arguments to find a UserContextScope
+     * @example
+     * // Get one UserContextScope
+     * const userContextScope = await prisma.userContextScope.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserContextScopeFindFirstArgs>(args?: SelectSubset<T, UserContextScopeFindFirstArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first UserContextScope that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeFindFirstOrThrowArgs} args - Arguments to find a UserContextScope
+     * @example
+     * // Get one UserContextScope
+     * const userContextScope = await prisma.userContextScope.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserContextScopeFindFirstOrThrowArgs>(args?: SelectSubset<T, UserContextScopeFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more UserContextScopes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserContextScopes
+     * const userContextScopes = await prisma.userContextScope.findMany()
+     *
+     * // Get first 10 UserContextScopes
+     * const userContextScopes = await prisma.userContextScope.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const userContextScopeWithIdOnly = await prisma.userContextScope.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends UserContextScopeFindManyArgs>(args?: SelectSubset<T, UserContextScopeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a UserContextScope.
+     * @param {UserContextScopeCreateArgs} args - Arguments to create a UserContextScope.
+     * @example
+     * // Create one UserContextScope
+     * const UserContextScope = await prisma.userContextScope.create({
+     *   data: {
+     *     // ... data to create a UserContextScope
+     *   }
+     * })
+     *
+     */
+    create<T extends UserContextScopeCreateArgs>(args: SelectSubset<T, UserContextScopeCreateArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many UserContextScopes.
+     * @param {UserContextScopeCreateManyArgs} args - Arguments to create many UserContextScopes.
+     * @example
+     * // Create many UserContextScopes
+     * const userContextScope = await prisma.userContextScope.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends UserContextScopeCreateManyArgs>(args?: SelectSubset<T, UserContextScopeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserContextScopes and returns the data saved in the database.
+     * @param {UserContextScopeCreateManyAndReturnArgs} args - Arguments to create many UserContextScopes.
+     * @example
+     * // Create many UserContextScopes
+     * const userContextScope = await prisma.userContextScope.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many UserContextScopes and only return the `id`
+     * const userContextScopeWithIdOnly = await prisma.userContextScope.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends UserContextScopeCreateManyAndReturnArgs>(args?: SelectSubset<T, UserContextScopeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a UserContextScope.
+     * @param {UserContextScopeDeleteArgs} args - Arguments to delete one UserContextScope.
+     * @example
+     * // Delete one UserContextScope
+     * const UserContextScope = await prisma.userContextScope.delete({
+     *   where: {
+     *     // ... filter to delete one UserContextScope
+     *   }
+     * })
+     *
+     */
+    delete<T extends UserContextScopeDeleteArgs>(args: SelectSubset<T, UserContextScopeDeleteArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one UserContextScope.
+     * @param {UserContextScopeUpdateArgs} args - Arguments to update one UserContextScope.
+     * @example
+     * // Update one UserContextScope
+     * const userContextScope = await prisma.userContextScope.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends UserContextScopeUpdateArgs>(args: SelectSubset<T, UserContextScopeUpdateArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more UserContextScopes.
+     * @param {UserContextScopeDeleteManyArgs} args - Arguments to filter UserContextScopes to delete.
+     * @example
+     * // Delete a few UserContextScopes
+     * const { count } = await prisma.userContextScope.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends UserContextScopeDeleteManyArgs>(args?: SelectSubset<T, UserContextScopeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserContextScopes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserContextScopes
+     * const userContextScope = await prisma.userContextScope.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends UserContextScopeUpdateManyArgs>(args: SelectSubset<T, UserContextScopeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserContextScopes and returns the data updated in the database.
+     * @param {UserContextScopeUpdateManyAndReturnArgs} args - Arguments to update many UserContextScopes.
+     * @example
+     * // Update many UserContextScopes
+     * const userContextScope = await prisma.userContextScope.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more UserContextScopes and only return the `id`
+     * const userContextScopeWithIdOnly = await prisma.userContextScope.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends UserContextScopeUpdateManyAndReturnArgs>(args: SelectSubset<T, UserContextScopeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one UserContextScope.
+     * @param {UserContextScopeUpsertArgs} args - Arguments to update or create a UserContextScope.
+     * @example
+     * // Update or create a UserContextScope
+     * const userContextScope = await prisma.userContextScope.upsert({
+     *   create: {
+     *     // ... data to create a UserContextScope
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserContextScope we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserContextScopeUpsertArgs>(args: SelectSubset<T, UserContextScopeUpsertArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of UserContextScopes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeCountArgs} args - Arguments to filter UserContextScopes to count.
+     * @example
+     * // Count the number of UserContextScopes
+     * const count = await prisma.userContextScope.count({
+     *   where: {
+     *     // ... the filter for the UserContextScopes we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserContextScopeCountArgs>(
+      args?: Subset<T, UserContextScopeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserContextScopeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserContextScope.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserContextScopeAggregateArgs>(args: Subset<T, UserContextScopeAggregateArgs>): Prisma.PrismaPromise<GetUserContextScopeAggregateType<T>>
+
+    /**
+     * Group by UserContextScope.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends UserContextScopeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserContextScopeGroupByArgs['orderBy'] }
+        : { orderBy?: UserContextScopeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserContextScopeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserContextScopeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserContextScope model
+   */
+  readonly fields: UserContextScopeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserContextScope.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserContextScopeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    facts<T extends UserContextScope$factsArgs<ExtArgs> = {}>(args?: Subset<T, UserContextScope$factsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserContextScope model
+   */
+  interface UserContextScopeFieldRefs {
+    readonly id: FieldRef<"UserContextScope", 'String'>
+    readonly storeKey: FieldRef<"UserContextScope", 'String'>
+    readonly subjectKey: FieldRef<"UserContextScope", 'String'>
+    readonly revision: FieldRef<"UserContextScope", 'Int'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * UserContextScope findUnique
+   */
+  export type UserContextScopeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScope to fetch.
+     */
+    where: UserContextScopeWhereUniqueInput
+  }
+
+  /**
+   * UserContextScope findUniqueOrThrow
+   */
+  export type UserContextScopeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScope to fetch.
+     */
+    where: UserContextScopeWhereUniqueInput
+  }
+
+  /**
+   * UserContextScope findFirst
+   */
+  export type UserContextScopeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScope to fetch.
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of UserContextScopes to fetch.
+     */
+    orderBy?: UserContextScopeOrderByWithRelationInput | UserContextScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for UserContextScopes.
+     */
+    cursor?: UserContextScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` UserContextScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` UserContextScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of UserContextScopes.
+     */
+    distinct?: UserContextScopeScalarFieldEnum | UserContextScopeScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextScope findFirstOrThrow
+   */
+  export type UserContextScopeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScope to fetch.
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of UserContextScopes to fetch.
+     */
+    orderBy?: UserContextScopeOrderByWithRelationInput | UserContextScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for UserContextScopes.
+     */
+    cursor?: UserContextScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` UserContextScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` UserContextScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of UserContextScopes.
+     */
+    distinct?: UserContextScopeScalarFieldEnum | UserContextScopeScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextScope findMany
+   */
+  export type UserContextScopeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScopes to fetch.
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of UserContextScopes to fetch.
+     */
+    orderBy?: UserContextScopeOrderByWithRelationInput | UserContextScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing UserContextScopes.
+     */
+    cursor?: UserContextScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` UserContextScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` UserContextScopes.
+     */
+    skip?: number
+    distinct?: UserContextScopeScalarFieldEnum | UserContextScopeScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextScope create
+   */
+  export type UserContextScopeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserContextScope.
+     */
+    data: XOR<UserContextScopeCreateInput, UserContextScopeUncheckedCreateInput>
+  }
+
+  /**
+   * UserContextScope createMany
+   */
+  export type UserContextScopeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserContextScopes.
+     */
+    data: UserContextScopeCreateManyInput | UserContextScopeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserContextScope createManyAndReturn
+   */
+  export type UserContextScopeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserContextScopes.
+     */
+    data: UserContextScopeCreateManyInput | UserContextScopeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserContextScope update
+   */
+  export type UserContextScopeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserContextScope.
+     */
+    data: XOR<UserContextScopeUpdateInput, UserContextScopeUncheckedUpdateInput>
+    /**
+     * Choose, which UserContextScope to update.
+     */
+    where: UserContextScopeWhereUniqueInput
+  }
+
+  /**
+   * UserContextScope updateMany
+   */
+  export type UserContextScopeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserContextScopes.
+     */
+    data: XOR<UserContextScopeUpdateManyMutationInput, UserContextScopeUncheckedUpdateManyInput>
+    /**
+     * Filter which UserContextScopes to update
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * Limit how many UserContextScopes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextScope updateManyAndReturn
+   */
+  export type UserContextScopeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * The data used to update UserContextScopes.
+     */
+    data: XOR<UserContextScopeUpdateManyMutationInput, UserContextScopeUncheckedUpdateManyInput>
+    /**
+     * Filter which UserContextScopes to update
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * Limit how many UserContextScopes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextScope upsert
+   */
+  export type UserContextScopeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserContextScope to update in case it exists.
+     */
+    where: UserContextScopeWhereUniqueInput
+    /**
+     * In case the UserContextScope found by the `where` argument doesn't exist, create a new UserContextScope with this data.
+     */
+    create: XOR<UserContextScopeCreateInput, UserContextScopeUncheckedCreateInput>
+    /**
+     * In case the UserContextScope was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserContextScopeUpdateInput, UserContextScopeUncheckedUpdateInput>
+  }
+
+  /**
+   * UserContextScope delete
+   */
+  export type UserContextScopeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter which UserContextScope to delete.
+     */
+    where: UserContextScopeWhereUniqueInput
+  }
+
+  /**
+   * UserContextScope deleteMany
+   */
+  export type UserContextScopeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserContextScopes to delete
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * Limit how many UserContextScopes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextScope.facts
+   */
+  export type UserContextScope$factsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    where?: UserContextFactWhereInput
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    cursor?: UserContextFactWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserContextFactScalarFieldEnum | UserContextFactScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextScope without action
+   */
+  export type UserContextScopeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserContextFact
+   */
+
+  export type AggregateUserContextFact = {
+    _count: UserContextFactCountAggregateOutputType | null
+    _avg: UserContextFactAvgAggregateOutputType | null
+    _sum: UserContextFactSumAggregateOutputType | null
+    _min: UserContextFactMinAggregateOutputType | null
+    _max: UserContextFactMaxAggregateOutputType | null
+  }
+
+  export type UserContextFactAvgAggregateOutputType = {
+    sourceEpisodeRevision: number | null
+  }
+
+  export type UserContextFactSumAggregateOutputType = {
+    sourceEpisodeRevision: number | null
+  }
+
+  export type UserContextFactMinAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    domainKey: string | null
+    preferenceKey: string | null
+    confirmation: string | null
+    commandId: string | null
+    sourceKind: string | null
+    sourceKey: string | null
+    sourceEpisodeId: string | null
+    sourceEpisodeRevision: number | null
+    sourceAttributeId: string | null
+    sourceOperator: string | null
+    observedAt: Date | null
+    confirmedAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserContextFactMaxAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    domainKey: string | null
+    preferenceKey: string | null
+    confirmation: string | null
+    commandId: string | null
+    sourceKind: string | null
+    sourceKey: string | null
+    sourceEpisodeId: string | null
+    sourceEpisodeRevision: number | null
+    sourceAttributeId: string | null
+    sourceOperator: string | null
+    observedAt: Date | null
+    confirmedAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserContextFactCountAggregateOutputType = {
+    id: number
+    scopeId: number
+    domainKey: number
+    preferenceKey: number
+    value: number
+    confirmation: number
+    commandId: number
+    sourceKind: number
+    sourceKey: number
+    sourceEpisodeId: number
+    sourceEpisodeRevision: number
+    sourceAttributeId: number
+    sourceOperator: number
+    observedAt: number
+    confirmedAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type UserContextFactAvgAggregateInputType = {
+    sourceEpisodeRevision?: true
+  }
+
+  export type UserContextFactSumAggregateInputType = {
+    sourceEpisodeRevision?: true
+  }
+
+  export type UserContextFactMinAggregateInputType = {
+    id?: true
+    scopeId?: true
+    domainKey?: true
+    preferenceKey?: true
+    confirmation?: true
+    commandId?: true
+    sourceKind?: true
+    sourceKey?: true
+    sourceEpisodeId?: true
+    sourceEpisodeRevision?: true
+    sourceAttributeId?: true
+    sourceOperator?: true
+    observedAt?: true
+    confirmedAt?: true
+    updatedAt?: true
+  }
+
+  export type UserContextFactMaxAggregateInputType = {
+    id?: true
+    scopeId?: true
+    domainKey?: true
+    preferenceKey?: true
+    confirmation?: true
+    commandId?: true
+    sourceKind?: true
+    sourceKey?: true
+    sourceEpisodeId?: true
+    sourceEpisodeRevision?: true
+    sourceAttributeId?: true
+    sourceOperator?: true
+    observedAt?: true
+    confirmedAt?: true
+    updatedAt?: true
+  }
+
+  export type UserContextFactCountAggregateInputType = {
+    id?: true
+    scopeId?: true
+    domainKey?: true
+    preferenceKey?: true
+    value?: true
+    confirmation?: true
+    commandId?: true
+    sourceKind?: true
+    sourceKey?: true
+    sourceEpisodeId?: true
+    sourceEpisodeRevision?: true
+    sourceAttributeId?: true
+    sourceOperator?: true
+    observedAt?: true
+    confirmedAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type UserContextFactAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserContextFact to aggregate.
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of UserContextFacts to fetch.
+     */
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: UserContextFactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` UserContextFacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` UserContextFacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned UserContextFacts
+    **/
+    _count?: true | UserContextFactCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+    **/
+    _avg?: UserContextFactAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+    **/
+    _sum?: UserContextFactSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserContextFactMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserContextFactMaxAggregateInputType
+  }
+
+  export type GetUserContextFactAggregateType<T extends UserContextFactAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserContextFact]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserContextFact[P]>
+      : GetScalarType<T[P], AggregateUserContextFact[P]>
+  }
+
+
+
+
+  export type UserContextFactGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserContextFactWhereInput
+    orderBy?: UserContextFactOrderByWithAggregationInput | UserContextFactOrderByWithAggregationInput[]
+    by: UserContextFactScalarFieldEnum[] | UserContextFactScalarFieldEnum
+    having?: UserContextFactScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserContextFactCountAggregateInputType | true
+    _avg?: UserContextFactAvgAggregateInputType
+    _sum?: UserContextFactSumAggregateInputType
+    _min?: UserContextFactMinAggregateInputType
+    _max?: UserContextFactMaxAggregateInputType
+  }
+
+  export type UserContextFactGroupByOutputType = {
+    id: string
+    scopeId: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonValue
+    confirmation: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date
+    confirmedAt: Date
+    updatedAt: Date
+    _count: UserContextFactCountAggregateOutputType | null
+    _avg: UserContextFactAvgAggregateOutputType | null
+    _sum: UserContextFactSumAggregateOutputType | null
+    _min: UserContextFactMinAggregateOutputType | null
+    _max: UserContextFactMaxAggregateOutputType | null
+  }
+
+  type GetUserContextFactGroupByPayload<T extends UserContextFactGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserContextFactGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserContextFactGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserContextFactGroupByOutputType[P]>
+            : GetScalarType<T[P], UserContextFactGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserContextFactSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    domainKey?: boolean
+    preferenceKey?: boolean
+    value?: boolean
+    confirmation?: boolean
+    commandId?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    sourceEpisodeId?: boolean
+    sourceEpisodeRevision?: boolean
+    sourceAttributeId?: boolean
+    sourceOperator?: boolean
+    observedAt?: boolean
+    confirmedAt?: boolean
+    updatedAt?: boolean
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userContextFact"]>
+
+  export type UserContextFactSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    domainKey?: boolean
+    preferenceKey?: boolean
+    value?: boolean
+    confirmation?: boolean
+    commandId?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    sourceEpisodeId?: boolean
+    sourceEpisodeRevision?: boolean
+    sourceAttributeId?: boolean
+    sourceOperator?: boolean
+    observedAt?: boolean
+    confirmedAt?: boolean
+    updatedAt?: boolean
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userContextFact"]>
+
+  export type UserContextFactSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    domainKey?: boolean
+    preferenceKey?: boolean
+    value?: boolean
+    confirmation?: boolean
+    commandId?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    sourceEpisodeId?: boolean
+    sourceEpisodeRevision?: boolean
+    sourceAttributeId?: boolean
+    sourceOperator?: boolean
+    observedAt?: boolean
+    confirmedAt?: boolean
+    updatedAt?: boolean
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userContextFact"]>
+
+  export type UserContextFactSelectScalar = {
+    id?: boolean
+    scopeId?: boolean
+    domainKey?: boolean
+    preferenceKey?: boolean
+    value?: boolean
+    confirmation?: boolean
+    commandId?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    sourceEpisodeId?: boolean
+    sourceEpisodeRevision?: boolean
+    sourceAttributeId?: boolean
+    sourceOperator?: boolean
+    observedAt?: boolean
+    confirmedAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type UserContextFactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scopeId" | "domainKey" | "preferenceKey" | "value" | "confirmation" | "commandId" | "sourceKind" | "sourceKey" | "sourceEpisodeId" | "sourceEpisodeRevision" | "sourceAttributeId" | "sourceOperator" | "observedAt" | "confirmedAt" | "updatedAt", ExtArgs["result"]["userContextFact"]>
+  export type UserContextFactInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }
+  export type UserContextFactIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }
+  export type UserContextFactIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }
+
+  export type $UserContextFactPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserContextFact"
+    objects: {
+      scope: Prisma.$UserContextScopePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      scopeId: string
+      domainKey: string
+      preferenceKey: string
+      value: Prisma.JsonValue
+      confirmation: string
+      commandId: string
+      sourceKind: string
+      sourceKey: string
+      sourceEpisodeId: string
+      sourceEpisodeRevision: number
+      sourceAttributeId: string
+      sourceOperator: string
+      observedAt: Date
+      confirmedAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["userContextFact"]>
+    composites: {}
+  }
+
+  type UserContextFactGetPayload<S extends boolean | null | undefined | UserContextFactDefaultArgs> = $Result.GetResult<Prisma.$UserContextFactPayload, S>
+
+  type UserContextFactCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserContextFactFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserContextFactCountAggregateInputType | true
+    }
+
+  export interface UserContextFactDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserContextFact'], meta: { name: 'UserContextFact' } }
+    /**
+     * Find zero or one UserContextFact that matches the filter.
+     * @param {UserContextFactFindUniqueArgs} args - Arguments to find a UserContextFact
+     * @example
+     * // Get one UserContextFact
+     * const userContextFact = await prisma.userContextFact.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserContextFactFindUniqueArgs>(args: SelectSubset<T, UserContextFactFindUniqueArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one UserContextFact that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserContextFactFindUniqueOrThrowArgs} args - Arguments to find a UserContextFact
+     * @example
+     * // Get one UserContextFact
+     * const userContextFact = await prisma.userContextFact.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserContextFactFindUniqueOrThrowArgs>(args: SelectSubset<T, UserContextFactFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first UserContextFact that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactFindFirstArgs} args - Arguments to find a UserContextFact
+     * @example
+     * // Get one UserContextFact
+     * const userContextFact = await prisma.userContextFact.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserContextFactFindFirstArgs>(args?: SelectSubset<T, UserContextFactFindFirstArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first UserContextFact that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactFindFirstOrThrowArgs} args - Arguments to find a UserContextFact
+     * @example
+     * // Get one UserContextFact
+     * const userContextFact = await prisma.userContextFact.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserContextFactFindFirstOrThrowArgs>(args?: SelectSubset<T, UserContextFactFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more UserContextFacts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserContextFacts
+     * const userContextFacts = await prisma.userContextFact.findMany()
+     *
+     * // Get first 10 UserContextFacts
+     * const userContextFacts = await prisma.userContextFact.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const userContextFactWithIdOnly = await prisma.userContextFact.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends UserContextFactFindManyArgs>(args?: SelectSubset<T, UserContextFactFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a UserContextFact.
+     * @param {UserContextFactCreateArgs} args - Arguments to create a UserContextFact.
+     * @example
+     * // Create one UserContextFact
+     * const UserContextFact = await prisma.userContextFact.create({
+     *   data: {
+     *     // ... data to create a UserContextFact
+     *   }
+     * })
+     *
+     */
+    create<T extends UserContextFactCreateArgs>(args: SelectSubset<T, UserContextFactCreateArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many UserContextFacts.
+     * @param {UserContextFactCreateManyArgs} args - Arguments to create many UserContextFacts.
+     * @example
+     * // Create many UserContextFacts
+     * const userContextFact = await prisma.userContextFact.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends UserContextFactCreateManyArgs>(args?: SelectSubset<T, UserContextFactCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserContextFacts and returns the data saved in the database.
+     * @param {UserContextFactCreateManyAndReturnArgs} args - Arguments to create many UserContextFacts.
+     * @example
+     * // Create many UserContextFacts
+     * const userContextFact = await prisma.userContextFact.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many UserContextFacts and only return the `id`
+     * const userContextFactWithIdOnly = await prisma.userContextFact.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends UserContextFactCreateManyAndReturnArgs>(args?: SelectSubset<T, UserContextFactCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a UserContextFact.
+     * @param {UserContextFactDeleteArgs} args - Arguments to delete one UserContextFact.
+     * @example
+     * // Delete one UserContextFact
+     * const UserContextFact = await prisma.userContextFact.delete({
+     *   where: {
+     *     // ... filter to delete one UserContextFact
+     *   }
+     * })
+     *
+     */
+    delete<T extends UserContextFactDeleteArgs>(args: SelectSubset<T, UserContextFactDeleteArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one UserContextFact.
+     * @param {UserContextFactUpdateArgs} args - Arguments to update one UserContextFact.
+     * @example
+     * // Update one UserContextFact
+     * const userContextFact = await prisma.userContextFact.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends UserContextFactUpdateArgs>(args: SelectSubset<T, UserContextFactUpdateArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more UserContextFacts.
+     * @param {UserContextFactDeleteManyArgs} args - Arguments to filter UserContextFacts to delete.
+     * @example
+     * // Delete a few UserContextFacts
+     * const { count } = await prisma.userContextFact.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends UserContextFactDeleteManyArgs>(args?: SelectSubset<T, UserContextFactDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserContextFacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserContextFacts
+     * const userContextFact = await prisma.userContextFact.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends UserContextFactUpdateManyArgs>(args: SelectSubset<T, UserContextFactUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserContextFacts and returns the data updated in the database.
+     * @param {UserContextFactUpdateManyAndReturnArgs} args - Arguments to update many UserContextFacts.
+     * @example
+     * // Update many UserContextFacts
+     * const userContextFact = await prisma.userContextFact.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more UserContextFacts and only return the `id`
+     * const userContextFactWithIdOnly = await prisma.userContextFact.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends UserContextFactUpdateManyAndReturnArgs>(args: SelectSubset<T, UserContextFactUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one UserContextFact.
+     * @param {UserContextFactUpsertArgs} args - Arguments to update or create a UserContextFact.
+     * @example
+     * // Update or create a UserContextFact
+     * const userContextFact = await prisma.userContextFact.upsert({
+     *   create: {
+     *     // ... data to create a UserContextFact
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserContextFact we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserContextFactUpsertArgs>(args: SelectSubset<T, UserContextFactUpsertArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of UserContextFacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactCountArgs} args - Arguments to filter UserContextFacts to count.
+     * @example
+     * // Count the number of UserContextFacts
+     * const count = await prisma.userContextFact.count({
+     *   where: {
+     *     // ... the filter for the UserContextFacts we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserContextFactCountArgs>(
+      args?: Subset<T, UserContextFactCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserContextFactCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserContextFact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserContextFactAggregateArgs>(args: Subset<T, UserContextFactAggregateArgs>): Prisma.PrismaPromise<GetUserContextFactAggregateType<T>>
+
+    /**
+     * Group by UserContextFact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends UserContextFactGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserContextFactGroupByArgs['orderBy'] }
+        : { orderBy?: UserContextFactGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserContextFactGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserContextFactGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserContextFact model
+   */
+  readonly fields: UserContextFactFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserContextFact.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserContextFactClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    scope<T extends UserContextScopeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserContextScopeDefaultArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserContextFact model
+   */
+  interface UserContextFactFieldRefs {
+    readonly id: FieldRef<"UserContextFact", 'String'>
+    readonly scopeId: FieldRef<"UserContextFact", 'String'>
+    readonly domainKey: FieldRef<"UserContextFact", 'String'>
+    readonly preferenceKey: FieldRef<"UserContextFact", 'String'>
+    readonly value: FieldRef<"UserContextFact", 'Json'>
+    readonly confirmation: FieldRef<"UserContextFact", 'String'>
+    readonly commandId: FieldRef<"UserContextFact", 'String'>
+    readonly sourceKind: FieldRef<"UserContextFact", 'String'>
+    readonly sourceKey: FieldRef<"UserContextFact", 'String'>
+    readonly sourceEpisodeId: FieldRef<"UserContextFact", 'String'>
+    readonly sourceEpisodeRevision: FieldRef<"UserContextFact", 'Int'>
+    readonly sourceAttributeId: FieldRef<"UserContextFact", 'String'>
+    readonly sourceOperator: FieldRef<"UserContextFact", 'String'>
+    readonly observedAt: FieldRef<"UserContextFact", 'DateTime'>
+    readonly confirmedAt: FieldRef<"UserContextFact", 'DateTime'>
+    readonly updatedAt: FieldRef<"UserContextFact", 'DateTime'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * UserContextFact findUnique
+   */
+  export type UserContextFactFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFact to fetch.
+     */
+    where: UserContextFactWhereUniqueInput
+  }
+
+  /**
+   * UserContextFact findUniqueOrThrow
+   */
+  export type UserContextFactFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFact to fetch.
+     */
+    where: UserContextFactWhereUniqueInput
+  }
+
+  /**
+   * UserContextFact findFirst
+   */
+  export type UserContextFactFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFact to fetch.
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of UserContextFacts to fetch.
+     */
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for UserContextFacts.
+     */
+    cursor?: UserContextFactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` UserContextFacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` UserContextFacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of UserContextFacts.
+     */
+    distinct?: UserContextFactScalarFieldEnum | UserContextFactScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextFact findFirstOrThrow
+   */
+  export type UserContextFactFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFact to fetch.
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of UserContextFacts to fetch.
+     */
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for UserContextFacts.
+     */
+    cursor?: UserContextFactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` UserContextFacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` UserContextFacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of UserContextFacts.
+     */
+    distinct?: UserContextFactScalarFieldEnum | UserContextFactScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextFact findMany
+   */
+  export type UserContextFactFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFacts to fetch.
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of UserContextFacts to fetch.
+     */
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing UserContextFacts.
+     */
+    cursor?: UserContextFactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` UserContextFacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` UserContextFacts.
+     */
+    skip?: number
+    distinct?: UserContextFactScalarFieldEnum | UserContextFactScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextFact create
+   */
+  export type UserContextFactCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserContextFact.
+     */
+    data: XOR<UserContextFactCreateInput, UserContextFactUncheckedCreateInput>
+  }
+
+  /**
+   * UserContextFact createMany
+   */
+  export type UserContextFactCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserContextFacts.
+     */
+    data: UserContextFactCreateManyInput | UserContextFactCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserContextFact createManyAndReturn
+   */
+  export type UserContextFactCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserContextFacts.
+     */
+    data: UserContextFactCreateManyInput | UserContextFactCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserContextFact update
+   */
+  export type UserContextFactUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserContextFact.
+     */
+    data: XOR<UserContextFactUpdateInput, UserContextFactUncheckedUpdateInput>
+    /**
+     * Choose, which UserContextFact to update.
+     */
+    where: UserContextFactWhereUniqueInput
+  }
+
+  /**
+   * UserContextFact updateMany
+   */
+  export type UserContextFactUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserContextFacts.
+     */
+    data: XOR<UserContextFactUpdateManyMutationInput, UserContextFactUncheckedUpdateManyInput>
+    /**
+     * Filter which UserContextFacts to update
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * Limit how many UserContextFacts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextFact updateManyAndReturn
+   */
+  export type UserContextFactUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * The data used to update UserContextFacts.
+     */
+    data: XOR<UserContextFactUpdateManyMutationInput, UserContextFactUncheckedUpdateManyInput>
+    /**
+     * Filter which UserContextFacts to update
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * Limit how many UserContextFacts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserContextFact upsert
+   */
+  export type UserContextFactUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserContextFact to update in case it exists.
+     */
+    where: UserContextFactWhereUniqueInput
+    /**
+     * In case the UserContextFact found by the `where` argument doesn't exist, create a new UserContextFact with this data.
+     */
+    create: XOR<UserContextFactCreateInput, UserContextFactUncheckedCreateInput>
+    /**
+     * In case the UserContextFact was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserContextFactUpdateInput, UserContextFactUncheckedUpdateInput>
+  }
+
+  /**
+   * UserContextFact delete
+   */
+  export type UserContextFactDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter which UserContextFact to delete.
+     */
+    where: UserContextFactWhereUniqueInput
+  }
+
+  /**
+   * UserContextFact deleteMany
+   */
+  export type UserContextFactDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserContextFacts to delete
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * Limit how many UserContextFacts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextFact without action
+   */
+  export type UserContextFactDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -34108,6 +36677,8 @@ export namespace Prisma {
 
   export const ChatScalarFieldEnum: {
     consultationInputSeq: 'consultationInputSeq',
+    consultationNextInputSeq: 'consultationNextInputSeq',
+    consultationNextHandoffVersion: 'consultationNextHandoffVersion',
     consultationAttemptId: 'consultationAttemptId',
     consultationSourceMessageId: 'consultationSourceMessageId',
     id: 'id',
@@ -34455,6 +37026,38 @@ export namespace Prisma {
   };
 
   export type ConsultationTurnReceiptScalarFieldEnum = (typeof ConsultationTurnReceiptScalarFieldEnum)[keyof typeof ConsultationTurnReceiptScalarFieldEnum]
+
+
+  export const UserContextScopeScalarFieldEnum: {
+    id: 'id',
+    storeKey: 'storeKey',
+    subjectKey: 'subjectKey',
+    revision: 'revision'
+  };
+
+  export type UserContextScopeScalarFieldEnum = (typeof UserContextScopeScalarFieldEnum)[keyof typeof UserContextScopeScalarFieldEnum]
+
+
+  export const UserContextFactScalarFieldEnum: {
+    id: 'id',
+    scopeId: 'scopeId',
+    domainKey: 'domainKey',
+    preferenceKey: 'preferenceKey',
+    value: 'value',
+    confirmation: 'confirmation',
+    commandId: 'commandId',
+    sourceKind: 'sourceKind',
+    sourceKey: 'sourceKey',
+    sourceEpisodeId: 'sourceEpisodeId',
+    sourceEpisodeRevision: 'sourceEpisodeRevision',
+    sourceAttributeId: 'sourceAttributeId',
+    sourceOperator: 'sourceOperator',
+    observedAt: 'observedAt',
+    confirmedAt: 'confirmedAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type UserContextFactScalarFieldEnum = (typeof UserContextFactScalarFieldEnum)[keyof typeof UserContextFactScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -35155,6 +37758,8 @@ export namespace Prisma {
     OR?: ChatWhereInput[]
     NOT?: ChatWhereInput | ChatWhereInput[]
     consultationInputSeq?: IntFilter<"Chat"> | number
+    consultationNextInputSeq?: IntNullableFilter<"Chat"> | number | null
+    consultationNextHandoffVersion?: IntNullableFilter<"Chat"> | number | null
     consultationAttemptId?: StringNullableFilter<"Chat"> | string | null
     consultationSourceMessageId?: StringNullableFilter<"Chat"> | string | null
     id?: StringFilter<"Chat"> | string
@@ -35174,6 +37779,8 @@ export namespace Prisma {
 
   export type ChatOrderByWithRelationInput = {
     consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrderInput | SortOrder
+    consultationNextHandoffVersion?: SortOrderInput | SortOrder
     consultationAttemptId?: SortOrderInput | SortOrder
     consultationSourceMessageId?: SortOrderInput | SortOrder
     id?: SortOrder
@@ -35198,6 +37805,8 @@ export namespace Prisma {
     OR?: ChatWhereInput[]
     NOT?: ChatWhereInput | ChatWhereInput[]
     consultationInputSeq?: IntFilter<"Chat"> | number
+    consultationNextInputSeq?: IntNullableFilter<"Chat"> | number | null
+    consultationNextHandoffVersion?: IntNullableFilter<"Chat"> | number | null
     consultationAttemptId?: StringNullableFilter<"Chat"> | string | null
     consultationSourceMessageId?: StringNullableFilter<"Chat"> | string | null
     operatorId?: StringNullableFilter<"Chat"> | string | null
@@ -35215,6 +37824,8 @@ export namespace Prisma {
 
   export type ChatOrderByWithAggregationInput = {
     consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrderInput | SortOrder
+    consultationNextHandoffVersion?: SortOrderInput | SortOrder
     consultationAttemptId?: SortOrderInput | SortOrder
     consultationSourceMessageId?: SortOrderInput | SortOrder
     id?: SortOrder
@@ -35237,6 +37848,8 @@ export namespace Prisma {
     OR?: ChatScalarWhereWithAggregatesInput[]
     NOT?: ChatScalarWhereWithAggregatesInput | ChatScalarWhereWithAggregatesInput[]
     consultationInputSeq?: IntWithAggregatesFilter<"Chat"> | number
+    consultationNextInputSeq?: IntNullableWithAggregatesFilter<"Chat"> | number | null
+    consultationNextHandoffVersion?: IntNullableWithAggregatesFilter<"Chat"> | number | null
     consultationAttemptId?: StringNullableWithAggregatesFilter<"Chat"> | string | null
     consultationSourceMessageId?: StringNullableWithAggregatesFilter<"Chat"> | string | null
     id?: StringWithAggregatesFilter<"Chat"> | string
@@ -37007,6 +39620,172 @@ export namespace Prisma {
     expiresAt?: DateTimeWithAggregatesFilter<"ConsultationTurnReceipt"> | Date | string
   }
 
+  export type UserContextScopeWhereInput = {
+    AND?: UserContextScopeWhereInput | UserContextScopeWhereInput[]
+    OR?: UserContextScopeWhereInput[]
+    NOT?: UserContextScopeWhereInput | UserContextScopeWhereInput[]
+    id?: StringFilter<"UserContextScope"> | string
+    storeKey?: StringFilter<"UserContextScope"> | string
+    subjectKey?: StringFilter<"UserContextScope"> | string
+    revision?: IntFilter<"UserContextScope"> | number
+    facts?: UserContextFactListRelationFilter
+  }
+
+  export type UserContextScopeOrderByWithRelationInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+    facts?: UserContextFactOrderByRelationAggregateInput
+  }
+
+  export type UserContextScopeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    storeKey_subjectKey?: UserContextScopeStoreKeySubjectKeyCompoundUniqueInput
+    AND?: UserContextScopeWhereInput | UserContextScopeWhereInput[]
+    OR?: UserContextScopeWhereInput[]
+    NOT?: UserContextScopeWhereInput | UserContextScopeWhereInput[]
+    storeKey?: StringFilter<"UserContextScope"> | string
+    subjectKey?: StringFilter<"UserContextScope"> | string
+    revision?: IntFilter<"UserContextScope"> | number
+    facts?: UserContextFactListRelationFilter
+  }, "id" | "storeKey_subjectKey">
+
+  export type UserContextScopeOrderByWithAggregationInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+    _count?: UserContextScopeCountOrderByAggregateInput
+    _avg?: UserContextScopeAvgOrderByAggregateInput
+    _max?: UserContextScopeMaxOrderByAggregateInput
+    _min?: UserContextScopeMinOrderByAggregateInput
+    _sum?: UserContextScopeSumOrderByAggregateInput
+  }
+
+  export type UserContextScopeScalarWhereWithAggregatesInput = {
+    AND?: UserContextScopeScalarWhereWithAggregatesInput | UserContextScopeScalarWhereWithAggregatesInput[]
+    OR?: UserContextScopeScalarWhereWithAggregatesInput[]
+    NOT?: UserContextScopeScalarWhereWithAggregatesInput | UserContextScopeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserContextScope"> | string
+    storeKey?: StringWithAggregatesFilter<"UserContextScope"> | string
+    subjectKey?: StringWithAggregatesFilter<"UserContextScope"> | string
+    revision?: IntWithAggregatesFilter<"UserContextScope"> | number
+  }
+
+  export type UserContextFactWhereInput = {
+    AND?: UserContextFactWhereInput | UserContextFactWhereInput[]
+    OR?: UserContextFactWhereInput[]
+    NOT?: UserContextFactWhereInput | UserContextFactWhereInput[]
+    id?: StringFilter<"UserContextFact"> | string
+    scopeId?: StringFilter<"UserContextFact"> | string
+    domainKey?: StringFilter<"UserContextFact"> | string
+    preferenceKey?: StringFilter<"UserContextFact"> | string
+    value?: JsonFilter<"UserContextFact">
+    confirmation?: StringFilter<"UserContextFact"> | string
+    commandId?: StringFilter<"UserContextFact"> | string
+    sourceKind?: StringFilter<"UserContextFact"> | string
+    sourceKey?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeId?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeRevision?: IntFilter<"UserContextFact"> | number
+    sourceAttributeId?: StringFilter<"UserContextFact"> | string
+    sourceOperator?: StringFilter<"UserContextFact"> | string
+    observedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    confirmedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    updatedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    scope?: XOR<UserContextScopeScalarRelationFilter, UserContextScopeWhereInput>
+  }
+
+  export type UserContextFactOrderByWithRelationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    value?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+    scope?: UserContextScopeOrderByWithRelationInput
+  }
+
+  export type UserContextFactWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    scopeId_domainKey_preferenceKey?: UserContextFactScopeIdDomainKeyPreferenceKeyCompoundUniqueInput
+    AND?: UserContextFactWhereInput | UserContextFactWhereInput[]
+    OR?: UserContextFactWhereInput[]
+    NOT?: UserContextFactWhereInput | UserContextFactWhereInput[]
+    scopeId?: StringFilter<"UserContextFact"> | string
+    domainKey?: StringFilter<"UserContextFact"> | string
+    preferenceKey?: StringFilter<"UserContextFact"> | string
+    value?: JsonFilter<"UserContextFact">
+    confirmation?: StringFilter<"UserContextFact"> | string
+    commandId?: StringFilter<"UserContextFact"> | string
+    sourceKind?: StringFilter<"UserContextFact"> | string
+    sourceKey?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeId?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeRevision?: IntFilter<"UserContextFact"> | number
+    sourceAttributeId?: StringFilter<"UserContextFact"> | string
+    sourceOperator?: StringFilter<"UserContextFact"> | string
+    observedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    confirmedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    updatedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    scope?: XOR<UserContextScopeScalarRelationFilter, UserContextScopeWhereInput>
+  }, "id" | "scopeId_domainKey_preferenceKey">
+
+  export type UserContextFactOrderByWithAggregationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    value?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: UserContextFactCountOrderByAggregateInput
+    _avg?: UserContextFactAvgOrderByAggregateInput
+    _max?: UserContextFactMaxOrderByAggregateInput
+    _min?: UserContextFactMinOrderByAggregateInput
+    _sum?: UserContextFactSumOrderByAggregateInput
+  }
+
+  export type UserContextFactScalarWhereWithAggregatesInput = {
+    AND?: UserContextFactScalarWhereWithAggregatesInput | UserContextFactScalarWhereWithAggregatesInput[]
+    OR?: UserContextFactScalarWhereWithAggregatesInput[]
+    NOT?: UserContextFactScalarWhereWithAggregatesInput | UserContextFactScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserContextFact"> | string
+    scopeId?: StringWithAggregatesFilter<"UserContextFact"> | string
+    domainKey?: StringWithAggregatesFilter<"UserContextFact"> | string
+    preferenceKey?: StringWithAggregatesFilter<"UserContextFact"> | string
+    value?: JsonWithAggregatesFilter<"UserContextFact">
+    confirmation?: StringWithAggregatesFilter<"UserContextFact"> | string
+    commandId?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceKind?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceKey?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceEpisodeId?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceEpisodeRevision?: IntWithAggregatesFilter<"UserContextFact"> | number
+    sourceAttributeId?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceOperator?: StringWithAggregatesFilter<"UserContextFact"> | string
+    observedAt?: DateTimeWithAggregatesFilter<"UserContextFact"> | Date | string
+    confirmedAt?: DateTimeWithAggregatesFilter<"UserContextFact"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"UserContextFact"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -37357,6 +40136,8 @@ export namespace Prisma {
 
   export type ChatCreateInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -37374,6 +40155,8 @@ export namespace Prisma {
 
   export type ChatUncheckedCreateInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -37391,6 +40174,8 @@ export namespace Prisma {
 
   export type ChatUpdateInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -37408,6 +40193,8 @@ export namespace Prisma {
 
   export type ChatUncheckedUpdateInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -37425,6 +40212,8 @@ export namespace Prisma {
 
   export type ChatCreateManyInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -37439,6 +40228,8 @@ export namespace Prisma {
 
   export type ChatUpdateManyMutationInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -37451,6 +40242,8 @@ export namespace Prisma {
 
   export type ChatUncheckedUpdateManyInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -39360,6 +42153,191 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserContextScopeCreateInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+    facts?: UserContextFactCreateNestedManyWithoutScopeInput
+  }
+
+  export type UserContextScopeUncheckedCreateInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+    facts?: UserContextFactUncheckedCreateNestedManyWithoutScopeInput
+  }
+
+  export type UserContextScopeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    facts?: UserContextFactUpdateManyWithoutScopeNestedInput
+  }
+
+  export type UserContextScopeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    facts?: UserContextFactUncheckedUpdateManyWithoutScopeNestedInput
+  }
+
+  export type UserContextScopeCreateManyInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+  }
+
+  export type UserContextScopeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserContextScopeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserContextFactCreateInput = {
+    id?: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+    scope: UserContextScopeCreateNestedOneWithoutFactsInput
+  }
+
+  export type UserContextFactUncheckedCreateInput = {
+    id?: string
+    scopeId: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    scope?: UserContextScopeUpdateOneRequiredWithoutFactsNestedInput
+  }
+
+  export type UserContextFactUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextFactCreateManyInput = {
+    id?: string
+    scopeId: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextFactUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -39860,6 +42838,17 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type EnumChatModeFilter<$PrismaModel = never> = {
     equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
     in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
@@ -39879,6 +42868,8 @@ export namespace Prisma {
 
   export type ChatCountOrderByAggregateInput = {
     consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
     consultationAttemptId?: SortOrder
     consultationSourceMessageId?: SortOrder
     id?: SortOrder
@@ -39893,11 +42884,15 @@ export namespace Prisma {
 
   export type ChatAvgOrderByAggregateInput = {
     consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
     handoffVersion?: SortOrder
   }
 
   export type ChatMaxOrderByAggregateInput = {
     consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
     consultationAttemptId?: SortOrder
     consultationSourceMessageId?: SortOrder
     id?: SortOrder
@@ -39912,6 +42907,8 @@ export namespace Prisma {
 
   export type ChatMinOrderByAggregateInput = {
     consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
     consultationAttemptId?: SortOrder
     consultationSourceMessageId?: SortOrder
     id?: SortOrder
@@ -39926,6 +42923,8 @@ export namespace Prisma {
 
   export type ChatSumOrderByAggregateInput = {
     consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
     handoffVersion?: SortOrder
   }
 
@@ -39945,6 +42944,22 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
   export type EnumChatModeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
     in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
@@ -39953,17 +42968,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumChatModeFilter<$PrismaModel>
     _max?: NestedEnumChatModeFilter<$PrismaModel>
-  }
-
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type EnumConversationMessageRoleFilter<$PrismaModel = never> = {
@@ -40034,22 +43038,6 @@ export namespace Prisma {
 
   export type MessageSumOrderByAggregateInput = {
     consultationInputSeq?: SortOrder
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type EnumConversationMessageRoleWithAggregatesFilter<$PrismaModel = never> = {
@@ -41385,6 +44373,124 @@ export namespace Prisma {
     inputSeq?: SortOrder
   }
 
+  export type UserContextFactListRelationFilter = {
+    every?: UserContextFactWhereInput
+    some?: UserContextFactWhereInput
+    none?: UserContextFactWhereInput
+  }
+
+  export type UserContextFactOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserContextScopeStoreKeySubjectKeyCompoundUniqueInput = {
+    storeKey: string
+    subjectKey: string
+  }
+
+  export type UserContextScopeCountOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeAvgOrderByAggregateInput = {
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeMinOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeSumOrderByAggregateInput = {
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeScalarRelationFilter = {
+    is?: UserContextScopeWhereInput
+    isNot?: UserContextScopeWhereInput
+  }
+
+  export type UserContextFactScopeIdDomainKeyPreferenceKeyCompoundUniqueInput = {
+    scopeId: string
+    domainKey: string
+    preferenceKey: string
+  }
+
+  export type UserContextFactCountOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    value?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserContextFactAvgOrderByAggregateInput = {
+    sourceEpisodeRevision?: SortOrder
+  }
+
+  export type UserContextFactMaxOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserContextFactMinOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserContextFactSumOrderByAggregateInput = {
+    sourceEpisodeRevision?: SortOrder
+  }
+
   export type ChatCreateNestedOneWithoutUserInput = {
     create?: XOR<ChatCreateWithoutUserInput, ChatUncheckedCreateWithoutUserInput>
     connectOrCreate?: ChatCreateOrConnectWithoutUserInput
@@ -41977,6 +45083,14 @@ export namespace Prisma {
     divide?: number
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type EnumChatModeFieldUpdateOperationsInput = {
     set?: $Enums.ChatMode
   }
@@ -42093,14 +45207,6 @@ export namespace Prisma {
     create?: XOR<UserCreateWithoutSentMessagesInput, UserUncheckedCreateWithoutSentMessagesInput>
     connectOrCreate?: UserCreateOrConnectWithoutSentMessagesInput
     connect?: UserWhereUniqueInput
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type EnumConversationMessageRoleFieldUpdateOperationsInput = {
@@ -43114,6 +46220,62 @@ export namespace Prisma {
     update?: XOR<XOR<ConsultationMemoryScopeUpdateToOneWithWhereWithoutReceiptsInput, ConsultationMemoryScopeUpdateWithoutReceiptsInput>, ConsultationMemoryScopeUncheckedUpdateWithoutReceiptsInput>
   }
 
+  export type UserContextFactCreateNestedManyWithoutScopeInput = {
+    create?: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput> | UserContextFactCreateWithoutScopeInput[] | UserContextFactUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: UserContextFactCreateOrConnectWithoutScopeInput | UserContextFactCreateOrConnectWithoutScopeInput[]
+    createMany?: UserContextFactCreateManyScopeInputEnvelope
+    connect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+  }
+
+  export type UserContextFactUncheckedCreateNestedManyWithoutScopeInput = {
+    create?: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput> | UserContextFactCreateWithoutScopeInput[] | UserContextFactUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: UserContextFactCreateOrConnectWithoutScopeInput | UserContextFactCreateOrConnectWithoutScopeInput[]
+    createMany?: UserContextFactCreateManyScopeInputEnvelope
+    connect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+  }
+
+  export type UserContextFactUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput> | UserContextFactCreateWithoutScopeInput[] | UserContextFactUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: UserContextFactCreateOrConnectWithoutScopeInput | UserContextFactCreateOrConnectWithoutScopeInput[]
+    upsert?: UserContextFactUpsertWithWhereUniqueWithoutScopeInput | UserContextFactUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: UserContextFactCreateManyScopeInputEnvelope
+    set?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    disconnect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    delete?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    connect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    update?: UserContextFactUpdateWithWhereUniqueWithoutScopeInput | UserContextFactUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: UserContextFactUpdateManyWithWhereWithoutScopeInput | UserContextFactUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: UserContextFactScalarWhereInput | UserContextFactScalarWhereInput[]
+  }
+
+  export type UserContextFactUncheckedUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput> | UserContextFactCreateWithoutScopeInput[] | UserContextFactUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: UserContextFactCreateOrConnectWithoutScopeInput | UserContextFactCreateOrConnectWithoutScopeInput[]
+    upsert?: UserContextFactUpsertWithWhereUniqueWithoutScopeInput | UserContextFactUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: UserContextFactCreateManyScopeInputEnvelope
+    set?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    disconnect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    delete?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    connect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    update?: UserContextFactUpdateWithWhereUniqueWithoutScopeInput | UserContextFactUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: UserContextFactUpdateManyWithWhereWithoutScopeInput | UserContextFactUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: UserContextFactScalarWhereInput | UserContextFactScalarWhereInput[]
+  }
+
+  export type UserContextScopeCreateNestedOneWithoutFactsInput = {
+    create?: XOR<UserContextScopeCreateWithoutFactsInput, UserContextScopeUncheckedCreateWithoutFactsInput>
+    connectOrCreate?: UserContextScopeCreateOrConnectWithoutFactsInput
+    connect?: UserContextScopeWhereUniqueInput
+  }
+
+  export type UserContextScopeUpdateOneRequiredWithoutFactsNestedInput = {
+    create?: XOR<UserContextScopeCreateWithoutFactsInput, UserContextScopeUncheckedCreateWithoutFactsInput>
+    connectOrCreate?: UserContextScopeCreateOrConnectWithoutFactsInput
+    upsert?: UserContextScopeUpsertWithoutFactsInput
+    connect?: UserContextScopeWhereUniqueInput
+    update?: XOR<XOR<UserContextScopeUpdateToOneWithWhereWithoutFactsInput, UserContextScopeUpdateWithoutFactsInput>, UserContextScopeUncheckedUpdateWithoutFactsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -43402,23 +46564,6 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
-  export type NestedEnumChatModeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
-    in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
-    not?: NestedEnumChatModeWithAggregatesFilter<$PrismaModel> | $Enums.ChatMode
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumChatModeFilter<$PrismaModel>
-    _max?: NestedEnumChatModeFilter<$PrismaModel>
-  }
-
-  export type NestedEnumConversationMessageRoleFilter<$PrismaModel = never> = {
-    equals?: $Enums.ConversationMessageRole | EnumConversationMessageRoleFieldRefInput<$PrismaModel>
-    in?: $Enums.ConversationMessageRole[] | ListEnumConversationMessageRoleFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ConversationMessageRole[] | ListEnumConversationMessageRoleFieldRefInput<$PrismaModel>
-    not?: NestedEnumConversationMessageRoleFilter<$PrismaModel> | $Enums.ConversationMessageRole
-  }
-
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -43444,6 +46589,23 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedEnumChatModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
+    in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumChatModeWithAggregatesFilter<$PrismaModel> | $Enums.ChatMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumChatModeFilter<$PrismaModel>
+    _max?: NestedEnumChatModeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumConversationMessageRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationMessageRole | EnumConversationMessageRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationMessageRole[] | ListEnumConversationMessageRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationMessageRole[] | ListEnumConversationMessageRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationMessageRoleFilter<$PrismaModel> | $Enums.ConversationMessageRole
   }
 
   export type NestedEnumConversationMessageRoleWithAggregatesFilter<$PrismaModel = never> = {
@@ -43697,6 +46859,8 @@ export namespace Prisma {
 
   export type ChatCreateWithoutUserInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -43713,6 +46877,8 @@ export namespace Prisma {
 
   export type ChatUncheckedCreateWithoutUserInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -44067,6 +47233,8 @@ export namespace Prisma {
 
   export type ChatUpdateWithoutUserInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -44083,6 +47251,8 @@ export namespace Prisma {
 
   export type ChatUncheckedUpdateWithoutUserInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -44432,6 +47602,8 @@ export namespace Prisma {
 
   export type ChatCreateWithoutOperatorInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -44448,6 +47620,8 @@ export namespace Prisma {
 
   export type ChatUncheckedCreateWithoutOperatorInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -44592,6 +47766,8 @@ export namespace Prisma {
     OR?: ChatScalarWhereInput[]
     NOT?: ChatScalarWhereInput | ChatScalarWhereInput[]
     consultationInputSeq?: IntFilter<"Chat"> | number
+    consultationNextInputSeq?: IntNullableFilter<"Chat"> | number | null
+    consultationNextHandoffVersion?: IntNullableFilter<"Chat"> | number | null
     consultationAttemptId?: StringNullableFilter<"Chat"> | string | null
     consultationSourceMessageId?: StringNullableFilter<"Chat"> | string | null
     id?: StringFilter<"Chat"> | string
@@ -44671,6 +47847,8 @@ export namespace Prisma {
 
   export type ChatCreateWithoutSupportCasesInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -44687,6 +47865,8 @@ export namespace Prisma {
 
   export type ChatUncheckedCreateWithoutSupportCasesInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -44805,6 +47985,8 @@ export namespace Prisma {
 
   export type ChatUpdateWithoutSupportCasesInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -44821,6 +48003,8 @@ export namespace Prisma {
 
   export type ChatUncheckedUpdateWithoutSupportCasesInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -45227,6 +48411,8 @@ export namespace Prisma {
 
   export type ChatCreateWithoutMessagesInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -45243,6 +48429,8 @@ export namespace Prisma {
 
   export type ChatUncheckedCreateWithoutMessagesInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -45324,6 +48512,8 @@ export namespace Prisma {
 
   export type ChatUpdateWithoutMessagesInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -45340,6 +48530,8 @@ export namespace Prisma {
 
   export type ChatUncheckedUpdateWithoutMessagesInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -47539,6 +50731,8 @@ export namespace Prisma {
 
   export type ChatCreateWithoutConsultationMemoryScopesInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -47555,6 +50749,8 @@ export namespace Prisma {
 
   export type ChatUncheckedCreateWithoutConsultationMemoryScopesInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -47697,6 +50893,8 @@ export namespace Prisma {
 
   export type ChatUpdateWithoutConsultationMemoryScopesInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -47713,6 +50911,8 @@ export namespace Prisma {
 
   export type ChatUncheckedUpdateWithoutConsultationMemoryScopesInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -48176,6 +51376,134 @@ export namespace Prisma {
     offers?: ConsultationResumeOfferUncheckedUpdateManyWithoutScopeNestedInput
   }
 
+  export type UserContextFactCreateWithoutScopeInput = {
+    id?: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactUncheckedCreateWithoutScopeInput = {
+    id?: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactCreateOrConnectWithoutScopeInput = {
+    where: UserContextFactWhereUniqueInput
+    create: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput>
+  }
+
+  export type UserContextFactCreateManyScopeInputEnvelope = {
+    data: UserContextFactCreateManyScopeInput | UserContextFactCreateManyScopeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserContextFactUpsertWithWhereUniqueWithoutScopeInput = {
+    where: UserContextFactWhereUniqueInput
+    update: XOR<UserContextFactUpdateWithoutScopeInput, UserContextFactUncheckedUpdateWithoutScopeInput>
+    create: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput>
+  }
+
+  export type UserContextFactUpdateWithWhereUniqueWithoutScopeInput = {
+    where: UserContextFactWhereUniqueInput
+    data: XOR<UserContextFactUpdateWithoutScopeInput, UserContextFactUncheckedUpdateWithoutScopeInput>
+  }
+
+  export type UserContextFactUpdateManyWithWhereWithoutScopeInput = {
+    where: UserContextFactScalarWhereInput
+    data: XOR<UserContextFactUpdateManyMutationInput, UserContextFactUncheckedUpdateManyWithoutScopeInput>
+  }
+
+  export type UserContextFactScalarWhereInput = {
+    AND?: UserContextFactScalarWhereInput | UserContextFactScalarWhereInput[]
+    OR?: UserContextFactScalarWhereInput[]
+    NOT?: UserContextFactScalarWhereInput | UserContextFactScalarWhereInput[]
+    id?: StringFilter<"UserContextFact"> | string
+    scopeId?: StringFilter<"UserContextFact"> | string
+    domainKey?: StringFilter<"UserContextFact"> | string
+    preferenceKey?: StringFilter<"UserContextFact"> | string
+    value?: JsonFilter<"UserContextFact">
+    confirmation?: StringFilter<"UserContextFact"> | string
+    commandId?: StringFilter<"UserContextFact"> | string
+    sourceKind?: StringFilter<"UserContextFact"> | string
+    sourceKey?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeId?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeRevision?: IntFilter<"UserContextFact"> | number
+    sourceAttributeId?: StringFilter<"UserContextFact"> | string
+    sourceOperator?: StringFilter<"UserContextFact"> | string
+    observedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    confirmedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    updatedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+  }
+
+  export type UserContextScopeCreateWithoutFactsInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+  }
+
+  export type UserContextScopeUncheckedCreateWithoutFactsInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+  }
+
+  export type UserContextScopeCreateOrConnectWithoutFactsInput = {
+    where: UserContextScopeWhereUniqueInput
+    create: XOR<UserContextScopeCreateWithoutFactsInput, UserContextScopeUncheckedCreateWithoutFactsInput>
+  }
+
+  export type UserContextScopeUpsertWithoutFactsInput = {
+    update: XOR<UserContextScopeUpdateWithoutFactsInput, UserContextScopeUncheckedUpdateWithoutFactsInput>
+    create: XOR<UserContextScopeCreateWithoutFactsInput, UserContextScopeUncheckedCreateWithoutFactsInput>
+    where?: UserContextScopeWhereInput
+  }
+
+  export type UserContextScopeUpdateToOneWithWhereWithoutFactsInput = {
+    where?: UserContextScopeWhereInput
+    data: XOR<UserContextScopeUpdateWithoutFactsInput, UserContextScopeUncheckedUpdateWithoutFactsInput>
+  }
+
+  export type UserContextScopeUpdateWithoutFactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserContextScopeUncheckedUpdateWithoutFactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+  }
+
   export type MessageCreateManyAuthorInput = {
     consultationInputSeq?: number | null
     clientMessageId?: string | null
@@ -48581,6 +51909,8 @@ export namespace Prisma {
 
   export type ChatCreateManyOperatorInput = {
     consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
     consultationAttemptId?: string | null
     consultationSourceMessageId?: string | null
     id?: string
@@ -48611,6 +51941,8 @@ export namespace Prisma {
 
   export type ChatUpdateWithoutOperatorInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -48627,6 +51959,8 @@ export namespace Prisma {
 
   export type ChatUncheckedUpdateWithoutOperatorInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -48643,6 +51977,8 @@ export namespace Prisma {
 
   export type ChatUncheckedUpdateManyWithoutOperatorInput = {
     consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
     consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
     consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
@@ -49522,6 +52858,78 @@ export namespace Prisma {
     decision?: NullableStringFieldUpdateOperationsInput | string | null
     decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type UserContextFactCreateManyScopeInput = {
+    id?: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextFactUncheckedUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextFactUncheckedUpdateManyWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

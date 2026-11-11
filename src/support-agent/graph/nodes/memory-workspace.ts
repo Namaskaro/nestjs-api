@@ -75,8 +75,14 @@ export function openMemoryWorkspace(
   const current = workspace ?? createProductWorkspace();
   const record = createConsultationApplicationRecord();
   record.generation = 1;
+  const knownProfiles: Record<string, string> = { SHOES: 'обувь', CLOTHES: 'одежда', ACCESSORIES: 'аксессуары' };
+  const savedTerms = snapshot.constraints.filter(item =>
+    item.operator === 'eq' && ['subcategory', 'brand', 'color'].includes(item.attributeId) && typeof item.value === 'string')
+    .map(item => String(item.value));
+  const savedIntent = [knownProfiles[snapshot.profileId ?? snapshot.goalKey ?? ''], ...savedTerms].filter(Boolean).join(' ');
   record.state = createProductConsultationState({
-    semanticIntent: query.slice(0, 1000),
+    semanticIntent: context.consultationAction === 'resume_unchanged'
+      ? (savedIntent || 'подбор товаров').slice(0, 1000) : query.slice(0, 1000),
     category: snapshot.profileId,
     constraints: snapshot.constraints,
   });

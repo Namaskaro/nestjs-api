@@ -1,42 +1,5 @@
-export type MemoryOperator = 'eq' | 'contains' | 'lte' | 'gte';
-
-export interface MemoryConstraintKey {
-  attributeId: string;
-  operator: MemoryOperator;
-}
-
-export interface MemoryConstraint extends MemoryConstraintKey {
-  value: string | number | boolean;
-  unit: string | null;
-}
-
-export interface MemoryCriteriaPatch {
-  profileId?: string | null;
-  set?: MemoryConstraint[];
-  clear?: MemoryConstraintKey[];
-}
-
-export type MemoryOutcome =
-  | 'PRODUCT_SELECTED'
-  | 'NO_MATCH'
-  | 'USER_CANCELLED'
-  | 'FINISHED_UNSPECIFIED';
-
-export interface ConsultationEpisodeChange {
-  taskKey: string;
-  kind: 'start' | 'update';
-  previousSourceMessageId?: string;
-  criteria?: MemoryCriteriaPatch;
-  considered?: string[];
-  compared?: string[];
-  recommended?: string[];
-  outcome?: MemoryOutcome;
-}
-
-export interface ConsultationMemoryCandidate {
-  sourceMessageId: string;
-  changes: ConsultationEpisodeChange[];
-}
+import type { ConsultationMemoryWitness, MemoryConstraint } from './memory.contract';
+export * from './memory.contract';
 
 export interface ConsultationMemoryAdmission {
   chatId: string;
@@ -53,14 +16,10 @@ export interface ConsultationMemoryContinuation {
   revision: number;
   snapshot: {
     profileId: string | null;
+    goalKey?: string | null;
     constraints: MemoryConstraint[];
     lastSourceMessageId: string | null;
   };
-}
-
-export interface ConsultationMemoryWitness {
-  revision: number;
-  sourceMessageId: string | null;
 }
 
 export interface ConsultationMemoryBasis extends ConsultationMemoryAdmission {
@@ -72,6 +31,14 @@ export interface ConsultationMemoryBasis extends ConsultationMemoryAdmission {
 }
 
 export const consultationContinuationOfferIdField = 'consultationContinuationOfferId';
+export const consultationActionField = 'consultationAction';
+export type ConsultationInputAction = 'resume_unchanged' | 'start_new';
+
+export function getConsultationAction(payload: unknown): ConsultationInputAction | undefined {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined;
+  const action = (payload as Record<string, unknown>)[consultationActionField];
+  return action === 'resume_unchanged' || action === 'start_new' ? action : undefined;
+}
 
 export function getConsultationContinuationOfferId(payload: unknown): string | undefined {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined;

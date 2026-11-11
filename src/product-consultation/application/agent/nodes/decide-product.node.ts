@@ -9,6 +9,7 @@ import {
   type ProductAgentStateType,
 } from '../product-agent.state';
 
+import { ProductWorkspacePlanSchema } from '../../workspace/product-workspace-plan';
 import { createConsultationAgent } from '../../consultation-agent/consultation.agent';
 
 import { CATEGORY_USAGE_KNOWLEDGE } from '../../../core/profiles/usage-scenarios';
@@ -79,6 +80,26 @@ export function createDecideProductNode(
       return {
         plan: null,
       };
+    }
+
+    if (state.resumeUnchanged) {
+      const focused = state.workspace.tasks.find(task => task.taskId === state.workspace.focus[0]?.taskId);
+      if (!focused?.memoryEpisodeId || !focused.record.state?.search ||
+          (!focused.record.state.search.category && !focused.record.state.search.constraints.length)) {
+        return { plan: ProductWorkspacePlanSchema.parse({
+          operations: [], clarification: 'Уточните, какой товар вы хотите подобрать.',
+        }) };
+      }
+      return { plan: ProductWorkspacePlanSchema.parse({
+        operations: [{
+          kind: 'consult', target: { kind: 'current', view: 'focus' }, query: state.query,
+          actions: [{
+            decision: { proposal: { action: 'SHOW_RESULTS', taskTransition: 'continue' },
+              usageScenarioIds: [], factAttributeIds: [], terminalText: null },
+          }],
+        }],
+        clarification: null,
+      }) };
     }
 
     const plan = await consultant.decideWorkspace({

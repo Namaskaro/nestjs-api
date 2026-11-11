@@ -261,7 +261,7 @@ export function createRequestRouterNode(
 
   const chain = requestRouterPrompt.pipe(structuredRouter);
 
-  return async (state) => {
+  return async (state, config) => {
     /*
      * Сначала проверяем однозначные запросы
      * на выполнение операции по заказу.
@@ -319,7 +319,7 @@ export function createRequestRouterNode(
      * существующая LLM-маршрутизация.
      */
     const history = await requestRouterHistoryTrimmer.invoke(
-      state.messages.slice(0, -1),
+      config?.context?.consultationAction === 'start_new' ? [] : state.messages.slice(0, -1),
     );
 
     const routerProductContext = state.productWorkspace

@@ -3,8 +3,7 @@ import type { ProductWorkspace } from './product-workspace';
 import type { ProductLaneOutcome } from './execute-product-lane';
 import type { SearchSpec } from '../../core/search/search-spec.schema';
 
-const retainedAttributes = new Set(['category', 'subcategory', 'brand', 'color', 'price', 'sizes']);
-const key = (value: SearchSpec['constraints'][number]) => value.attributeId + ':' + value.operator;
+ const key = (value: SearchSpec['constraints'][number]) => value.attributeId + ':' + value.operator;
 type Task = ProductWorkspace['tasks'][number];
 
 export function captureEpisodeChange(
@@ -26,8 +25,8 @@ export function captureEpisodeChange(
   const beforeSearch = before.record.state?.search;
   const afterSearch = result.task.record.state?.search;
   if (searched && afterSearch && result.task.record.revision !== before.record.revision) {
-    const previous = (beforeSearch?.constraints ?? []).filter(({ attributeId }) => retainedAttributes.has(attributeId));
-    const next = afterSearch.constraints.filter(({ attributeId }) => retainedAttributes.has(attributeId));
+    const previous = beforeSearch?.constraints ?? [];
+    const next = afterSearch.constraints;
     const oldByKey = new Map(previous.map((value) => [key(value), value]));
     const nextKeys = new Set(next.map(key));
     change.criteria = {

@@ -1,6 +1,9 @@
 import { ConsultationMemoryService } from '@/src/consultation-memory/consultation-memory.service';
 import type { ConsultationMemoryAdmission, ConsultationMemoryBasis, ConsultationMemoryCandidate } from '@/src/consultation-memory/consultation-memory.types';
-import { consultationContinuationOfferIdField, getConsultationContinuationOfferId } from '@/src/consultation-memory/consultation-memory.types';
+import {
+  consultationActionField, consultationContinuationOfferIdField, getConsultationAction, getConsultationContinuationOfferId,
+  type ConsultationInputAction,
+} from '@/src/consultation-memory/consultation-memory.types';
 import { Optional } from '@nestjs/common';
 import {
   ConflictException,
@@ -194,8 +197,9 @@ function publicChatMessage<T>(message: T) {
   if (!message || typeof message !== 'object') return message;
   const { consultationInputSeq, clientMessageId, assistantSourceMessageId, expectsEpisodeProjection, alreadyAccepted, ...view } =
     message as Record<string, unknown>;
-  if (getConsultationContinuationOfferId(view.payload)) {
-    const { [consultationContinuationOfferIdField]: internalOfferId, ...payload } = view.payload as Record<string, unknown>;
+  if (getConsultationContinuationOfferId(view.payload) || getConsultationAction(view.payload)) {
+    const { [consultationContinuationOfferIdField]: internalOfferId, [consultationActionField]: internalAction, ...payload } =
+      view.payload as Record<string, unknown>;
     view.payload = Object.keys(payload).length ? payload : null;
   }
   return view;
@@ -203,7 +207,8 @@ function publicChatMessage<T>(message: T) {
 
 function publicChat<T>(chat: T) {
   if (!chat || typeof chat !== 'object') return chat;
-  const { consultationInputSeq, consultationAttemptId, consultationSourceMessageId, ...view } =
+  const { consultationInputSeq, consultationAttemptId, consultationSourceMessageId,
+    consultationNextInputSeq, consultationNextHandoffVersion, ...view } =
     chat as Record<string, unknown>;
   if (Array.isArray(view.messages)) view.messages = view.messages.map(publicChatMessage);
   return view;
@@ -272,17 +277,18 @@ export class ChatGateway implements OnModuleInit {
       if (dto.requestConsultationOffer !== true || !this.consultationMemory?.enabled ||
           socket.data.user.role !== 'Client') return snapshot;
 
-      let consultationOffer = null;
+      let consultationState: Awaited<ReturnType<ConsultationMemoryService['getResumeState']>> =
+        { consultationOffer: null, consultationIntent: null };
       try {
         if (snapshot.mode === ChatMode.BOT && !this.activeAssistantChats.has(dto.chatId) &&
             !this.supportAgentService.isThreadActive(dto.chatId) &&
             !await this.supportAgentService.hasPendingInterrupt(dto.chatId)) {
-          consultationOffer = await this.consultationMemory.getResumeOffer(dto.chatId, userId);
+          consultationState = await this.consultationMemory.getResumeState(dto.chatId, userId);
         }
       } catch {
         this.logger.warn('Consultation resume offer unavailable');
       }
-      return { ...snapshot, consultationOffer };
+      return { ...snapshot, ...consultationState };
     }
 
     /*
@@ -307,7 +313,7 @@ export class ChatGateway implements OnModuleInit {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: ConsultationResumeDecisionDto,
   ) {
-    if (!isUuid(dto.offerId) || (dto.decision !== 'continue' && dto.decision !== 'later')) {
+    if (!isUuid(dto.offerId) || !['continue', 'later', 'start_new'].includes(dto.decision)) {
       throw new WsException({ status: 'bad_request', message: 'Некорректное решение о продолжении подбора.' });
     }
     const userId = socket.data.user.id;
@@ -339,6 +345,10 @@ export class ChatGateway implements OnModuleInit {
     @Ack()
     ack: (message: unknown) => void,
   ) {
+    if (dto.consultationAction !== undefined &&
+        (dto.consultationAction !== 'resume_unchanged' || !dto.continuationOfferId || !dto.clientMessageId)) {
+      throw new WsException({ status: 'bad_request', message: 'Некорректная команда продолжения подбора.' });
+    }
     if (dto.continuationOfferId !== undefined && !isUuid(dto.continuationOfferId)) {
       throw new WsException({ status: 'bad_request', message: 'Некорректное предложение о продолжении подбора.' });
     }
@@ -360,7 +370,8 @@ export class ChatGateway implements OnModuleInit {
       const saved = await this.chatService.createParticipantMessage({
         chatId: dto.chatId,
         userId,
-        content: dto.content,
+        content: dto.consultationAction === 'resume_unchanged' ? 'Продолжить с прежними условиями' : dto.content,
+        ...(dto.consultationAction ? { consultationAction: dto.consultationAction } : {}),
         ...(dto.continuationOfferId ? {
           continuationOfferId: dto.continuationOfferId,
           continuationAllowed: Boolean(this.consultationMemory?.enabled &&
@@ -399,6 +410,7 @@ export class ChatGateway implements OnModuleInit {
         saved.admission,
         Boolean(dto.clientMessageId),
         Boolean(dto.continuationOfferId),
+        getConsultationAction(saved.message.payload),
       );
     } finally {
       if (expectsAssistant) {
@@ -483,6 +495,7 @@ export class ChatGateway implements OnModuleInit {
           : null,
         Boolean(lastMessage.clientMessageId || (this.consultationMemory?.enabled && socket.data.user.role === 'Client')),
         Boolean(getConsultationContinuationOfferId(lastMessage.payload)),
+        getConsultationAction(lastMessage.payload),
       );
     } finally {
       this.releaseAssistantSlot(dto.chatId);
@@ -789,6 +802,7 @@ export class ChatGateway implements OnModuleInit {
     admission?: ConsultationMemoryAdmission | null,
     deduplicate = false,
     requiresContinuation = false,
+    consultationAction?: ConsultationInputAction,
   ) {
     try {
       let basis: ConsultationMemoryBasis | null = null;
@@ -819,7 +833,7 @@ export class ChatGateway implements OnModuleInit {
       const result = await this.supportAgentService.run(
         content,
         chatId,
-        runtimeContext,
+        { ...runtimeContext, ...(consultationAction ? { consultationAction } : {}) },
         (event) => {
           if (basis && event.type === 'assistant_delta') bufferedDeltas.push(event);
           else this.emitAssistantEvent(chatId, event);

@@ -4,12 +4,12 @@ import {
 import { z } from 'zod';
 import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/src/modules/user/decorators/user.decorator';
-import { memoryCorrectionSchema } from './consultation-memory.core';
+import { nextShopCorrectionSchema } from './next-shop-memory.adapter';
 import { ConsultationMemoryService } from './consultation-memory.service';
 
 const correction = z.object({
   revision: z.number().int().positive(),
-  change: memoryCorrectionSchema,
+  change: nextShopCorrectionSchema,
 }).strict();
 
 @Controller('chat/:chatId/consultation-episodes')
