@@ -262,6 +262,18 @@ async function consultationCases(context, f) {
     /pending-secret|rejected-secret|other-product-private-marker|@review-it\.invalid/,
   );
 
+  const sourceText = presentation.reviewAnswer.sources[0].text;
+  ai.handlers.product_review_answer = () => ({
+    message: `Покупатель пишет: «${sourceText}».`,
+    usedPositions: [1],
+  });
+  const quoted = await run('DETAILS', [1], 'waterproof comfort');
+  const quotedAnswer =
+    quoted.consultation?.productDetailsPresentation.reviewAnswer;
+  assert.match(quotedAnswer.message, /Краткий вывод/);
+  assert.ok(!quotedAnswer.message.includes(sourceText));
+  assert.equal(quotedAnswer.sources[0].text, sourceText);
+
   ai.handlers.product_review_answer = () => ({
     message: 'Invalid sources',
     usedPositions: [4],

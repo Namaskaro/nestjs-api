@@ -230,6 +230,8 @@ async function run({ api, shop }) {
     const details = await chatTurn(socket, chat.id, prompts.details);
     console.log('Review Q&A response:', details.content);
     assert.match(JSON.stringify(details), /reviewAnswer/);
+    assert.match(details.content, /положительный опыт прогулок/);
+    assert.doesNotMatch(details.content, /[«»]/);
     assert.match(JSON.stringify(details), /reviewExperience/);
     assert.match(JSON.stringify(details), /positiveImpressions/);
     const compare = await chatTurn(socket, chat.id, prompts.compare);

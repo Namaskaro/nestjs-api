@@ -116,9 +116,7 @@ class ReviewLiveModel extends BaseChatModel {
           break;
         case 'review_summary':
           value = {
-            positiveImpressions: [
-              'В тестовом корпусе отмечают удобство ходьбы.',
-            ],
+            positiveImpressions: ['Покупатели отмечают удобство ходьбы.'],
             negativeImpressions: [
               'В отдельных отзывах упоминают плотную посадку.',
             ],
@@ -127,22 +125,42 @@ class ReviewLiveModel extends BaseChatModel {
           };
           break;
         case 'product_review_answer': {
-          const { sources } = JSON.parse(content(input));
-          const other =
-            sources.find((entry) => entry.text !== sources[0].text) ??
-            sources[1];
+          const { question, sources } = JSON.parse(content(input));
+          const distinct = [
+            ...new Map(sources.map((row) => [row.text, row])).values(),
+          ];
+          const aboutWalking = /ход|гуля|прогул|асфальт/i;
+          const discomfort = /неудоб|не\s+удоб|дискомфорт/i;
+          const comfort = distinct.find(
+            ({ text }) =>
+              aboutWalking.test(text) &&
+              /удоб|комфорт|не устал/i.test(text) &&
+              !discomfort.test(text),
+          );
+          const caveat = distinct.find(({ text }) =>
+            /плотн|разнос/i.test(text),
+          );
+          const negative = distinct.find(
+            ({ text }) => aboutWalking.test(text) && discomfort.test(text),
+          );
+          const walkingQuestion = /ход|гуля|прогул|удоб/i.test(question);
+          const evidence =
+            walkingQuestion && comfort
+              ? [...new Set([comfort, negative, caveat, ...distinct])]
+                  .filter(Boolean)
+                  .slice(0, 2)
+              : distinct.slice(0, 2);
           value = {
             message:
-              `Об удобстве покупатели пишут так: «${sources[0].text.slice(
-                0,
-                220,
-              )}».` +
-              (other && other.text !== sources[0].text
-                ? ` Другой опыт: «${other.text.slice(0, 180)}».`
-                : ''),
-            usedPositions: other
-              ? [sources[0].position, other.position]
-              : [sources[0].position],
+              walkingQuestion && comfort
+                ? 'В найденных отзывах есть положительный опыт прогулок в этой паре.' +
+                  (negative
+                    ? ' Есть и опыт, когда ходить было некомфортно.'
+                    : caveat && /плотн/i.test(caveat.text)
+                    ? ' Один из покупателей предупреждает об облегающей посадке.'
+                    : '')
+                : 'Найденных отзывов недостаточно для уверенного ответа на этот вопрос.',
+            usedPositions: evidence.map(({ position }) => position),
           };
           break;
         }
