@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 export const root = realpathSync(fileURLToPath(new URL('../../', import.meta.url)));
 const ownerPath = process.platform === 'win32' ? root.toLowerCase() : root;
-const project = `support-engine-it-${createHash('sha256').update(ownerPath).digest('hex').slice(0, 12)}`;
+export const project = `support-engine-it-${createHash('sha256').update(ownerPath).digest('hex').slice(0, 12)}`;
 const network = `${project}_test`;
 const host = '127.0.0.1';
 const database = 'support_engine_it';
@@ -29,7 +29,7 @@ export function requireTest(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function dockerCli() {
+export function dockerCli() {
   requireTest(!process.env.NODE_ENV || process.env.NODE_ENV === 'test', 'NODE_ENV must be unset or test');
   requireTest(!process.env.DOCKER_HOST && !process.env.DOCKER_CONTEXT,
     'Unset DOCKER_HOST and DOCKER_CONTEXT. Select a local context using docker context use.');

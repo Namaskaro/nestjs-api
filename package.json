@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "integration": "node infra/integration/run.mjs",
     "test:integration:reviews": "node --test infra/integration/reviews.test.cjs",
+    "review:live": "node infra/integration/live.mjs",
     "db:push": "npx prisma db push",
     "db:migrate": "npx prisma migrate dev",
     "db:studio": "npx prisma studio",

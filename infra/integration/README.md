@@ -51,6 +51,9 @@ npm.cmd run integration -- reset
 
 ## Review Intelligence V2
 
+Для ручной проверки с настоящими Nest, Next, JWT и WebSocket используйте
+[профиль Review Live](live/README.md).
+
 В backend worktree Review Intelligence выполните команды по порядку в отдельной
 PowerShell-сессии с `NODE_ENV=test` или без `NODE_ENV`.
 
