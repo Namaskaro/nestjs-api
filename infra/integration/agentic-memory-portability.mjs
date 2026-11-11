@@ -7,7 +7,7 @@ import { withServices } from './environment.mjs';
 const require = createRequire(import.meta.url);
 require('ts-node/register/transpile-only');
 require('tsconfig-paths/register');
-const { PrismaClient } = require('../../prisma/generated');
+const { Prisma, PrismaClient } = require('../../prisma/generated');
 const { ConsultationMemory } = require('../../src/consultation-memory/consultation-memory.application');
 const { NextShopMemorySource, nextShopMemoryKey } = require('../../src/consultation-memory/next-shop-memory.adapter');
 const { UserContext, revokeEpisodePreferences } = require('../../src/user-context/user-context.application');
@@ -65,7 +65,11 @@ function commerce(prisma) {
 }
 
 // External records deliberately do not use a NextShop User, Chat, Message or SearchSpec.
-function computer(prisma) {
+async function computer(prisma) {
+  const tableName = 'portable_pc_intent_' + runId.replaceAll('-', '');
+  assert.match(tableName, /^portable_pc_intent_[a-f0-9]{32}$/);
+  const intentTable = Prisma.raw('"' + tableName + '"');
+  await prisma.$executeRaw`CREATE TABLE ${intentTable} (source_key TEXT PRIMARY KEY, input_seq INTEGER NOT NULL)`;
   const external = new Map();
   let serial = 46000;
   const storeKey = 'portable-pc-' + runId;
@@ -89,9 +93,12 @@ function computer(prisma) {
         if (lock) await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${key.storeKey + '/' + key.sourceKey}, 0))`;
         const ticket = recordsFor(key);
         if (!ticket) return null;
+        const [intent] = await tx.$queryRaw`SELECT 1 AS pending FROM ${intentTable}
+          WHERE source_key = ${key.sourceKey} AND input_seq = ${ticket.step}`;
         return {
           subjectKey: String(ticket.accountNo), authorizedCustomer: true, assistantAvailable: true,
           inputSeq: ticket.step, handoffVersion: 0, attemptId: ticket.requestRef, sourceMessageId: ticket.inputRef,
+          ...(intent ? { nextIntent: 'start_new' } : {}),
         };
       },
       async input(_tx, admission) {
@@ -102,6 +109,11 @@ function computer(prisma) {
       async hasReply(_tx, key, inputId, replyId) {
         const ticket = recordsFor(key);
         return ticket?.inputRef === inputId && Boolean(ticket.answerRef) && (!replyId || ticket.answerRef === replyId);
+      },
+      async markStartNew(tx, key, source) {
+        await tx.$executeRaw`INSERT INTO ${intentTable} (source_key, input_seq)
+          VALUES (${key.sourceKey}, ${source.inputSeq})
+          ON CONFLICT (source_key) DO UPDATE SET input_seq = EXCLUDED.input_seq`;
       },
       chatLink() { return null; },
     },
@@ -137,6 +149,7 @@ function computer(prisma) {
     async cleanup() {
       await prisma.userContextScope.deleteMany({ where: { storeKey } });
       await prisma.consultationMemoryScope.deleteMany({ where: { storeKey } });
+      await prisma.$executeRaw`DROP TABLE ${intentTable}`;
     },
   };
 }
@@ -210,6 +223,28 @@ async function runContract(prisma, second, adapter) {
   now += 76 * day;
   assert.deepEqual(await memory.list(key), []);
   assert.equal(await memory.purgeExpired(key.storeKey), 1);
+  const old = await adapter.turn(key);
+  const oldBasis = await memory.getBasis(old.admission);
+  assert.equal(await memory.project(oldBasis, old.replyId, {
+    sourceMessageId: oldBasis.sourceMessageId, changes: [{ taskKey: 'old-selection', kind: 'start', criteria: adapter.criteria }],
+  }), 'APPLIED');
+  now += 7 * day;
+  const oldOffer = await memory.getResumeOffer(key);
+  await memory.decideResumeOffer(key, oldOffer.offerId, 'continue');
+  assert.equal((await memory.decideResumeOffer(key, oldOffer.offerId, 'start_new')).decision, 'start_new');
+  assert.deepEqual(await otherConnection.getResumeState(key), { consultationOffer: null, consultationIntent: 'start_new' });
+  await assert.rejects(repository.transaction(unit => memory.consumeResumeOffer(unit, key, oldOffer.offerId)), { code: 'conflict' });
+  const fresh = await adapter.turn(key);
+  const freshBasis = await memory.getBasis(fresh.admission);
+  assert.equal(freshBasis.continuation, undefined);
+  assert.equal(await memory.project(freshBasis, fresh.replyId, {
+    sourceMessageId: freshBasis.sourceMessageId, changes: [{
+      taskKey: 'fresh-selection', kind: 'start', criteria: { profileId: adapter.criteria.profileId },
+    }],
+  }), 'APPLIED');
+  const selections = await memory.list(key);
+  assert.equal(selections.find(episode => episode.taskKey === 'old-selection').snapshot.constraints.length, adapter.criteria.set.length);
+  assert.deepEqual(selections.find(episode => episode.taskKey === 'fresh-selection').snapshot.constraints, []);
   console.log(adapter.name + ': same ConsultationMemory contract on PostgreSQL, snapshot v' + adapter.version);
 }
 
@@ -336,7 +371,8 @@ await withServices(async ({ databaseUrl }) => {
   const prisma = new PrismaClient({ datasourceUrl: databaseUrl });
   const second = new PrismaClient({ datasourceUrl: databaseUrl });
   try {
-    for (const adapter of [commerce(prisma), computer(prisma)]) {
+    for (const createAdapter of [commerce, computer]) {
+      const adapter = await createAdapter(prisma);
       try {
         await runContract(prisma, second, adapter);
         await runUserContextContract(prisma, second, adapter);
