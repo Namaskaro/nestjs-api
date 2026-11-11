@@ -15,6 +15,7 @@ import {
 } from '../../core/turn/consultation-turn-boundary';
 
 import { CATEGORY_PROFILES } from '../../core/profiles';
+import { applySearchSpecPatch } from '../../core/search/search-spec';
 
 import type { ProductSearchPort } from '../search/product-search.port';
 
@@ -720,6 +721,26 @@ export function prepareProductTaskAction(
         decision.proposal.feedback.selection,
       )!;
     }
+  }
+
+  const savedSearch = task.record.state?.search;
+  const results = task.record.results;
+  const firstSearchAfterResume = task.memoryEpisodeRevision !== undefined && savedSearch &&
+    !results.active && !results.lastConfirmed && !results.pendingSearch && !results.lastFailure;
+  const proposal = decision.proposal;
+  if (firstSearchAfterResume &&
+      (proposal.action === 'SHOW_RESULTS' || (proposal.action === 'REFINE' && proposal.searchPatch))) {
+    const searchSpec = proposal.action === 'REFINE'
+      ? applySearchSpecPatch(savedSearch, proposal.searchPatch)
+      : savedSearch;
+    const { version: _, ...searchDraft } = searchSpec;
+    decision.proposal = {
+      ...proposal,
+      action: 'SEARCH',
+      taskTransition: 'continue',
+      search: searchDraft,
+      searchPatch: null,
+    };
   }
 
   const category =

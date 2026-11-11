@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 
 import { hash } from 'argon2';
@@ -24,7 +25,13 @@ import { MailService } from '@/src/mail/mail.service';
 import { UserService } from '../user/user.service';
 
 import { WsUser } from './entities/ws-user.entity';
-import type { ConsultationMemoryAdmission } from '@/src/consultation-memory/consultation-memory.types';
+import { ConsultationMemoryService } from '@/src/consultation-memory/consultation-memory.service';
+import {
+  consultationContinuationOfferIdField,
+  getConsultationContinuationOfferId,
+  type ConsultationMemoryAdmission,
+  type ConsultationMemoryBasis,
+} from '@/src/consultation-memory/consultation-memory.types';
 
 function isJsonObject(
   value: Prisma.JsonValue | null,
@@ -116,6 +123,7 @@ export class ChatService {
     private readonly userService: UserService,
     private readonly prismaService: PrismaService,
     private readonly emailService: MailService,
+    @Optional() private readonly consultationMemory?: ConsultationMemoryService,
   ) {}
 
   async assertUserCanAccessChat(user: WsUser, chatId: string) {
@@ -263,6 +271,8 @@ export class ChatService {
     requireBot?: boolean;
     trackConsultation?: boolean;
     clientMessageId?: string;
+    continuationOfferId?: string;
+    continuationAllowed?: boolean;
   }) {
     return this.prismaService.$transaction(async (tx) => {
       const rows = await tx.$queryRaw<Array<LockedChat & { consultationInputSeq: number }>>`
@@ -339,7 +349,8 @@ export class ChatService {
           where: { chatId_clientMessageId: { chatId: chat.id, clientMessageId } },
         });
         if (message) {
-          if (message.authorId !== params.userId || message.content !== params.content) {
+          if (message.authorId !== params.userId || message.content !== params.content ||
+              getConsultationContinuationOfferId(message.payload) !== params.continuationOfferId) {
             throw new ConflictException('Идентификатор сообщения уже используется.');
           }
           const previousReply = await tx.message.findUnique({
@@ -352,6 +363,12 @@ export class ChatService {
       const inputSeq = isCustomer && chat.mode === ChatMode.BOT && params.trackConsultation
         ? chat.consultationInputSeq + 1 : null;
       const attemptId = inputSeq === null ? null : uuidv4();
+      if (params.continuationOfferId) {
+        if (inputSeq === null || params.continuationAllowed === false || !this.consultationMemory) {
+          throw new ConflictException('Продолжение подбора недоступно.');
+        }
+        await this.consultationMemory.consumeResumeOffer(tx, chat, params.userId, params.continuationOfferId);
+      }
 
       const message = await tx.message.create({
         data: {
@@ -359,7 +376,9 @@ export class ChatService {
           authorId: params.userId,
           role,
           content: params.content,
-          payload: params.payload,
+          payload: params.continuationOfferId
+            ? { [consultationContinuationOfferIdField]: params.continuationOfferId }
+            : params.payload,
           ...(clientMessageId ? { clientMessageId } : {}),
           ...(inputSeq !== null ? { consultationInputSeq: inputSeq } : {}),
         },
@@ -416,6 +435,7 @@ export class ChatService {
     payload?: Prisma.InputJsonValue;
     sourceMessageId?: string;
     expectsEpisodeProjection?: boolean;
+    replyBasis?: ConsultationMemoryBasis;
   }) {
     return this.prismaService.$transaction(async (tx) => {
       const rows = await tx.$queryRaw<LockedChat[]>`
@@ -453,6 +473,13 @@ export class ChatService {
         if (existing) return { ...existing, alreadyAccepted: true };
       }
 
+      if (params.replyBasis) {
+        if (!this.consultationMemory || params.replyBasis.sourceMessageId !== params.sourceMessageId ||
+            params.replyBasis.chatId !== params.chatId || params.replyBasis.userId !== params.userId) {
+          throw new ConflictException('Результат AI устарел после изменения памяти.');
+        }
+        await this.consultationMemory.assertReplyCurrent(tx, params.replyBasis);
+      }
       const message = await tx.message.create({
         data: {
           chatId: chat.id,

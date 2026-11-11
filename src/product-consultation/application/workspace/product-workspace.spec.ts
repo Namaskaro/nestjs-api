@@ -1,4 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
+import { AIMessage } from '@langchain/core/messages';
+import { filterMemoryContext, memoryAssistantMetadata, openMemoryWorkspace } from '@/src/support-agent/graph/nodes/memory-workspace';
 
 import type { AiService } from '@/src/ai/ai.service';
 
@@ -572,6 +574,69 @@ describe('Product workspace: real graph with offline model boundary', () => {
     });
     expect(result.workspace.tasks.map((task) => task.memorySourceMessageId)).toEqual(['source-memory-1', 'source-memory-1']);
     expect(result.groups).not.toEqual(expect.arrayContaining([expect.objectContaining({ memorySourceMessageId: expect.any(String) })]));
+  });
+
+  it('continues only the selected memory task with fresh criteria and clears invalid imported state', async () => {
+    const memoryUsed = jest.fn();
+    const context = {
+      memoryWitnesses: { episode: { revision: 1, sourceMessageId: 'past-source' } },
+      memoryContinuation: {
+        episodeId: 'episode', taskKey: 'sneakers-task', revision: 1,
+        snapshot: {
+          profileId: 'SHOES', lastSourceMessageId: 'past-source',
+          constraints: [
+            { attributeId: 'brand', value: 'Nike', operator: 'eq' as const, unit: null },
+            { attributeId: 'color', value: 'синий', operator: 'eq' as const, unit: null },
+            { attributeId: 'price', value: 8000, operator: 'lte' as const, unit: null },
+          ],
+        },
+      },
+      memoryUsed,
+    };
+    const continued = openMemoryWorkspace(null, 'Теперь Adidas, чёрные, до 9000', context);
+    expect(continued.tasks[0].record.results.active).toBeNull();
+    expect(memoryUsed).toHaveBeenCalledTimes(1);
+    const h = harness(plan(existing('REFINE', {
+      searchPatch: {
+        set: [
+          constraint('brand', 'Adidas'),
+          constraint('color', 'чёрный'),
+          constraint('price', 9000, 'lte'),
+        ],
+        clear: [],
+      },
+    })));
+    await h.run('Теперь Adidas, чёрные, до 9000', continued);
+    const searchSpec = h.service.search.mock.calls[0][0];
+    expect(searchSpec.constraints.map(({ attributeId, value }) => [attributeId, value])).toEqual([
+      ['brand', 'Adidas'], ['color', 'чёрный'], ['price', 9000],
+    ]);
+
+    const importedMessage = new AIMessage({
+      id: 'memory-reply',
+      content: 'Предыдущие условия',
+      additional_kwargs: memoryAssistantMetadata(continued),
+    });
+    const revoked = filterMemoryContext(continued, [importedMessage], {
+      memoryWitnesses: { episode: { revision: 2, sourceMessageId: null } },
+    });
+    expect(revoked.workspace.tasks).toEqual([]);
+    expect(revoked.workspace.focus).toEqual([]);
+    expect(revoked.messages).toEqual([]);
+    expect(revoked.removals).toHaveLength(1);
+
+    h.service.search.mockClear();
+    h.setPlan(plan(existing('SHOW_RESULTS')));
+    await h.run('Обнови варианты', continued);
+    expect(h.service.search).toHaveBeenCalledTimes(1);
+    expect(h.service.search.mock.calls[0][0].constraints).toEqual(
+      context.memoryContinuation.snapshot.constraints,
+    );
+
+    h.service.search.mockClear();
+    h.setPlan(plan(search('платье', 'CLOTHES')));
+    await h.run('Найди платье', continued);
+    expect(h.service.search.mock.calls[0][0].constraints).toEqual([]);
   });
 
   it('MI-04 adding a task preserves existing task, memory, results and revision', async () => {

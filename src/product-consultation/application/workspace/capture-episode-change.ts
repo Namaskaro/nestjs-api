@@ -15,8 +15,8 @@ export function captureEpisodeChange(
   const accepted = result.actions.filter(({ result: value }) => !value.failed);
   if (!accepted.length || result.handoffRequested) return;
   const searched = accepted.some(({ decision }) => ['SEARCH', 'REFINE'].includes(decision.proposal.action));
-  const starting = !before.memorySourceMessageId && !before.record.results.lastConfirmed && searched;
-  if (!starting && !before.memorySourceMessageId) return;
+  const starting = !before.memoryEpisodeId && !before.memorySourceMessageId && !before.record.results.lastConfirmed && searched;
+  if (!starting && !before.memorySourceMessageId && !before.memoryEpisodeId) return;
 
   const change: ConsultationEpisodeChange = {
     taskKey: result.task.taskId,

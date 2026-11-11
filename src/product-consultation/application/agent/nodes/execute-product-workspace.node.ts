@@ -416,7 +416,10 @@ export function createExecuteProductWorkspaceNode(
           const change = captureEpisodeChange(operations[index].task, outcome, displayed.map(({ id }) => id));
           if (!change) return [];
           const task = workspace.tasks.find(({ taskId }) => taskId === change.taskKey);
-          if (task) task.memorySourceMessageId = state.requestId;
+          if (task) {
+            task.memorySourceMessageId = state.requestId;
+            delete task.memoryEpisodeRevision;
+          }
           return [change];
         });
         if (changes.length) capture.memoryCapture({ sourceMessageId: state.requestId, changes });

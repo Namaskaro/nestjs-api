@@ -95,6 +95,10 @@ export class SupportAgentService {
     return this.activeThreadIds.has(threadId);
   }
 
+  hasPendingInterrupt(threadId: string): Promise<boolean> {
+    return this.supportAgentGraph.hasPendingInterrupt(threadId);
+  }
+
   async run(
     query: string,
     threadId: string,

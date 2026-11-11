@@ -2,19 +2,27 @@ import { ConflictException, Inject, Injectable, NotFoundException, Optional } fr
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { createHash } from 'node:crypto';
 import {
-  ChatMode, ConversationMessageRole, Prisma, Role, type ConsultationEpisode,
+  ChatMode, ConversationMessageRole, Prisma, Role, type ConsultationEpisode, type ConsultationMemoryScope,
 } from '@prisma/generated';
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 import {
   applyEpisodeChange, memoryCandidateSchema, memoryCorrectionSchema, memorySnapshotSchema,
   MEMORY_DAY_MS, MEMORY_RETENTION_MS,
 } from './consultation-memory.core';
+import { getConsultationContinuationOfferId } from './consultation-memory.types';
 import type {
   ConsultationMemoryAdmission, ConsultationMemoryBasis, ConsultationMemoryCandidate,
+  ConsultationMemoryContinuation,
 } from './consultation-memory.types';
 
 export const CONSULTATION_MEMORY_CLOCK = Symbol('CONSULTATION_MEMORY_CLOCK');
 const memoryTransaction = { maxWait: 1000, timeout: 3000 };
+const offerInactivityMs = 7 * MEMORY_DAY_MS;
+const offerLifetimeMs = MEMORY_DAY_MS;
+const offerInclude = { scope: true, episode: true } as const;
+type ResumeOffer = Prisma.ConsultationResumeOfferGetPayload<{ include: typeof offerInclude }>;
+type OfferChat = Pick<MemoryChat, 'id' | 'userId' | 'mode' | 'operatorId' | 'handoffVersion' | 'consultationInputSeq'>;
+type ResumeDecision = 'continue' | 'later';
 const memoryChatSelect = {
   id: true, userId: true, mode: true, operatorId: true, handoffVersion: true,
   consultationInputSeq: true, consultationAttemptId: true, consultationSourceMessageId: true,
@@ -27,6 +35,34 @@ function currentAdmission(chat: MemoryChat | null, source: ConsultationMemoryAdm
     chat.mode === ChatMode.BOT && chat.operatorId === null && chat.handoffVersion === source.handoffVersion &&
     chat.consultationInputSeq === source.inputSeq && chat.consultationAttemptId === source.attemptId &&
     chat.consultationSourceMessageId === source.sourceMessageId;
+}
+
+function ownsScope(scope: ConsultationMemoryScope, chatId: string, userId: string, storeKey: string) {
+  return scope.storeKey === storeKey && scope.subjectKey === userId &&
+    scope.chatId === chatId && scope.sourceKey === chatId && scope.sourceKind === 'CHAT';
+}
+
+function offerCurrent(offer: ResumeOffer, chat: OfferChat, storeKey: string, now: Date, inputSeq = chat.consultationInputSeq) {
+  return chat.mode === ChatMode.BOT && chat.operatorId === null &&
+    ownsScope(offer.scope, chat.id, chat.userId, storeKey) &&
+    offer.scopeId === offer.episode.scopeId && offer.memoryEpoch === offer.scope.memoryEpoch &&
+    offer.inputSeq === inputSeq && offer.handoffVersion === chat.handoffVersion &&
+    offer.episodeRevision === offer.episode.revision &&
+    offer.contentRevision === offer.episode.contentRevision &&
+    offer.episode.status === 'OPEN' && offer.expiresAt > now && offer.episode.expiresAt > now;
+}
+
+function offerCriteria(episode: ConsultationEpisode) {
+  const { profileId, constraints } = memorySnapshotSchema.parse(episode.snapshot);
+  return { profileId, constraints };
+}
+
+function continuationView(episode: ConsultationEpisode): ConsultationMemoryContinuation {
+  const { profileId, constraints, lastSourceMessageId } = memorySnapshotSchema.parse(episode.snapshot);
+  return { episodeId: episode.id, taskKey: episode.taskKey, revision: episode.revision,
+    snapshot: { profileId,
+      constraints: constraints.map(({ attributeId, operator, value, unit }) => ({ attributeId, operator, value, unit })),
+      lastSourceMessageId } };
 }
 
 function episodeView(episode: ConsultationEpisode, now: Date) {
@@ -71,25 +107,188 @@ export class ConsultationMemoryService {
     }
   }
 
+  async getResumeOffer(chatId: string, userId: string) {
+    const storeKey = this.storeKey;
+    if (!this.enabled || !storeKey) return null;
+    return this.prisma.$transaction(async (tx) => {
+      const chat = await this.lockChat(tx, chatId);
+      if (!chat || chat.userId !== userId || chat.user.role !== Role.Client ||
+          chat.mode !== ChatMode.BOT || chat.operatorId !== null) return null;
+      const now = this.clock();
+      const scope = await tx.consultationMemoryScope.findUnique({ where: this.scopeWhere(chatId, storeKey) });
+      if (!scope || !ownsScope(scope, chatId, userId, storeKey) ||
+          (scope.offerSuppressedUntil && scope.offerSuppressedUntil > now)) return null;
+
+      if (chat.consultationSourceMessageId && !await tx.message.findUnique({
+        where: { chatId_assistantSourceMessageId: { chatId, assistantSourceMessageId: chat.consultationSourceMessageId } },
+        select: { id: true },
+      })) return null;
+
+      const inactivityCutoff = new Date(now.getTime() - offerInactivityMs);
+      const episode = await tx.consultationEpisode.findFirst({
+        where: { scopeId: scope.id, status: 'OPEN', lastMeaningfulAt: { lte: inactivityCutoff }, expiresAt: { gt: now } },
+        orderBy: [{ lastMeaningfulAt: 'desc' }, { id: 'asc' }],
+      });
+      if (!episode) return null;
+
+      let offer = await tx.consultationResumeOffer.findUnique({
+        where: { episodeId_contentRevision: { episodeId: episode.id, contentRevision: episode.contentRevision } },
+        include: offerInclude,
+      });
+      if (!offer) {
+        offer = await tx.consultationResumeOffer.create({
+          data: {
+            scopeId: scope.id, episodeId: episode.id, episodeRevision: episode.revision,
+            contentRevision: episode.contentRevision, memoryEpoch: scope.memoryEpoch,
+            inputSeq: chat.consultationInputSeq, handoffVersion: chat.handoffVersion,
+            expiresAt: new Date(Math.min(now.getTime() + offerLifetimeMs, episode.expiresAt.getTime())),
+          },
+          include: offerInclude,
+        });
+      }
+      if (!offerCurrent(offer, chat, storeKey, now) || offer.consumedAt || offer.decision === 'later') return null;
+      return {
+        offerId: offer.id, expiresAt: offer.expiresAt,
+        state: offer.decision === 'continue' ? 'continued' as const : 'pending' as const,
+        criteria: offerCriteria(episode),
+      };
+    }, memoryTransaction);
+  }
+
+  async decideResumeOffer(chatId: string, userId: string, offerId: string, decision: ResumeDecision) {
+    const storeKey = this.storeKey;
+    if (!this.enabled || !storeKey) throw new NotFoundException('Предложение недоступно.');
+    return this.prisma.$transaction(async (tx) => {
+      const chat = await this.lockChat(tx, chatId);
+      this.assertOwner(chat, userId);
+      const offer = await tx.consultationResumeOffer.findUnique({ where: { id: offerId }, include: offerInclude });
+      const now = this.clock();
+      if (!offer || !ownsScope(offer.scope, chatId, userId, storeKey)) {
+        throw new NotFoundException('Предложение недоступно.');
+      }
+      if (!offerCurrent(offer, chat, storeKey, now) || offer.consumedAt ||
+          (offer.decision && offer.decision !== decision)) {
+        throw new ConflictException('Предложение больше не актуально.');
+      }
+      if (!offer.decision) {
+        await tx.consultationResumeOffer.update({
+          where: { id: offer.id }, data: { decision, decidedAt: now },
+        });
+        if (decision === 'later') {
+          await tx.consultationMemoryScope.update({
+            where: { id: offer.scopeId }, data: { offerSuppressedUntil: new Date(now.getTime() + offerInactivityMs) },
+          });
+        }
+      }
+      return decision === 'later' ? { decision } : {
+        decision, continuationOfferId: offer.id, criteria: offerCriteria(offer.episode),
+      };
+    }, memoryTransaction);
+  }
+
+  async consumeResumeOffer(tx: Prisma.TransactionClient, chat: OfferChat, userId: string, offerId: string) {
+    const storeKey = this.storeKey;
+    const user = await tx.user.findUnique({ where: { id: userId }, select: { role: true } });
+    if (!this.enabled || !storeKey || chat.userId !== userId || user?.role !== Role.Client) {
+      throw new NotFoundException('Предложение недоступно.');
+    }
+    const offer = await tx.consultationResumeOffer.findUnique({ where: { id: offerId }, include: offerInclude });
+    const now = this.clock();
+    if (!offer || !ownsScope(offer.scope, chat.id, userId, storeKey)) {
+      throw new NotFoundException('Предложение недоступно.');
+    }
+    if (!offerCurrent(offer, chat, storeKey, now) || offer.decision !== 'continue' || offer.consumedAt) {
+      throw new ConflictException('Предложение больше не актуально.');
+    }
+    const continuation = continuationView(offer.episode);
+    await tx.consultationResumeOffer.update({ where: { id: offer.id }, data: { consumedAt: now } });
+    return continuation;
+  }
+
+  private async consumedOffer(
+    tx: Pick<Prisma.TransactionClient, 'consultationResumeOffer'>,
+    scopeId: string,
+    source: ConsultationMemoryAdmission,
+    offerId: string | undefined,
+  ) {
+    if (!offerId) return null;
+    return tx.consultationResumeOffer.findFirst({
+      where: { id: offerId, scopeId, inputSeq: source.inputSeq - 1, decision: 'continue', consumedAt: { not: null } },
+      include: offerInclude,
+    });
+  }
+
   async getBasis(source: ConsultationMemoryAdmission): Promise<ConsultationMemoryBasis | null> {
     const storeKey = this.storeKey;
     if (!storeKey || !this.enabled) return null;
     const chat = await this.prisma.chat.findUnique({ where: { id: source.chatId }, select: memoryChatSelect });
-    if (!currentAdmission(chat, source)) return null;
+    if (!chat || !currentAdmission(chat, source)) return null;
+    const now = this.clock();
     const scope = await this.prisma.consultationMemoryScope.findUnique({
       where: this.scopeWhere(source.chatId, storeKey),
       include: { episodes: {
-        where: { status: 'OPEN', expiresAt: { gt: this.clock() } },
-        select: { taskKey: true, revision: true },
+        where: { status: 'OPEN', expiresAt: { gt: now } },
+        select: { id: true, taskKey: true, revision: true, snapshot: true },
       } },
     });
-    if (scope && (scope.subjectKey !== source.userId || source.inputSeq <= scope.purgedThroughSeq)) return null;
+    if (scope && (!ownsScope(scope, source.chatId, source.userId, storeKey) || source.inputSeq <= scope.purgedThroughSeq)) return null;
+    const message = await this.prisma.message.findFirst({
+      where: { id: source.sourceMessageId, chatId: source.chatId, authorId: source.userId,
+        role: ConversationMessageRole.USER, consultationInputSeq: source.inputSeq },
+      select: { payload: true },
+    });
+    if (!message) return null;
+    const offer = scope ? await this.consumedOffer(this.prisma, scope.id, source,
+      getConsultationContinuationOfferId(message.payload)) : null;
+    const continuation = offer && offerCurrent(offer, chat, storeKey, now, source.inputSeq - 1)
+      ? continuationView(offer.episode) : undefined;
     return {
       ...source,
       storeKey,
       memoryEpoch: scope?.memoryEpoch ?? 0,
       revisions: Object.fromEntries((scope?.episodes ?? []).map(({ taskKey, revision }) => [taskKey, revision])),
+      witnesses: Object.fromEntries((scope?.episodes ?? []).map(({ id, revision, snapshot }) => [
+        id, { revision, sourceMessageId: memorySnapshotSchema.parse(snapshot).lastSourceMessageId },
+      ])),
+      ...(continuation ? { continuation } : {}),
     };
+  }
+
+  async verifyReplyCurrent(basis: ConsultationMemoryBasis) {
+    await this.prisma.$transaction((tx) => this.assertReplyCurrent(tx, basis), memoryTransaction);
+  }
+
+  async assertReplyCurrent(tx: Prisma.TransactionClient, basis: ConsultationMemoryBasis) {
+    const stale = () => new ConflictException('Результат AI устарел после изменения памяти.');
+    if (!this.enabled || this.storeKey !== basis.storeKey) throw stale();
+    const chat = await this.lockChat(tx, basis.chatId);
+    if (!chat || !currentAdmission(chat, basis)) throw stale();
+    const scope = await tx.consultationMemoryScope.findUnique({ where: this.scopeWhere(basis.chatId, basis.storeKey) });
+    if (!scope || !ownsScope(scope, basis.chatId, basis.userId, basis.storeKey) ||
+        scope.memoryEpoch !== basis.memoryEpoch || basis.inputSeq <= scope.purgedThroughSeq) throw stale();
+    const source = await tx.message.findFirst({
+      where: { id: basis.sourceMessageId, chatId: basis.chatId, authorId: basis.userId,
+        role: ConversationMessageRole.USER, consultationInputSeq: basis.inputSeq },
+      select: { id: true, payload: true },
+    });
+    if (!source) throw stale();
+    const now = this.clock();
+    const ids = Object.keys(basis.witnesses);
+    const rows = await tx.consultationEpisode.findMany({
+      where: { scopeId: scope.id, id: { in: ids }, status: 'OPEN', expiresAt: { gt: now } },
+      select: { id: true, revision: true, snapshot: true },
+    });
+    if (rows.length !== ids.length || rows.some(({ id, revision, snapshot }) => {
+      const expected = basis.witnesses[id];
+      return revision !== expected.revision ||
+        memorySnapshotSchema.parse(snapshot).lastSourceMessageId !== expected.sourceMessageId;
+    })) throw stale();
+
+    if (basis.continuation) {
+      const offer = await this.consumedOffer(tx, scope.id, basis, getConsultationContinuationOfferId(source.payload));
+      if (!offer || offer.episode.id !== basis.continuation.episodeId ||
+          !offerCurrent(offer, chat, basis.storeKey, now, basis.inputSeq - 1)) throw stale();
+    }
   }
 
   async project(basis: ConsultationMemoryBasis, assistantMessageId: string, raw: ConsultationMemoryCandidate) {
@@ -104,7 +303,7 @@ export class ConsultationMemoryService {
       if (!currentAdmission(chat, basis)) return 'STALE' as const;
       const messages = await tx.message.findMany({
         where: { chatId: basis.chatId, id: { in: [basis.sourceMessageId, assistantMessageId] } },
-        select: { id: true, authorId: true, role: true, consultationInputSeq: true,
+        select: { id: true, authorId: true, role: true, consultationInputSeq: true, payload: true,
           assistantSourceMessageId: true, expectsEpisodeProjection: true },
       });
       const source = messages.find(({ id }) => id === basis.sourceMessageId);
@@ -128,6 +327,9 @@ export class ConsultationMemoryService {
       }
 
       const now = this.clock();
+      const resumed = basis.continuation && currentScope && chat
+        ? await this.consumedOffer(tx, currentScope.id, basis, getConsultationContinuationOfferId(source.payload))
+        : null;
       const existing = currentScope ? await tx.consultationEpisode.findMany({
         where: { scopeId: currentScope.id, taskKey: { in: candidate.changes.map(({ taskKey }) => taskKey) } },
       }) : [];
@@ -141,7 +343,12 @@ export class ConsultationMemoryService {
           return 'STALE' as const;
         }
         const snapshot = previous ? memorySnapshotSchema.parse(previous.snapshot) : null;
-        if (previous && (!change.previousSourceMessageId || snapshot.lastSourceMessageId !== change.previousSourceMessageId)) {
+        const explicitlyResumed = previous && resumed && chat &&
+          basis.continuation?.episodeId === previous.id && basis.continuation.revision === previous.revision &&
+          resumed.episode.id === previous.id && offerCurrent(resumed, chat, basis.storeKey, now, basis.inputSeq - 1) &&
+          snapshot.lastSourceMessageId === basis.continuation.snapshot.lastSourceMessageId;
+        if (previous && !explicitlyResumed &&
+            (!change.previousSourceMessageId || snapshot.lastSourceMessageId !== change.previousSourceMessageId)) {
           return 'STALE' as const;
         }
         const applied = applyEpisodeChange(snapshot, change, source.id);

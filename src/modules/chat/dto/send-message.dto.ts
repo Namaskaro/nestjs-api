@@ -8,6 +8,10 @@ export class SendMessageDto {
   @IsUUID()
   clientMessageId?: string;
 
+  @IsOptional()
+  @IsUUID()
+  continuationOfferId?: string;
+
   @IsString()
   @MinLength(1)
   content: string;

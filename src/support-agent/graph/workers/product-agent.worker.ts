@@ -30,6 +30,8 @@ import {
   touchConsultationSession,
 } from '@/src/product-consultation/application/session/consultation-session';
 
+import { filterMemoryContext, memoryAssistantMetadata } from '../nodes/memory-workspace';
+import type { SupportAgentContext } from '../../context/support-agent-context.schema';
 import { ProductAgent } from '@/src/product-consultation/application/agent/product.agent';
 
 function conversationIdFromConfig(config: LangGraphRunnableConfig): string {
@@ -122,15 +124,18 @@ export function createProductAgentWorker(
 
     touchConsultationSession(productContext, []);
 
+    const guarded = filterMemoryContext(
+      state.productWorkspace, state.messages, config.context as Partial<SupportAgentContext> | undefined,
+    );
     const result = await productAgent.invoke(
       {
         query: state.query,
         sourceQuery: sourceQueryFromState(state),
         conversationId: conversationIdFromConfig(config),
         requestId: requestIdFromState(state),
-        recentMessages: recentMessagesFromState(state),
+        recentMessages: recentMessagesFromState({ ...state, messages: guarded.messages }),
         workspace:
-          state.productWorkspace ??
+          guarded.workspace ??
           createProductWorkspace(state.productConsultationRecord),
       },
       config,
@@ -207,7 +212,7 @@ export function createProductAgentWorker(
         productWorkspace: workspace,
         productConsultationRecord: null,
         answer,
-        messages: [new AIMessage(answer.message)],
+        messages: [...guarded.removals, new AIMessage({ content: answer.message, additional_kwargs: memoryAssistantMetadata(workspace) })],
       },
     });
   };

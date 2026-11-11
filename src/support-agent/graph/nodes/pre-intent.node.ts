@@ -2,6 +2,8 @@ import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import type { GraphNode, LangGraphRunnableConfig } from '@langchain/langgraph';
 
 import { SupportAgentState } from '../support-agent.state';
+import type { SupportAgentContext } from '../../context/support-agent-context.schema';
+import { filterMemoryContext, openMemoryWorkspace } from './memory-workspace';
 
 export function normalizeQuery(query: string): string {
   return query
@@ -68,7 +70,12 @@ export const preIntentNode: GraphNode<typeof SupportAgentState> = async (
     config,
   );
 
+  const memory = config.context as Partial<SupportAgentContext> | undefined;
+  const filtered = filterMemoryContext(state.productWorkspace, state.messages, memory);
+  const workspace = openMemoryWorkspace(filtered.workspace, state.query, memory);
   const resetRunState = {
+    ...(workspace !== state.productWorkspace ? { productWorkspace: workspace, productConsultationRecord: null } : {}),
+    ...(filtered.removals.length ? { messages: filtered.removals } : {}),
     requestRouter: null,
 
     clarification: null,
