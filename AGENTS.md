@@ -134,6 +134,10 @@ operations, production changes or paid external services.
 - Avoid repeatedly running unrelated test suites.
 - Report verification results accurately.
 - Never claim that something was tested if it was not executed.
+- For PostgreSQL or Qdrant features, follow `infra/integration/README.md` and
+  run the relevant functional integration tests against the isolated Shared
+  Integration Test Environment. Infrastructure smoke checks alone do not
+  verify feature behavior.
 
 ## Database and External Systems
 

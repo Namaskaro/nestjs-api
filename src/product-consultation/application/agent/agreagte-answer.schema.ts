@@ -8,7 +8,10 @@ import { ConsultationCompletionPresentationSchema } from '@/src/product-consulta
 
 import { ComparisonPresentationSchema } from '../presentation/comparison-presentation.schema';
 
-import { ProductDetailsPresentationSchema } from '../presentation/product-presentation.schema';
+import {
+  ProductDetailsPresentationSchema,
+  RecommendationReviewEvidenceSchema,
+} from '../presentation/product-presentation.schema';
 
 import { ZeroResultRecoverySchema } from '../search/zero-result-recovery';
 
@@ -40,6 +43,7 @@ export const ProductActionPresentationSchema = z.discriminatedUnion(
       productIds: z.array(z.string().min(1)).min(1),
 
       product: ProductItemSchema,
+      reviewEvidence: RecommendationReviewEvidenceSchema.optional(),
     }),
   ],
 );

@@ -84,6 +84,7 @@ const ProductWorkspaceModelDecisionSchema = z
       .default(() => []),
 
     terminalText: z.string().trim().min(1).max(6000).nullable().default(null),
+    reviewQuery: z.string().trim().min(1).max(500).nullable().default(null),
   })
   .strict();
 
@@ -1078,6 +1079,7 @@ function normalizeDecision(
     factAttributeIds: raw.factAttributeIds,
 
     terminalText: terminalText(raw),
+    ...(raw.reviewQuery !== null ? { reviewQuery: raw.reviewQuery } : {}),
   });
 }
 

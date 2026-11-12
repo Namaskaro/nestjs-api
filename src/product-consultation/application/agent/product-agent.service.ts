@@ -1,4 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  REVIEW_EVIDENCE_LOOKUP,
+  REVIEW_EXPERIENCE_READER,
+  type ReviewEvidenceLookup,
+  type ReviewExperienceReader,
+} from '@/src/review-intelligence/application/ports';
+import type { ReviewSourceRef } from '@/src/review-intelligence/core/review-model';
 
 import { CurrentStoreCatalogService } from '@/src/product-consultation/adapters/current-store/current-store-catalog.service';
 
@@ -28,10 +35,39 @@ export class ProductAgentService implements ProductSearchPort {
     private readonly currentStoreProductSearchService: CurrentStoreProductSearchService,
 
     private readonly currentStoreSearchSpecAdapter: CurrentStoreSearchSpecAdapter,
+    @Inject(REVIEW_EXPERIENCE_READER)
+    private readonly reviews: ReviewExperienceReader,
+    @Inject(REVIEW_EVIDENCE_LOOKUP)
+    private readonly reviewIndex: ReviewEvidenceLookup,
   ) {}
 
   public capabilities(): ProductSearchCapabilities {
     return this.currentStoreSearchSpecAdapter.capabilities();
+  }
+
+  public getReviewExperience(productIds: readonly string[]) {
+    return this.reviews.getReviewExperience(productIds);
+  }
+
+  public searchReviews(productId: string, query: string, signal?: AbortSignal) {
+    return this.reviewIndex.search(productId, query, signal);
+  }
+
+  public async getProductReviewStats(productIds: readonly string[]) {
+    const stats = await this.reviews.getProductStatsBatch(productIds);
+    return new Map(
+      [...stats].map(
+        ([id, { averageRating, ratingCount }]) =>
+          [id, { averageRating, ratingCount }] as const,
+      ),
+    );
+  }
+
+  public resolveReviewSources(
+    productId: string,
+    refs: readonly ReviewSourceRef[],
+  ) {
+    return this.reviewIndex.resolveSources(productId, refs);
   }
 
   public validate(search: SearchSpec): void {

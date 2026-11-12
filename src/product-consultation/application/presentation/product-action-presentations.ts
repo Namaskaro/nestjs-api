@@ -54,6 +54,9 @@ export function productActionPresentations(
             productIds: result.recommendationProductIds,
 
             product: result.recommendationProduct,
+            ...(result.recommendationReviewEvidence
+              ? { reviewEvidence: result.recommendationReviewEvidence }
+              : {}),
           },
         ];
       }

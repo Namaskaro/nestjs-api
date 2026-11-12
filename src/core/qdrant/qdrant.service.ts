@@ -175,6 +175,28 @@ export class QdrantService {
     });
   }
 
+  async ensureKeywordIndex(collection: string, field: string): Promise<void> {
+    await this.client.createPayloadIndex(collection, {
+      field_name: field,
+      field_schema: 'keyword',
+      wait: true,
+    });
+  }
+
+  async scrollPoints(
+    collection: string,
+    filter: QdrantFilter,
+    offset?: string | number,
+  ) {
+    return this.client.scroll(collection, {
+      filter,
+      offset,
+      limit: 100,
+      with_payload: true,
+      with_vector: false,
+    });
+  }
+
   async hybridSearch(
     collectionName: QdrantCollectionName,
     denseEmbedding: number[],

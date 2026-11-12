@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+import { ReviewsModule } from '@/src/modules/reviews/reviews.module';
 
 import { AiModule } from '../ai/ai.module';
 
@@ -24,7 +25,13 @@ import {
 } from '@/src/product-consultation/adapters/current-store/current-store-search-spec.adapter';
 
 @Module({
-  imports: [AiModule, PrismaModule, QdrantModule, RerankerModule],
+  imports: [
+    AiModule,
+    PrismaModule,
+    QdrantModule,
+    RerankerModule,
+    forwardRef(() => ReviewsModule),
+  ],
 
   providers: [
     CurrentStoreCatalogService,

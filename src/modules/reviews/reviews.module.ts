@@ -1,14 +1,41 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { ReviewsController } from './reviews.controller';
-import { PrismaService } from '@/src/core/prisma/prisma.service';
-import { UserService } from '../user/user.service';
-import { SubcategoriesModule } from '../subcategories/subcategories.module';
+import { PrismaModule } from '@/src/core/prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
+import { ReviewModerationController } from './review-moderation.controller';
+import { ReviewIndexService } from './review-index.service';
+import { ReviewSummaryService } from './review-summary.service';
+import { AiModule } from '@/src/ai/ai.module';
+import { QdrantModule } from '@/src/core/qdrant/qdrant.module';
+import { ConfigModule } from '@nestjs/config';
+import {
+  REVIEW_EVIDENCE_LOOKUP,
+  REVIEW_EXPERIENCE_READER,
+} from '@/src/review-intelligence/application/ports';
 
 @Module({
-  imports: [SubcategoriesModule],
-  controllers: [ReviewsController],
-  providers: [ReviewsService, PrismaService, UserService],
-  exports: [ReviewsService],
+  imports: [
+    PrismaModule,
+    ConfigModule,
+    AiModule,
+    QdrantModule,
+    forwardRef(() => AuthModule),
+  ],
+  controllers: [ReviewModerationController, ReviewsController],
+  providers: [
+    ReviewsService,
+    ReviewIndexService,
+    ReviewSummaryService,
+    { provide: REVIEW_EXPERIENCE_READER, useExisting: ReviewsService },
+    { provide: REVIEW_EVIDENCE_LOOKUP, useExisting: ReviewIndexService },
+  ],
+  exports: [
+    ReviewsService,
+    ReviewIndexService,
+    ReviewSummaryService,
+    REVIEW_EXPERIENCE_READER,
+    REVIEW_EVIDENCE_LOOKUP,
+  ],
 })
 export class ReviewsModule {}

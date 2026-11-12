@@ -452,6 +452,10 @@ export function prepareProductConsultantComparisonPresentation(input: {
   comparison: AgentComparisonView;
 
   products: readonly ProductDetails[];
+  reviewStats?: ReadonlyMap<
+    string,
+    { averageRating: number | null; ratingCount: number }
+  >;
 
   state: ProductConsultationState;
 
@@ -473,6 +477,7 @@ export function prepareProductConsultantComparisonPresentation(input: {
 
   const products: ComparisonPresentation['products'] = ordered.map(
     (product, index) => ({
+      ...input.reviewStats?.get(product.id),
       ...buildProductSnapshot({
         product,
 

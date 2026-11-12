@@ -85,10 +85,26 @@ export const ProductConsultantDecisionSchema = z
       .nullable()
       .default(null)
       .describe('Root-level terminal response. Null for capability actions.'),
+    reviewQuery: z
+      .string()
+      .trim()
+      .min(1)
+      .max(500)
+      .nullable()
+      .optional()
+      .describe(
+        'Only DETAILS: topic of a question about buyer reviews. Omit/null for ordinary details and all other actions.',
+      ),
   })
   .strict()
   .superRefine((decision, context) => {
     const action = decision.proposal.action;
+    if (decision.reviewQuery != null && action !== 'DETAILS')
+      context.addIssue({
+        code: 'custom',
+        path: ['reviewQuery'],
+        message: 'reviewQuery is allowed only for DETAILS.',
+      });
 
     const requiresCapability = CAPABILITY_ACTION_SET.has(action);
 

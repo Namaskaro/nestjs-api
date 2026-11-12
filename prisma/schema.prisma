@@ -29,6 +29,7 @@ model User {
   supportCases SupportCase[]
 
   reviews   Review[]
+  reviewVotes ReviewVote[]
   accounts  Account[]
   cart      Cart?
   orders    Order[]
@@ -190,6 +191,7 @@ model Product {
   stock         Int          @default(10)
   details       String[]     @default([])
   reviews       Review[]
+  reviewSummary ReviewSummary?
   cartItems     CartItem[]
   brand         Brand?       @relation(fields: [brandId], references: [id])
   subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
@@ -253,6 +255,102 @@ model Review {
   updatedAt DateTime @updatedAt @map("updated_at")
   product   Product? @relation(fields: [productId], references: [id])
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  publicationId          String                 @unique @default(uuid())
+  status                 ReviewModerationStatus @default(PENDING)
+  submittedAt            DateTime               @default(now())
+  publishedAt            DateTime?
+  moderatedAt            DateTime?
+  moderatedBy            String?
+  moderationReason       String?
+  verifiedOrderId        String?
+  verifiedAt             DateTime?
+  deletedAt              DateTime?
+  stateVersion           Int                    @default(0)
+  publishedCorpusVersion Int?
+  upVotes                Int                    @default(0)
+  downVotes              Int                    @default(0)
+  popularityScore        Int                    @default(0)
+  indexPending           Boolean                @default(false)
+  indexNextAttemptAt     DateTime?
+  indexLeaseToken        String?
+  indexLeaseUntil        DateTime?
+  indexAttempts          Int                    @default(0)
+  addenda                ReviewAddendum[]
+  votes                  ReviewVote[]
+
+  @@unique([userId, productId])
+  @@index([productId, status, deletedAt, publishedAt, id])
+  @@index([productId, status, deletedAt, rating, publishedAt, id])
+  @@index([productId, status, deletedAt, popularityScore, publishedAt, id])
+  @@index([status, submittedAt, id])
+  @@index([indexPending, indexNextAttemptAt])
+}
+
+enum ReviewModerationStatus {
+  PENDING
+  PUBLISHED
+  REJECTED
+}
+
+enum ReviewVoteValue {
+  UP
+  DOWN
+}
+
+model ReviewAddendum {
+  id                     String                 @id @default(uuid())
+  reviewId               String
+  publicationId          String
+  text                   String
+  status                 ReviewModerationStatus @default(PENDING)
+  createdAt              DateTime               @default(now())
+  publishedAt            DateTime?
+  moderatedAt            DateTime?
+  moderatedBy            String?
+  moderationReason       String?
+  publishedCorpusVersion Int?
+  review                 Review                 @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId, publicationId, status, createdAt, id])
+  @@index([status, createdAt, id])
+}
+
+model ReviewVote {
+  reviewId      String
+  userId        String
+  publicationId String
+  value         ReviewVoteValue
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  review        Review          @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, userId])
+}
+
+model ReviewSummary {
+  productId             String   @id
+  positiveImpressions   String[] @default([])
+  negativeImpressions   String[] @default([])
+  summary               String?
+  generatedAt           DateTime?
+  sourceReviewCount     Int      @default(0)
+  sourceAuthorCount     Int      @default(0)
+  corpusVersion         Int      @default(0)
+  requestedVersion      Int      @default(0)
+  sourceVersion         Int      @default(0)
+  lastRetractionVersion Int      @default(0)
+  sourceHash            String?
+  analyzerVersion       String?
+  nextAttemptAt         DateTime?
+  leaseToken            String?
+  leaseUntil            DateTime?
+  attemptCount          Int      @default(0)
+  lastErrorCode         String?
+  product               Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([nextAttemptAt, leaseUntil])
 }
 
 model PromoCode {

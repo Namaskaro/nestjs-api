@@ -361,6 +361,8 @@ export function harness(initial = plan(newSearch('кроссовки'))) {
     getProductSemanticRepresentations: jest.fn(
       async (_ids: readonly string[]) => new Map(),
     ),
+    getReviewExperience: jest.fn(async () => new Map()),
+    getProductReviewStats: jest.fn(async () => new Map()),
   };
 
   const agent = createProductAgent(

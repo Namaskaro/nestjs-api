@@ -3,40 +3,102 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Query,
+  UseGuards,
+  ParseUUIDPipe,
+  HttpCode,
+  Put,
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../user/decorators/user.decorator';
+import {
+  CreateReviewAddendumDto,
+  ReviewPublicationDto,
+} from './dto/review-actions.dto';
+import {
+  OwnReviewVotesQueryDto,
+  ReviewListQueryDto,
+  ReviewVoteDto,
+} from './dto/review-list.dto';
 
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  @Get('/:productId')
-  getByProductId(@Param('productId') productId: string) {
-    return this.reviewsService.getProductReviews(productId);
+  @Get(':productId')
+  getByProductId(
+    @Param('productId', ParseUUIDPipe) productId: string,
+    @Query() query: ReviewListQueryDto,
+  ) {
+    return this.reviewsService.getProductReviews(productId, query);
+  }
+
+  @Get(':productId/stats')
+  getStats(@Param('productId', ParseUUIDPipe) productId: string) {
+    return this.reviewsService.getProductStats(productId);
+  }
+
+  @Get(':productId/my-votes')
+  @UseGuards(JwtAuthGuard)
+  getOwnVotes(
+    @CurrentUser('id') userId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
+    @Query() query: OwnReviewVotesQueryDto,
+  ) {
+    return this.reviewsService.getOwnVotes(userId, productId, query.ids);
+  }
+
+  @Put(':reviewId/vote')
+  @UseGuards(JwtAuthGuard)
+  setVote(
+    @CurrentUser('id') userId: string,
+    @Param('reviewId', ParseUUIDPipe) reviewId: string,
+    @Body() data: ReviewVoteDto,
+  ) {
+    return this.reviewsService.setVote(userId, reviewId, data);
   }
 
   @Post('create')
-  create(@Body() createReviewDto: CreateReviewDto) {
-    return this.reviewsService.createReview(createReviewDto);
+  @UseGuards(JwtAuthGuard)
+  create(@CurrentUser('id') userId: string, @Body() data: CreateReviewDto) {
+    return this.reviewsService.createReview(userId, data);
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.reviewsService.findOne(+id);
-  // }
+  @Get(':productId/mine')
+  @UseGuards(JwtAuthGuard)
+  getMine(
+    @CurrentUser('id') userId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
+  ) {
+    return this.reviewsService.getMineAndEligibility(userId, productId);
+  }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-  //   return this.reviewsService.update(+id, updateReviewDto);
-  // }
+  @Post(':reviewId/addenda')
+  @UseGuards(JwtAuthGuard)
+  addAddendum(
+    @CurrentUser('id') userId: string,
+    @Param('reviewId', ParseUUIDPipe) reviewId: string,
+    @Body() data: CreateReviewAddendumDto,
+  ) {
+    return this.reviewsService.addAddendum(userId, reviewId, data);
+  }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.reviewsService.remove(+id);
-  // }
+  @Delete(':reviewId')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
+  deleteReview(
+    @CurrentUser('id') userId: string,
+    @Param('reviewId', ParseUUIDPipe) reviewId: string,
+    @Query() query: ReviewPublicationDto,
+  ) {
+    return this.reviewsService.deleteReview(
+      userId,
+      reviewId,
+      query.publicationId,
+    );
+  }
 }
