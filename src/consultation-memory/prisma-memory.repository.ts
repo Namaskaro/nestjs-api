@@ -1,7 +1,7 @@
 
 import { Prisma } from '@prisma/generated';
 import type { MemoryConstraintKey } from './memory.contract';
-import type { PrismaService } from '@/src/core/prisma/prisma.service';
+import type { PrismaClient } from '@prisma/generated';
 import type {
   EpisodeData, MemoryAdmission, MemoryEpisode, MemoryEpisodeSelection, MemoryOffer, MemoryReceipt,
   MemoryRepository, MemoryScope, MemoryScopeKey, MemorySourceState, MemoryUnit, OfferData, ResumeDecision,
@@ -34,7 +34,7 @@ function scopeKey({ storeKey, subjectKey, sourceKind, sourceKey }: MemoryScopeKe
 
 export class PrismaMemoryRepository implements MemoryRepository {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaClient,
     private readonly source: PrismaMemorySource,
     private readonly revokePreferences?: (
       tx: Prisma.TransactionClient, key: MemoryScopeKey, episodeId: string, changed?: MemoryConstraintKey[],

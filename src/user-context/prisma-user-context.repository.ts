@@ -1,7 +1,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { Prisma, type UserContextFact as FactRow } from '@prisma/generated';
-import type { PrismaService } from '@/src/core/prisma/prisma.service';
+import type { PrismaClient } from '@prisma/generated';
 import type { PrismaMemoryRepository } from '@/src/consultation-memory/prisma-memory.repository';
 import { ownsScope, ownsSource, snapshotOf } from '@/src/consultation-memory/memory.policies';
 import type { PreferenceFact } from './user-context.contract';
@@ -26,7 +26,7 @@ function mapFact(row: FactRow): PreferenceFact {
 }
 
 export class PrismaUserContextRepository implements UserContextRepository {
-  constructor(private readonly prisma: PrismaService, private readonly memory: PrismaMemoryRepository) {}
+  constructor(private readonly prisma: PrismaClient, private readonly memory: PrismaMemoryRepository) {}
 
   transaction<T>(work: (unit: UserContextUnit) => Promise<T>) {
     return this.prisma.$transaction(tx => work(this.bind(tx)), { maxWait: 1000, timeout: 3000 });

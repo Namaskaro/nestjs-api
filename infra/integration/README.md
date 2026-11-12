@@ -70,6 +70,7 @@ node infra/integration/agentic-memory-resume.mjs
 
 ```powershell
 node infra/integration/agentic-memory-portability.mjs
+node infra/integration/agentic-memory-restart.mjs
 ```
 
 NextShop использует проверенный Chat/Message и настоящий каталог в agentic-memory-resume.mjs. Синтетический источник ПК имеет собственный формат идентичности, критерии и небольшой каталог. Он подключается к тому же приложению памяти и User Context, записывает состояние в PostgreSQL без связи с Chat и использует управляемое время.
@@ -84,3 +85,6 @@ User Context использует штатную сессию владельца
 - Плановое истечение эпизода не меняет профиль. Явное исправление соответствующего критерия или удаление эпизода отзывает факт с этим источником.
 
 В preview используйте обычный вход. JwtGuard проверяет подпись, WsJwtGuard читает актуальную роль из базы. Сценарии, часы, локальный AI и полный набор сервисов описаны в инструкции приёмки. Проверьте два подключения к одному чату и сохранение истории при новом подборе. Для диагностики проверяйте метки проекции памяти и ошибки запроса профиля.
+
+
+Руководства: [Agentic Memory и User Context](../../docs/agentic-memory-user-context.md) · [локальная панель и браузерные сценарии](agentic-memory-acceptance/ACCEPTANCE.md).
