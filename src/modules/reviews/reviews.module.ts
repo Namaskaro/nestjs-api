@@ -9,6 +9,10 @@ import { ReviewSummaryService } from './review-summary.service';
 import { AiModule } from '@/src/ai/ai.module';
 import { QdrantModule } from '@/src/core/qdrant/qdrant.module';
 import { ConfigModule } from '@nestjs/config';
+import {
+  REVIEW_EVIDENCE_LOOKUP,
+  REVIEW_EXPERIENCE_READER,
+} from '@/src/review-intelligence/application/ports';
 
 @Module({
   imports: [
@@ -19,7 +23,19 @@ import { ConfigModule } from '@nestjs/config';
     forwardRef(() => AuthModule),
   ],
   controllers: [ReviewModerationController, ReviewsController],
-  providers: [ReviewsService, ReviewIndexService, ReviewSummaryService],
-  exports: [ReviewsService, ReviewIndexService, ReviewSummaryService],
+  providers: [
+    ReviewsService,
+    ReviewIndexService,
+    ReviewSummaryService,
+    { provide: REVIEW_EXPERIENCE_READER, useExisting: ReviewsService },
+    { provide: REVIEW_EVIDENCE_LOOKUP, useExisting: ReviewIndexService },
+  ],
+  exports: [
+    ReviewsService,
+    ReviewIndexService,
+    ReviewSummaryService,
+    REVIEW_EXPERIENCE_READER,
+    REVIEW_EVIDENCE_LOOKUP,
+  ],
 })
 export class ReviewsModule {}

@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { ReviewsService } from '@/src/modules/reviews/reviews.service';
+import { Inject, Injectable } from '@nestjs/common';
 import {
-  ReviewIndexService,
-  type ReviewSourceRef,
-} from '@/src/modules/reviews/review-index.service';
+  REVIEW_EVIDENCE_LOOKUP,
+  REVIEW_EXPERIENCE_READER,
+  type ReviewEvidenceLookup,
+  type ReviewExperienceReader,
+} from '@/src/review-intelligence/application/ports';
+import type { ReviewSourceRef } from '@/src/review-intelligence/core/review-model';
 
 import { CurrentStoreCatalogService } from '@/src/product-consultation/adapters/current-store/current-store-catalog.service';
 
@@ -33,8 +35,10 @@ export class ProductAgentService implements ProductSearchPort {
     private readonly currentStoreProductSearchService: CurrentStoreProductSearchService,
 
     private readonly currentStoreSearchSpecAdapter: CurrentStoreSearchSpecAdapter,
-    private readonly reviews: ReviewsService,
-    private readonly reviewIndex: ReviewIndexService,
+    @Inject(REVIEW_EXPERIENCE_READER)
+    private readonly reviews: ReviewExperienceReader,
+    @Inject(REVIEW_EVIDENCE_LOOKUP)
+    private readonly reviewIndex: ReviewEvidenceLookup,
   ) {}
 
   public capabilities(): ProductSearchCapabilities {

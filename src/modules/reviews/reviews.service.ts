@@ -22,10 +22,11 @@ import {
   reviewPopularityScore,
 } from './review-publication';
 import { ReviewListQueryDto, ReviewVoteDto } from './dto/review-list.dto';
-import {
-  isReviewSummaryMilestone,
-  nextReviewSummaryCount,
-} from './review-summary.model';
+import { readReviewExperience } from '@/src/review-intelligence/application/review-experience';
+import type { ReviewExperienceReader } from '@/src/review-intelligence/application/ports';
+import { reviewStats } from '@/src/review-intelligence/core/review-model';
+import { reviewSummaryAfterChange } from '@/src/review-intelligence/core/review-policy';
+import { NextShopReviewSource } from './nextshop-review-source';
 
 const addendumSelect = {
   id: true,
@@ -158,8 +159,12 @@ function ownerView(row: ReviewOwnerRow) {
 }
 
 @Injectable()
-export class ReviewsService {
-  constructor(private readonly prismaService: PrismaService) {}
+export class ReviewsService implements ReviewExperienceReader {
+  private readonly source: NextShopReviewSource;
+
+  constructor(private readonly prismaService: PrismaService) {
+    this.source = new NextShopReviewSource(prismaService);
+  }
 
   async getProductReviews(
     productId: string,
@@ -205,23 +210,22 @@ export class ReviewsService {
       [totalsQuery, ratingsQuery],
       { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
     );
-    const positiveCount = ratings
-      .filter((row) => row.rating >= 4)
-      .reduce((sum, row) => sum + row._count._all, 0);
-    const neutralCount = ratings
-      .filter((row) => row.rating === 3)
-      .reduce((sum, row) => sum + row._count._all, 0);
-    const negativeCount = ratings
-      .filter((row) => row.rating <= 2)
-      .reduce((sum, row) => sum + row._count._all, 0);
+    const stats = reviewStats(
+      [productId],
+      ratings.map(({ rating, _count }) => ({
+        productId,
+        rating,
+        count: _count._all,
+      })),
+    ).get(productId);
     const ratingCount = totals._count._all;
     return {
+      ...stats,
       averageRating: totals._avg.rating,
       ratingCount,
-      positiveCount,
-      neutralCount,
-      negativeCount,
-      positivePercent: ratingCount ? (positiveCount * 100) / ratingCount : 0,
+      positivePercent: ratingCount
+        ? (stats.positiveCount * 100) / ratingCount
+        : 0,
     };
   }
 
@@ -248,90 +252,14 @@ export class ReviewsService {
     productIds: readonly string[],
     db: Pick<Prisma.TransactionClient, 'review'> = this.prismaService,
   ) {
-    const ids = [...new Set(productIds)];
-    const stats = new Map(
-      ids.map((id) => [
-        id,
-        {
-          averageRating: null as number | null,
-          ratingCount: 0,
-          positiveCount: 0,
-          neutralCount: 0,
-          negativeCount: 0,
-          positivePercent: 0,
-        },
-      ]),
+    return reviewStats(
+      productIds,
+      await this.source.ratingGroups(productIds, db),
     );
-    if (!ids.length) return stats;
-    const groups = await db.review.groupBy({
-      by: ['productId', 'rating'],
-      where: { ...publishedReviewWhere, productId: { in: ids } },
-      _count: { _all: true },
-    });
-    const sums = new Map<string, number>();
-    for (const row of groups) {
-      const current = stats.get(row.productId);
-      const n = row._count._all;
-      current.ratingCount += n;
-      sums.set(row.productId, (sums.get(row.productId) ?? 0) + row.rating * n);
-      if (row.rating >= 4) current.positiveCount += n;
-      else if (row.rating === 3) current.neutralCount += n;
-      else current.negativeCount += n;
-    }
-    for (const [id, current] of stats)
-      if (current.ratingCount) {
-        current.averageRating = sums.get(id) / current.ratingCount;
-        current.positivePercent =
-          (current.positiveCount * 100) / current.ratingCount;
-      }
-    return stats;
   }
 
-  async getReviewExperience(productIds: readonly string[]) {
-    return this.prismaService.$transaction(
-      async (tx) => {
-        const stats = await this.getProductStatsBatch(productIds, tx);
-        const summaries = await tx.reviewSummary.findMany({
-          where: {
-            productId: { in: [...stats.keys()] },
-            summary: { not: null },
-            generatedAt: { not: null },
-            sourceReviewCount: { gte: 10 },
-            sourceAuthorCount: { gte: 10 },
-          },
-          select: {
-            productId: true,
-            positiveImpressions: true,
-            negativeImpressions: true,
-            summary: true,
-            generatedAt: true,
-            sourceReviewCount: true,
-            sourceVersion: true,
-            lastRetractionVersion: true,
-          },
-        });
-        return new Map(
-          [...stats].map(([productId, rating]) => {
-            const summary = summaries.find(
-              (row) => row.productId === productId,
-            );
-            return [
-              productId,
-              {
-                ...rating,
-                summary: summary
-                  ? {
-                      ...summary,
-                      generatedAt: summary.generatedAt.toISOString(),
-                    }
-                  : null,
-              },
-            ];
-          }),
-        );
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
-    );
+  getReviewExperience(productIds: readonly string[]) {
+    return readReviewExperience(this.source, productIds);
   }
 
   async setVote(userId: string, reviewId: string, data: ReviewVoteDto) {
@@ -757,62 +685,15 @@ export class ReviewsService {
     const count = await tx.review.count({
       where: { ...publishedReviewWhere, productId },
     });
-    const now = new Date();
-    const due =
-      state.nextAttemptAt &&
-      state.nextAttemptAt < new Date(now.getTime() + 30_000)
-        ? state.nextAttemptAt
-        : new Date(now.getTime() + 30_000);
-    if (kind === 'review') {
-      const base = state.summary === null ? 0 : state.sourceReviewCount;
-      if (
-        count >= nextReviewSummaryCount(base) &&
-        (!state.nextAttemptAt || isReviewSummaryMilestone(base, count))
-      )
-        await tx.reviewSummary.update({
-          where: { productId },
-          data: {
-            requestedVersion: state.corpusVersion,
-            nextAttemptAt: due,
-            attemptCount: 0,
-            lastErrorCode: null,
-          },
-        });
-      return;
-    }
-    const included =
-      state.summary !== null &&
-      (review.publishedCorpusVersion === null ||
-        review.publishedCorpusVersion <= state.sourceVersion);
-    const invalidate = included || count < 10;
-    const requested = count >= 10 && (included || state.nextAttemptAt !== null);
-    await tx.reviewSummary.update({
-      where: { productId },
-      data: {
-        lastRetractionVersion: state.corpusVersion,
-        ...(invalidate
-          ? {
-              summary: null,
-              generatedAt: null,
-              positiveImpressions: [],
-              negativeImpressions: [],
-              sourceHash: null,
-            }
-          : {}),
-        ...(requested
-          ? {
-              requestedVersion: state.corpusVersion,
-              nextAttemptAt: due,
-              attemptCount: 0,
-              lastErrorCode: null,
-            }
-          : {}),
-        ...(count < 10 ? { nextAttemptAt: null } : {}),
-        // Немедленная отмена lease старого задания; heartbeat также остановит LLM.
-        leaseToken: null,
-        leaseUntil: null,
-      },
-    });
+    const update = reviewSummaryAfterChange(
+      state,
+      kind,
+      review.publishedCorpusVersion,
+      count,
+      new Date(),
+    );
+    if (update)
+      await tx.reviewSummary.update({ where: { productId }, data: update });
   }
 
   private async requireProduct(

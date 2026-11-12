@@ -29,6 +29,7 @@ import { buildProductConsultationContext } from '@/src/product-consultation/appl
 
 import { createProductRecommendationSynthesizer } from '@/src/product-consultation/application/recommendation/product-recommendation-synthesizer';
 import { answerProductReviewQuestion } from '../../recommendation/product-review-answer';
+import { reviewEvidenceIsCurrent } from '@/src/review-intelligence/core/review-model';
 import {
   ProductReviewExperienceSchema,
   RecommendationReviewEvidenceSchema,
@@ -522,15 +523,7 @@ export function createExecuteProductDecisionNode(
         const current = currentExperience.get(id);
         // Готовая сводка может пережить удаление ещё не учтённого отзыва.
         // Блокируем новое изъятие после входного snapshot, а не старую его отметку.
-        if (
-          !current ||
-          current.ratingCount !== used.ratingCount ||
-          current.averageRating !== used.averageRating ||
-          (used.summary &&
-            (!current.summary ||
-              current.summary.lastRetractionVersion >
-                used.summary.lastRetractionVersion))
-        )
+        if (!reviewEvidenceIsCurrent(used, current))
           return {
             consultationRecord: record,
             consultation: null,

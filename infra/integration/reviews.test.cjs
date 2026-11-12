@@ -18,7 +18,10 @@ const {
   reviewPopularityScore,
 } = require('@/src/modules/reviews/review-publication');
 const { consultationCases } = require('./review-consultation.cjs');
-const { summaryPortability } = require('./review-portability.cjs');
+const {
+  summaryPortability,
+  externalPortability,
+} = require('./review-portability.cjs');
 
 const approved = ({ publicationId }) => ({
   publicationId,
@@ -763,6 +766,11 @@ test(
           t,
           'Unchanged Summary core with real Prisma rows and independent JSON Lines source',
           () => summaryPortability(context, f),
+        );
+        await step(
+          t,
+          'Independent review feed through shared application, real Qdrant and isolated stores',
+          () => externalPortability(context, f),
         );
       });
     } finally {

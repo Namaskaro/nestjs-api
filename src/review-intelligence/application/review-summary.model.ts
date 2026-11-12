@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import type { AiService } from '@/src/ai/ai.service';
+import type { ReviewTextModels } from './ports';
 
 export const REVIEW_ANALYZER_VERSION = 'review-summary-v2-1';
 export const ReviewSummaryOutputSchema = z
@@ -17,27 +17,6 @@ export type ReviewSummaryInput = {
   text: string;
   kind: 'review' | 'addendum';
 };
-
-export function nextReviewSummaryCount(processed: number): number {
-  if (processed < 10) return 10;
-  return processed < 100
-    ? (Math.floor(processed / 10) + 1) * 10
-    : processed + Math.ceil(processed * 0.1);
-}
-
-export function isReviewSummaryMilestone(
-  processed: number,
-  count: number,
-): boolean {
-  for (
-    let threshold = nextReviewSummaryCount(processed);
-    threshold <= count;
-    threshold = nextReviewSummaryCount(threshold)
-  ) {
-    if (count === threshold) return true;
-  }
-  return false;
-}
 
 export function reviewSummaryHash(
   inputs: readonly ReviewSummaryInput[],
@@ -60,7 +39,7 @@ const INSTRUCTIONS = `Ты составляешь краткую сводку с
 /** Использует token counter текущей STANDARD-модели и резерв; текст не отбрасывается.
  * Точность счётчика относительно tokenizer провайдера проверяется отдельно live. */
 export async function generateReviewSummary(
-  ai: AiService,
+  models: ReviewTextModels,
   inputs: readonly ReviewSummaryInput[],
   options: {
     inputTokenBudget: number;
@@ -77,10 +56,8 @@ export async function generateReviewSummary(
     options.maxCalls > 128
   )
     throw new Error('REVIEW_SUMMARY_BUDGET_CONFIGURATION');
-  const model = ai.getChatModel('STANDARD');
-  const structured = model.withStructuredOutput(ReviewSummaryOutputSchema, {
-    name: 'review_summary',
-    method: 'jsonMode',
+  const model = models.open('review_summary', ReviewSummaryOutputSchema, {
+    analyzerVersion: REVIEW_ANALYZER_VERSION,
   });
   const messages = (text: string) => [
     { role: 'system' as const, content: INSTRUCTIONS },
@@ -88,7 +65,7 @@ export async function generateReviewSummary(
   ];
   // Резерв на structured-output schema и служебную обёртку провайдера.
   const fits = async (text: string) =>
-    (await model.getNumTokens(JSON.stringify(messages(text)))) + 768 <=
+    (await model.countTokens(JSON.stringify(messages(text)))) + 768 <=
     options.inputTokenBudget;
   const chunks: string[] = [];
   let current = '';
@@ -131,12 +108,7 @@ export async function generateReviewSummary(
       throw new Error('REVIEW_SUMMARY_CALL_BUDGET');
     if (!(await fits(text))) throw new Error('REVIEW_SUMMARY_INPUT_TOO_LARGE');
     const output = ReviewSummaryOutputSchema.parse(
-      await structured.invoke(messages(text), {
-        signal: options.signal,
-        runName: 'review_summary',
-        tags: ['reviews'],
-        metadata: { analyzerVersion: REVIEW_ANALYZER_VERSION },
-      }),
+      await model.invoke(messages(text), options.signal),
     );
     await options.checkLease();
     return output;

@@ -310,4 +310,72 @@ async function consultationCases(context, f) {
   );
 }
 
-module.exports = { consultationCases };
+async function externalRecommendation(context, f, evidence, index) {
+  const { db, qdrant, ai } = context;
+  const catalog = new CurrentStoreCatalogService(db, qdrant);
+  const agent = new ProductAgentService(
+    catalog,
+    undefined,
+    undefined,
+    evidence,
+    index,
+  );
+  const search = createSearchSpec({
+    semanticIntent: 'comfort walking shoes',
+    category: 'SHOES',
+    constraints: [],
+  });
+  const rows = await db.product.findMany({
+    where: { id: { in: [f.corpus, f.other] } },
+  });
+  const record = activeRecord(
+    search,
+    [f.corpus, f.other].map((id) => {
+      const row = rows.find((product) => product.id === id);
+      return { productId: id, title: row.title, price: row.price, image: null };
+    }),
+  );
+  const calls = ai.modelCalls.length;
+  const execute = createExecuteProductDecisionNode(ai, agent);
+  const run = (action) =>
+    execute({
+      query: 'Какой вариант выбрать для прогулок?',
+      conversationId: f.runId,
+      requestId: randomUUID(),
+      recentMessages: [],
+      consultationRecord: record,
+      decision: decision(action, [1, 2]),
+    });
+  const compared = await run('COMPARE');
+  assert.deepEqual(
+    compared.consultation.comparisonPresentation.products.map(
+      ({ averageRating, ratingCount }) => [averageRating, ratingCount],
+    ),
+    [
+      [4.7, 10],
+      [null, 0],
+    ],
+  );
+  assert.equal(ai.modelCalls.length, calls);
+  const result = await run('RECOMMEND');
+  assert.deepEqual(result.recommendationProductIds, [f.corpus]);
+  assert.deepEqual(
+    result.recommendationReviewEvidence.products.map(
+      ({ productId, ratingCount }) => [productId, ratingCount],
+    ),
+    [
+      [f.corpus, 10],
+      [f.other, 0],
+    ],
+  );
+  assert.equal(
+    result.recommendationReviewEvidence.summary.summary,
+    'External publication summary',
+  );
+  assert.deepEqual(
+    ai.modelCalls.slice(calls).map(({ name }) => name),
+    ['product_recommendation_response'],
+  );
+}
+
+module.exports = { consultationCases, externalRecommendation };
