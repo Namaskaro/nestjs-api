@@ -20,6 +20,7 @@ import {
   products,
 } from '@/src/product-consultation/application/workspace/product-workspace.test-fixtures';
 import { SupportAgentState } from '../../support-agent.state';
+import type { SupportAgentContext } from '../../../context/support-agent-context.schema';
 import { createRequestRouterNode } from '../request-router.node';
 import { dispatchWorkers } from '../../routers/dispatch-workers';
 import { createProductAgentWorker } from '../../workers/product-agent.worker';
@@ -107,6 +108,7 @@ function supportHarness(
       query: string,
       product: string | null,
       store: string | null = null,
+      context?: Partial<SupportAgentContext>,
     ) {
       productQuery = product;
       helpQuery = store;
@@ -117,13 +119,32 @@ function supportHarness(
             new HumanMessage({ content: query, id: `turn-${++turn}` }),
           ],
         },
-        { configurable: { thread_id: 'offline-support' } },
+        { configurable: { thread_id: 'offline-support' }, context },
       );
     },
   };
 }
 
 describe('Product multi-action across real Support routing, workers, aggregation and checkpoints', () => {
+  it('passes only the current persisted source through real Support graph to private capture', async () => {
+    const h = harness();
+    const support = supportHarness(h, true);
+    const memoryCapture = jest.fn();
+    const result = await support.run('Найди кроссовки', 'Найди кроссовки', null, {
+      memorySourceMessageId: 'turn-1', memoryCapture,
+    });
+    expect(memoryCapture).toHaveBeenCalledWith({
+      sourceMessageId: 'turn-1', changes: [expect.objectContaining({ kind: 'start' })],
+    });
+    expect(JSON.stringify(result.answer)).not.toContain('memorySourceMessageId');
+
+    memoryCapture.mockClear();
+    await support.run('Найди кроссовки', 'Найди кроссовки', null, {
+      memorySourceMessageId: 'not-the-current-source', memoryCapture,
+    });
+    expect(memoryCapture).not.toHaveBeenCalled();
+  });
+
   it('preserves Product context through production preIntent/afterPreIntent on a delivery detour', async () => {
     const h = harness();
     const s = supportHarness(h, true);

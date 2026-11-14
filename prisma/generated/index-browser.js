@@ -162,6 +162,11 @@ exports.Prisma.SupportCaseScalarFieldEnum = {
 };
 
 exports.Prisma.ChatScalarFieldEnum = {
+  consultationInputSeq: 'consultationInputSeq',
+  consultationNextInputSeq: 'consultationNextInputSeq',
+  consultationNextHandoffVersion: 'consultationNextHandoffVersion',
+  consultationAttemptId: 'consultationAttemptId',
+  consultationSourceMessageId: 'consultationSourceMessageId',
   id: 'id',
   userId: 'userId',
   operatorId: 'operatorId',
@@ -173,6 +178,10 @@ exports.Prisma.ChatScalarFieldEnum = {
 };
 
 exports.Prisma.MessageScalarFieldEnum = {
+  consultationInputSeq: 'consultationInputSeq',
+  clientMessageId: 'clientMessageId',
+  assistantSourceMessageId: 'assistantSourceMessageId',
+  expectsEpisodeProjection: 'expectsEpisodeProjection',
   id: 'id',
   chatId: 'chatId',
   authorId: 'authorId',
@@ -446,6 +455,86 @@ exports.Prisma.StoreKnowledgeScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ConsultationMemoryScopeScalarFieldEnum = {
+  id: 'id',
+  storeKey: 'storeKey',
+  subjectKey: 'subjectKey',
+  sourceKind: 'sourceKind',
+  sourceKey: 'sourceKey',
+  chatId: 'chatId',
+  memoryEpoch: 'memoryEpoch',
+  purgedThroughSeq: 'purgedThroughSeq',
+  offerSuppressedUntil: 'offerSuppressedUntil'
+};
+
+exports.Prisma.ConsultationEpisodeScalarFieldEnum = {
+  id: 'id',
+  scopeId: 'scopeId',
+  taskKey: 'taskKey',
+  type: 'type',
+  status: 'status',
+  outcome: 'outcome',
+  schemaVersion: 'schemaVersion',
+  revision: 'revision',
+  contentRevision: 'contentRevision',
+  snapshot: 'snapshot',
+  lastMeaningfulAt: 'lastMeaningfulAt',
+  expiresAt: 'expiresAt',
+  closedAt: 'closedAt'
+};
+
+exports.Prisma.ConsultationResumeOfferScalarFieldEnum = {
+  id: 'id',
+  scopeId: 'scopeId',
+  episodeId: 'episodeId',
+  episodeRevision: 'episodeRevision',
+  contentRevision: 'contentRevision',
+  memoryEpoch: 'memoryEpoch',
+  inputSeq: 'inputSeq',
+  handoffVersion: 'handoffVersion',
+  expiresAt: 'expiresAt',
+  decision: 'decision',
+  decidedAt: 'decidedAt',
+  consumedAt: 'consumedAt'
+};
+
+exports.Prisma.ConsultationTurnReceiptScalarFieldEnum = {
+  id: 'id',
+  scopeId: 'scopeId',
+  sourceMessageId: 'sourceMessageId',
+  assistantMessageId: 'assistantMessageId',
+  inputSeq: 'inputSeq',
+  payloadHash: 'payloadHash',
+  appliedRevisions: 'appliedRevisions',
+  expiresAt: 'expiresAt'
+};
+
+exports.Prisma.UserContextScopeScalarFieldEnum = {
+  id: 'id',
+  storeKey: 'storeKey',
+  subjectKey: 'subjectKey',
+  revision: 'revision'
+};
+
+exports.Prisma.UserContextFactScalarFieldEnum = {
+  id: 'id',
+  scopeId: 'scopeId',
+  domainKey: 'domainKey',
+  preferenceKey: 'preferenceKey',
+  value: 'value',
+  confirmation: 'confirmation',
+  commandId: 'commandId',
+  sourceKind: 'sourceKind',
+  sourceKey: 'sourceKey',
+  sourceEpisodeId: 'sourceEpisodeId',
+  sourceEpisodeRevision: 'sourceEpisodeRevision',
+  sourceAttributeId: 'sourceAttributeId',
+  sourceOperator: 'sourceOperator',
+  observedAt: 'observedAt',
+  confirmedAt: 'confirmedAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -598,6 +687,18 @@ exports.ShipmentStatus = exports.$Enums.ShipmentStatus = {
   UNKNOWN: 'UNKNOWN'
 };
 
+exports.ConsultationEpisodeStatus = exports.$Enums.ConsultationEpisodeStatus = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED'
+};
+
+exports.ConsultationEpisodeOutcome = exports.$Enums.ConsultationEpisodeOutcome = {
+  PRODUCT_SELECTED: 'PRODUCT_SELECTED',
+  NO_MATCH: 'NO_MATCH',
+  USER_CANCELLED: 'USER_CANCELLED',
+  FINISHED_UNSPECIFIED: 'FINISHED_UNSPECIFIED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   OperatorProfile: 'OperatorProfile',
@@ -623,7 +724,13 @@ exports.Prisma.ModelName = {
   Shipment: 'Shipment',
   CartItem: 'CartItem',
   Cart: 'Cart',
-  StoreKnowledge: 'StoreKnowledge'
+  StoreKnowledge: 'StoreKnowledge',
+  ConsultationMemoryScope: 'ConsultationMemoryScope',
+  ConsultationEpisode: 'ConsultationEpisode',
+  ConsultationResumeOffer: 'ConsultationResumeOffer',
+  ConsultationTurnReceipt: 'ConsultationTurnReceipt',
+  UserContextScope: 'UserContextScope',
+  UserContextFact: 'UserContextFact'
 };
 
 /**

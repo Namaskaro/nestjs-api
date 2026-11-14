@@ -1,6 +1,14 @@
+import { ConsultationMemoryService } from '@/src/consultation-memory/consultation-memory.service';
+import type { ConsultationMemoryAdmission, ConsultationMemoryBasis, ConsultationMemoryCandidate } from '@/src/consultation-memory/consultation-memory.types';
+import {
+  consultationActionField, consultationContinuationOfferIdField, getConsultationAction, getConsultationContinuationOfferId,
+  type ConsultationInputAction,
+} from '@/src/consultation-memory/consultation-memory.types';
+import { Optional } from '@nestjs/common';
 import {
   ConflictException,
   Logger,
+  NotFoundException,
   OnModuleInit,
   UseGuards,
 } from '@nestjs/common';
@@ -52,6 +60,7 @@ import {
 
 import { ChatHandoffQueueService } from './chat-handoff-queue.service';
 
+import { ConsultationResumeDecisionDto } from './dto/consultation-resume-decision.dto';
 import { JoinChatDto } from './dto/join-chat.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { SubmitConsultationFeedbackDto } from './dto/submit-consultation-feedback.dto';
@@ -184,6 +193,27 @@ function resumeDisplayText(value: SupportAgentResumeValue): string {
     : 'Продолжить без оператора';
 }
 
+function publicChatMessage<T>(message: T) {
+  if (!message || typeof message !== 'object') return message;
+  const { consultationInputSeq, clientMessageId, assistantSourceMessageId, expectsEpisodeProjection, alreadyAccepted, ...view } =
+    message as Record<string, unknown>;
+  if (getConsultationContinuationOfferId(view.payload) || getConsultationAction(view.payload)) {
+    const { [consultationContinuationOfferIdField]: internalOfferId, [consultationActionField]: internalAction, ...payload } =
+      view.payload as Record<string, unknown>;
+    view.payload = Object.keys(payload).length ? payload : null;
+  }
+  return view;
+}
+
+function publicChat<T>(chat: T) {
+  if (!chat || typeof chat !== 'object') return chat;
+  const { consultationInputSeq, consultationAttemptId, consultationSourceMessageId,
+    consultationNextInputSeq, consultationNextHandoffVersion, ...view } =
+    chat as Record<string, unknown>;
+  if (Array.isArray(view.messages)) view.messages = view.messages.map(publicChatMessage);
+  return view;
+}
+
 @UseGuards(WsJwtGuard)
 @WebSocketGateway({
   cors: {
@@ -204,6 +234,7 @@ export class ChatGateway implements OnModuleInit {
     private readonly supportAgentService: SupportAgentService,
     private readonly handoffService: ChatHandoffService,
     private readonly handoffQueue: ChatHandoffQueueService,
+    @Optional() private readonly consultationMemory?: ConsultationMemoryService,
   ) {}
 
   onModuleInit() {
@@ -221,7 +252,7 @@ export class ChatGateway implements OnModuleInit {
 
     await socket.join(`chat:${chat.id}`);
 
-    return chat;
+    return publicChat(chat);
   }
 
   @SubscribeMessage('chat:join')
@@ -242,7 +273,22 @@ export class ChatGateway implements OnModuleInit {
     if (chat.userId === userId) {
       await socket.join(`chat:${dto.chatId}`);
 
-      return this.handoffService.getCustomerSnapshot(dto.chatId, userId);
+      const snapshot = await this.handoffService.getCustomerSnapshot(dto.chatId, userId);
+      if (dto.requestConsultationOffer !== true || !this.consultationMemory?.enabled ||
+          socket.data.user.role !== 'Client') return snapshot;
+
+      let consultationState: Awaited<ReturnType<ConsultationMemoryService['getResumeState']>> =
+        { consultationOffer: null, consultationIntent: null };
+      try {
+        if (snapshot.mode === ChatMode.BOT && !this.activeAssistantChats.has(dto.chatId) &&
+            !this.supportAgentService.isThreadActive(dto.chatId) &&
+            !await this.supportAgentService.hasPendingInterrupt(dto.chatId)) {
+          consultationState = await this.consultationMemory.getResumeState(dto.chatId, userId);
+        }
+      } catch {
+        this.logger.warn('Consultation resume offer unavailable');
+      }
+      return { ...snapshot, ...consultationState };
     }
 
     /*
@@ -262,6 +308,32 @@ export class ChatGateway implements OnModuleInit {
     };
   }
 
+  @SubscribeMessage('chat:consultation_resume_decision')
+  async decideConsultationResume(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() dto: ConsultationResumeDecisionDto,
+  ) {
+    if (!isUuid(dto.offerId) || !['continue', 'later', 'start_new'].includes(dto.decision)) {
+      throw new WsException({ status: 'bad_request', message: 'Некорректное решение о продолжении подбора.' });
+    }
+    const userId = socket.data.user.id;
+    const snapshot = await this.handoffService.getCustomerSnapshot(dto.chatId, userId);
+    if (!this.consultationMemory?.enabled || socket.data.user.role !== 'Client' ||
+        snapshot.mode !== ChatMode.BOT || this.activeAssistantChats.has(dto.chatId) ||
+        this.supportAgentService.isThreadActive(dto.chatId) ||
+        await this.supportAgentService.hasPendingInterrupt(dto.chatId)) {
+      throw new WsException({ status: 'conflict', message: 'Предложение больше не актуально.' });
+    }
+    try {
+      return await this.consultationMemory.decideResumeOffer(dto.chatId, userId, dto.offerId, dto.decision);
+    } catch (error) {
+      if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw new WsException({ status: 'conflict', message: error.message });
+      }
+      throw error;
+    }
+  }
+
   @SubscribeMessage('chat:send_message')
   async sendMessage(
     @ConnectedSocket()
@@ -273,6 +345,13 @@ export class ChatGateway implements OnModuleInit {
     @Ack()
     ack: (message: unknown) => void,
   ) {
+    if (dto.consultationAction !== undefined &&
+        (dto.consultationAction !== 'resume_unchanged' || !dto.continuationOfferId || !dto.clientMessageId)) {
+      throw new WsException({ status: 'bad_request', message: 'Некорректная команда продолжения подбора.' });
+    }
+    if (dto.continuationOfferId !== undefined && !isUuid(dto.continuationOfferId)) {
+      throw new WsException({ status: 'bad_request', message: 'Некорректное предложение о продолжении подбора.' });
+    }
     const chat = await this.chatService.assertUserCanAccessChat(
       socket.data.user,
       dto.chatId,
@@ -291,8 +370,22 @@ export class ChatGateway implements OnModuleInit {
       const saved = await this.chatService.createParticipantMessage({
         chatId: dto.chatId,
         userId,
-        content: dto.content,
+        content: dto.consultationAction === 'resume_unchanged' ? 'Продолжить с прежними условиями' : dto.content,
+        ...(dto.consultationAction ? { consultationAction: dto.consultationAction } : {}),
+        ...(dto.continuationOfferId ? {
+          continuationOfferId: dto.continuationOfferId,
+          continuationAllowed: Boolean(this.consultationMemory?.enabled &&
+            !await this.supportAgentService.hasPendingInterrupt(dto.chatId)),
+        } : {}),
+        ...(dto.clientMessageId ? { clientMessageId: dto.clientMessageId } : {}),
+        ...(this.consultationMemory?.enabled && socket.data.user.role === 'Client' ? { trackConsultation: true } : {}),
       });
+
+      if (saved.duplicate) {
+        ack(publicChatMessage(saved.message));
+        if (saved.previousReply) socket.emit('chat:new_message', publicChatMessage(saved.previousReply));
+        return;
+      }
 
       await this.publishChatMessage(
         dto.chatId,
@@ -300,7 +393,7 @@ export class ChatGateway implements OnModuleInit {
         saved.operatorUserId,
       );
 
-      ack(saved.message);
+      ack(publicChatMessage(saved.message));
 
       if (!saved.shouldRunAssistant) {
         return;
@@ -314,6 +407,10 @@ export class ChatGateway implements OnModuleInit {
         saved.message.id,
         context,
         saved.handoffVersion,
+        saved.admission,
+        Boolean(dto.clientMessageId),
+        Boolean(dto.continuationOfferId),
+        getConsultationAction(saved.message.payload),
       );
     } finally {
       if (expectsAssistant) {
@@ -381,6 +478,7 @@ export class ChatGateway implements OnModuleInit {
           context,
           lastMessage.id,
           snapshot.handoffVersion,
+          lastMessage.consultationInputSeq != null,
         );
 
         return;
@@ -392,6 +490,12 @@ export class ChatGateway implements OnModuleInit {
         lastMessage.id,
         context,
         snapshot.handoffVersion,
+        this.consultationMemory?.enabled && socket.data.user.role === 'Client'
+          ? await this.chatService.claimConsultationRetry(dto.chatId, socket.data.user.id, lastMessage.id, snapshot.handoffVersion)
+          : null,
+        Boolean(lastMessage.clientMessageId || (this.consultationMemory?.enabled && socket.data.user.role === 'Client')),
+        Boolean(getConsultationContinuationOfferId(lastMessage.payload)),
+        getConsultationAction(lastMessage.payload),
       );
     } finally {
       this.releaseAssistantSlot(dto.chatId);
@@ -438,7 +542,7 @@ export class ChatGateway implements OnModuleInit {
 
       this.server
         .to(`chat:${dto.chatId}`)
-        .emit('chat:message_updated', assistantMessage);
+        .emit('chat:message_updated', publicChatMessage(assistantMessage));
 
       ack({
         sessionId: feedback.sessionId,
@@ -553,6 +657,7 @@ export class ChatGateway implements OnModuleInit {
         userId: socket.data.user.id,
         content: resumeDisplayText(resumeValue),
         requireBot: true,
+        ...(this.consultationMemory?.enabled && socket.data.user.role === 'Client' ? { trackConsultation: true } : {}),
         payload: {
           clarificationResume: resumeValue,
         } as Prisma.InputJsonValue,
@@ -564,7 +669,7 @@ export class ChatGateway implements OnModuleInit {
         saved.operatorUserId,
       );
 
-      ack(saved.message);
+      ack(publicChatMessage(saved.message));
 
       const context = this.createSupportAgentContext(socket);
 
@@ -574,6 +679,7 @@ export class ChatGateway implements OnModuleInit {
         context,
         saved.message.id,
         saved.handoffVersion,
+        Boolean(saved.admission),
       );
     } finally {
       this.releaseAssistantSlot(dto.chatId);
@@ -693,13 +799,45 @@ export class ChatGateway implements OnModuleInit {
     messageId: string,
     context: SupportAgentContext,
     expectedHandoffVersion: number,
+    admission?: ConsultationMemoryAdmission | null,
+    deduplicate = false,
+    requiresContinuation = false,
+    consultationAction?: ConsultationInputAction,
   ) {
     try {
+      let basis: ConsultationMemoryBasis | null = null;
+      let candidate: ConsultationMemoryCandidate | undefined;
+      if (admission && this.consultationMemory) {
+        try {
+          basis = await this.consultationMemory.getBasis(admission);
+        } catch {
+          this.logger.warn('Consultation memory basis unavailable');
+        }
+      }
+      if (requiresContinuation && !basis?.continuation) {
+        throw new ConflictException('Продолжение подбора недоступно.');
+      }
+
+      let memoryUsed = false;
+      const bufferedDeltas: SupportAgentStreamEvent[] = [];
+      const runtimeContext = basis ? {
+        ...context,
+        memorySourceMessageId: messageId,
+        memoryContinuation: basis.continuation,
+        memoryWitnesses: basis.witnesses,
+        memoryUsed: () => { memoryUsed = true; },
+        memoryCapture: (value: ConsultationMemoryCandidate) => {
+          if (value.sourceMessageId === messageId) candidate = value;
+        },
+      } : context;
       const result = await this.supportAgentService.run(
         content,
         chatId,
-        context,
-        (event) => this.emitAssistantEvent(chatId, event),
+        { ...runtimeContext, ...(consultationAction ? { consultationAction } : {}) },
+        (event) => {
+          if (basis && event.type === 'assistant_delta') bufferedDeltas.push(event);
+          else this.emitAssistantEvent(chatId, event);
+        },
         messageId,
       );
 
@@ -709,6 +847,7 @@ export class ChatGateway implements OnModuleInit {
         context.userId,
         messageId,
         expectedHandoffVersion,
+        admission || deduplicate ? { basis, candidate, used: memoryUsed, bufferedDeltas } : undefined,
       );
     } catch (error) {
       if (!isStaleAssistantResult(error)) {
@@ -726,6 +865,7 @@ export class ChatGateway implements OnModuleInit {
     context: SupportAgentContext,
     sourceMessageId: string,
     expectedHandoffVersion: number,
+    linkReply = false,
   ) {
     try {
       const result = await this.supportAgentService.resume(
@@ -741,6 +881,7 @@ export class ChatGateway implements OnModuleInit {
         context.userId,
         sourceMessageId,
         expectedHandoffVersion,
+        linkReply ? { basis: null } : undefined,
       );
     } catch (error) {
       if (!isStaleAssistantResult(error)) {
@@ -758,7 +899,16 @@ export class ChatGateway implements OnModuleInit {
     userId: string,
     sourceMessageId: string,
     expectedHandoffVersion: number,
+    memory?: {
+      basis: ConsultationMemoryBasis | null;
+      candidate?: ConsultationMemoryCandidate;
+      used?: boolean;
+      bufferedDeltas?: SupportAgentStreamEvent[];
+    },
   ) {
+    if (memory?.used && memory.basis && (result.kind === 'interrupt' || result.handoff)) {
+      await this.consultationMemory.verifyReplyCurrent(memory.basis);
+    }
     if (result.kind === 'interrupt') {
       const snapshot = await this.handoffService.getCustomerSnapshot(
         chatId,
@@ -832,12 +982,30 @@ export class ChatGateway implements OnModuleInit {
         userId,
         expectedHandoffVersion,
         content: result.answer.message,
+        ...(memory ? {
+          sourceMessageId,
+          expectsEpisodeProjection: Boolean(memory.basis && memory.candidate),
+          ...(memory.used && memory.basis ? { replyBasis: memory.basis } : {}),
+        } : {}),
         payload: {
           blocks,
         } as Prisma.InputJsonValue,
       });
 
-    this.server.to(`chat:${chatId}`).emit('chat:new_message', assistantMessage);
+    if (!('alreadyAccepted' in assistantMessage)) {
+      for (const delta of memory?.bufferedDeltas ?? []) this.emitAssistantEvent(chatId, delta);
+    }
+    this.server.to(`chat:${chatId}`).emit('chat:new_message', publicChatMessage(assistantMessage));
+    const { basis, candidate } = memory ?? {};
+    if (basis && candidate && !('alreadyAccepted' in assistantMessage)) {
+      setImmediate(() => {
+        void this.consultationMemory.project(basis, assistantMessage.id, candidate)
+          .then((status) => {
+            if (status === 'STALE') this.logger.warn('Consultation memory projection skipped: stale');
+          })
+          .catch(() => this.logger.warn('Consultation memory projection failed'));
+      });
+    }
   }
 
   private async publishChatMessage(
@@ -845,12 +1013,12 @@ export class ChatGateway implements OnModuleInit {
     message: unknown,
     operatorUserId: string | null,
   ) {
-    this.server.to(`chat:${chatId}`).emit('chat:new_message', message);
+    this.server.to(`chat:${chatId}`).emit('chat:new_message', publicChatMessage(message));
 
     if (operatorUserId) {
       this.server
         .to(`operator:${operatorUserId}`)
-        .emit('chat:new_message', message);
+        .emit('chat:new_message', publicChatMessage(message));
     }
   }
 
@@ -871,7 +1039,7 @@ export class ChatGateway implements OnModuleInit {
     if (!transition.replayed) {
       this.server
         .to(`chat:${transition.chatId}`)
-        .emit('chat:new_message', transition.message);
+        .emit('chat:new_message', publicChatMessage(transition.message));
     }
 
     const statusPayload = {
@@ -896,7 +1064,7 @@ export class ChatGateway implements OnModuleInit {
         if (!transition.replayed) {
           this.server
             .to(`operator:${operatorUserId}`)
-            .emit('chat:new_message', transition.message);
+            .emit('chat:new_message', publicChatMessage(transition.message));
         }
 
         this.server

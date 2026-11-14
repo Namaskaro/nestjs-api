@@ -157,9 +157,16 @@ describe('ConsultationAgent workspace model boundary', () => {
     const invalid = { parsed: { operations: [], clarification: null } };
     const h = harness(invalid, invalid, { parsed: clarification });
 
-    await expect(h.agent.decideWorkspace(context)).rejects.toThrow(
-      'ProductWorkspacePlanner: не удалось получить валидный workspace plan.',
-    );
+    await expect(h.agent.decideWorkspace(context)).rejects.toMatchObject({
+      name: 'ZodError',
+      issues: [
+        {
+          code: 'custom',
+          path: [],
+          message: 'Choose operations or workspace clarification.',
+        },
+      ],
+    });
     expect(h.invoke).toHaveBeenCalledTimes(2);
   });
 });

@@ -41,9 +41,15 @@ export class FrozenCurrentProductConsultationTarget
         if (property === 'validate') return search.validate.bind(search);
         if (property === 'capabilities')
           return search.capabilities.bind(search);
-        // Captured fixtures do not contain semantic representations; never fall through to live Qdrant.
-        if (property === 'getProductSemanticRepresentations')
+        // Captured fixtures contain neither semantic representations nor reviews.
+        if (
+          property === 'getProductSemanticRepresentations' ||
+          property === 'getReviewExperience' ||
+          property === 'getProductReviewStats'
+        )
           return async () => new Map();
+        if (property === 'searchReviews' || property === 'resolveReviewSources')
+          return async () => [];
         const value = Reflect.get(target, property, receiver);
         return typeof value === 'function' ? value.bind(target) : value;
       },

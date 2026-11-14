@@ -45,7 +45,7 @@ export const SupportAgentState = new StateSchema({
   messages: MessagesValue,
 
   preIntentRoute: z
-    .enum(['requestRouterNode', 'reject', 'clarificationTopic'])
+    .enum(['requestRouterNode', 'reject', 'clarificationTopic', 'productAgent'])
     .nullable()
     .default(null),
 

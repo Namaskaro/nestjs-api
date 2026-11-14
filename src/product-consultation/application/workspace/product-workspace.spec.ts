@@ -1,4 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
+import { AIMessage } from '@langchain/core/messages';
+import { filterMemoryContext, memoryAssistantMetadata, openMemoryWorkspace } from '@/src/support-agent/graph/nodes/memory-workspace';
 
 import type { AiService } from '@/src/ai/ai.service';
 
@@ -366,6 +368,8 @@ function harness(initialPlan = pair()) {
     getProductSemanticRepresentations: jest.fn(
       async (_ids: readonly string[]) => new Map(),
     ),
+    getReviewExperience: jest.fn(async () => new Map()),
+    getProductReviewStats: jest.fn(async () => new Map()),
   };
 
   const agent = createProductAgent(
@@ -495,30 +499,41 @@ describe('Product workspace: real graph with offline model boundary', () => {
       'CLOTHES',
     );
 
-    suit.decision.proposal.memoryObservations = [
-      {
-        kind: 'goal',
-
-        operation: 'remember',
-
-        text: 'на свадьбу',
-
-        importance: 'normal',
-
-        sourceText: 'костюм на свадьбу',
-      },
-    ];
-
-    const h = harness(
-      plan(
-        nike,
-
-        suit,
-      ),
+    const h = harness(plan(nike, suit));
+    const first = await h.run(
+      'Найди женские Nike 42 размера и костюм на свадьбу',
     );
 
+    // Persisted backend-owned memory is the input to REFINE.
+    const weddingGoal = {
+      goalId: 'goal-wedding',
+      text: 'на свадьбу',
+      importance: 'normal',
+      sourceText: 'костюм на свадьбу',
+    } as const;
+    const suitMemory = first.workspace.tasks[1].record.state!.memory;
+    suitMemory.memory.goals.push(weddingGoal);
+    suitMemory.revision += 1;
+
+    const refine = (index: number, sourceText: string, semanticIntent: string) =>
+      existing(
+        'REFINE',
+        { searchPatch: { semanticIntent, set: [], clear: [] } },
+        named(first.workspace, index, sourceText),
+        semanticIntent,
+      );
+
+    h.setPlan(
+      plan(
+        refine(0, 'Nike', 'женские Nike 42 размера для прогулок'),
+        refine(1, 'костюм', 'костюм на свадьбу из лёгкой ткани'),
+      ),
+    );
+    h.service.search.mockClear();
+
     const result = await h.run(
-      'Найди женские Nike 42 размера и костюм на свадьбу',
+      'Nike нужны для прогулок, а костюм на свадьбу из лёгкой ткани',
+      first.workspace,
     );
 
     expect(
@@ -533,9 +548,97 @@ describe('Product workspace: real graph with offline model boundary', () => {
       [],
     );
 
-    expect(
-      result.workspace.tasks[1].record.state!.memory.memory.goals[0].text,
-    ).toBe('на свадьбу');
+    expect(result.workspace.tasks[1].record.state!.memory.memory.goals).toEqual([
+      weddingGoal,
+    ]);
+  });
+
+  it('captures successful lane changes privately for the admitted source', async () => {
+    const h = harness();
+    const capture = jest.fn();
+    const result = await h.agent.invoke({
+      query: 'Найди мужские кроссовки Nike и женское платье',
+      sourceQuery: 'Найди мужские кроссовки Nike и женское платье',
+      workspace: createProductWorkspace(),
+      requestId: 'source-memory-1',
+      conversationId: 'conversation-1',
+    }, { context: { memorySourceMessageId: 'source-memory-1', memoryCapture: capture } });
+
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(capture).toHaveBeenCalledWith({
+      sourceMessageId: 'source-memory-1',
+      changes: [
+        expect.objectContaining({ kind: 'start', criteria: expect.objectContaining({
+          set: expect.arrayContaining([expect.objectContaining({ attributeId: 'brand', value: 'Nike' })]),
+        }) }),
+        expect.objectContaining({ kind: 'start', criteria: expect.objectContaining({ profileId: 'CLOTHES' }) }),
+      ],
+    });
+    expect(result.workspace.tasks.map((task) => task.memorySourceMessageId)).toEqual(['source-memory-1', 'source-memory-1']);
+    expect(result.groups).not.toEqual(expect.arrayContaining([expect.objectContaining({ memorySourceMessageId: expect.any(String) })]));
+  });
+
+  it('continues only the selected memory task with fresh criteria and clears invalid imported state', async () => {
+    const memoryUsed = jest.fn();
+    const context = {
+      memoryWitnesses: { episode: { revision: 1, sourceMessageId: 'past-source' } },
+      memoryContinuation: {
+        episodeId: 'episode', taskKey: 'sneakers-task', revision: 1,
+        snapshot: {
+          profileId: 'SHOES', lastSourceMessageId: 'past-source',
+          constraints: [
+            { attributeId: 'brand', value: 'Nike', operator: 'eq' as const, unit: null },
+            { attributeId: 'color', value: 'синий', operator: 'eq' as const, unit: null },
+            { attributeId: 'price', value: 8000, operator: 'lte' as const, unit: null },
+          ],
+        },
+      },
+      memoryUsed,
+    };
+    const continued = openMemoryWorkspace(null, 'Теперь Adidas, чёрные, до 9000', context);
+    expect(continued.tasks[0].record.results.active).toBeNull();
+    expect(memoryUsed).toHaveBeenCalledTimes(1);
+    const h = harness(plan(existing('REFINE', {
+      searchPatch: {
+        set: [
+          constraint('brand', 'Adidas'),
+          constraint('color', 'чёрный'),
+          constraint('price', 9000, 'lte'),
+        ],
+        clear: [],
+      },
+    })));
+    await h.run('Теперь Adidas, чёрные, до 9000', continued);
+    const searchSpec = h.service.search.mock.calls[0][0];
+    expect(searchSpec.constraints.map(({ attributeId, value }) => [attributeId, value])).toEqual([
+      ['brand', 'Adidas'], ['color', 'чёрный'], ['price', 9000],
+    ]);
+
+    const importedMessage = new AIMessage({
+      id: 'memory-reply',
+      content: 'Предыдущие условия',
+      additional_kwargs: memoryAssistantMetadata(continued),
+    });
+    const revoked = filterMemoryContext(continued, [importedMessage], {
+      memoryWitnesses: { episode: { revision: 2, sourceMessageId: null } },
+    });
+    expect(revoked.workspace.tasks).toEqual([]);
+    expect(revoked.workspace.focus).toEqual([]);
+    expect(revoked.messages).toEqual([]);
+    expect(revoked.removals).toHaveLength(1);
+
+    h.service.search.mockClear();
+    h.setPlan(plan(existing('SHOW_RESULTS')));
+    await h.run('Обнови варианты', continued);
+    expect(h.service.search).toHaveBeenCalledTimes(1);
+    expect(h.service.search.mock.calls[0][0].constraints).toEqual(
+      context.memoryContinuation.snapshot.constraints,
+    );
+
+    h.service.search.mockClear();
+    h.setPlan(plan(search('платье', 'CLOTHES')));
+    await h.run('Найди платье', continued);
+    expect(h.service.search.mock.calls[0][0].constraints).toEqual([]);
   });
 
   it('MI-04 adding a task preserves existing task, memory, results and revision', async () => {
@@ -1771,5 +1874,7 @@ describe('Product workspace: real graph with offline model boundary', () => {
     expect(recommended.finalText).toBe('Рекомендация по данным каталога.');
 
     expect(h.service.getProductSemanticRepresentations).not.toHaveBeenCalled();
+    expect(h.service.getReviewExperience).not.toHaveBeenCalled();
+    expect(h.service.getProductReviewStats).not.toHaveBeenCalled();
   });
 });

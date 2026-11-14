@@ -252,37 +252,30 @@ describe('OrderAgentWorker', () => {
     expect(ordersService.getUserOrders).toHaveBeenCalledWith('trusted-user');
   });
 
-  it('does not cancel order when cancellation is not allowed', async () => {
+  it('requires confirmation before handling cancellation of a shipped order', async () => {
     const order = createOrder({
+      number: '10482',
       status: 'SHIPPED',
     });
 
-    ordersService.getRelevantUserOrder.mockResolvedValue(order);
-
-    ordersService.getOrderCancellationEligibility.mockResolvedValue({
-      order,
-
-      eligibility: {
-        allowed: false,
-
-        reason: 'ALREADY_SHIPPED',
-      },
-    });
+    ordersService.getUserOrders.mockResolvedValue([order]);
+    ordersService.getOrderById.mockResolvedValue(order);
 
     const worker = createOrderAgentWorker(ordersService);
 
-    await worker(
-      createState('CANCEL'),
+    const result = await worker(createState('CANCEL'), createConfig());
 
-      createConfig('trusted-user'),
-    );
-
-    expect(ordersService.getOrderCancellationEligibility).toHaveBeenCalledWith(
+    expect(ordersService.getUserOrders).toHaveBeenCalledWith('trusted-user');
+    expect(ordersService.getOrderById).toHaveBeenCalledWith(
       'trusted-user',
-
-      'order-1',
+      order.id,
     );
-
+    expect(result).toMatchObject({
+      goto: ['confirmOrderCancellation'],
+      update: {
+        pendingOrderAction: { action: 'CANCEL', orderId: order.id },
+      },
+    });
     expect(ordersService.cancelOrder).not.toHaveBeenCalled();
   });
 

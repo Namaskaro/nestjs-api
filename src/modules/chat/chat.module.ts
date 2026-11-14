@@ -18,22 +18,28 @@ import { MailModule } from '@/src/mail/mail.module';
 
 import { AuthModule } from '../auth/auth.module';
 
+import { ConsultationMemoryController } from '@/src/consultation-memory/consultation-memory.controller';
+import { ConsultationMemoryModule } from '@/src/consultation-memory/consultation-memory.module';
 import { SupportAgentModule } from '@/src/support-agent/support-agent.module';
+import { NextShopUserContext } from '@/src/user-context/next-shop-user-context.adapter';
+import { UserContextController } from '@/src/user-context/user-context.controller';
 
 @Module({
   imports: [
     forwardRef(() => MailModule),
     forwardRef(() => AuthModule),
     SupportAgentModule,
+    ConsultationMemoryModule,
   ],
 
-  controllers: [OperatorInvitationController],
+  controllers: [OperatorInvitationController, ConsultationMemoryController, UserContextController],
 
   providers: [
     ChatGateway,
     ChatService,
     ChatHandoffService,
     ChatHandoffQueueService,
+    NextShopUserContext,
     UserService,
     PrismaService,
   ],

@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 
 import { hash } from 'argon2';
@@ -24,6 +25,15 @@ import { MailService } from '@/src/mail/mail.service';
 import { UserService } from '../user/user.service';
 
 import { WsUser } from './entities/ws-user.entity';
+import { ConsultationMemoryService } from '@/src/consultation-memory/consultation-memory.service';
+import {
+  consultationActionField,
+  consultationContinuationOfferIdField,
+  getConsultationAction,
+  getConsultationContinuationOfferId,
+  type ConsultationMemoryAdmission,
+  type ConsultationMemoryBasis,
+} from '@/src/consultation-memory/consultation-memory.types';
 
 function isJsonObject(
   value: Prisma.JsonValue | null,
@@ -115,6 +125,7 @@ export class ChatService {
     private readonly userService: UserService,
     private readonly prismaService: PrismaService,
     private readonly emailService: MailService,
+    @Optional() private readonly consultationMemory?: ConsultationMemoryService,
   ) {}
 
   async assertUserCanAccessChat(user: WsUser, chatId: string) {
@@ -260,15 +271,27 @@ export class ChatService {
     content: string;
     payload?: Prisma.InputJsonValue;
     requireBot?: boolean;
+    trackConsultation?: boolean;
+    clientMessageId?: string;
+    continuationOfferId?: string;
+    continuationAllowed?: boolean;
+    consultationAction?: 'resume_unchanged';
   }) {
     return this.prismaService.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<LockedChat[]>`
+      const rows = await tx.$queryRaw<Array<LockedChat & {
+        consultationInputSeq: number;
+        consultationNextInputSeq: number | null;
+        consultationNextHandoffVersion: number | null;
+      }>>`
         SELECT
           "id",
           "userId",
           "operatorId",
           "mode",
-          "handoffVersion"
+          "handoffVersion",
+          "consultationInputSeq",
+          "consultationNextInputSeq",
+          "consultationNextHandoffVersion"
         FROM "Chat"
         WHERE "id" = ${params.chatId}
         FOR UPDATE
@@ -329,6 +352,40 @@ export class ChatService {
       const role = isCustomer
         ? ConversationMessageRole.USER
         : ConversationMessageRole.OPERATOR;
+      const clientMessageId = isCustomer ? params.clientMessageId : undefined;
+      if (clientMessageId) {
+        const message = await tx.message.findUnique({
+          where: { chatId_clientMessageId: { chatId: chat.id, clientMessageId } },
+        });
+        if (message) {
+          if (message.authorId !== params.userId || message.content !== params.content ||
+              getConsultationContinuationOfferId(message.payload) !== params.continuationOfferId ||
+              (getConsultationAction(message.payload) === 'resume_unchanged') !== (params.consultationAction === 'resume_unchanged')) {
+            throw new ConflictException('Идентификатор сообщения уже используется.');
+          }
+          const previousReply = await tx.message.findUnique({
+            where: { chatId_assistantSourceMessageId: { chatId: chat.id, assistantSourceMessageId: message.id } },
+          });
+          return { message, previousReply, duplicate: true, operatorUserId, shouldRunAssistant: false,
+            handoffVersion: chat.handoffVersion, admission: null };
+        }
+      }
+      const inputSeq = isCustomer && chat.mode === ChatMode.BOT && params.trackConsultation
+        ? chat.consultationInputSeq + 1 : null;
+      const attemptId = inputSeq === null ? null : uuidv4();
+      const fresh = inputSeq !== null && params.continuationAllowed !== false &&
+        chat.consultationNextInputSeq === chat.consultationInputSeq &&
+        chat.consultationNextHandoffVersion === chat.handoffVersion;
+      if (params.consultationAction && (!params.continuationOfferId || !clientMessageId)) {
+        throw new BadRequestException('Для продолжения нужен действующий выбор подбора.');
+      }
+      const consultationAction = fresh ? 'start_new' : params.consultationAction;
+      if (params.continuationOfferId) {
+        if (inputSeq === null || params.continuationAllowed === false || !this.consultationMemory) {
+          throw new ConflictException('Продолжение подбора недоступно.');
+        }
+        await this.consultationMemory.consumeResumeOffer(tx, chat, params.userId, params.continuationOfferId);
+      }
 
       const message = await tx.message.create({
         data: {
@@ -336,7 +393,17 @@ export class ChatService {
           authorId: params.userId,
           role,
           content: params.content,
-          payload: params.payload,
+          payload: params.continuationOfferId
+            ? {
+                [consultationContinuationOfferIdField]: params.continuationOfferId,
+                ...(consultationAction ? { [consultationActionField]: consultationAction } : {}),
+              }
+            : consultationAction ? {
+                ...(isJsonObject(params.payload as Prisma.JsonValue) ? params.payload as Prisma.InputJsonObject : {}),
+                [consultationActionField]: consultationAction,
+              } : params.payload,
+          ...(clientMessageId ? { clientMessageId } : {}),
+          ...(inputSeq !== null ? { consultationInputSeq: inputSeq } : {}),
         },
       });
 
@@ -346,11 +413,21 @@ export class ChatService {
         },
         data: {
           lastMessageAt: message.createdAt,
+          ...(inputSeq !== null ? { consultationInputSeq: inputSeq, consultationAttemptId: attemptId,
+            consultationSourceMessageId: message.id } : {}),
+          ...(isCustomer ? { consultationNextInputSeq: null, consultationNextHandoffVersion: null } : {}),
         },
       });
+      const admission: ConsultationMemoryAdmission | null = inputSeq === null ? null : {
+        chatId: chat.id, userId: params.userId, sourceMessageId: message.id,
+        inputSeq, attemptId, handoffVersion: chat.handoffVersion,
+      };
 
       return {
         message,
+        previousReply: null,
+        duplicate: false,
+        admission,
         shouldRunAssistant: isCustomer && chat.mode === ChatMode.BOT,
         handoffVersion: chat.handoffVersion,
         operatorUserId,
@@ -362,12 +439,27 @@ export class ChatService {
    * Не позволяет опубликовать устаревший ответ AI,
    * если чат за время генерации передали оператору.
    */
+  async claimConsultationRetry(chatId: string, userId: string, sourceMessageId: string, handoffVersion: number) {
+    const attemptId = uuidv4();
+    return this.prismaService.$transaction(async (tx): Promise<ConsultationMemoryAdmission | null> => {
+      await tx.$queryRaw`SELECT id FROM "Chat" WHERE id = ${chatId} FOR UPDATE`;
+      const chat = await tx.chat.findUnique({ where: { id: chatId } });
+      if (!chat || chat.userId !== userId || chat.mode !== ChatMode.BOT || chat.operatorId ||
+          chat.handoffVersion !== handoffVersion || chat.consultationSourceMessageId !== sourceMessageId) return null;
+      await tx.chat.update({ where: { id: chatId }, data: { consultationAttemptId: attemptId } });
+      return { chatId, userId, sourceMessageId, handoffVersion, attemptId, inputSeq: chat.consultationInputSeq };
+    });
+  }
+
   async createAssistantMessageIfCurrent(params: {
     chatId: string;
     userId: string;
     expectedHandoffVersion: number;
     content: string;
     payload?: Prisma.InputJsonValue;
+    sourceMessageId?: string;
+    expectsEpisodeProjection?: boolean;
+    replyBasis?: ConsultationMemoryBasis;
   }) {
     return this.prismaService.$transaction(async (tx) => {
       const rows = await tx.$queryRaw<LockedChat[]>`
@@ -398,12 +490,28 @@ export class ChatService {
         );
       }
 
+      if (params.sourceMessageId) {
+        const existing = await tx.message.findUnique({
+          where: { chatId_assistantSourceMessageId: { chatId: chat.id, assistantSourceMessageId: params.sourceMessageId } },
+        });
+        if (existing) return { ...existing, alreadyAccepted: true };
+      }
+
+      if (params.replyBasis) {
+        if (!this.consultationMemory || params.replyBasis.sourceMessageId !== params.sourceMessageId ||
+            params.replyBasis.chatId !== params.chatId || params.replyBasis.userId !== params.userId) {
+          throw new ConflictException('Результат AI устарел после изменения памяти.');
+        }
+        await this.consultationMemory.assertReplyCurrent(tx, params.replyBasis);
+      }
       const message = await tx.message.create({
         data: {
           chatId: chat.id,
           role: ConversationMessageRole.ASSISTANT,
           content: params.content,
           payload: params.payload,
+          ...(params.sourceMessageId ? { assistantSourceMessageId: params.sourceMessageId } : {}),
+          ...(params.expectsEpisodeProjection ? { expectsEpisodeProjection: true } : {}),
         },
       });
 

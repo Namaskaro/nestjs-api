@@ -1,0 +1,30 @@
+const fs = require('node:fs');
+const { spawn } = require('node:child_process');
+const { randomBytes } = require('node:crypto');
+const path = require('node:path');
+const front = process.env.ACCEPTANCE_FRONTEND;
+const back = path.resolve(__dirname, '../../..');
+const dir = process.env.ACCEPTANCE_STATE_DIR;
+const mode = process.argv[2];
+if (!dir || !path.isAbsolute(dir) || !fs.statSync(dir).isDirectory()) throw Error('Set ACCEPTANCE_STATE_DIR to a private absolute directory');
+const secretPath = path.join(dir, 'app-secret.txt');
+if (!fs.existsSync(secretPath)) fs.writeFileSync(secretPath, randomBytes(48).toString('hex'), { flag: 'wx' });
+const secret = fs.readFileSync(secretPath, 'utf8');
+const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => /^(systemroot|windir|path|pathext|comspec|temp|tmp|userprofile|localappdata|appdata|programdata|programfiles|programfiles\(x86\)|processor_architecture|number_of_processors|docker_config)$/i.test(key)));
+const backendUrl = 'http://127.0.0.1:41820';
+if (mode === 'front') {
+  if (!front || !path.isAbsolute(front)) throw Error('Set ACCEPTANCE_FRONTEND to the absolute frontend worktree path');
+  const allowed = new Set(['.env.example']);
+  if (fs.readdirSync(front).some(name => /^\.env($|\.)/.test(name) && !allowed.has(name))) throw Error('Frontend contains local .env files');
+  const font = path.join(dir, 'fonts.json');
+  fs.writeFileSync(font, JSON.stringify({'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap': "@font-face { font-family: 'PT Sans'; font-style: normal; font-weight: 400; src: local(Arial); }"}));
+  Object.assign(env, {NEXT_TELEMETRY_DISABLED:'1', NEXT_FONT_GOOGLE_MOCKED_RESPONSES:font, NEXT_PUBLIC_SERVER_URL:backendUrl, BACKEND_URL:backendUrl, SERVER_URL:backendUrl, API_URL:backendUrl, JWT_SECRET:secret, APP_ENV:'development', APP_DOMAIN:'127.0.0.1'});
+} else if (mode === 'back') {
+  Object.assign(env, {ACCEPTANCE_STATE_DIR:dir, ACCEPTANCE_SECRET:secret, TS_NODE_PROJECT:path.join(back,'tsconfig.json')});
+} else throw Error('Specify front or back');
+const args = mode === 'front' ? [path.join(front,'node_modules/next/dist/bin/next'),'dev','--hostname','127.0.0.1','--port','41821'] : [path.join(__dirname,'server.cjs')];
+const out = fs.openSync(path.join(dir, mode + '.log'), 'w');
+const err = fs.openSync(path.join(dir, mode + '.err'), 'w');
+const processHandle = spawn(process.execPath, args, {cwd:mode === 'front' ? front : dir, detached:true, windowsHide:true, stdio:['ignore',out,err], env});
+fs.writeFileSync(path.join(dir, mode + '.pid'), String(processHandle.pid));
+processHandle.unref();

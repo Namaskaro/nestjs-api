@@ -1,6 +1,7 @@
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 
 import { AIMessage } from '@langchain/core/messages';
+import { memoryAssistantMetadata } from './memory-workspace';
 
 import type { GraphNode, LangGraphRunnableConfig } from '@langchain/langgraph';
 
@@ -175,7 +176,7 @@ export function createAggregateFinalAnswerNode(
     return {
       answer,
 
-      messages: [new AIMessage(answer.message)],
+      messages: [new AIMessage({ content: answer.message, additional_kwargs: memoryAssistantMetadata(state.productWorkspace) })],
     };
   };
 }

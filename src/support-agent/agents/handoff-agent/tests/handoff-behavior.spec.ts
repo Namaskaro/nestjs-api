@@ -1,10 +1,23 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
+import { RunnableLambda } from '@langchain/core/runnables';
 
+import type { AiService } from '@/src/ai/ai.service';
+import { createHandoffAgentGraph } from '../handoff-agent.graph';
 import { entryHandoffRoute } from '../routes/entry-handoff.route';
+import { HandoffEvidenceSchema } from '../schemas/handoff.schema';
 
-import { createFallbackHandoffContext } from '../nodes/prepare-handoff.node';
+function createHandoffWithUnavailableModel() {
+  return createHandoffAgentGraph({
+    getChatModel: () => ({
+      withStructuredOutput: () =>
+        RunnableLambda.from(() => {
+          throw new Error('Test model unavailable');
+        }),
+    }),
+  } as unknown as AiService);
+}
 
 describe('Handoff Agent behavior', () => {
   it('явный запрос оператора не требует повторного согласия', () => {
@@ -29,35 +42,49 @@ describe('Handoff Agent behavior', () => {
     expect(route).toBe('operatorOfferNode');
   });
 
-  it('резервный контекст сохраняет обращение без выдуманных фактов', () => {
-    const context = createFallbackHandoffContext([
-      new HumanMessage('Не получается оформить заказ №10482'),
+  it('резервный контекст сохраняет обращение без выдуманных фактов', async () => {
+    const issue = 'Не получается оформить заказ №10482';
+    const result = await createHandoffWithUnavailableModel().invoke({
+      messages: [
+        new HumanMessage(issue),
+        new AIMessage('Хотите, я подключу оператора?'),
+        new HumanMessage('Да'),
+      ],
+      handoffRequest: {
+        reason: 'CUSTOMER_REQUEST',
+        trigger: 'EXPLICIT_USER_REQUEST',
+        evidence: HandoffEvidenceSchema.parse({
+          source: 'orderAgent',
+          userReportedIssue: issue,
+        }),
+      },
+    });
+    const context = result.handoff?.context;
 
-      new AIMessage('Хотите, я подключу оператора?'),
-
-      new HumanMessage('Да'),
-    ]);
-
-    expect(context.issue).toContain('Не получается оформить заказ №10482');
-
-    expect(context.verifiedFacts).toEqual([]);
-
-    expect(context.actionsTaken).toEqual([]);
-
-    expect(context.relatedEntities?.orderIds).toEqual([]);
-
-    expect(context.unresolvedQuestions.length).toBeGreaterThan(0);
+    expect(context).toMatchObject({
+      issue,
+      verifiedFacts: [],
+      actionsTaken: [],
+      relatedEntities: null,
+    });
+    expect(context?.unresolvedQuestions.length).toBeGreaterThan(0);
   });
 
-  it('если причина неизвестна, агент не придумывает проблему', () => {
-    const context = createFallbackHandoffContext([
-      new HumanMessage('Позовите оператора'),
-    ]);
+  it('если причина неизвестна, агент не придумывает проблему', async () => {
+    const result = await createHandoffWithUnavailableModel().invoke({
+      messages: [new HumanMessage('Позовите оператора')],
+      handoffRequest: {
+        reason: 'CUSTOMER_REQUEST',
+        trigger: 'EXPLICIT_USER_REQUEST',
+      },
+    });
 
-    expect(context.issue).toBe('Покупатель запросил разговор с оператором');
-
-    expect(context.verifiedFacts).toEqual([]);
-
-    expect(context.actionsTaken).toEqual([]);
+    expect(result.handoff?.context).toMatchObject({
+      issue: 'Обращение покупателя: Позовите оператора',
+      userGoal: 'Связаться с оператором',
+      verifiedFacts: [],
+      actionsTaken: [],
+      relatedEntities: null,
+    });
   });
 });

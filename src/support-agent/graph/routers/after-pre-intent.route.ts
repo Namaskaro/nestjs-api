@@ -101,6 +101,8 @@ function shouldRouteDirectlyToProductAgent(
 }
 
 export function afterPreIntentRoute(state: SupportAgentStateType) {
+  if (state.preIntentRoute === 'productAgent') return 'productAgent';
+
   if (state.preIntentRoute === 'reject') {
     return 'reject';
   }

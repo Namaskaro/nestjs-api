@@ -85,17 +85,17 @@ export type Brand = $Result.DefaultSelection<Prisma.$BrandPayload>
 export type Review = $Result.DefaultSelection<Prisma.$ReviewPayload>
 /**
  * Model ReviewAddendum
- *
+ * 
  */
 export type ReviewAddendum = $Result.DefaultSelection<Prisma.$ReviewAddendumPayload>
 /**
  * Model ReviewVote
- *
+ * 
  */
 export type ReviewVote = $Result.DefaultSelection<Prisma.$ReviewVotePayload>
 /**
  * Model ReviewSummary
- *
+ * 
  */
 export type ReviewSummary = $Result.DefaultSelection<Prisma.$ReviewSummaryPayload>
 /**
@@ -138,6 +138,36 @@ export type Cart = $Result.DefaultSelection<Prisma.$CartPayload>
  * 
  */
 export type StoreKnowledge = $Result.DefaultSelection<Prisma.$StoreKnowledgePayload>
+/**
+ * Model ConsultationMemoryScope
+ * 
+ */
+export type ConsultationMemoryScope = $Result.DefaultSelection<Prisma.$ConsultationMemoryScopePayload>
+/**
+ * Model ConsultationEpisode
+ * 
+ */
+export type ConsultationEpisode = $Result.DefaultSelection<Prisma.$ConsultationEpisodePayload>
+/**
+ * Model ConsultationResumeOffer
+ * 
+ */
+export type ConsultationResumeOffer = $Result.DefaultSelection<Prisma.$ConsultationResumeOfferPayload>
+/**
+ * Model ConsultationTurnReceipt
+ * 
+ */
+export type ConsultationTurnReceipt = $Result.DefaultSelection<Prisma.$ConsultationTurnReceiptPayload>
+/**
+ * Model UserContextScope
+ * 
+ */
+export type UserContextScope = $Result.DefaultSelection<Prisma.$UserContextScopePayload>
+/**
+ * Model UserContextFact
+ * 
+ */
+export type UserContextFact = $Result.DefaultSelection<Prisma.$UserContextFactPayload>
 
 /**
  * Enums
@@ -332,6 +362,24 @@ export const ShipmentStatus: {
 
 export type ShipmentStatus = (typeof ShipmentStatus)[keyof typeof ShipmentStatus]
 
+
+export const ConsultationEpisodeStatus: {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED'
+};
+
+export type ConsultationEpisodeStatus = (typeof ConsultationEpisodeStatus)[keyof typeof ConsultationEpisodeStatus]
+
+
+export const ConsultationEpisodeOutcome: {
+  PRODUCT_SELECTED: 'PRODUCT_SELECTED',
+  NO_MATCH: 'NO_MATCH',
+  USER_CANCELLED: 'USER_CANCELLED',
+  FINISHED_UNSPECIFIED: 'FINISHED_UNSPECIFIED'
+};
+
+export type ConsultationEpisodeOutcome = (typeof ConsultationEpisodeOutcome)[keyof typeof ConsultationEpisodeOutcome]
+
 }
 
 export type SupportCaseKind = $Enums.SupportCaseKind
@@ -413,6 +461,14 @@ export const SenderType: typeof $Enums.SenderType
 export type ShipmentStatus = $Enums.ShipmentStatus
 
 export const ShipmentStatus: typeof $Enums.ShipmentStatus
+
+export type ConsultationEpisodeStatus = $Enums.ConsultationEpisodeStatus
+
+export const ConsultationEpisodeStatus: typeof $Enums.ConsultationEpisodeStatus
+
+export type ConsultationEpisodeOutcome = $Enums.ConsultationEpisodeOutcome
+
+export const ConsultationEpisodeOutcome: typeof $Enums.ConsultationEpisodeOutcome
 
 /**
  * ##  Prisma Client ʲˢ
@@ -788,6 +844,66 @@ export class PrismaClient<
     * ```
     */
   get storeKnowledge(): Prisma.StoreKnowledgeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.consultationMemoryScope`: Exposes CRUD operations for the **ConsultationMemoryScope** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ConsultationMemoryScopes
+    * const consultationMemoryScopes = await prisma.consultationMemoryScope.findMany()
+    * ```
+    */
+  get consultationMemoryScope(): Prisma.ConsultationMemoryScopeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.consultationEpisode`: Exposes CRUD operations for the **ConsultationEpisode** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ConsultationEpisodes
+    * const consultationEpisodes = await prisma.consultationEpisode.findMany()
+    * ```
+    */
+  get consultationEpisode(): Prisma.ConsultationEpisodeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.consultationResumeOffer`: Exposes CRUD operations for the **ConsultationResumeOffer** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ConsultationResumeOffers
+    * const consultationResumeOffers = await prisma.consultationResumeOffer.findMany()
+    * ```
+    */
+  get consultationResumeOffer(): Prisma.ConsultationResumeOfferDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.consultationTurnReceipt`: Exposes CRUD operations for the **ConsultationTurnReceipt** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ConsultationTurnReceipts
+    * const consultationTurnReceipts = await prisma.consultationTurnReceipt.findMany()
+    * ```
+    */
+  get consultationTurnReceipt(): Prisma.ConsultationTurnReceiptDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userContextScope`: Exposes CRUD operations for the **UserContextScope** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserContextScopes
+    * const userContextScopes = await prisma.userContextScope.findMany()
+    * ```
+    */
+  get userContextScope(): Prisma.UserContextScopeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userContextFact`: Exposes CRUD operations for the **UserContextFact** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserContextFacts
+    * const userContextFacts = await prisma.userContextFact.findMany()
+    * ```
+    */
+  get userContextFact(): Prisma.UserContextFactDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1252,7 +1368,13 @@ export namespace Prisma {
     Shipment: 'Shipment',
     CartItem: 'CartItem',
     Cart: 'Cart',
-    StoreKnowledge: 'StoreKnowledge'
+    StoreKnowledge: 'StoreKnowledge',
+    ConsultationMemoryScope: 'ConsultationMemoryScope',
+    ConsultationEpisode: 'ConsultationEpisode',
+    ConsultationResumeOffer: 'ConsultationResumeOffer',
+    ConsultationTurnReceipt: 'ConsultationTurnReceipt',
+    UserContextScope: 'UserContextScope',
+    UserContextFact: 'UserContextFact'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1268,7 +1390,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "operatorProfile" | "supportCase" | "chat" | "message" | "token" | "account" | "verificationToken" | "product" | "productEmbedding" | "category" | "subcategory" | "brand" | "review" | "reviewAddendum" | "reviewVote" | "reviewSummary" | "promoCode" | "order" | "payment" | "refund" | "shipment" | "cartItem" | "cart" | "storeKnowledge"
+      modelProps: "user" | "operatorProfile" | "supportCase" | "chat" | "message" | "token" | "account" | "verificationToken" | "product" | "productEmbedding" | "category" | "subcategory" | "brand" | "review" | "reviewAddendum" | "reviewVote" | "reviewSummary" | "promoCode" | "order" | "payment" | "refund" | "shipment" | "cartItem" | "cart" | "storeKnowledge" | "consultationMemoryScope" | "consultationEpisode" | "consultationResumeOffer" | "consultationTurnReceipt" | "userContextScope" | "userContextFact"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3106,6 +3228,450 @@ export namespace Prisma {
           }
         }
       }
+      ConsultationMemoryScope: {
+        payload: Prisma.$ConsultationMemoryScopePayload<ExtArgs>
+        fields: Prisma.ConsultationMemoryScopeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ConsultationMemoryScopeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ConsultationMemoryScopeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>
+          }
+          findFirst: {
+            args: Prisma.ConsultationMemoryScopeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ConsultationMemoryScopeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>
+          }
+          findMany: {
+            args: Prisma.ConsultationMemoryScopeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>[]
+          }
+          create: {
+            args: Prisma.ConsultationMemoryScopeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>
+          }
+          createMany: {
+            args: Prisma.ConsultationMemoryScopeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ConsultationMemoryScopeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>[]
+          }
+          delete: {
+            args: Prisma.ConsultationMemoryScopeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>
+          }
+          update: {
+            args: Prisma.ConsultationMemoryScopeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>
+          }
+          deleteMany: {
+            args: Prisma.ConsultationMemoryScopeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ConsultationMemoryScopeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ConsultationMemoryScopeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>[]
+          }
+          upsert: {
+            args: Prisma.ConsultationMemoryScopeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationMemoryScopePayload>
+          }
+          aggregate: {
+            args: Prisma.ConsultationMemoryScopeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateConsultationMemoryScope>
+          }
+          groupBy: {
+            args: Prisma.ConsultationMemoryScopeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ConsultationMemoryScopeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ConsultationMemoryScopeCountArgs<ExtArgs>
+            result: $Utils.Optional<ConsultationMemoryScopeCountAggregateOutputType> | number
+          }
+        }
+      }
+      ConsultationEpisode: {
+        payload: Prisma.$ConsultationEpisodePayload<ExtArgs>
+        fields: Prisma.ConsultationEpisodeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ConsultationEpisodeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ConsultationEpisodeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>
+          }
+          findFirst: {
+            args: Prisma.ConsultationEpisodeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ConsultationEpisodeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>
+          }
+          findMany: {
+            args: Prisma.ConsultationEpisodeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>[]
+          }
+          create: {
+            args: Prisma.ConsultationEpisodeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>
+          }
+          createMany: {
+            args: Prisma.ConsultationEpisodeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ConsultationEpisodeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>[]
+          }
+          delete: {
+            args: Prisma.ConsultationEpisodeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>
+          }
+          update: {
+            args: Prisma.ConsultationEpisodeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>
+          }
+          deleteMany: {
+            args: Prisma.ConsultationEpisodeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ConsultationEpisodeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ConsultationEpisodeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>[]
+          }
+          upsert: {
+            args: Prisma.ConsultationEpisodeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationEpisodePayload>
+          }
+          aggregate: {
+            args: Prisma.ConsultationEpisodeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateConsultationEpisode>
+          }
+          groupBy: {
+            args: Prisma.ConsultationEpisodeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ConsultationEpisodeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ConsultationEpisodeCountArgs<ExtArgs>
+            result: $Utils.Optional<ConsultationEpisodeCountAggregateOutputType> | number
+          }
+        }
+      }
+      ConsultationResumeOffer: {
+        payload: Prisma.$ConsultationResumeOfferPayload<ExtArgs>
+        fields: Prisma.ConsultationResumeOfferFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ConsultationResumeOfferFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ConsultationResumeOfferFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>
+          }
+          findFirst: {
+            args: Prisma.ConsultationResumeOfferFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ConsultationResumeOfferFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>
+          }
+          findMany: {
+            args: Prisma.ConsultationResumeOfferFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>[]
+          }
+          create: {
+            args: Prisma.ConsultationResumeOfferCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>
+          }
+          createMany: {
+            args: Prisma.ConsultationResumeOfferCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ConsultationResumeOfferCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>[]
+          }
+          delete: {
+            args: Prisma.ConsultationResumeOfferDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>
+          }
+          update: {
+            args: Prisma.ConsultationResumeOfferUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>
+          }
+          deleteMany: {
+            args: Prisma.ConsultationResumeOfferDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ConsultationResumeOfferUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ConsultationResumeOfferUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>[]
+          }
+          upsert: {
+            args: Prisma.ConsultationResumeOfferUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationResumeOfferPayload>
+          }
+          aggregate: {
+            args: Prisma.ConsultationResumeOfferAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateConsultationResumeOffer>
+          }
+          groupBy: {
+            args: Prisma.ConsultationResumeOfferGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ConsultationResumeOfferGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ConsultationResumeOfferCountArgs<ExtArgs>
+            result: $Utils.Optional<ConsultationResumeOfferCountAggregateOutputType> | number
+          }
+        }
+      }
+      ConsultationTurnReceipt: {
+        payload: Prisma.$ConsultationTurnReceiptPayload<ExtArgs>
+        fields: Prisma.ConsultationTurnReceiptFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ConsultationTurnReceiptFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ConsultationTurnReceiptFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>
+          }
+          findFirst: {
+            args: Prisma.ConsultationTurnReceiptFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ConsultationTurnReceiptFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>
+          }
+          findMany: {
+            args: Prisma.ConsultationTurnReceiptFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>[]
+          }
+          create: {
+            args: Prisma.ConsultationTurnReceiptCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>
+          }
+          createMany: {
+            args: Prisma.ConsultationTurnReceiptCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ConsultationTurnReceiptCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>[]
+          }
+          delete: {
+            args: Prisma.ConsultationTurnReceiptDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>
+          }
+          update: {
+            args: Prisma.ConsultationTurnReceiptUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>
+          }
+          deleteMany: {
+            args: Prisma.ConsultationTurnReceiptDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ConsultationTurnReceiptUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ConsultationTurnReceiptUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>[]
+          }
+          upsert: {
+            args: Prisma.ConsultationTurnReceiptUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConsultationTurnReceiptPayload>
+          }
+          aggregate: {
+            args: Prisma.ConsultationTurnReceiptAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateConsultationTurnReceipt>
+          }
+          groupBy: {
+            args: Prisma.ConsultationTurnReceiptGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ConsultationTurnReceiptGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ConsultationTurnReceiptCountArgs<ExtArgs>
+            result: $Utils.Optional<ConsultationTurnReceiptCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserContextScope: {
+        payload: Prisma.$UserContextScopePayload<ExtArgs>
+        fields: Prisma.UserContextScopeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserContextScopeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserContextScopeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          findFirst: {
+            args: Prisma.UserContextScopeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserContextScopeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          findMany: {
+            args: Prisma.UserContextScopeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>[]
+          }
+          create: {
+            args: Prisma.UserContextScopeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          createMany: {
+            args: Prisma.UserContextScopeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserContextScopeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>[]
+          }
+          delete: {
+            args: Prisma.UserContextScopeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          update: {
+            args: Prisma.UserContextScopeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          deleteMany: {
+            args: Prisma.UserContextScopeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserContextScopeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserContextScopeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>[]
+          }
+          upsert: {
+            args: Prisma.UserContextScopeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextScopePayload>
+          }
+          aggregate: {
+            args: Prisma.UserContextScopeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserContextScope>
+          }
+          groupBy: {
+            args: Prisma.UserContextScopeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserContextScopeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserContextScopeCountArgs<ExtArgs>
+            result: $Utils.Optional<UserContextScopeCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserContextFact: {
+        payload: Prisma.$UserContextFactPayload<ExtArgs>
+        fields: Prisma.UserContextFactFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserContextFactFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserContextFactFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          findFirst: {
+            args: Prisma.UserContextFactFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserContextFactFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          findMany: {
+            args: Prisma.UserContextFactFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>[]
+          }
+          create: {
+            args: Prisma.UserContextFactCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          createMany: {
+            args: Prisma.UserContextFactCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserContextFactCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>[]
+          }
+          delete: {
+            args: Prisma.UserContextFactDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          update: {
+            args: Prisma.UserContextFactUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserContextFactDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserContextFactUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserContextFactUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserContextFactUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserContextFactPayload>
+          }
+          aggregate: {
+            args: Prisma.UserContextFactAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserContextFact>
+          }
+          groupBy: {
+            args: Prisma.UserContextFactGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserContextFactGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserContextFactCountArgs<ExtArgs>
+            result: $Utils.Optional<UserContextFactCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3215,6 +3781,12 @@ export namespace Prisma {
     cartItem?: CartItemOmit
     cart?: CartOmit
     storeKnowledge?: StoreKnowledgeOmit
+    consultationMemoryScope?: ConsultationMemoryScopeOmit
+    consultationEpisode?: ConsultationEpisodeOmit
+    consultationResumeOffer?: ConsultationResumeOfferOmit
+    consultationTurnReceipt?: ConsultationTurnReceiptOmit
+    userContextScope?: UserContextScopeOmit
+    userContextFact?: UserContextFactOmit
   }
 
   /* Types for Logging */
@@ -3434,11 +4006,13 @@ export namespace Prisma {
    */
 
   export type ChatCountOutputType = {
+    consultationMemoryScopes: number
     messages: number
     supportCases: number
   }
 
   export type ChatCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    consultationMemoryScopes?: boolean | ChatCountOutputTypeCountConsultationMemoryScopesArgs
     messages?: boolean | ChatCountOutputTypeCountMessagesArgs
     supportCases?: boolean | ChatCountOutputTypeCountSupportCasesArgs
   }
@@ -3452,6 +4026,13 @@ export namespace Prisma {
      * Select specific fields to fetch from the ChatCountOutputType
      */
     select?: ChatCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ChatCountOutputType without action
+   */
+  export type ChatCountOutputTypeCountConsultationMemoryScopesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationMemoryScopeWhereInput
   }
 
   /**
@@ -3710,6 +4291,117 @@ export namespace Prisma {
    */
   export type CartCountOutputTypeCountItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CartItemWhereInput
+  }
+
+
+  /**
+   * Count Type ConsultationMemoryScopeCountOutputType
+   */
+
+  export type ConsultationMemoryScopeCountOutputType = {
+    episodes: number
+    offers: number
+    receipts: number
+  }
+
+  export type ConsultationMemoryScopeCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    episodes?: boolean | ConsultationMemoryScopeCountOutputTypeCountEpisodesArgs
+    offers?: boolean | ConsultationMemoryScopeCountOutputTypeCountOffersArgs
+    receipts?: boolean | ConsultationMemoryScopeCountOutputTypeCountReceiptsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ConsultationMemoryScopeCountOutputType without action
+   */
+  export type ConsultationMemoryScopeCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScopeCountOutputType
+     */
+    select?: ConsultationMemoryScopeCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationMemoryScopeCountOutputType without action
+   */
+  export type ConsultationMemoryScopeCountOutputTypeCountEpisodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationEpisodeWhereInput
+  }
+
+  /**
+   * ConsultationMemoryScopeCountOutputType without action
+   */
+  export type ConsultationMemoryScopeCountOutputTypeCountOffersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationResumeOfferWhereInput
+  }
+
+  /**
+   * ConsultationMemoryScopeCountOutputType without action
+   */
+  export type ConsultationMemoryScopeCountOutputTypeCountReceiptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationTurnReceiptWhereInput
+  }
+
+
+  /**
+   * Count Type ConsultationEpisodeCountOutputType
+   */
+
+  export type ConsultationEpisodeCountOutputType = {
+    offers: number
+  }
+
+  export type ConsultationEpisodeCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    offers?: boolean | ConsultationEpisodeCountOutputTypeCountOffersArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ConsultationEpisodeCountOutputType without action
+   */
+  export type ConsultationEpisodeCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisodeCountOutputType
+     */
+    select?: ConsultationEpisodeCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationEpisodeCountOutputType without action
+   */
+  export type ConsultationEpisodeCountOutputTypeCountOffersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationResumeOfferWhereInput
+  }
+
+
+  /**
+   * Count Type UserContextScopeCountOutputType
+   */
+
+  export type UserContextScopeCountOutputType = {
+    facts: number
+  }
+
+  export type UserContextScopeCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    facts?: boolean | UserContextScopeCountOutputTypeCountFactsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * UserContextScopeCountOutputType without action
+   */
+  export type UserContextScopeCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScopeCountOutputType
+     */
+    select?: UserContextScopeCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UserContextScopeCountOutputType without action
+   */
+  export type UserContextScopeCountOutputTypeCountFactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserContextFactWhereInput
   }
 
 
@@ -7498,14 +8190,25 @@ export namespace Prisma {
   }
 
   export type ChatAvgAggregateOutputType = {
+    consultationInputSeq: number | null
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
     handoffVersion: number | null
   }
 
   export type ChatSumAggregateOutputType = {
+    consultationInputSeq: number | null
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
     handoffVersion: number | null
   }
 
   export type ChatMinAggregateOutputType = {
+    consultationInputSeq: number | null
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
+    consultationAttemptId: string | null
+    consultationSourceMessageId: string | null
     id: string | null
     userId: string | null
     operatorId: string | null
@@ -7517,6 +8220,11 @@ export namespace Prisma {
   }
 
   export type ChatMaxAggregateOutputType = {
+    consultationInputSeq: number | null
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
+    consultationAttemptId: string | null
+    consultationSourceMessageId: string | null
     id: string | null
     userId: string | null
     operatorId: string | null
@@ -7528,6 +8236,11 @@ export namespace Prisma {
   }
 
   export type ChatCountAggregateOutputType = {
+    consultationInputSeq: number
+    consultationNextInputSeq: number
+    consultationNextHandoffVersion: number
+    consultationAttemptId: number
+    consultationSourceMessageId: number
     id: number
     userId: number
     operatorId: number
@@ -7541,14 +8254,25 @@ export namespace Prisma {
 
 
   export type ChatAvgAggregateInputType = {
+    consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
     handoffVersion?: true
   }
 
   export type ChatSumAggregateInputType = {
+    consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
     handoffVersion?: true
   }
 
   export type ChatMinAggregateInputType = {
+    consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
+    consultationAttemptId?: true
+    consultationSourceMessageId?: true
     id?: true
     userId?: true
     operatorId?: true
@@ -7560,6 +8284,11 @@ export namespace Prisma {
   }
 
   export type ChatMaxAggregateInputType = {
+    consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
+    consultationAttemptId?: true
+    consultationSourceMessageId?: true
     id?: true
     userId?: true
     operatorId?: true
@@ -7571,6 +8300,11 @@ export namespace Prisma {
   }
 
   export type ChatCountAggregateInputType = {
+    consultationInputSeq?: true
+    consultationNextInputSeq?: true
+    consultationNextHandoffVersion?: true
+    consultationAttemptId?: true
+    consultationSourceMessageId?: true
     id?: true
     userId?: true
     operatorId?: true
@@ -7669,6 +8403,11 @@ export namespace Prisma {
   }
 
   export type ChatGroupByOutputType = {
+    consultationInputSeq: number
+    consultationNextInputSeq: number | null
+    consultationNextHandoffVersion: number | null
+    consultationAttemptId: string | null
+    consultationSourceMessageId: string | null
     id: string
     userId: string
     operatorId: string | null
@@ -7699,6 +8438,11 @@ export namespace Prisma {
 
 
   export type ChatSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    consultationInputSeq?: boolean
+    consultationNextInputSeq?: boolean
+    consultationNextHandoffVersion?: boolean
+    consultationAttemptId?: boolean
+    consultationSourceMessageId?: boolean
     id?: boolean
     userId?: boolean
     operatorId?: boolean
@@ -7707,6 +8451,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     handoffVersion?: boolean
+    consultationMemoryScopes?: boolean | Chat$consultationMemoryScopesArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     operator?: boolean | Chat$operatorArgs<ExtArgs>
     messages?: boolean | Chat$messagesArgs<ExtArgs>
@@ -7715,6 +8460,11 @@ export namespace Prisma {
   }, ExtArgs["result"]["chat"]>
 
   export type ChatSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    consultationInputSeq?: boolean
+    consultationNextInputSeq?: boolean
+    consultationNextHandoffVersion?: boolean
+    consultationAttemptId?: boolean
+    consultationSourceMessageId?: boolean
     id?: boolean
     userId?: boolean
     operatorId?: boolean
@@ -7728,6 +8478,11 @@ export namespace Prisma {
   }, ExtArgs["result"]["chat"]>
 
   export type ChatSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    consultationInputSeq?: boolean
+    consultationNextInputSeq?: boolean
+    consultationNextHandoffVersion?: boolean
+    consultationAttemptId?: boolean
+    consultationSourceMessageId?: boolean
     id?: boolean
     userId?: boolean
     operatorId?: boolean
@@ -7741,6 +8496,11 @@ export namespace Prisma {
   }, ExtArgs["result"]["chat"]>
 
   export type ChatSelectScalar = {
+    consultationInputSeq?: boolean
+    consultationNextInputSeq?: boolean
+    consultationNextHandoffVersion?: boolean
+    consultationAttemptId?: boolean
+    consultationSourceMessageId?: boolean
     id?: boolean
     userId?: boolean
     operatorId?: boolean
@@ -7751,8 +8511,9 @@ export namespace Prisma {
     handoffVersion?: boolean
   }
 
-  export type ChatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "operatorId" | "mode" | "lastMessageAt" | "createdAt" | "updatedAt" | "handoffVersion", ExtArgs["result"]["chat"]>
+  export type ChatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"consultationInputSeq" | "consultationNextInputSeq" | "consultationNextHandoffVersion" | "consultationAttemptId" | "consultationSourceMessageId" | "id" | "userId" | "operatorId" | "mode" | "lastMessageAt" | "createdAt" | "updatedAt" | "handoffVersion", ExtArgs["result"]["chat"]>
   export type ChatInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    consultationMemoryScopes?: boolean | Chat$consultationMemoryScopesArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     operator?: boolean | Chat$operatorArgs<ExtArgs>
     messages?: boolean | Chat$messagesArgs<ExtArgs>
@@ -7771,12 +8532,18 @@ export namespace Prisma {
   export type $ChatPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Chat"
     objects: {
+      consultationMemoryScopes: Prisma.$ConsultationMemoryScopePayload<ExtArgs>[]
       user: Prisma.$UserPayload<ExtArgs>
       operator: Prisma.$OperatorProfilePayload<ExtArgs> | null
       messages: Prisma.$MessagePayload<ExtArgs>[]
       supportCases: Prisma.$SupportCasePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
+      consultationInputSeq: number
+      consultationNextInputSeq: number | null
+      consultationNextHandoffVersion: number | null
+      consultationAttemptId: string | null
+      consultationSourceMessageId: string | null
       id: string
       userId: string
       operatorId: string | null
@@ -7868,8 +8635,8 @@ export namespace Prisma {
      * // Get first 10 Chats
      * const chats = await prisma.chat.findMany({ take: 10 })
      * 
-     * // Only select the `id`
-     * const chatWithIdOnly = await prisma.chat.findMany({ select: { id: true } })
+     * // Only select the `consultationInputSeq`
+     * const chatWithConsultationInputSeqOnly = await prisma.chat.findMany({ select: { consultationInputSeq: true } })
      * 
      */
     findMany<T extends ChatFindManyArgs>(args?: SelectSubset<T, ChatFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatPayload<ExtArgs>, T, "findMany", ClientOptions>>
@@ -7913,9 +8680,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many Chats and only return the `id`
-     * const chatWithIdOnly = await prisma.chat.createManyAndReturn({
-     *   select: { id: true },
+     * // Create many Chats and only return the `consultationInputSeq`
+     * const chatWithConsultationInputSeqOnly = await prisma.chat.createManyAndReturn({
+     *   select: { consultationInputSeq: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -8004,9 +8771,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Chats and only return the `id`
-     * const chatWithIdOnly = await prisma.chat.updateManyAndReturn({
-     *   select: { id: true },
+     * // Update zero or more Chats and only return the `consultationInputSeq`
+     * const chatWithConsultationInputSeqOnly = await prisma.chat.updateManyAndReturn({
+     *   select: { consultationInputSeq: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -8179,6 +8946,7 @@ export namespace Prisma {
    */
   export interface Prisma__ChatClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    consultationMemoryScopes<T extends Chat$consultationMemoryScopesArgs<ExtArgs> = {}>(args?: Subset<T, Chat$consultationMemoryScopesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
     operator<T extends Chat$operatorArgs<ExtArgs> = {}>(args?: Subset<T, Chat$operatorArgs<ExtArgs>>): Prisma__OperatorProfileClient<$Result.GetResult<Prisma.$OperatorProfilePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
     messages<T extends Chat$messagesArgs<ExtArgs> = {}>(args?: Subset<T, Chat$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
@@ -8212,6 +8980,11 @@ export namespace Prisma {
    * Fields of the Chat model
    */ 
   interface ChatFieldRefs {
+    readonly consultationInputSeq: FieldRef<"Chat", 'Int'>
+    readonly consultationNextInputSeq: FieldRef<"Chat", 'Int'>
+    readonly consultationNextHandoffVersion: FieldRef<"Chat", 'Int'>
+    readonly consultationAttemptId: FieldRef<"Chat", 'String'>
+    readonly consultationSourceMessageId: FieldRef<"Chat", 'String'>
     readonly id: FieldRef<"Chat", 'String'>
     readonly userId: FieldRef<"Chat", 'String'>
     readonly operatorId: FieldRef<"Chat", 'String'>
@@ -8616,6 +9389,30 @@ export namespace Prisma {
   }
 
   /**
+   * Chat.consultationMemoryScopes
+   */
+  export type Chat$consultationMemoryScopesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    where?: ConsultationMemoryScopeWhereInput
+    orderBy?: ConsultationMemoryScopeOrderByWithRelationInput | ConsultationMemoryScopeOrderByWithRelationInput[]
+    cursor?: ConsultationMemoryScopeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConsultationMemoryScopeScalarFieldEnum | ConsultationMemoryScopeScalarFieldEnum[]
+  }
+
+  /**
    * Chat.operator
    */
   export type Chat$operatorArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8707,11 +9504,25 @@ export namespace Prisma {
 
   export type AggregateMessage = {
     _count: MessageCountAggregateOutputType | null
+    _avg: MessageAvgAggregateOutputType | null
+    _sum: MessageSumAggregateOutputType | null
     _min: MessageMinAggregateOutputType | null
     _max: MessageMaxAggregateOutputType | null
   }
 
+  export type MessageAvgAggregateOutputType = {
+    consultationInputSeq: number | null
+  }
+
+  export type MessageSumAggregateOutputType = {
+    consultationInputSeq: number | null
+  }
+
   export type MessageMinAggregateOutputType = {
+    consultationInputSeq: number | null
+    clientMessageId: string | null
+    assistantSourceMessageId: string | null
+    expectsEpisodeProjection: boolean | null
     id: string | null
     chatId: string | null
     authorId: string | null
@@ -8721,6 +9532,10 @@ export namespace Prisma {
   }
 
   export type MessageMaxAggregateOutputType = {
+    consultationInputSeq: number | null
+    clientMessageId: string | null
+    assistantSourceMessageId: string | null
+    expectsEpisodeProjection: boolean | null
     id: string | null
     chatId: string | null
     authorId: string | null
@@ -8730,6 +9545,10 @@ export namespace Prisma {
   }
 
   export type MessageCountAggregateOutputType = {
+    consultationInputSeq: number
+    clientMessageId: number
+    assistantSourceMessageId: number
+    expectsEpisodeProjection: number
     id: number
     chatId: number
     authorId: number
@@ -8741,7 +9560,19 @@ export namespace Prisma {
   }
 
 
+  export type MessageAvgAggregateInputType = {
+    consultationInputSeq?: true
+  }
+
+  export type MessageSumAggregateInputType = {
+    consultationInputSeq?: true
+  }
+
   export type MessageMinAggregateInputType = {
+    consultationInputSeq?: true
+    clientMessageId?: true
+    assistantSourceMessageId?: true
+    expectsEpisodeProjection?: true
     id?: true
     chatId?: true
     authorId?: true
@@ -8751,6 +9582,10 @@ export namespace Prisma {
   }
 
   export type MessageMaxAggregateInputType = {
+    consultationInputSeq?: true
+    clientMessageId?: true
+    assistantSourceMessageId?: true
+    expectsEpisodeProjection?: true
     id?: true
     chatId?: true
     authorId?: true
@@ -8760,6 +9595,10 @@ export namespace Prisma {
   }
 
   export type MessageCountAggregateInputType = {
+    consultationInputSeq?: true
+    clientMessageId?: true
+    assistantSourceMessageId?: true
+    expectsEpisodeProjection?: true
     id?: true
     chatId?: true
     authorId?: true
@@ -8808,6 +9647,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: MessageAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MessageSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: MessageMinAggregateInputType
@@ -8838,11 +9689,17 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: MessageCountAggregateInputType | true
+    _avg?: MessageAvgAggregateInputType
+    _sum?: MessageSumAggregateInputType
     _min?: MessageMinAggregateInputType
     _max?: MessageMaxAggregateInputType
   }
 
   export type MessageGroupByOutputType = {
+    consultationInputSeq: number | null
+    clientMessageId: string | null
+    assistantSourceMessageId: string | null
+    expectsEpisodeProjection: boolean
     id: string
     chatId: string
     authorId: string | null
@@ -8851,6 +9708,8 @@ export namespace Prisma {
     payload: JsonValue | null
     createdAt: Date
     _count: MessageCountAggregateOutputType | null
+    _avg: MessageAvgAggregateOutputType | null
+    _sum: MessageSumAggregateOutputType | null
     _min: MessageMinAggregateOutputType | null
     _max: MessageMaxAggregateOutputType | null
   }
@@ -8870,6 +9729,10 @@ export namespace Prisma {
 
 
   export type MessageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    consultationInputSeq?: boolean
+    clientMessageId?: boolean
+    assistantSourceMessageId?: boolean
+    expectsEpisodeProjection?: boolean
     id?: boolean
     chatId?: boolean
     authorId?: boolean
@@ -8882,6 +9745,10 @@ export namespace Prisma {
   }, ExtArgs["result"]["message"]>
 
   export type MessageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    consultationInputSeq?: boolean
+    clientMessageId?: boolean
+    assistantSourceMessageId?: boolean
+    expectsEpisodeProjection?: boolean
     id?: boolean
     chatId?: boolean
     authorId?: boolean
@@ -8894,6 +9761,10 @@ export namespace Prisma {
   }, ExtArgs["result"]["message"]>
 
   export type MessageSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    consultationInputSeq?: boolean
+    clientMessageId?: boolean
+    assistantSourceMessageId?: boolean
+    expectsEpisodeProjection?: boolean
     id?: boolean
     chatId?: boolean
     authorId?: boolean
@@ -8906,6 +9777,10 @@ export namespace Prisma {
   }, ExtArgs["result"]["message"]>
 
   export type MessageSelectScalar = {
+    consultationInputSeq?: boolean
+    clientMessageId?: boolean
+    assistantSourceMessageId?: boolean
+    expectsEpisodeProjection?: boolean
     id?: boolean
     chatId?: boolean
     authorId?: boolean
@@ -8915,7 +9790,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type MessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "chatId" | "authorId" | "role" | "content" | "payload" | "createdAt", ExtArgs["result"]["message"]>
+  export type MessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"consultationInputSeq" | "clientMessageId" | "assistantSourceMessageId" | "expectsEpisodeProjection" | "id" | "chatId" | "authorId" | "role" | "content" | "payload" | "createdAt", ExtArgs["result"]["message"]>
   export type MessageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     chat?: boolean | ChatDefaultArgs<ExtArgs>
     author?: boolean | Message$authorArgs<ExtArgs>
@@ -8936,6 +9811,10 @@ export namespace Prisma {
       author: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
+      consultationInputSeq: number | null
+      clientMessageId: string | null
+      assistantSourceMessageId: string | null
+      expectsEpisodeProjection: boolean
       id: string
       chatId: string
       authorId: string | null
@@ -9026,8 +9905,8 @@ export namespace Prisma {
      * // Get first 10 Messages
      * const messages = await prisma.message.findMany({ take: 10 })
      * 
-     * // Only select the `id`
-     * const messageWithIdOnly = await prisma.message.findMany({ select: { id: true } })
+     * // Only select the `consultationInputSeq`
+     * const messageWithConsultationInputSeqOnly = await prisma.message.findMany({ select: { consultationInputSeq: true } })
      * 
      */
     findMany<T extends MessageFindManyArgs>(args?: SelectSubset<T, MessageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", ClientOptions>>
@@ -9071,9 +9950,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many Messages and only return the `id`
-     * const messageWithIdOnly = await prisma.message.createManyAndReturn({
-     *   select: { id: true },
+     * // Create many Messages and only return the `consultationInputSeq`
+     * const messageWithConsultationInputSeqOnly = await prisma.message.createManyAndReturn({
+     *   select: { consultationInputSeq: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -9162,9 +10041,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Messages and only return the `id`
-     * const messageWithIdOnly = await prisma.message.updateManyAndReturn({
-     *   select: { id: true },
+     * // Update zero or more Messages and only return the `consultationInputSeq`
+     * const messageWithConsultationInputSeqOnly = await prisma.message.updateManyAndReturn({
+     *   select: { consultationInputSeq: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -9368,6 +10247,10 @@ export namespace Prisma {
    * Fields of the Message model
    */ 
   interface MessageFieldRefs {
+    readonly consultationInputSeq: FieldRef<"Message", 'Int'>
+    readonly clientMessageId: FieldRef<"Message", 'String'>
+    readonly assistantSourceMessageId: FieldRef<"Message", 'String'>
+    readonly expectsEpisodeProjection: FieldRef<"Message", 'Boolean'>
     readonly id: FieldRef<"Message", 'String'>
     readonly chatId: FieldRef<"Message", 'String'>
     readonly authorId: FieldRef<"Message", 'String'>
@@ -19489,7 +20372,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Review model
-   */
+   */ 
   interface ReviewFieldRefs {
     readonly id: FieldRef<"Review", 'String'>
     readonly text: FieldRef<"Review", 'String'>
@@ -19519,7 +20402,7 @@ export namespace Prisma {
     readonly indexLeaseUntil: FieldRef<"Review", 'DateTime'>
     readonly indexAttempts: FieldRef<"Review", 'Int'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -19588,31 +20471,31 @@ export namespace Prisma {
     where?: ReviewWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Reviews to fetch.
      */
     orderBy?: ReviewOrderByWithRelationInput | ReviewOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Reviews.
      */
     cursor?: ReviewWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Reviews from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Reviews.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Reviews.
      */
     distinct?: ReviewScalarFieldEnum | ReviewScalarFieldEnum[]
@@ -19640,31 +20523,31 @@ export namespace Prisma {
     where?: ReviewWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Reviews to fetch.
      */
     orderBy?: ReviewOrderByWithRelationInput | ReviewOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for Reviews.
      */
     cursor?: ReviewWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Reviews from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Reviews.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of Reviews.
      */
     distinct?: ReviewScalarFieldEnum | ReviewScalarFieldEnum[]
@@ -19692,25 +20575,25 @@ export namespace Prisma {
     where?: ReviewWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of Reviews to fetch.
      */
     orderBy?: ReviewOrderByWithRelationInput | ReviewOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing Reviews.
      */
     cursor?: ReviewWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` Reviews from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` Reviews.
      */
     skip?: number
@@ -20140,55 +21023,55 @@ export namespace Prisma {
     where?: ReviewAddendumWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewAddenda to fetch.
      */
     orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: ReviewAddendumWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewAddenda from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewAddenda.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned ReviewAddenda
     **/
     _count?: true | ReviewAddendumCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: ReviewAddendumAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: ReviewAddendumSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ReviewAddendumMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: ReviewAddendumMaxAggregateInputType
@@ -20418,13 +21301,13 @@ export namespace Prisma {
      * @example
      * // Get all ReviewAddenda
      * const reviewAddenda = await prisma.reviewAddendum.findMany()
-     *
+     * 
      * // Get first 10 ReviewAddenda
      * const reviewAddenda = await prisma.reviewAddendum.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `id`
      * const reviewAddendumWithIdOnly = await prisma.reviewAddendum.findMany({ select: { id: true } })
-     *
+     * 
      */
     findMany<T extends ReviewAddendumFindManyArgs>(args?: SelectSubset<T, ReviewAddendumFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "findMany", ClientOptions>>
 
@@ -20438,7 +21321,7 @@ export namespace Prisma {
      *     // ... data to create a ReviewAddendum
      *   }
      * })
-     *
+     * 
      */
     create<T extends ReviewAddendumCreateArgs>(args: SelectSubset<T, ReviewAddendumCreateArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -20452,7 +21335,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends ReviewAddendumCreateManyArgs>(args?: SelectSubset<T, ReviewAddendumCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -20466,7 +21349,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many ReviewAddenda and only return the `id`
      * const reviewAddendumWithIdOnly = await prisma.reviewAddendum.createManyAndReturn({
      *   select: { id: true },
@@ -20476,7 +21359,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends ReviewAddendumCreateManyAndReturnArgs>(args?: SelectSubset<T, ReviewAddendumCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
 
@@ -20490,7 +21373,7 @@ export namespace Prisma {
      *     // ... filter to delete one ReviewAddendum
      *   }
      * })
-     *
+     * 
      */
     delete<T extends ReviewAddendumDeleteArgs>(args: SelectSubset<T, ReviewAddendumDeleteArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -20507,7 +21390,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends ReviewAddendumUpdateArgs>(args: SelectSubset<T, ReviewAddendumUpdateArgs<ExtArgs>>): Prisma__ReviewAddendumClient<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -20521,7 +21404,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends ReviewAddendumDeleteManyArgs>(args?: SelectSubset<T, ReviewAddendumDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -20540,7 +21423,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends ReviewAddendumUpdateManyArgs>(args: SelectSubset<T, ReviewAddendumUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -20557,7 +21440,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more ReviewAddenda and only return the `id`
      * const reviewAddendumWithIdOnly = await prisma.reviewAddendum.updateManyAndReturn({
      *   select: { id: true },
@@ -20570,7 +21453,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends ReviewAddendumUpdateManyAndReturnArgs>(args: SelectSubset<T, ReviewAddendumUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewAddendumPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
 
@@ -20659,7 +21542,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends ReviewAddendumGroupByArgs,
@@ -20761,7 +21644,7 @@ export namespace Prisma {
 
   /**
    * Fields of the ReviewAddendum model
-   */
+   */ 
   interface ReviewAddendumFieldRefs {
     readonly id: FieldRef<"ReviewAddendum", 'String'>
     readonly reviewId: FieldRef<"ReviewAddendum", 'String'>
@@ -20775,7 +21658,7 @@ export namespace Prisma {
     readonly moderationReason: FieldRef<"ReviewAddendum", 'String'>
     readonly publishedCorpusVersion: FieldRef<"ReviewAddendum", 'Int'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -20844,31 +21727,31 @@ export namespace Prisma {
     where?: ReviewAddendumWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewAddenda to fetch.
      */
     orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for ReviewAddenda.
      */
     cursor?: ReviewAddendumWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewAddenda from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewAddenda.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of ReviewAddenda.
      */
     distinct?: ReviewAddendumScalarFieldEnum | ReviewAddendumScalarFieldEnum[]
@@ -20896,31 +21779,31 @@ export namespace Prisma {
     where?: ReviewAddendumWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewAddenda to fetch.
      */
     orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for ReviewAddenda.
      */
     cursor?: ReviewAddendumWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewAddenda from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewAddenda.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of ReviewAddenda.
      */
     distinct?: ReviewAddendumScalarFieldEnum | ReviewAddendumScalarFieldEnum[]
@@ -20948,25 +21831,25 @@ export namespace Prisma {
     where?: ReviewAddendumWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewAddenda to fetch.
      */
     orderBy?: ReviewAddendumOrderByWithRelationInput | ReviewAddendumOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing ReviewAddenda.
      */
     cursor?: ReviewAddendumWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewAddenda from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewAddenda.
      */
     skip?: number
@@ -21262,43 +22145,43 @@ export namespace Prisma {
     where?: ReviewVoteWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewVotes to fetch.
      */
     orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: ReviewVoteWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewVotes from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewVotes.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned ReviewVotes
     **/
     _count?: true | ReviewVoteCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ReviewVoteMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: ReviewVoteMaxAggregateInputType
@@ -21501,13 +22384,13 @@ export namespace Prisma {
      * @example
      * // Get all ReviewVotes
      * const reviewVotes = await prisma.reviewVote.findMany()
-     *
+     * 
      * // Get first 10 ReviewVotes
      * const reviewVotes = await prisma.reviewVote.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `reviewId`
      * const reviewVoteWithReviewIdOnly = await prisma.reviewVote.findMany({ select: { reviewId: true } })
-     *
+     * 
      */
     findMany<T extends ReviewVoteFindManyArgs>(args?: SelectSubset<T, ReviewVoteFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "findMany", ClientOptions>>
 
@@ -21521,7 +22404,7 @@ export namespace Prisma {
      *     // ... data to create a ReviewVote
      *   }
      * })
-     *
+     * 
      */
     create<T extends ReviewVoteCreateArgs>(args: SelectSubset<T, ReviewVoteCreateArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -21535,7 +22418,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends ReviewVoteCreateManyArgs>(args?: SelectSubset<T, ReviewVoteCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -21549,7 +22432,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many ReviewVotes and only return the `reviewId`
      * const reviewVoteWithReviewIdOnly = await prisma.reviewVote.createManyAndReturn({
      *   select: { reviewId: true },
@@ -21559,7 +22442,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends ReviewVoteCreateManyAndReturnArgs>(args?: SelectSubset<T, ReviewVoteCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
 
@@ -21573,7 +22456,7 @@ export namespace Prisma {
      *     // ... filter to delete one ReviewVote
      *   }
      * })
-     *
+     * 
      */
     delete<T extends ReviewVoteDeleteArgs>(args: SelectSubset<T, ReviewVoteDeleteArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -21590,7 +22473,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends ReviewVoteUpdateArgs>(args: SelectSubset<T, ReviewVoteUpdateArgs<ExtArgs>>): Prisma__ReviewVoteClient<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -21604,7 +22487,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends ReviewVoteDeleteManyArgs>(args?: SelectSubset<T, ReviewVoteDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -21623,7 +22506,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends ReviewVoteUpdateManyArgs>(args: SelectSubset<T, ReviewVoteUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -21640,7 +22523,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more ReviewVotes and only return the `reviewId`
      * const reviewVoteWithReviewIdOnly = await prisma.reviewVote.updateManyAndReturn({
      *   select: { reviewId: true },
@@ -21653,7 +22536,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends ReviewVoteUpdateManyAndReturnArgs>(args: SelectSubset<T, ReviewVoteUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewVotePayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
 
@@ -21742,7 +22625,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends ReviewVoteGroupByArgs,
@@ -21845,7 +22728,7 @@ export namespace Prisma {
 
   /**
    * Fields of the ReviewVote model
-   */
+   */ 
   interface ReviewVoteFieldRefs {
     readonly reviewId: FieldRef<"ReviewVote", 'String'>
     readonly userId: FieldRef<"ReviewVote", 'String'>
@@ -21854,7 +22737,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"ReviewVote", 'DateTime'>
     readonly updatedAt: FieldRef<"ReviewVote", 'DateTime'>
   }
-
+    
 
   // Custom InputTypes
   /**
@@ -21923,31 +22806,31 @@ export namespace Prisma {
     where?: ReviewVoteWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewVotes to fetch.
      */
     orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for ReviewVotes.
      */
     cursor?: ReviewVoteWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewVotes from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewVotes.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of ReviewVotes.
      */
     distinct?: ReviewVoteScalarFieldEnum | ReviewVoteScalarFieldEnum[]
@@ -21975,31 +22858,31 @@ export namespace Prisma {
     where?: ReviewVoteWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewVotes to fetch.
      */
     orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for searching for ReviewVotes.
      */
     cursor?: ReviewVoteWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewVotes from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewVotes.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     *
+     * 
      * Filter by unique combinations of ReviewVotes.
      */
     distinct?: ReviewVoteScalarFieldEnum | ReviewVoteScalarFieldEnum[]
@@ -22027,25 +22910,25 @@ export namespace Prisma {
     where?: ReviewVoteWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewVotes to fetch.
      */
     orderBy?: ReviewVoteOrderByWithRelationInput | ReviewVoteOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the position for listing ReviewVotes.
      */
     cursor?: ReviewVoteWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewVotes from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewVotes.
      */
     skip?: number
@@ -22447,55 +23330,55 @@ export namespace Prisma {
     where?: ReviewSummaryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     *
+     * 
      * Determine the order of ReviewSummaries to fetch.
      */
     orderBy?: ReviewSummaryOrderByWithRelationInput | ReviewSummaryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     *
+     * 
      * Sets the start position
      */
     cursor?: ReviewSummaryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Take `±n` ReviewSummaries from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *
+     * 
      * Skip the first `n` ReviewSummaries.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Count returned ReviewSummaries
     **/
     _count?: true | ReviewSummaryCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to average
     **/
     _avg?: ReviewSummaryAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to sum
     **/
     _sum?: ReviewSummarySumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ReviewSummaryMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     *
+     * 
      * Select which fields to find the maximum value
     **/
     _max?: ReviewSummaryMaxAggregateInputType
@@ -22767,13 +23650,13 @@ export namespace Prisma {
      * @example
      * // Get all ReviewSummaries
      * const reviewSummaries = await prisma.reviewSummary.findMany()
-     *
+     * 
      * // Get first 10 ReviewSummaries
      * const reviewSummaries = await prisma.reviewSummary.findMany({ take: 10 })
-     *
+     * 
      * // Only select the `productId`
      * const reviewSummaryWithProductIdOnly = await prisma.reviewSummary.findMany({ select: { productId: true } })
-     *
+     * 
      */
     findMany<T extends ReviewSummaryFindManyArgs>(args?: SelectSubset<T, ReviewSummaryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "findMany", ClientOptions>>
 
@@ -22787,7 +23670,7 @@ export namespace Prisma {
      *     // ... data to create a ReviewSummary
      *   }
      * })
-     *
+     * 
      */
     create<T extends ReviewSummaryCreateArgs>(args: SelectSubset<T, ReviewSummaryCreateArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -22801,7 +23684,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     *     
      */
     createMany<T extends ReviewSummaryCreateManyArgs>(args?: SelectSubset<T, ReviewSummaryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -22815,7 +23698,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Create many ReviewSummaries and only return the `productId`
      * const reviewSummaryWithProductIdOnly = await prisma.reviewSummary.createManyAndReturn({
      *   select: { productId: true },
@@ -22825,7 +23708,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     createManyAndReturn<T extends ReviewSummaryCreateManyAndReturnArgs>(args?: SelectSubset<T, ReviewSummaryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
 
@@ -22839,7 +23722,7 @@ export namespace Prisma {
      *     // ... filter to delete one ReviewSummary
      *   }
      * })
-     *
+     * 
      */
     delete<T extends ReviewSummaryDeleteArgs>(args: SelectSubset<T, ReviewSummaryDeleteArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -22856,7 +23739,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     update<T extends ReviewSummaryUpdateArgs>(args: SelectSubset<T, ReviewSummaryUpdateArgs<ExtArgs>>): Prisma__ReviewSummaryClient<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
 
@@ -22870,7 +23753,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     *
+     * 
      */
     deleteMany<T extends ReviewSummaryDeleteManyArgs>(args?: SelectSubset<T, ReviewSummaryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -22889,7 +23772,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     *
+     * 
      */
     updateMany<T extends ReviewSummaryUpdateManyArgs>(args: SelectSubset<T, ReviewSummaryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -22906,7 +23789,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *
+     * 
      * // Update zero or more ReviewSummaries and only return the `productId`
      * const reviewSummaryWithProductIdOnly = await prisma.reviewSummary.updateManyAndReturn({
      *   select: { productId: true },
@@ -22919,7 +23802,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     *
+     * 
      */
     updateManyAndReturn<T extends ReviewSummaryUpdateManyAndReturnArgs>(args: SelectSubset<T, ReviewSummaryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewSummaryPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
 
@@ -23008,7 +23891,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     *
+     * 
     **/
     groupBy<
       T extends ReviewSummaryGroupByArgs,
@@ -32853,6 +33736,7145 @@ export namespace Prisma {
 
 
   /**
+   * Model ConsultationMemoryScope
+   */
+
+  export type AggregateConsultationMemoryScope = {
+    _count: ConsultationMemoryScopeCountAggregateOutputType | null
+    _avg: ConsultationMemoryScopeAvgAggregateOutputType | null
+    _sum: ConsultationMemoryScopeSumAggregateOutputType | null
+    _min: ConsultationMemoryScopeMinAggregateOutputType | null
+    _max: ConsultationMemoryScopeMaxAggregateOutputType | null
+  }
+
+  export type ConsultationMemoryScopeAvgAggregateOutputType = {
+    memoryEpoch: number | null
+    purgedThroughSeq: number | null
+  }
+
+  export type ConsultationMemoryScopeSumAggregateOutputType = {
+    memoryEpoch: number | null
+    purgedThroughSeq: number | null
+  }
+
+  export type ConsultationMemoryScopeMinAggregateOutputType = {
+    id: string | null
+    storeKey: string | null
+    subjectKey: string | null
+    sourceKind: string | null
+    sourceKey: string | null
+    chatId: string | null
+    memoryEpoch: number | null
+    purgedThroughSeq: number | null
+    offerSuppressedUntil: Date | null
+  }
+
+  export type ConsultationMemoryScopeMaxAggregateOutputType = {
+    id: string | null
+    storeKey: string | null
+    subjectKey: string | null
+    sourceKind: string | null
+    sourceKey: string | null
+    chatId: string | null
+    memoryEpoch: number | null
+    purgedThroughSeq: number | null
+    offerSuppressedUntil: Date | null
+  }
+
+  export type ConsultationMemoryScopeCountAggregateOutputType = {
+    id: number
+    storeKey: number
+    subjectKey: number
+    sourceKind: number
+    sourceKey: number
+    chatId: number
+    memoryEpoch: number
+    purgedThroughSeq: number
+    offerSuppressedUntil: number
+    _all: number
+  }
+
+
+  export type ConsultationMemoryScopeAvgAggregateInputType = {
+    memoryEpoch?: true
+    purgedThroughSeq?: true
+  }
+
+  export type ConsultationMemoryScopeSumAggregateInputType = {
+    memoryEpoch?: true
+    purgedThroughSeq?: true
+  }
+
+  export type ConsultationMemoryScopeMinAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    sourceKind?: true
+    sourceKey?: true
+    chatId?: true
+    memoryEpoch?: true
+    purgedThroughSeq?: true
+    offerSuppressedUntil?: true
+  }
+
+  export type ConsultationMemoryScopeMaxAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    sourceKind?: true
+    sourceKey?: true
+    chatId?: true
+    memoryEpoch?: true
+    purgedThroughSeq?: true
+    offerSuppressedUntil?: true
+  }
+
+  export type ConsultationMemoryScopeCountAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    sourceKind?: true
+    sourceKey?: true
+    chatId?: true
+    memoryEpoch?: true
+    purgedThroughSeq?: true
+    offerSuppressedUntil?: true
+    _all?: true
+  }
+
+  export type ConsultationMemoryScopeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConsultationMemoryScope to aggregate.
+     */
+    where?: ConsultationMemoryScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationMemoryScopes to fetch.
+     */
+    orderBy?: ConsultationMemoryScopeOrderByWithRelationInput | ConsultationMemoryScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ConsultationMemoryScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationMemoryScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationMemoryScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ConsultationMemoryScopes
+    **/
+    _count?: true | ConsultationMemoryScopeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ConsultationMemoryScopeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ConsultationMemoryScopeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ConsultationMemoryScopeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ConsultationMemoryScopeMaxAggregateInputType
+  }
+
+  export type GetConsultationMemoryScopeAggregateType<T extends ConsultationMemoryScopeAggregateArgs> = {
+        [P in keyof T & keyof AggregateConsultationMemoryScope]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateConsultationMemoryScope[P]>
+      : GetScalarType<T[P], AggregateConsultationMemoryScope[P]>
+  }
+
+
+
+
+  export type ConsultationMemoryScopeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationMemoryScopeWhereInput
+    orderBy?: ConsultationMemoryScopeOrderByWithAggregationInput | ConsultationMemoryScopeOrderByWithAggregationInput[]
+    by: ConsultationMemoryScopeScalarFieldEnum[] | ConsultationMemoryScopeScalarFieldEnum
+    having?: ConsultationMemoryScopeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ConsultationMemoryScopeCountAggregateInputType | true
+    _avg?: ConsultationMemoryScopeAvgAggregateInputType
+    _sum?: ConsultationMemoryScopeSumAggregateInputType
+    _min?: ConsultationMemoryScopeMinAggregateInputType
+    _max?: ConsultationMemoryScopeMaxAggregateInputType
+  }
+
+  export type ConsultationMemoryScopeGroupByOutputType = {
+    id: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    chatId: string | null
+    memoryEpoch: number
+    purgedThroughSeq: number
+    offerSuppressedUntil: Date | null
+    _count: ConsultationMemoryScopeCountAggregateOutputType | null
+    _avg: ConsultationMemoryScopeAvgAggregateOutputType | null
+    _sum: ConsultationMemoryScopeSumAggregateOutputType | null
+    _min: ConsultationMemoryScopeMinAggregateOutputType | null
+    _max: ConsultationMemoryScopeMaxAggregateOutputType | null
+  }
+
+  type GetConsultationMemoryScopeGroupByPayload<T extends ConsultationMemoryScopeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ConsultationMemoryScopeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ConsultationMemoryScopeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ConsultationMemoryScopeGroupByOutputType[P]>
+            : GetScalarType<T[P], ConsultationMemoryScopeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ConsultationMemoryScopeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    chatId?: boolean
+    memoryEpoch?: boolean
+    purgedThroughSeq?: boolean
+    offerSuppressedUntil?: boolean
+    chat?: boolean | ConsultationMemoryScope$chatArgs<ExtArgs>
+    episodes?: boolean | ConsultationMemoryScope$episodesArgs<ExtArgs>
+    offers?: boolean | ConsultationMemoryScope$offersArgs<ExtArgs>
+    receipts?: boolean | ConsultationMemoryScope$receiptsArgs<ExtArgs>
+    _count?: boolean | ConsultationMemoryScopeCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationMemoryScope"]>
+
+  export type ConsultationMemoryScopeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    chatId?: boolean
+    memoryEpoch?: boolean
+    purgedThroughSeq?: boolean
+    offerSuppressedUntil?: boolean
+    chat?: boolean | ConsultationMemoryScope$chatArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationMemoryScope"]>
+
+  export type ConsultationMemoryScopeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    chatId?: boolean
+    memoryEpoch?: boolean
+    purgedThroughSeq?: boolean
+    offerSuppressedUntil?: boolean
+    chat?: boolean | ConsultationMemoryScope$chatArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationMemoryScope"]>
+
+  export type ConsultationMemoryScopeSelectScalar = {
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    chatId?: boolean
+    memoryEpoch?: boolean
+    purgedThroughSeq?: boolean
+    offerSuppressedUntil?: boolean
+  }
+
+  export type ConsultationMemoryScopeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "storeKey" | "subjectKey" | "sourceKind" | "sourceKey" | "chatId" | "memoryEpoch" | "purgedThroughSeq" | "offerSuppressedUntil", ExtArgs["result"]["consultationMemoryScope"]>
+  export type ConsultationMemoryScopeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    chat?: boolean | ConsultationMemoryScope$chatArgs<ExtArgs>
+    episodes?: boolean | ConsultationMemoryScope$episodesArgs<ExtArgs>
+    offers?: boolean | ConsultationMemoryScope$offersArgs<ExtArgs>
+    receipts?: boolean | ConsultationMemoryScope$receiptsArgs<ExtArgs>
+    _count?: boolean | ConsultationMemoryScopeCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ConsultationMemoryScopeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    chat?: boolean | ConsultationMemoryScope$chatArgs<ExtArgs>
+  }
+  export type ConsultationMemoryScopeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    chat?: boolean | ConsultationMemoryScope$chatArgs<ExtArgs>
+  }
+
+  export type $ConsultationMemoryScopePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ConsultationMemoryScope"
+    objects: {
+      chat: Prisma.$ChatPayload<ExtArgs> | null
+      episodes: Prisma.$ConsultationEpisodePayload<ExtArgs>[]
+      offers: Prisma.$ConsultationResumeOfferPayload<ExtArgs>[]
+      receipts: Prisma.$ConsultationTurnReceiptPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      storeKey: string
+      subjectKey: string
+      sourceKind: string
+      sourceKey: string
+      chatId: string | null
+      memoryEpoch: number
+      purgedThroughSeq: number
+      offerSuppressedUntil: Date | null
+    }, ExtArgs["result"]["consultationMemoryScope"]>
+    composites: {}
+  }
+
+  type ConsultationMemoryScopeGetPayload<S extends boolean | null | undefined | ConsultationMemoryScopeDefaultArgs> = $Result.GetResult<Prisma.$ConsultationMemoryScopePayload, S>
+
+  type ConsultationMemoryScopeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ConsultationMemoryScopeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ConsultationMemoryScopeCountAggregateInputType | true
+    }
+
+  export interface ConsultationMemoryScopeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ConsultationMemoryScope'], meta: { name: 'ConsultationMemoryScope' } }
+    /**
+     * Find zero or one ConsultationMemoryScope that matches the filter.
+     * @param {ConsultationMemoryScopeFindUniqueArgs} args - Arguments to find a ConsultationMemoryScope
+     * @example
+     * // Get one ConsultationMemoryScope
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ConsultationMemoryScopeFindUniqueArgs>(args: SelectSubset<T, ConsultationMemoryScopeFindUniqueArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one ConsultationMemoryScope that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ConsultationMemoryScopeFindUniqueOrThrowArgs} args - Arguments to find a ConsultationMemoryScope
+     * @example
+     * // Get one ConsultationMemoryScope
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ConsultationMemoryScopeFindUniqueOrThrowArgs>(args: SelectSubset<T, ConsultationMemoryScopeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ConsultationMemoryScope that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationMemoryScopeFindFirstArgs} args - Arguments to find a ConsultationMemoryScope
+     * @example
+     * // Get one ConsultationMemoryScope
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ConsultationMemoryScopeFindFirstArgs>(args?: SelectSubset<T, ConsultationMemoryScopeFindFirstArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ConsultationMemoryScope that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationMemoryScopeFindFirstOrThrowArgs} args - Arguments to find a ConsultationMemoryScope
+     * @example
+     * // Get one ConsultationMemoryScope
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ConsultationMemoryScopeFindFirstOrThrowArgs>(args?: SelectSubset<T, ConsultationMemoryScopeFindFirstOrThrowArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more ConsultationMemoryScopes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationMemoryScopeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ConsultationMemoryScopes
+     * const consultationMemoryScopes = await prisma.consultationMemoryScope.findMany()
+     * 
+     * // Get first 10 ConsultationMemoryScopes
+     * const consultationMemoryScopes = await prisma.consultationMemoryScope.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const consultationMemoryScopeWithIdOnly = await prisma.consultationMemoryScope.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ConsultationMemoryScopeFindManyArgs>(args?: SelectSubset<T, ConsultationMemoryScopeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a ConsultationMemoryScope.
+     * @param {ConsultationMemoryScopeCreateArgs} args - Arguments to create a ConsultationMemoryScope.
+     * @example
+     * // Create one ConsultationMemoryScope
+     * const ConsultationMemoryScope = await prisma.consultationMemoryScope.create({
+     *   data: {
+     *     // ... data to create a ConsultationMemoryScope
+     *   }
+     * })
+     * 
+     */
+    create<T extends ConsultationMemoryScopeCreateArgs>(args: SelectSubset<T, ConsultationMemoryScopeCreateArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many ConsultationMemoryScopes.
+     * @param {ConsultationMemoryScopeCreateManyArgs} args - Arguments to create many ConsultationMemoryScopes.
+     * @example
+     * // Create many ConsultationMemoryScopes
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ConsultationMemoryScopeCreateManyArgs>(args?: SelectSubset<T, ConsultationMemoryScopeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ConsultationMemoryScopes and returns the data saved in the database.
+     * @param {ConsultationMemoryScopeCreateManyAndReturnArgs} args - Arguments to create many ConsultationMemoryScopes.
+     * @example
+     * // Create many ConsultationMemoryScopes
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ConsultationMemoryScopes and only return the `id`
+     * const consultationMemoryScopeWithIdOnly = await prisma.consultationMemoryScope.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ConsultationMemoryScopeCreateManyAndReturnArgs>(args?: SelectSubset<T, ConsultationMemoryScopeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a ConsultationMemoryScope.
+     * @param {ConsultationMemoryScopeDeleteArgs} args - Arguments to delete one ConsultationMemoryScope.
+     * @example
+     * // Delete one ConsultationMemoryScope
+     * const ConsultationMemoryScope = await prisma.consultationMemoryScope.delete({
+     *   where: {
+     *     // ... filter to delete one ConsultationMemoryScope
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ConsultationMemoryScopeDeleteArgs>(args: SelectSubset<T, ConsultationMemoryScopeDeleteArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one ConsultationMemoryScope.
+     * @param {ConsultationMemoryScopeUpdateArgs} args - Arguments to update one ConsultationMemoryScope.
+     * @example
+     * // Update one ConsultationMemoryScope
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ConsultationMemoryScopeUpdateArgs>(args: SelectSubset<T, ConsultationMemoryScopeUpdateArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more ConsultationMemoryScopes.
+     * @param {ConsultationMemoryScopeDeleteManyArgs} args - Arguments to filter ConsultationMemoryScopes to delete.
+     * @example
+     * // Delete a few ConsultationMemoryScopes
+     * const { count } = await prisma.consultationMemoryScope.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ConsultationMemoryScopeDeleteManyArgs>(args?: SelectSubset<T, ConsultationMemoryScopeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConsultationMemoryScopes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationMemoryScopeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ConsultationMemoryScopes
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ConsultationMemoryScopeUpdateManyArgs>(args: SelectSubset<T, ConsultationMemoryScopeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConsultationMemoryScopes and returns the data updated in the database.
+     * @param {ConsultationMemoryScopeUpdateManyAndReturnArgs} args - Arguments to update many ConsultationMemoryScopes.
+     * @example
+     * // Update many ConsultationMemoryScopes
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ConsultationMemoryScopes and only return the `id`
+     * const consultationMemoryScopeWithIdOnly = await prisma.consultationMemoryScope.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ConsultationMemoryScopeUpdateManyAndReturnArgs>(args: SelectSubset<T, ConsultationMemoryScopeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one ConsultationMemoryScope.
+     * @param {ConsultationMemoryScopeUpsertArgs} args - Arguments to update or create a ConsultationMemoryScope.
+     * @example
+     * // Update or create a ConsultationMemoryScope
+     * const consultationMemoryScope = await prisma.consultationMemoryScope.upsert({
+     *   create: {
+     *     // ... data to create a ConsultationMemoryScope
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ConsultationMemoryScope we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ConsultationMemoryScopeUpsertArgs>(args: SelectSubset<T, ConsultationMemoryScopeUpsertArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of ConsultationMemoryScopes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationMemoryScopeCountArgs} args - Arguments to filter ConsultationMemoryScopes to count.
+     * @example
+     * // Count the number of ConsultationMemoryScopes
+     * const count = await prisma.consultationMemoryScope.count({
+     *   where: {
+     *     // ... the filter for the ConsultationMemoryScopes we want to count
+     *   }
+     * })
+    **/
+    count<T extends ConsultationMemoryScopeCountArgs>(
+      args?: Subset<T, ConsultationMemoryScopeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ConsultationMemoryScopeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ConsultationMemoryScope.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationMemoryScopeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ConsultationMemoryScopeAggregateArgs>(args: Subset<T, ConsultationMemoryScopeAggregateArgs>): Prisma.PrismaPromise<GetConsultationMemoryScopeAggregateType<T>>
+
+    /**
+     * Group by ConsultationMemoryScope.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationMemoryScopeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ConsultationMemoryScopeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ConsultationMemoryScopeGroupByArgs['orderBy'] }
+        : { orderBy?: ConsultationMemoryScopeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ConsultationMemoryScopeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetConsultationMemoryScopeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ConsultationMemoryScope model
+   */
+  readonly fields: ConsultationMemoryScopeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ConsultationMemoryScope.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ConsultationMemoryScopeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    chat<T extends ConsultationMemoryScope$chatArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationMemoryScope$chatArgs<ExtArgs>>): Prisma__ChatClient<$Result.GetResult<Prisma.$ChatPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | null, null, ExtArgs, ClientOptions>
+    episodes<T extends ConsultationMemoryScope$episodesArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationMemoryScope$episodesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    offers<T extends ConsultationMemoryScope$offersArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationMemoryScope$offersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    receipts<T extends ConsultationMemoryScope$receiptsArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationMemoryScope$receiptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ConsultationMemoryScope model
+   */ 
+  interface ConsultationMemoryScopeFieldRefs {
+    readonly id: FieldRef<"ConsultationMemoryScope", 'String'>
+    readonly storeKey: FieldRef<"ConsultationMemoryScope", 'String'>
+    readonly subjectKey: FieldRef<"ConsultationMemoryScope", 'String'>
+    readonly sourceKind: FieldRef<"ConsultationMemoryScope", 'String'>
+    readonly sourceKey: FieldRef<"ConsultationMemoryScope", 'String'>
+    readonly chatId: FieldRef<"ConsultationMemoryScope", 'String'>
+    readonly memoryEpoch: FieldRef<"ConsultationMemoryScope", 'Int'>
+    readonly purgedThroughSeq: FieldRef<"ConsultationMemoryScope", 'Int'>
+    readonly offerSuppressedUntil: FieldRef<"ConsultationMemoryScope", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ConsultationMemoryScope findUnique
+   */
+  export type ConsultationMemoryScopeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationMemoryScope to fetch.
+     */
+    where: ConsultationMemoryScopeWhereUniqueInput
+  }
+
+  /**
+   * ConsultationMemoryScope findUniqueOrThrow
+   */
+  export type ConsultationMemoryScopeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationMemoryScope to fetch.
+     */
+    where: ConsultationMemoryScopeWhereUniqueInput
+  }
+
+  /**
+   * ConsultationMemoryScope findFirst
+   */
+  export type ConsultationMemoryScopeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationMemoryScope to fetch.
+     */
+    where?: ConsultationMemoryScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationMemoryScopes to fetch.
+     */
+    orderBy?: ConsultationMemoryScopeOrderByWithRelationInput | ConsultationMemoryScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConsultationMemoryScopes.
+     */
+    cursor?: ConsultationMemoryScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationMemoryScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationMemoryScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConsultationMemoryScopes.
+     */
+    distinct?: ConsultationMemoryScopeScalarFieldEnum | ConsultationMemoryScopeScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationMemoryScope findFirstOrThrow
+   */
+  export type ConsultationMemoryScopeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationMemoryScope to fetch.
+     */
+    where?: ConsultationMemoryScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationMemoryScopes to fetch.
+     */
+    orderBy?: ConsultationMemoryScopeOrderByWithRelationInput | ConsultationMemoryScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConsultationMemoryScopes.
+     */
+    cursor?: ConsultationMemoryScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationMemoryScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationMemoryScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConsultationMemoryScopes.
+     */
+    distinct?: ConsultationMemoryScopeScalarFieldEnum | ConsultationMemoryScopeScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationMemoryScope findMany
+   */
+  export type ConsultationMemoryScopeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationMemoryScopes to fetch.
+     */
+    where?: ConsultationMemoryScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationMemoryScopes to fetch.
+     */
+    orderBy?: ConsultationMemoryScopeOrderByWithRelationInput | ConsultationMemoryScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ConsultationMemoryScopes.
+     */
+    cursor?: ConsultationMemoryScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationMemoryScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationMemoryScopes.
+     */
+    skip?: number
+    distinct?: ConsultationMemoryScopeScalarFieldEnum | ConsultationMemoryScopeScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationMemoryScope create
+   */
+  export type ConsultationMemoryScopeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ConsultationMemoryScope.
+     */
+    data: XOR<ConsultationMemoryScopeCreateInput, ConsultationMemoryScopeUncheckedCreateInput>
+  }
+
+  /**
+   * ConsultationMemoryScope createMany
+   */
+  export type ConsultationMemoryScopeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ConsultationMemoryScopes.
+     */
+    data: ConsultationMemoryScopeCreateManyInput | ConsultationMemoryScopeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ConsultationMemoryScope createManyAndReturn
+   */
+  export type ConsultationMemoryScopeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * The data used to create many ConsultationMemoryScopes.
+     */
+    data: ConsultationMemoryScopeCreateManyInput | ConsultationMemoryScopeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationMemoryScope update
+   */
+  export type ConsultationMemoryScopeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ConsultationMemoryScope.
+     */
+    data: XOR<ConsultationMemoryScopeUpdateInput, ConsultationMemoryScopeUncheckedUpdateInput>
+    /**
+     * Choose, which ConsultationMemoryScope to update.
+     */
+    where: ConsultationMemoryScopeWhereUniqueInput
+  }
+
+  /**
+   * ConsultationMemoryScope updateMany
+   */
+  export type ConsultationMemoryScopeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ConsultationMemoryScopes.
+     */
+    data: XOR<ConsultationMemoryScopeUpdateManyMutationInput, ConsultationMemoryScopeUncheckedUpdateManyInput>
+    /**
+     * Filter which ConsultationMemoryScopes to update
+     */
+    where?: ConsultationMemoryScopeWhereInput
+    /**
+     * Limit how many ConsultationMemoryScopes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConsultationMemoryScope updateManyAndReturn
+   */
+  export type ConsultationMemoryScopeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * The data used to update ConsultationMemoryScopes.
+     */
+    data: XOR<ConsultationMemoryScopeUpdateManyMutationInput, ConsultationMemoryScopeUncheckedUpdateManyInput>
+    /**
+     * Filter which ConsultationMemoryScopes to update
+     */
+    where?: ConsultationMemoryScopeWhereInput
+    /**
+     * Limit how many ConsultationMemoryScopes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationMemoryScope upsert
+   */
+  export type ConsultationMemoryScopeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ConsultationMemoryScope to update in case it exists.
+     */
+    where: ConsultationMemoryScopeWhereUniqueInput
+    /**
+     * In case the ConsultationMemoryScope found by the `where` argument doesn't exist, create a new ConsultationMemoryScope with this data.
+     */
+    create: XOR<ConsultationMemoryScopeCreateInput, ConsultationMemoryScopeUncheckedCreateInput>
+    /**
+     * In case the ConsultationMemoryScope was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ConsultationMemoryScopeUpdateInput, ConsultationMemoryScopeUncheckedUpdateInput>
+  }
+
+  /**
+   * ConsultationMemoryScope delete
+   */
+  export type ConsultationMemoryScopeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+    /**
+     * Filter which ConsultationMemoryScope to delete.
+     */
+    where: ConsultationMemoryScopeWhereUniqueInput
+  }
+
+  /**
+   * ConsultationMemoryScope deleteMany
+   */
+  export type ConsultationMemoryScopeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConsultationMemoryScopes to delete
+     */
+    where?: ConsultationMemoryScopeWhereInput
+    /**
+     * Limit how many ConsultationMemoryScopes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConsultationMemoryScope.chat
+   */
+  export type ConsultationMemoryScope$chatArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Chat
+     */
+    select?: ChatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Chat
+     */
+    omit?: ChatOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ChatInclude<ExtArgs> | null
+    where?: ChatWhereInput
+  }
+
+  /**
+   * ConsultationMemoryScope.episodes
+   */
+  export type ConsultationMemoryScope$episodesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    where?: ConsultationEpisodeWhereInput
+    orderBy?: ConsultationEpisodeOrderByWithRelationInput | ConsultationEpisodeOrderByWithRelationInput[]
+    cursor?: ConsultationEpisodeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConsultationEpisodeScalarFieldEnum | ConsultationEpisodeScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationMemoryScope.offers
+   */
+  export type ConsultationMemoryScope$offersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    where?: ConsultationResumeOfferWhereInput
+    orderBy?: ConsultationResumeOfferOrderByWithRelationInput | ConsultationResumeOfferOrderByWithRelationInput[]
+    cursor?: ConsultationResumeOfferWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConsultationResumeOfferScalarFieldEnum | ConsultationResumeOfferScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationMemoryScope.receipts
+   */
+  export type ConsultationMemoryScope$receiptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    where?: ConsultationTurnReceiptWhereInput
+    orderBy?: ConsultationTurnReceiptOrderByWithRelationInput | ConsultationTurnReceiptOrderByWithRelationInput[]
+    cursor?: ConsultationTurnReceiptWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConsultationTurnReceiptScalarFieldEnum | ConsultationTurnReceiptScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationMemoryScope without action
+   */
+  export type ConsultationMemoryScopeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationMemoryScope
+     */
+    select?: ConsultationMemoryScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationMemoryScope
+     */
+    omit?: ConsultationMemoryScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationMemoryScopeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ConsultationEpisode
+   */
+
+  export type AggregateConsultationEpisode = {
+    _count: ConsultationEpisodeCountAggregateOutputType | null
+    _avg: ConsultationEpisodeAvgAggregateOutputType | null
+    _sum: ConsultationEpisodeSumAggregateOutputType | null
+    _min: ConsultationEpisodeMinAggregateOutputType | null
+    _max: ConsultationEpisodeMaxAggregateOutputType | null
+  }
+
+  export type ConsultationEpisodeAvgAggregateOutputType = {
+    schemaVersion: number | null
+    revision: number | null
+    contentRevision: number | null
+  }
+
+  export type ConsultationEpisodeSumAggregateOutputType = {
+    schemaVersion: number | null
+    revision: number | null
+    contentRevision: number | null
+  }
+
+  export type ConsultationEpisodeMinAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    taskKey: string | null
+    type: string | null
+    status: $Enums.ConsultationEpisodeStatus | null
+    outcome: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion: number | null
+    revision: number | null
+    contentRevision: number | null
+    lastMeaningfulAt: Date | null
+    expiresAt: Date | null
+    closedAt: Date | null
+  }
+
+  export type ConsultationEpisodeMaxAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    taskKey: string | null
+    type: string | null
+    status: $Enums.ConsultationEpisodeStatus | null
+    outcome: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion: number | null
+    revision: number | null
+    contentRevision: number | null
+    lastMeaningfulAt: Date | null
+    expiresAt: Date | null
+    closedAt: Date | null
+  }
+
+  export type ConsultationEpisodeCountAggregateOutputType = {
+    id: number
+    scopeId: number
+    taskKey: number
+    type: number
+    status: number
+    outcome: number
+    schemaVersion: number
+    revision: number
+    contentRevision: number
+    snapshot: number
+    lastMeaningfulAt: number
+    expiresAt: number
+    closedAt: number
+    _all: number
+  }
+
+
+  export type ConsultationEpisodeAvgAggregateInputType = {
+    schemaVersion?: true
+    revision?: true
+    contentRevision?: true
+  }
+
+  export type ConsultationEpisodeSumAggregateInputType = {
+    schemaVersion?: true
+    revision?: true
+    contentRevision?: true
+  }
+
+  export type ConsultationEpisodeMinAggregateInputType = {
+    id?: true
+    scopeId?: true
+    taskKey?: true
+    type?: true
+    status?: true
+    outcome?: true
+    schemaVersion?: true
+    revision?: true
+    contentRevision?: true
+    lastMeaningfulAt?: true
+    expiresAt?: true
+    closedAt?: true
+  }
+
+  export type ConsultationEpisodeMaxAggregateInputType = {
+    id?: true
+    scopeId?: true
+    taskKey?: true
+    type?: true
+    status?: true
+    outcome?: true
+    schemaVersion?: true
+    revision?: true
+    contentRevision?: true
+    lastMeaningfulAt?: true
+    expiresAt?: true
+    closedAt?: true
+  }
+
+  export type ConsultationEpisodeCountAggregateInputType = {
+    id?: true
+    scopeId?: true
+    taskKey?: true
+    type?: true
+    status?: true
+    outcome?: true
+    schemaVersion?: true
+    revision?: true
+    contentRevision?: true
+    snapshot?: true
+    lastMeaningfulAt?: true
+    expiresAt?: true
+    closedAt?: true
+    _all?: true
+  }
+
+  export type ConsultationEpisodeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConsultationEpisode to aggregate.
+     */
+    where?: ConsultationEpisodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationEpisodes to fetch.
+     */
+    orderBy?: ConsultationEpisodeOrderByWithRelationInput | ConsultationEpisodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ConsultationEpisodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationEpisodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationEpisodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ConsultationEpisodes
+    **/
+    _count?: true | ConsultationEpisodeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ConsultationEpisodeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ConsultationEpisodeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ConsultationEpisodeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ConsultationEpisodeMaxAggregateInputType
+  }
+
+  export type GetConsultationEpisodeAggregateType<T extends ConsultationEpisodeAggregateArgs> = {
+        [P in keyof T & keyof AggregateConsultationEpisode]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateConsultationEpisode[P]>
+      : GetScalarType<T[P], AggregateConsultationEpisode[P]>
+  }
+
+
+
+
+  export type ConsultationEpisodeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationEpisodeWhereInput
+    orderBy?: ConsultationEpisodeOrderByWithAggregationInput | ConsultationEpisodeOrderByWithAggregationInput[]
+    by: ConsultationEpisodeScalarFieldEnum[] | ConsultationEpisodeScalarFieldEnum
+    having?: ConsultationEpisodeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ConsultationEpisodeCountAggregateInputType | true
+    _avg?: ConsultationEpisodeAvgAggregateInputType
+    _sum?: ConsultationEpisodeSumAggregateInputType
+    _min?: ConsultationEpisodeMinAggregateInputType
+    _max?: ConsultationEpisodeMaxAggregateInputType
+  }
+
+  export type ConsultationEpisodeGroupByOutputType = {
+    id: string
+    scopeId: string
+    taskKey: string
+    type: string
+    status: $Enums.ConsultationEpisodeStatus
+    outcome: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion: number
+    revision: number
+    contentRevision: number
+    snapshot: JsonValue
+    lastMeaningfulAt: Date
+    expiresAt: Date
+    closedAt: Date | null
+    _count: ConsultationEpisodeCountAggregateOutputType | null
+    _avg: ConsultationEpisodeAvgAggregateOutputType | null
+    _sum: ConsultationEpisodeSumAggregateOutputType | null
+    _min: ConsultationEpisodeMinAggregateOutputType | null
+    _max: ConsultationEpisodeMaxAggregateOutputType | null
+  }
+
+  type GetConsultationEpisodeGroupByPayload<T extends ConsultationEpisodeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ConsultationEpisodeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ConsultationEpisodeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ConsultationEpisodeGroupByOutputType[P]>
+            : GetScalarType<T[P], ConsultationEpisodeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ConsultationEpisodeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    taskKey?: boolean
+    type?: boolean
+    status?: boolean
+    outcome?: boolean
+    schemaVersion?: boolean
+    revision?: boolean
+    contentRevision?: boolean
+    snapshot?: boolean
+    lastMeaningfulAt?: boolean
+    expiresAt?: boolean
+    closedAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+    offers?: boolean | ConsultationEpisode$offersArgs<ExtArgs>
+    _count?: boolean | ConsultationEpisodeCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationEpisode"]>
+
+  export type ConsultationEpisodeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    taskKey?: boolean
+    type?: boolean
+    status?: boolean
+    outcome?: boolean
+    schemaVersion?: boolean
+    revision?: boolean
+    contentRevision?: boolean
+    snapshot?: boolean
+    lastMeaningfulAt?: boolean
+    expiresAt?: boolean
+    closedAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationEpisode"]>
+
+  export type ConsultationEpisodeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    taskKey?: boolean
+    type?: boolean
+    status?: boolean
+    outcome?: boolean
+    schemaVersion?: boolean
+    revision?: boolean
+    contentRevision?: boolean
+    snapshot?: boolean
+    lastMeaningfulAt?: boolean
+    expiresAt?: boolean
+    closedAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationEpisode"]>
+
+  export type ConsultationEpisodeSelectScalar = {
+    id?: boolean
+    scopeId?: boolean
+    taskKey?: boolean
+    type?: boolean
+    status?: boolean
+    outcome?: boolean
+    schemaVersion?: boolean
+    revision?: boolean
+    contentRevision?: boolean
+    snapshot?: boolean
+    lastMeaningfulAt?: boolean
+    expiresAt?: boolean
+    closedAt?: boolean
+  }
+
+  export type ConsultationEpisodeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scopeId" | "taskKey" | "type" | "status" | "outcome" | "schemaVersion" | "revision" | "contentRevision" | "snapshot" | "lastMeaningfulAt" | "expiresAt" | "closedAt", ExtArgs["result"]["consultationEpisode"]>
+  export type ConsultationEpisodeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+    offers?: boolean | ConsultationEpisode$offersArgs<ExtArgs>
+    _count?: boolean | ConsultationEpisodeCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ConsultationEpisodeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }
+  export type ConsultationEpisodeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }
+
+  export type $ConsultationEpisodePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ConsultationEpisode"
+    objects: {
+      scope: Prisma.$ConsultationMemoryScopePayload<ExtArgs>
+      offers: Prisma.$ConsultationResumeOfferPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      scopeId: string
+      taskKey: string
+      type: string
+      status: $Enums.ConsultationEpisodeStatus
+      outcome: $Enums.ConsultationEpisodeOutcome | null
+      schemaVersion: number
+      revision: number
+      contentRevision: number
+      snapshot: Prisma.JsonValue
+      lastMeaningfulAt: Date
+      expiresAt: Date
+      closedAt: Date | null
+    }, ExtArgs["result"]["consultationEpisode"]>
+    composites: {}
+  }
+
+  type ConsultationEpisodeGetPayload<S extends boolean | null | undefined | ConsultationEpisodeDefaultArgs> = $Result.GetResult<Prisma.$ConsultationEpisodePayload, S>
+
+  type ConsultationEpisodeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ConsultationEpisodeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ConsultationEpisodeCountAggregateInputType | true
+    }
+
+  export interface ConsultationEpisodeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ConsultationEpisode'], meta: { name: 'ConsultationEpisode' } }
+    /**
+     * Find zero or one ConsultationEpisode that matches the filter.
+     * @param {ConsultationEpisodeFindUniqueArgs} args - Arguments to find a ConsultationEpisode
+     * @example
+     * // Get one ConsultationEpisode
+     * const consultationEpisode = await prisma.consultationEpisode.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ConsultationEpisodeFindUniqueArgs>(args: SelectSubset<T, ConsultationEpisodeFindUniqueArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one ConsultationEpisode that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ConsultationEpisodeFindUniqueOrThrowArgs} args - Arguments to find a ConsultationEpisode
+     * @example
+     * // Get one ConsultationEpisode
+     * const consultationEpisode = await prisma.consultationEpisode.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ConsultationEpisodeFindUniqueOrThrowArgs>(args: SelectSubset<T, ConsultationEpisodeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ConsultationEpisode that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationEpisodeFindFirstArgs} args - Arguments to find a ConsultationEpisode
+     * @example
+     * // Get one ConsultationEpisode
+     * const consultationEpisode = await prisma.consultationEpisode.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ConsultationEpisodeFindFirstArgs>(args?: SelectSubset<T, ConsultationEpisodeFindFirstArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ConsultationEpisode that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationEpisodeFindFirstOrThrowArgs} args - Arguments to find a ConsultationEpisode
+     * @example
+     * // Get one ConsultationEpisode
+     * const consultationEpisode = await prisma.consultationEpisode.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ConsultationEpisodeFindFirstOrThrowArgs>(args?: SelectSubset<T, ConsultationEpisodeFindFirstOrThrowArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more ConsultationEpisodes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationEpisodeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ConsultationEpisodes
+     * const consultationEpisodes = await prisma.consultationEpisode.findMany()
+     * 
+     * // Get first 10 ConsultationEpisodes
+     * const consultationEpisodes = await prisma.consultationEpisode.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const consultationEpisodeWithIdOnly = await prisma.consultationEpisode.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ConsultationEpisodeFindManyArgs>(args?: SelectSubset<T, ConsultationEpisodeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a ConsultationEpisode.
+     * @param {ConsultationEpisodeCreateArgs} args - Arguments to create a ConsultationEpisode.
+     * @example
+     * // Create one ConsultationEpisode
+     * const ConsultationEpisode = await prisma.consultationEpisode.create({
+     *   data: {
+     *     // ... data to create a ConsultationEpisode
+     *   }
+     * })
+     * 
+     */
+    create<T extends ConsultationEpisodeCreateArgs>(args: SelectSubset<T, ConsultationEpisodeCreateArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many ConsultationEpisodes.
+     * @param {ConsultationEpisodeCreateManyArgs} args - Arguments to create many ConsultationEpisodes.
+     * @example
+     * // Create many ConsultationEpisodes
+     * const consultationEpisode = await prisma.consultationEpisode.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ConsultationEpisodeCreateManyArgs>(args?: SelectSubset<T, ConsultationEpisodeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ConsultationEpisodes and returns the data saved in the database.
+     * @param {ConsultationEpisodeCreateManyAndReturnArgs} args - Arguments to create many ConsultationEpisodes.
+     * @example
+     * // Create many ConsultationEpisodes
+     * const consultationEpisode = await prisma.consultationEpisode.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ConsultationEpisodes and only return the `id`
+     * const consultationEpisodeWithIdOnly = await prisma.consultationEpisode.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ConsultationEpisodeCreateManyAndReturnArgs>(args?: SelectSubset<T, ConsultationEpisodeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a ConsultationEpisode.
+     * @param {ConsultationEpisodeDeleteArgs} args - Arguments to delete one ConsultationEpisode.
+     * @example
+     * // Delete one ConsultationEpisode
+     * const ConsultationEpisode = await prisma.consultationEpisode.delete({
+     *   where: {
+     *     // ... filter to delete one ConsultationEpisode
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ConsultationEpisodeDeleteArgs>(args: SelectSubset<T, ConsultationEpisodeDeleteArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one ConsultationEpisode.
+     * @param {ConsultationEpisodeUpdateArgs} args - Arguments to update one ConsultationEpisode.
+     * @example
+     * // Update one ConsultationEpisode
+     * const consultationEpisode = await prisma.consultationEpisode.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ConsultationEpisodeUpdateArgs>(args: SelectSubset<T, ConsultationEpisodeUpdateArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more ConsultationEpisodes.
+     * @param {ConsultationEpisodeDeleteManyArgs} args - Arguments to filter ConsultationEpisodes to delete.
+     * @example
+     * // Delete a few ConsultationEpisodes
+     * const { count } = await prisma.consultationEpisode.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ConsultationEpisodeDeleteManyArgs>(args?: SelectSubset<T, ConsultationEpisodeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConsultationEpisodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationEpisodeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ConsultationEpisodes
+     * const consultationEpisode = await prisma.consultationEpisode.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ConsultationEpisodeUpdateManyArgs>(args: SelectSubset<T, ConsultationEpisodeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConsultationEpisodes and returns the data updated in the database.
+     * @param {ConsultationEpisodeUpdateManyAndReturnArgs} args - Arguments to update many ConsultationEpisodes.
+     * @example
+     * // Update many ConsultationEpisodes
+     * const consultationEpisode = await prisma.consultationEpisode.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ConsultationEpisodes and only return the `id`
+     * const consultationEpisodeWithIdOnly = await prisma.consultationEpisode.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ConsultationEpisodeUpdateManyAndReturnArgs>(args: SelectSubset<T, ConsultationEpisodeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one ConsultationEpisode.
+     * @param {ConsultationEpisodeUpsertArgs} args - Arguments to update or create a ConsultationEpisode.
+     * @example
+     * // Update or create a ConsultationEpisode
+     * const consultationEpisode = await prisma.consultationEpisode.upsert({
+     *   create: {
+     *     // ... data to create a ConsultationEpisode
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ConsultationEpisode we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ConsultationEpisodeUpsertArgs>(args: SelectSubset<T, ConsultationEpisodeUpsertArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of ConsultationEpisodes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationEpisodeCountArgs} args - Arguments to filter ConsultationEpisodes to count.
+     * @example
+     * // Count the number of ConsultationEpisodes
+     * const count = await prisma.consultationEpisode.count({
+     *   where: {
+     *     // ... the filter for the ConsultationEpisodes we want to count
+     *   }
+     * })
+    **/
+    count<T extends ConsultationEpisodeCountArgs>(
+      args?: Subset<T, ConsultationEpisodeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ConsultationEpisodeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ConsultationEpisode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationEpisodeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ConsultationEpisodeAggregateArgs>(args: Subset<T, ConsultationEpisodeAggregateArgs>): Prisma.PrismaPromise<GetConsultationEpisodeAggregateType<T>>
+
+    /**
+     * Group by ConsultationEpisode.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationEpisodeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ConsultationEpisodeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ConsultationEpisodeGroupByArgs['orderBy'] }
+        : { orderBy?: ConsultationEpisodeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ConsultationEpisodeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetConsultationEpisodeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ConsultationEpisode model
+   */
+  readonly fields: ConsultationEpisodeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ConsultationEpisode.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ConsultationEpisodeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    scope<T extends ConsultationMemoryScopeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationMemoryScopeDefaultArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    offers<T extends ConsultationEpisode$offersArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationEpisode$offersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ConsultationEpisode model
+   */ 
+  interface ConsultationEpisodeFieldRefs {
+    readonly id: FieldRef<"ConsultationEpisode", 'String'>
+    readonly scopeId: FieldRef<"ConsultationEpisode", 'String'>
+    readonly taskKey: FieldRef<"ConsultationEpisode", 'String'>
+    readonly type: FieldRef<"ConsultationEpisode", 'String'>
+    readonly status: FieldRef<"ConsultationEpisode", 'ConsultationEpisodeStatus'>
+    readonly outcome: FieldRef<"ConsultationEpisode", 'ConsultationEpisodeOutcome'>
+    readonly schemaVersion: FieldRef<"ConsultationEpisode", 'Int'>
+    readonly revision: FieldRef<"ConsultationEpisode", 'Int'>
+    readonly contentRevision: FieldRef<"ConsultationEpisode", 'Int'>
+    readonly snapshot: FieldRef<"ConsultationEpisode", 'Json'>
+    readonly lastMeaningfulAt: FieldRef<"ConsultationEpisode", 'DateTime'>
+    readonly expiresAt: FieldRef<"ConsultationEpisode", 'DateTime'>
+    readonly closedAt: FieldRef<"ConsultationEpisode", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ConsultationEpisode findUnique
+   */
+  export type ConsultationEpisodeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationEpisode to fetch.
+     */
+    where: ConsultationEpisodeWhereUniqueInput
+  }
+
+  /**
+   * ConsultationEpisode findUniqueOrThrow
+   */
+  export type ConsultationEpisodeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationEpisode to fetch.
+     */
+    where: ConsultationEpisodeWhereUniqueInput
+  }
+
+  /**
+   * ConsultationEpisode findFirst
+   */
+  export type ConsultationEpisodeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationEpisode to fetch.
+     */
+    where?: ConsultationEpisodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationEpisodes to fetch.
+     */
+    orderBy?: ConsultationEpisodeOrderByWithRelationInput | ConsultationEpisodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConsultationEpisodes.
+     */
+    cursor?: ConsultationEpisodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationEpisodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationEpisodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConsultationEpisodes.
+     */
+    distinct?: ConsultationEpisodeScalarFieldEnum | ConsultationEpisodeScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationEpisode findFirstOrThrow
+   */
+  export type ConsultationEpisodeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationEpisode to fetch.
+     */
+    where?: ConsultationEpisodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationEpisodes to fetch.
+     */
+    orderBy?: ConsultationEpisodeOrderByWithRelationInput | ConsultationEpisodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConsultationEpisodes.
+     */
+    cursor?: ConsultationEpisodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationEpisodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationEpisodes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConsultationEpisodes.
+     */
+    distinct?: ConsultationEpisodeScalarFieldEnum | ConsultationEpisodeScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationEpisode findMany
+   */
+  export type ConsultationEpisodeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationEpisodes to fetch.
+     */
+    where?: ConsultationEpisodeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationEpisodes to fetch.
+     */
+    orderBy?: ConsultationEpisodeOrderByWithRelationInput | ConsultationEpisodeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ConsultationEpisodes.
+     */
+    cursor?: ConsultationEpisodeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationEpisodes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationEpisodes.
+     */
+    skip?: number
+    distinct?: ConsultationEpisodeScalarFieldEnum | ConsultationEpisodeScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationEpisode create
+   */
+  export type ConsultationEpisodeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ConsultationEpisode.
+     */
+    data: XOR<ConsultationEpisodeCreateInput, ConsultationEpisodeUncheckedCreateInput>
+  }
+
+  /**
+   * ConsultationEpisode createMany
+   */
+  export type ConsultationEpisodeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ConsultationEpisodes.
+     */
+    data: ConsultationEpisodeCreateManyInput | ConsultationEpisodeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ConsultationEpisode createManyAndReturn
+   */
+  export type ConsultationEpisodeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * The data used to create many ConsultationEpisodes.
+     */
+    data: ConsultationEpisodeCreateManyInput | ConsultationEpisodeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationEpisode update
+   */
+  export type ConsultationEpisodeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ConsultationEpisode.
+     */
+    data: XOR<ConsultationEpisodeUpdateInput, ConsultationEpisodeUncheckedUpdateInput>
+    /**
+     * Choose, which ConsultationEpisode to update.
+     */
+    where: ConsultationEpisodeWhereUniqueInput
+  }
+
+  /**
+   * ConsultationEpisode updateMany
+   */
+  export type ConsultationEpisodeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ConsultationEpisodes.
+     */
+    data: XOR<ConsultationEpisodeUpdateManyMutationInput, ConsultationEpisodeUncheckedUpdateManyInput>
+    /**
+     * Filter which ConsultationEpisodes to update
+     */
+    where?: ConsultationEpisodeWhereInput
+    /**
+     * Limit how many ConsultationEpisodes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConsultationEpisode updateManyAndReturn
+   */
+  export type ConsultationEpisodeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * The data used to update ConsultationEpisodes.
+     */
+    data: XOR<ConsultationEpisodeUpdateManyMutationInput, ConsultationEpisodeUncheckedUpdateManyInput>
+    /**
+     * Filter which ConsultationEpisodes to update
+     */
+    where?: ConsultationEpisodeWhereInput
+    /**
+     * Limit how many ConsultationEpisodes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationEpisode upsert
+   */
+  export type ConsultationEpisodeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ConsultationEpisode to update in case it exists.
+     */
+    where: ConsultationEpisodeWhereUniqueInput
+    /**
+     * In case the ConsultationEpisode found by the `where` argument doesn't exist, create a new ConsultationEpisode with this data.
+     */
+    create: XOR<ConsultationEpisodeCreateInput, ConsultationEpisodeUncheckedCreateInput>
+    /**
+     * In case the ConsultationEpisode was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ConsultationEpisodeUpdateInput, ConsultationEpisodeUncheckedUpdateInput>
+  }
+
+  /**
+   * ConsultationEpisode delete
+   */
+  export type ConsultationEpisodeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+    /**
+     * Filter which ConsultationEpisode to delete.
+     */
+    where: ConsultationEpisodeWhereUniqueInput
+  }
+
+  /**
+   * ConsultationEpisode deleteMany
+   */
+  export type ConsultationEpisodeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConsultationEpisodes to delete
+     */
+    where?: ConsultationEpisodeWhereInput
+    /**
+     * Limit how many ConsultationEpisodes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConsultationEpisode.offers
+   */
+  export type ConsultationEpisode$offersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    where?: ConsultationResumeOfferWhereInput
+    orderBy?: ConsultationResumeOfferOrderByWithRelationInput | ConsultationResumeOfferOrderByWithRelationInput[]
+    cursor?: ConsultationResumeOfferWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConsultationResumeOfferScalarFieldEnum | ConsultationResumeOfferScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationEpisode without action
+   */
+  export type ConsultationEpisodeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationEpisode
+     */
+    select?: ConsultationEpisodeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationEpisode
+     */
+    omit?: ConsultationEpisodeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationEpisodeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ConsultationResumeOffer
+   */
+
+  export type AggregateConsultationResumeOffer = {
+    _count: ConsultationResumeOfferCountAggregateOutputType | null
+    _avg: ConsultationResumeOfferAvgAggregateOutputType | null
+    _sum: ConsultationResumeOfferSumAggregateOutputType | null
+    _min: ConsultationResumeOfferMinAggregateOutputType | null
+    _max: ConsultationResumeOfferMaxAggregateOutputType | null
+  }
+
+  export type ConsultationResumeOfferAvgAggregateOutputType = {
+    episodeRevision: number | null
+    contentRevision: number | null
+    memoryEpoch: number | null
+    inputSeq: number | null
+    handoffVersion: number | null
+  }
+
+  export type ConsultationResumeOfferSumAggregateOutputType = {
+    episodeRevision: number | null
+    contentRevision: number | null
+    memoryEpoch: number | null
+    inputSeq: number | null
+    handoffVersion: number | null
+  }
+
+  export type ConsultationResumeOfferMinAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    episodeId: string | null
+    episodeRevision: number | null
+    contentRevision: number | null
+    memoryEpoch: number | null
+    inputSeq: number | null
+    handoffVersion: number | null
+    expiresAt: Date | null
+    decision: string | null
+    decidedAt: Date | null
+    consumedAt: Date | null
+  }
+
+  export type ConsultationResumeOfferMaxAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    episodeId: string | null
+    episodeRevision: number | null
+    contentRevision: number | null
+    memoryEpoch: number | null
+    inputSeq: number | null
+    handoffVersion: number | null
+    expiresAt: Date | null
+    decision: string | null
+    decidedAt: Date | null
+    consumedAt: Date | null
+  }
+
+  export type ConsultationResumeOfferCountAggregateOutputType = {
+    id: number
+    scopeId: number
+    episodeId: number
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: number
+    decision: number
+    decidedAt: number
+    consumedAt: number
+    _all: number
+  }
+
+
+  export type ConsultationResumeOfferAvgAggregateInputType = {
+    episodeRevision?: true
+    contentRevision?: true
+    memoryEpoch?: true
+    inputSeq?: true
+    handoffVersion?: true
+  }
+
+  export type ConsultationResumeOfferSumAggregateInputType = {
+    episodeRevision?: true
+    contentRevision?: true
+    memoryEpoch?: true
+    inputSeq?: true
+    handoffVersion?: true
+  }
+
+  export type ConsultationResumeOfferMinAggregateInputType = {
+    id?: true
+    scopeId?: true
+    episodeId?: true
+    episodeRevision?: true
+    contentRevision?: true
+    memoryEpoch?: true
+    inputSeq?: true
+    handoffVersion?: true
+    expiresAt?: true
+    decision?: true
+    decidedAt?: true
+    consumedAt?: true
+  }
+
+  export type ConsultationResumeOfferMaxAggregateInputType = {
+    id?: true
+    scopeId?: true
+    episodeId?: true
+    episodeRevision?: true
+    contentRevision?: true
+    memoryEpoch?: true
+    inputSeq?: true
+    handoffVersion?: true
+    expiresAt?: true
+    decision?: true
+    decidedAt?: true
+    consumedAt?: true
+  }
+
+  export type ConsultationResumeOfferCountAggregateInputType = {
+    id?: true
+    scopeId?: true
+    episodeId?: true
+    episodeRevision?: true
+    contentRevision?: true
+    memoryEpoch?: true
+    inputSeq?: true
+    handoffVersion?: true
+    expiresAt?: true
+    decision?: true
+    decidedAt?: true
+    consumedAt?: true
+    _all?: true
+  }
+
+  export type ConsultationResumeOfferAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConsultationResumeOffer to aggregate.
+     */
+    where?: ConsultationResumeOfferWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationResumeOffers to fetch.
+     */
+    orderBy?: ConsultationResumeOfferOrderByWithRelationInput | ConsultationResumeOfferOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ConsultationResumeOfferWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationResumeOffers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationResumeOffers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ConsultationResumeOffers
+    **/
+    _count?: true | ConsultationResumeOfferCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ConsultationResumeOfferAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ConsultationResumeOfferSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ConsultationResumeOfferMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ConsultationResumeOfferMaxAggregateInputType
+  }
+
+  export type GetConsultationResumeOfferAggregateType<T extends ConsultationResumeOfferAggregateArgs> = {
+        [P in keyof T & keyof AggregateConsultationResumeOffer]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateConsultationResumeOffer[P]>
+      : GetScalarType<T[P], AggregateConsultationResumeOffer[P]>
+  }
+
+
+
+
+  export type ConsultationResumeOfferGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationResumeOfferWhereInput
+    orderBy?: ConsultationResumeOfferOrderByWithAggregationInput | ConsultationResumeOfferOrderByWithAggregationInput[]
+    by: ConsultationResumeOfferScalarFieldEnum[] | ConsultationResumeOfferScalarFieldEnum
+    having?: ConsultationResumeOfferScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ConsultationResumeOfferCountAggregateInputType | true
+    _avg?: ConsultationResumeOfferAvgAggregateInputType
+    _sum?: ConsultationResumeOfferSumAggregateInputType
+    _min?: ConsultationResumeOfferMinAggregateInputType
+    _max?: ConsultationResumeOfferMaxAggregateInputType
+  }
+
+  export type ConsultationResumeOfferGroupByOutputType = {
+    id: string
+    scopeId: string
+    episodeId: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date
+    decision: string | null
+    decidedAt: Date | null
+    consumedAt: Date | null
+    _count: ConsultationResumeOfferCountAggregateOutputType | null
+    _avg: ConsultationResumeOfferAvgAggregateOutputType | null
+    _sum: ConsultationResumeOfferSumAggregateOutputType | null
+    _min: ConsultationResumeOfferMinAggregateOutputType | null
+    _max: ConsultationResumeOfferMaxAggregateOutputType | null
+  }
+
+  type GetConsultationResumeOfferGroupByPayload<T extends ConsultationResumeOfferGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ConsultationResumeOfferGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ConsultationResumeOfferGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ConsultationResumeOfferGroupByOutputType[P]>
+            : GetScalarType<T[P], ConsultationResumeOfferGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ConsultationResumeOfferSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    episodeId?: boolean
+    episodeRevision?: boolean
+    contentRevision?: boolean
+    memoryEpoch?: boolean
+    inputSeq?: boolean
+    handoffVersion?: boolean
+    expiresAt?: boolean
+    decision?: boolean
+    decidedAt?: boolean
+    consumedAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+    episode?: boolean | ConsultationEpisodeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationResumeOffer"]>
+
+  export type ConsultationResumeOfferSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    episodeId?: boolean
+    episodeRevision?: boolean
+    contentRevision?: boolean
+    memoryEpoch?: boolean
+    inputSeq?: boolean
+    handoffVersion?: boolean
+    expiresAt?: boolean
+    decision?: boolean
+    decidedAt?: boolean
+    consumedAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+    episode?: boolean | ConsultationEpisodeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationResumeOffer"]>
+
+  export type ConsultationResumeOfferSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    episodeId?: boolean
+    episodeRevision?: boolean
+    contentRevision?: boolean
+    memoryEpoch?: boolean
+    inputSeq?: boolean
+    handoffVersion?: boolean
+    expiresAt?: boolean
+    decision?: boolean
+    decidedAt?: boolean
+    consumedAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+    episode?: boolean | ConsultationEpisodeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationResumeOffer"]>
+
+  export type ConsultationResumeOfferSelectScalar = {
+    id?: boolean
+    scopeId?: boolean
+    episodeId?: boolean
+    episodeRevision?: boolean
+    contentRevision?: boolean
+    memoryEpoch?: boolean
+    inputSeq?: boolean
+    handoffVersion?: boolean
+    expiresAt?: boolean
+    decision?: boolean
+    decidedAt?: boolean
+    consumedAt?: boolean
+  }
+
+  export type ConsultationResumeOfferOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scopeId" | "episodeId" | "episodeRevision" | "contentRevision" | "memoryEpoch" | "inputSeq" | "handoffVersion" | "expiresAt" | "decision" | "decidedAt" | "consumedAt", ExtArgs["result"]["consultationResumeOffer"]>
+  export type ConsultationResumeOfferInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+    episode?: boolean | ConsultationEpisodeDefaultArgs<ExtArgs>
+  }
+  export type ConsultationResumeOfferIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+    episode?: boolean | ConsultationEpisodeDefaultArgs<ExtArgs>
+  }
+  export type ConsultationResumeOfferIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+    episode?: boolean | ConsultationEpisodeDefaultArgs<ExtArgs>
+  }
+
+  export type $ConsultationResumeOfferPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ConsultationResumeOffer"
+    objects: {
+      scope: Prisma.$ConsultationMemoryScopePayload<ExtArgs>
+      episode: Prisma.$ConsultationEpisodePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      scopeId: string
+      episodeId: string
+      episodeRevision: number
+      contentRevision: number
+      memoryEpoch: number
+      inputSeq: number
+      handoffVersion: number
+      expiresAt: Date
+      decision: string | null
+      decidedAt: Date | null
+      consumedAt: Date | null
+    }, ExtArgs["result"]["consultationResumeOffer"]>
+    composites: {}
+  }
+
+  type ConsultationResumeOfferGetPayload<S extends boolean | null | undefined | ConsultationResumeOfferDefaultArgs> = $Result.GetResult<Prisma.$ConsultationResumeOfferPayload, S>
+
+  type ConsultationResumeOfferCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ConsultationResumeOfferFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ConsultationResumeOfferCountAggregateInputType | true
+    }
+
+  export interface ConsultationResumeOfferDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ConsultationResumeOffer'], meta: { name: 'ConsultationResumeOffer' } }
+    /**
+     * Find zero or one ConsultationResumeOffer that matches the filter.
+     * @param {ConsultationResumeOfferFindUniqueArgs} args - Arguments to find a ConsultationResumeOffer
+     * @example
+     * // Get one ConsultationResumeOffer
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ConsultationResumeOfferFindUniqueArgs>(args: SelectSubset<T, ConsultationResumeOfferFindUniqueArgs<ExtArgs>>): Prisma__ConsultationResumeOfferClient<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one ConsultationResumeOffer that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ConsultationResumeOfferFindUniqueOrThrowArgs} args - Arguments to find a ConsultationResumeOffer
+     * @example
+     * // Get one ConsultationResumeOffer
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ConsultationResumeOfferFindUniqueOrThrowArgs>(args: SelectSubset<T, ConsultationResumeOfferFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ConsultationResumeOfferClient<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ConsultationResumeOffer that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationResumeOfferFindFirstArgs} args - Arguments to find a ConsultationResumeOffer
+     * @example
+     * // Get one ConsultationResumeOffer
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ConsultationResumeOfferFindFirstArgs>(args?: SelectSubset<T, ConsultationResumeOfferFindFirstArgs<ExtArgs>>): Prisma__ConsultationResumeOfferClient<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ConsultationResumeOffer that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationResumeOfferFindFirstOrThrowArgs} args - Arguments to find a ConsultationResumeOffer
+     * @example
+     * // Get one ConsultationResumeOffer
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ConsultationResumeOfferFindFirstOrThrowArgs>(args?: SelectSubset<T, ConsultationResumeOfferFindFirstOrThrowArgs<ExtArgs>>): Prisma__ConsultationResumeOfferClient<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more ConsultationResumeOffers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationResumeOfferFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ConsultationResumeOffers
+     * const consultationResumeOffers = await prisma.consultationResumeOffer.findMany()
+     * 
+     * // Get first 10 ConsultationResumeOffers
+     * const consultationResumeOffers = await prisma.consultationResumeOffer.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const consultationResumeOfferWithIdOnly = await prisma.consultationResumeOffer.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ConsultationResumeOfferFindManyArgs>(args?: SelectSubset<T, ConsultationResumeOfferFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a ConsultationResumeOffer.
+     * @param {ConsultationResumeOfferCreateArgs} args - Arguments to create a ConsultationResumeOffer.
+     * @example
+     * // Create one ConsultationResumeOffer
+     * const ConsultationResumeOffer = await prisma.consultationResumeOffer.create({
+     *   data: {
+     *     // ... data to create a ConsultationResumeOffer
+     *   }
+     * })
+     * 
+     */
+    create<T extends ConsultationResumeOfferCreateArgs>(args: SelectSubset<T, ConsultationResumeOfferCreateArgs<ExtArgs>>): Prisma__ConsultationResumeOfferClient<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many ConsultationResumeOffers.
+     * @param {ConsultationResumeOfferCreateManyArgs} args - Arguments to create many ConsultationResumeOffers.
+     * @example
+     * // Create many ConsultationResumeOffers
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ConsultationResumeOfferCreateManyArgs>(args?: SelectSubset<T, ConsultationResumeOfferCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ConsultationResumeOffers and returns the data saved in the database.
+     * @param {ConsultationResumeOfferCreateManyAndReturnArgs} args - Arguments to create many ConsultationResumeOffers.
+     * @example
+     * // Create many ConsultationResumeOffers
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ConsultationResumeOffers and only return the `id`
+     * const consultationResumeOfferWithIdOnly = await prisma.consultationResumeOffer.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ConsultationResumeOfferCreateManyAndReturnArgs>(args?: SelectSubset<T, ConsultationResumeOfferCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a ConsultationResumeOffer.
+     * @param {ConsultationResumeOfferDeleteArgs} args - Arguments to delete one ConsultationResumeOffer.
+     * @example
+     * // Delete one ConsultationResumeOffer
+     * const ConsultationResumeOffer = await prisma.consultationResumeOffer.delete({
+     *   where: {
+     *     // ... filter to delete one ConsultationResumeOffer
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ConsultationResumeOfferDeleteArgs>(args: SelectSubset<T, ConsultationResumeOfferDeleteArgs<ExtArgs>>): Prisma__ConsultationResumeOfferClient<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one ConsultationResumeOffer.
+     * @param {ConsultationResumeOfferUpdateArgs} args - Arguments to update one ConsultationResumeOffer.
+     * @example
+     * // Update one ConsultationResumeOffer
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ConsultationResumeOfferUpdateArgs>(args: SelectSubset<T, ConsultationResumeOfferUpdateArgs<ExtArgs>>): Prisma__ConsultationResumeOfferClient<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more ConsultationResumeOffers.
+     * @param {ConsultationResumeOfferDeleteManyArgs} args - Arguments to filter ConsultationResumeOffers to delete.
+     * @example
+     * // Delete a few ConsultationResumeOffers
+     * const { count } = await prisma.consultationResumeOffer.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ConsultationResumeOfferDeleteManyArgs>(args?: SelectSubset<T, ConsultationResumeOfferDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConsultationResumeOffers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationResumeOfferUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ConsultationResumeOffers
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ConsultationResumeOfferUpdateManyArgs>(args: SelectSubset<T, ConsultationResumeOfferUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConsultationResumeOffers and returns the data updated in the database.
+     * @param {ConsultationResumeOfferUpdateManyAndReturnArgs} args - Arguments to update many ConsultationResumeOffers.
+     * @example
+     * // Update many ConsultationResumeOffers
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ConsultationResumeOffers and only return the `id`
+     * const consultationResumeOfferWithIdOnly = await prisma.consultationResumeOffer.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ConsultationResumeOfferUpdateManyAndReturnArgs>(args: SelectSubset<T, ConsultationResumeOfferUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one ConsultationResumeOffer.
+     * @param {ConsultationResumeOfferUpsertArgs} args - Arguments to update or create a ConsultationResumeOffer.
+     * @example
+     * // Update or create a ConsultationResumeOffer
+     * const consultationResumeOffer = await prisma.consultationResumeOffer.upsert({
+     *   create: {
+     *     // ... data to create a ConsultationResumeOffer
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ConsultationResumeOffer we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ConsultationResumeOfferUpsertArgs>(args: SelectSubset<T, ConsultationResumeOfferUpsertArgs<ExtArgs>>): Prisma__ConsultationResumeOfferClient<$Result.GetResult<Prisma.$ConsultationResumeOfferPayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of ConsultationResumeOffers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationResumeOfferCountArgs} args - Arguments to filter ConsultationResumeOffers to count.
+     * @example
+     * // Count the number of ConsultationResumeOffers
+     * const count = await prisma.consultationResumeOffer.count({
+     *   where: {
+     *     // ... the filter for the ConsultationResumeOffers we want to count
+     *   }
+     * })
+    **/
+    count<T extends ConsultationResumeOfferCountArgs>(
+      args?: Subset<T, ConsultationResumeOfferCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ConsultationResumeOfferCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ConsultationResumeOffer.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationResumeOfferAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ConsultationResumeOfferAggregateArgs>(args: Subset<T, ConsultationResumeOfferAggregateArgs>): Prisma.PrismaPromise<GetConsultationResumeOfferAggregateType<T>>
+
+    /**
+     * Group by ConsultationResumeOffer.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationResumeOfferGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ConsultationResumeOfferGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ConsultationResumeOfferGroupByArgs['orderBy'] }
+        : { orderBy?: ConsultationResumeOfferGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ConsultationResumeOfferGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetConsultationResumeOfferGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ConsultationResumeOffer model
+   */
+  readonly fields: ConsultationResumeOfferFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ConsultationResumeOffer.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ConsultationResumeOfferClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    scope<T extends ConsultationMemoryScopeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationMemoryScopeDefaultArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    episode<T extends ConsultationEpisodeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationEpisodeDefaultArgs<ExtArgs>>): Prisma__ConsultationEpisodeClient<$Result.GetResult<Prisma.$ConsultationEpisodePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ConsultationResumeOffer model
+   */ 
+  interface ConsultationResumeOfferFieldRefs {
+    readonly id: FieldRef<"ConsultationResumeOffer", 'String'>
+    readonly scopeId: FieldRef<"ConsultationResumeOffer", 'String'>
+    readonly episodeId: FieldRef<"ConsultationResumeOffer", 'String'>
+    readonly episodeRevision: FieldRef<"ConsultationResumeOffer", 'Int'>
+    readonly contentRevision: FieldRef<"ConsultationResumeOffer", 'Int'>
+    readonly memoryEpoch: FieldRef<"ConsultationResumeOffer", 'Int'>
+    readonly inputSeq: FieldRef<"ConsultationResumeOffer", 'Int'>
+    readonly handoffVersion: FieldRef<"ConsultationResumeOffer", 'Int'>
+    readonly expiresAt: FieldRef<"ConsultationResumeOffer", 'DateTime'>
+    readonly decision: FieldRef<"ConsultationResumeOffer", 'String'>
+    readonly decidedAt: FieldRef<"ConsultationResumeOffer", 'DateTime'>
+    readonly consumedAt: FieldRef<"ConsultationResumeOffer", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ConsultationResumeOffer findUnique
+   */
+  export type ConsultationResumeOfferFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationResumeOffer to fetch.
+     */
+    where: ConsultationResumeOfferWhereUniqueInput
+  }
+
+  /**
+   * ConsultationResumeOffer findUniqueOrThrow
+   */
+  export type ConsultationResumeOfferFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationResumeOffer to fetch.
+     */
+    where: ConsultationResumeOfferWhereUniqueInput
+  }
+
+  /**
+   * ConsultationResumeOffer findFirst
+   */
+  export type ConsultationResumeOfferFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationResumeOffer to fetch.
+     */
+    where?: ConsultationResumeOfferWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationResumeOffers to fetch.
+     */
+    orderBy?: ConsultationResumeOfferOrderByWithRelationInput | ConsultationResumeOfferOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConsultationResumeOffers.
+     */
+    cursor?: ConsultationResumeOfferWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationResumeOffers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationResumeOffers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConsultationResumeOffers.
+     */
+    distinct?: ConsultationResumeOfferScalarFieldEnum | ConsultationResumeOfferScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationResumeOffer findFirstOrThrow
+   */
+  export type ConsultationResumeOfferFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationResumeOffer to fetch.
+     */
+    where?: ConsultationResumeOfferWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationResumeOffers to fetch.
+     */
+    orderBy?: ConsultationResumeOfferOrderByWithRelationInput | ConsultationResumeOfferOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConsultationResumeOffers.
+     */
+    cursor?: ConsultationResumeOfferWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationResumeOffers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationResumeOffers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConsultationResumeOffers.
+     */
+    distinct?: ConsultationResumeOfferScalarFieldEnum | ConsultationResumeOfferScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationResumeOffer findMany
+   */
+  export type ConsultationResumeOfferFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationResumeOffers to fetch.
+     */
+    where?: ConsultationResumeOfferWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationResumeOffers to fetch.
+     */
+    orderBy?: ConsultationResumeOfferOrderByWithRelationInput | ConsultationResumeOfferOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ConsultationResumeOffers.
+     */
+    cursor?: ConsultationResumeOfferWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationResumeOffers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationResumeOffers.
+     */
+    skip?: number
+    distinct?: ConsultationResumeOfferScalarFieldEnum | ConsultationResumeOfferScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationResumeOffer create
+   */
+  export type ConsultationResumeOfferCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ConsultationResumeOffer.
+     */
+    data: XOR<ConsultationResumeOfferCreateInput, ConsultationResumeOfferUncheckedCreateInput>
+  }
+
+  /**
+   * ConsultationResumeOffer createMany
+   */
+  export type ConsultationResumeOfferCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ConsultationResumeOffers.
+     */
+    data: ConsultationResumeOfferCreateManyInput | ConsultationResumeOfferCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ConsultationResumeOffer createManyAndReturn
+   */
+  export type ConsultationResumeOfferCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * The data used to create many ConsultationResumeOffers.
+     */
+    data: ConsultationResumeOfferCreateManyInput | ConsultationResumeOfferCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationResumeOffer update
+   */
+  export type ConsultationResumeOfferUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ConsultationResumeOffer.
+     */
+    data: XOR<ConsultationResumeOfferUpdateInput, ConsultationResumeOfferUncheckedUpdateInput>
+    /**
+     * Choose, which ConsultationResumeOffer to update.
+     */
+    where: ConsultationResumeOfferWhereUniqueInput
+  }
+
+  /**
+   * ConsultationResumeOffer updateMany
+   */
+  export type ConsultationResumeOfferUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ConsultationResumeOffers.
+     */
+    data: XOR<ConsultationResumeOfferUpdateManyMutationInput, ConsultationResumeOfferUncheckedUpdateManyInput>
+    /**
+     * Filter which ConsultationResumeOffers to update
+     */
+    where?: ConsultationResumeOfferWhereInput
+    /**
+     * Limit how many ConsultationResumeOffers to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConsultationResumeOffer updateManyAndReturn
+   */
+  export type ConsultationResumeOfferUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * The data used to update ConsultationResumeOffers.
+     */
+    data: XOR<ConsultationResumeOfferUpdateManyMutationInput, ConsultationResumeOfferUncheckedUpdateManyInput>
+    /**
+     * Filter which ConsultationResumeOffers to update
+     */
+    where?: ConsultationResumeOfferWhereInput
+    /**
+     * Limit how many ConsultationResumeOffers to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationResumeOffer upsert
+   */
+  export type ConsultationResumeOfferUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ConsultationResumeOffer to update in case it exists.
+     */
+    where: ConsultationResumeOfferWhereUniqueInput
+    /**
+     * In case the ConsultationResumeOffer found by the `where` argument doesn't exist, create a new ConsultationResumeOffer with this data.
+     */
+    create: XOR<ConsultationResumeOfferCreateInput, ConsultationResumeOfferUncheckedCreateInput>
+    /**
+     * In case the ConsultationResumeOffer was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ConsultationResumeOfferUpdateInput, ConsultationResumeOfferUncheckedUpdateInput>
+  }
+
+  /**
+   * ConsultationResumeOffer delete
+   */
+  export type ConsultationResumeOfferDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+    /**
+     * Filter which ConsultationResumeOffer to delete.
+     */
+    where: ConsultationResumeOfferWhereUniqueInput
+  }
+
+  /**
+   * ConsultationResumeOffer deleteMany
+   */
+  export type ConsultationResumeOfferDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConsultationResumeOffers to delete
+     */
+    where?: ConsultationResumeOfferWhereInput
+    /**
+     * Limit how many ConsultationResumeOffers to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConsultationResumeOffer without action
+   */
+  export type ConsultationResumeOfferDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationResumeOffer
+     */
+    select?: ConsultationResumeOfferSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationResumeOffer
+     */
+    omit?: ConsultationResumeOfferOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationResumeOfferInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ConsultationTurnReceipt
+   */
+
+  export type AggregateConsultationTurnReceipt = {
+    _count: ConsultationTurnReceiptCountAggregateOutputType | null
+    _avg: ConsultationTurnReceiptAvgAggregateOutputType | null
+    _sum: ConsultationTurnReceiptSumAggregateOutputType | null
+    _min: ConsultationTurnReceiptMinAggregateOutputType | null
+    _max: ConsultationTurnReceiptMaxAggregateOutputType | null
+  }
+
+  export type ConsultationTurnReceiptAvgAggregateOutputType = {
+    inputSeq: number | null
+  }
+
+  export type ConsultationTurnReceiptSumAggregateOutputType = {
+    inputSeq: number | null
+  }
+
+  export type ConsultationTurnReceiptMinAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    sourceMessageId: string | null
+    assistantMessageId: string | null
+    inputSeq: number | null
+    payloadHash: string | null
+    expiresAt: Date | null
+  }
+
+  export type ConsultationTurnReceiptMaxAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    sourceMessageId: string | null
+    assistantMessageId: string | null
+    inputSeq: number | null
+    payloadHash: string | null
+    expiresAt: Date | null
+  }
+
+  export type ConsultationTurnReceiptCountAggregateOutputType = {
+    id: number
+    scopeId: number
+    sourceMessageId: number
+    assistantMessageId: number
+    inputSeq: number
+    payloadHash: number
+    appliedRevisions: number
+    expiresAt: number
+    _all: number
+  }
+
+
+  export type ConsultationTurnReceiptAvgAggregateInputType = {
+    inputSeq?: true
+  }
+
+  export type ConsultationTurnReceiptSumAggregateInputType = {
+    inputSeq?: true
+  }
+
+  export type ConsultationTurnReceiptMinAggregateInputType = {
+    id?: true
+    scopeId?: true
+    sourceMessageId?: true
+    assistantMessageId?: true
+    inputSeq?: true
+    payloadHash?: true
+    expiresAt?: true
+  }
+
+  export type ConsultationTurnReceiptMaxAggregateInputType = {
+    id?: true
+    scopeId?: true
+    sourceMessageId?: true
+    assistantMessageId?: true
+    inputSeq?: true
+    payloadHash?: true
+    expiresAt?: true
+  }
+
+  export type ConsultationTurnReceiptCountAggregateInputType = {
+    id?: true
+    scopeId?: true
+    sourceMessageId?: true
+    assistantMessageId?: true
+    inputSeq?: true
+    payloadHash?: true
+    appliedRevisions?: true
+    expiresAt?: true
+    _all?: true
+  }
+
+  export type ConsultationTurnReceiptAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConsultationTurnReceipt to aggregate.
+     */
+    where?: ConsultationTurnReceiptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationTurnReceipts to fetch.
+     */
+    orderBy?: ConsultationTurnReceiptOrderByWithRelationInput | ConsultationTurnReceiptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ConsultationTurnReceiptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationTurnReceipts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationTurnReceipts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ConsultationTurnReceipts
+    **/
+    _count?: true | ConsultationTurnReceiptCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ConsultationTurnReceiptAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ConsultationTurnReceiptSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ConsultationTurnReceiptMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ConsultationTurnReceiptMaxAggregateInputType
+  }
+
+  export type GetConsultationTurnReceiptAggregateType<T extends ConsultationTurnReceiptAggregateArgs> = {
+        [P in keyof T & keyof AggregateConsultationTurnReceipt]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateConsultationTurnReceipt[P]>
+      : GetScalarType<T[P], AggregateConsultationTurnReceipt[P]>
+  }
+
+
+
+
+  export type ConsultationTurnReceiptGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConsultationTurnReceiptWhereInput
+    orderBy?: ConsultationTurnReceiptOrderByWithAggregationInput | ConsultationTurnReceiptOrderByWithAggregationInput[]
+    by: ConsultationTurnReceiptScalarFieldEnum[] | ConsultationTurnReceiptScalarFieldEnum
+    having?: ConsultationTurnReceiptScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ConsultationTurnReceiptCountAggregateInputType | true
+    _avg?: ConsultationTurnReceiptAvgAggregateInputType
+    _sum?: ConsultationTurnReceiptSumAggregateInputType
+    _min?: ConsultationTurnReceiptMinAggregateInputType
+    _max?: ConsultationTurnReceiptMaxAggregateInputType
+  }
+
+  export type ConsultationTurnReceiptGroupByOutputType = {
+    id: string
+    scopeId: string
+    sourceMessageId: string
+    assistantMessageId: string
+    inputSeq: number
+    payloadHash: string
+    appliedRevisions: JsonValue
+    expiresAt: Date
+    _count: ConsultationTurnReceiptCountAggregateOutputType | null
+    _avg: ConsultationTurnReceiptAvgAggregateOutputType | null
+    _sum: ConsultationTurnReceiptSumAggregateOutputType | null
+    _min: ConsultationTurnReceiptMinAggregateOutputType | null
+    _max: ConsultationTurnReceiptMaxAggregateOutputType | null
+  }
+
+  type GetConsultationTurnReceiptGroupByPayload<T extends ConsultationTurnReceiptGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ConsultationTurnReceiptGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ConsultationTurnReceiptGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ConsultationTurnReceiptGroupByOutputType[P]>
+            : GetScalarType<T[P], ConsultationTurnReceiptGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ConsultationTurnReceiptSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    sourceMessageId?: boolean
+    assistantMessageId?: boolean
+    inputSeq?: boolean
+    payloadHash?: boolean
+    appliedRevisions?: boolean
+    expiresAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationTurnReceipt"]>
+
+  export type ConsultationTurnReceiptSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    sourceMessageId?: boolean
+    assistantMessageId?: boolean
+    inputSeq?: boolean
+    payloadHash?: boolean
+    appliedRevisions?: boolean
+    expiresAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationTurnReceipt"]>
+
+  export type ConsultationTurnReceiptSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    sourceMessageId?: boolean
+    assistantMessageId?: boolean
+    inputSeq?: boolean
+    payloadHash?: boolean
+    appliedRevisions?: boolean
+    expiresAt?: boolean
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["consultationTurnReceipt"]>
+
+  export type ConsultationTurnReceiptSelectScalar = {
+    id?: boolean
+    scopeId?: boolean
+    sourceMessageId?: boolean
+    assistantMessageId?: boolean
+    inputSeq?: boolean
+    payloadHash?: boolean
+    appliedRevisions?: boolean
+    expiresAt?: boolean
+  }
+
+  export type ConsultationTurnReceiptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scopeId" | "sourceMessageId" | "assistantMessageId" | "inputSeq" | "payloadHash" | "appliedRevisions" | "expiresAt", ExtArgs["result"]["consultationTurnReceipt"]>
+  export type ConsultationTurnReceiptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }
+  export type ConsultationTurnReceiptIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }
+  export type ConsultationTurnReceiptIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | ConsultationMemoryScopeDefaultArgs<ExtArgs>
+  }
+
+  export type $ConsultationTurnReceiptPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ConsultationTurnReceipt"
+    objects: {
+      scope: Prisma.$ConsultationMemoryScopePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      scopeId: string
+      sourceMessageId: string
+      assistantMessageId: string
+      inputSeq: number
+      payloadHash: string
+      appliedRevisions: Prisma.JsonValue
+      expiresAt: Date
+    }, ExtArgs["result"]["consultationTurnReceipt"]>
+    composites: {}
+  }
+
+  type ConsultationTurnReceiptGetPayload<S extends boolean | null | undefined | ConsultationTurnReceiptDefaultArgs> = $Result.GetResult<Prisma.$ConsultationTurnReceiptPayload, S>
+
+  type ConsultationTurnReceiptCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ConsultationTurnReceiptFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ConsultationTurnReceiptCountAggregateInputType | true
+    }
+
+  export interface ConsultationTurnReceiptDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ConsultationTurnReceipt'], meta: { name: 'ConsultationTurnReceipt' } }
+    /**
+     * Find zero or one ConsultationTurnReceipt that matches the filter.
+     * @param {ConsultationTurnReceiptFindUniqueArgs} args - Arguments to find a ConsultationTurnReceipt
+     * @example
+     * // Get one ConsultationTurnReceipt
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ConsultationTurnReceiptFindUniqueArgs>(args: SelectSubset<T, ConsultationTurnReceiptFindUniqueArgs<ExtArgs>>): Prisma__ConsultationTurnReceiptClient<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one ConsultationTurnReceipt that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ConsultationTurnReceiptFindUniqueOrThrowArgs} args - Arguments to find a ConsultationTurnReceipt
+     * @example
+     * // Get one ConsultationTurnReceipt
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ConsultationTurnReceiptFindUniqueOrThrowArgs>(args: SelectSubset<T, ConsultationTurnReceiptFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ConsultationTurnReceiptClient<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ConsultationTurnReceipt that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationTurnReceiptFindFirstArgs} args - Arguments to find a ConsultationTurnReceipt
+     * @example
+     * // Get one ConsultationTurnReceipt
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ConsultationTurnReceiptFindFirstArgs>(args?: SelectSubset<T, ConsultationTurnReceiptFindFirstArgs<ExtArgs>>): Prisma__ConsultationTurnReceiptClient<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first ConsultationTurnReceipt that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationTurnReceiptFindFirstOrThrowArgs} args - Arguments to find a ConsultationTurnReceipt
+     * @example
+     * // Get one ConsultationTurnReceipt
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ConsultationTurnReceiptFindFirstOrThrowArgs>(args?: SelectSubset<T, ConsultationTurnReceiptFindFirstOrThrowArgs<ExtArgs>>): Prisma__ConsultationTurnReceiptClient<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more ConsultationTurnReceipts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationTurnReceiptFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ConsultationTurnReceipts
+     * const consultationTurnReceipts = await prisma.consultationTurnReceipt.findMany()
+     * 
+     * // Get first 10 ConsultationTurnReceipts
+     * const consultationTurnReceipts = await prisma.consultationTurnReceipt.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const consultationTurnReceiptWithIdOnly = await prisma.consultationTurnReceipt.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ConsultationTurnReceiptFindManyArgs>(args?: SelectSubset<T, ConsultationTurnReceiptFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a ConsultationTurnReceipt.
+     * @param {ConsultationTurnReceiptCreateArgs} args - Arguments to create a ConsultationTurnReceipt.
+     * @example
+     * // Create one ConsultationTurnReceipt
+     * const ConsultationTurnReceipt = await prisma.consultationTurnReceipt.create({
+     *   data: {
+     *     // ... data to create a ConsultationTurnReceipt
+     *   }
+     * })
+     * 
+     */
+    create<T extends ConsultationTurnReceiptCreateArgs>(args: SelectSubset<T, ConsultationTurnReceiptCreateArgs<ExtArgs>>): Prisma__ConsultationTurnReceiptClient<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many ConsultationTurnReceipts.
+     * @param {ConsultationTurnReceiptCreateManyArgs} args - Arguments to create many ConsultationTurnReceipts.
+     * @example
+     * // Create many ConsultationTurnReceipts
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ConsultationTurnReceiptCreateManyArgs>(args?: SelectSubset<T, ConsultationTurnReceiptCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ConsultationTurnReceipts and returns the data saved in the database.
+     * @param {ConsultationTurnReceiptCreateManyAndReturnArgs} args - Arguments to create many ConsultationTurnReceipts.
+     * @example
+     * // Create many ConsultationTurnReceipts
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ConsultationTurnReceipts and only return the `id`
+     * const consultationTurnReceiptWithIdOnly = await prisma.consultationTurnReceipt.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ConsultationTurnReceiptCreateManyAndReturnArgs>(args?: SelectSubset<T, ConsultationTurnReceiptCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a ConsultationTurnReceipt.
+     * @param {ConsultationTurnReceiptDeleteArgs} args - Arguments to delete one ConsultationTurnReceipt.
+     * @example
+     * // Delete one ConsultationTurnReceipt
+     * const ConsultationTurnReceipt = await prisma.consultationTurnReceipt.delete({
+     *   where: {
+     *     // ... filter to delete one ConsultationTurnReceipt
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ConsultationTurnReceiptDeleteArgs>(args: SelectSubset<T, ConsultationTurnReceiptDeleteArgs<ExtArgs>>): Prisma__ConsultationTurnReceiptClient<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one ConsultationTurnReceipt.
+     * @param {ConsultationTurnReceiptUpdateArgs} args - Arguments to update one ConsultationTurnReceipt.
+     * @example
+     * // Update one ConsultationTurnReceipt
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ConsultationTurnReceiptUpdateArgs>(args: SelectSubset<T, ConsultationTurnReceiptUpdateArgs<ExtArgs>>): Prisma__ConsultationTurnReceiptClient<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more ConsultationTurnReceipts.
+     * @param {ConsultationTurnReceiptDeleteManyArgs} args - Arguments to filter ConsultationTurnReceipts to delete.
+     * @example
+     * // Delete a few ConsultationTurnReceipts
+     * const { count } = await prisma.consultationTurnReceipt.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ConsultationTurnReceiptDeleteManyArgs>(args?: SelectSubset<T, ConsultationTurnReceiptDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConsultationTurnReceipts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationTurnReceiptUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ConsultationTurnReceipts
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ConsultationTurnReceiptUpdateManyArgs>(args: SelectSubset<T, ConsultationTurnReceiptUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConsultationTurnReceipts and returns the data updated in the database.
+     * @param {ConsultationTurnReceiptUpdateManyAndReturnArgs} args - Arguments to update many ConsultationTurnReceipts.
+     * @example
+     * // Update many ConsultationTurnReceipts
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ConsultationTurnReceipts and only return the `id`
+     * const consultationTurnReceiptWithIdOnly = await prisma.consultationTurnReceipt.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ConsultationTurnReceiptUpdateManyAndReturnArgs>(args: SelectSubset<T, ConsultationTurnReceiptUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one ConsultationTurnReceipt.
+     * @param {ConsultationTurnReceiptUpsertArgs} args - Arguments to update or create a ConsultationTurnReceipt.
+     * @example
+     * // Update or create a ConsultationTurnReceipt
+     * const consultationTurnReceipt = await prisma.consultationTurnReceipt.upsert({
+     *   create: {
+     *     // ... data to create a ConsultationTurnReceipt
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ConsultationTurnReceipt we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ConsultationTurnReceiptUpsertArgs>(args: SelectSubset<T, ConsultationTurnReceiptUpsertArgs<ExtArgs>>): Prisma__ConsultationTurnReceiptClient<$Result.GetResult<Prisma.$ConsultationTurnReceiptPayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of ConsultationTurnReceipts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationTurnReceiptCountArgs} args - Arguments to filter ConsultationTurnReceipts to count.
+     * @example
+     * // Count the number of ConsultationTurnReceipts
+     * const count = await prisma.consultationTurnReceipt.count({
+     *   where: {
+     *     // ... the filter for the ConsultationTurnReceipts we want to count
+     *   }
+     * })
+    **/
+    count<T extends ConsultationTurnReceiptCountArgs>(
+      args?: Subset<T, ConsultationTurnReceiptCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ConsultationTurnReceiptCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ConsultationTurnReceipt.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationTurnReceiptAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ConsultationTurnReceiptAggregateArgs>(args: Subset<T, ConsultationTurnReceiptAggregateArgs>): Prisma.PrismaPromise<GetConsultationTurnReceiptAggregateType<T>>
+
+    /**
+     * Group by ConsultationTurnReceipt.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConsultationTurnReceiptGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ConsultationTurnReceiptGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ConsultationTurnReceiptGroupByArgs['orderBy'] }
+        : { orderBy?: ConsultationTurnReceiptGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ConsultationTurnReceiptGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetConsultationTurnReceiptGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ConsultationTurnReceipt model
+   */
+  readonly fields: ConsultationTurnReceiptFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ConsultationTurnReceipt.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ConsultationTurnReceiptClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    scope<T extends ConsultationMemoryScopeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ConsultationMemoryScopeDefaultArgs<ExtArgs>>): Prisma__ConsultationMemoryScopeClient<$Result.GetResult<Prisma.$ConsultationMemoryScopePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ConsultationTurnReceipt model
+   */ 
+  interface ConsultationTurnReceiptFieldRefs {
+    readonly id: FieldRef<"ConsultationTurnReceipt", 'String'>
+    readonly scopeId: FieldRef<"ConsultationTurnReceipt", 'String'>
+    readonly sourceMessageId: FieldRef<"ConsultationTurnReceipt", 'String'>
+    readonly assistantMessageId: FieldRef<"ConsultationTurnReceipt", 'String'>
+    readonly inputSeq: FieldRef<"ConsultationTurnReceipt", 'Int'>
+    readonly payloadHash: FieldRef<"ConsultationTurnReceipt", 'String'>
+    readonly appliedRevisions: FieldRef<"ConsultationTurnReceipt", 'Json'>
+    readonly expiresAt: FieldRef<"ConsultationTurnReceipt", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ConsultationTurnReceipt findUnique
+   */
+  export type ConsultationTurnReceiptFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationTurnReceipt to fetch.
+     */
+    where: ConsultationTurnReceiptWhereUniqueInput
+  }
+
+  /**
+   * ConsultationTurnReceipt findUniqueOrThrow
+   */
+  export type ConsultationTurnReceiptFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationTurnReceipt to fetch.
+     */
+    where: ConsultationTurnReceiptWhereUniqueInput
+  }
+
+  /**
+   * ConsultationTurnReceipt findFirst
+   */
+  export type ConsultationTurnReceiptFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationTurnReceipt to fetch.
+     */
+    where?: ConsultationTurnReceiptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationTurnReceipts to fetch.
+     */
+    orderBy?: ConsultationTurnReceiptOrderByWithRelationInput | ConsultationTurnReceiptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConsultationTurnReceipts.
+     */
+    cursor?: ConsultationTurnReceiptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationTurnReceipts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationTurnReceipts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConsultationTurnReceipts.
+     */
+    distinct?: ConsultationTurnReceiptScalarFieldEnum | ConsultationTurnReceiptScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationTurnReceipt findFirstOrThrow
+   */
+  export type ConsultationTurnReceiptFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationTurnReceipt to fetch.
+     */
+    where?: ConsultationTurnReceiptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationTurnReceipts to fetch.
+     */
+    orderBy?: ConsultationTurnReceiptOrderByWithRelationInput | ConsultationTurnReceiptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConsultationTurnReceipts.
+     */
+    cursor?: ConsultationTurnReceiptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationTurnReceipts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationTurnReceipts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConsultationTurnReceipts.
+     */
+    distinct?: ConsultationTurnReceiptScalarFieldEnum | ConsultationTurnReceiptScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationTurnReceipt findMany
+   */
+  export type ConsultationTurnReceiptFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * Filter, which ConsultationTurnReceipts to fetch.
+     */
+    where?: ConsultationTurnReceiptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConsultationTurnReceipts to fetch.
+     */
+    orderBy?: ConsultationTurnReceiptOrderByWithRelationInput | ConsultationTurnReceiptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ConsultationTurnReceipts.
+     */
+    cursor?: ConsultationTurnReceiptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConsultationTurnReceipts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConsultationTurnReceipts.
+     */
+    skip?: number
+    distinct?: ConsultationTurnReceiptScalarFieldEnum | ConsultationTurnReceiptScalarFieldEnum[]
+  }
+
+  /**
+   * ConsultationTurnReceipt create
+   */
+  export type ConsultationTurnReceiptCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ConsultationTurnReceipt.
+     */
+    data: XOR<ConsultationTurnReceiptCreateInput, ConsultationTurnReceiptUncheckedCreateInput>
+  }
+
+  /**
+   * ConsultationTurnReceipt createMany
+   */
+  export type ConsultationTurnReceiptCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ConsultationTurnReceipts.
+     */
+    data: ConsultationTurnReceiptCreateManyInput | ConsultationTurnReceiptCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ConsultationTurnReceipt createManyAndReturn
+   */
+  export type ConsultationTurnReceiptCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * The data used to create many ConsultationTurnReceipts.
+     */
+    data: ConsultationTurnReceiptCreateManyInput | ConsultationTurnReceiptCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationTurnReceipt update
+   */
+  export type ConsultationTurnReceiptUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ConsultationTurnReceipt.
+     */
+    data: XOR<ConsultationTurnReceiptUpdateInput, ConsultationTurnReceiptUncheckedUpdateInput>
+    /**
+     * Choose, which ConsultationTurnReceipt to update.
+     */
+    where: ConsultationTurnReceiptWhereUniqueInput
+  }
+
+  /**
+   * ConsultationTurnReceipt updateMany
+   */
+  export type ConsultationTurnReceiptUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ConsultationTurnReceipts.
+     */
+    data: XOR<ConsultationTurnReceiptUpdateManyMutationInput, ConsultationTurnReceiptUncheckedUpdateManyInput>
+    /**
+     * Filter which ConsultationTurnReceipts to update
+     */
+    where?: ConsultationTurnReceiptWhereInput
+    /**
+     * Limit how many ConsultationTurnReceipts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConsultationTurnReceipt updateManyAndReturn
+   */
+  export type ConsultationTurnReceiptUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * The data used to update ConsultationTurnReceipts.
+     */
+    data: XOR<ConsultationTurnReceiptUpdateManyMutationInput, ConsultationTurnReceiptUncheckedUpdateManyInput>
+    /**
+     * Filter which ConsultationTurnReceipts to update
+     */
+    where?: ConsultationTurnReceiptWhereInput
+    /**
+     * Limit how many ConsultationTurnReceipts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConsultationTurnReceipt upsert
+   */
+  export type ConsultationTurnReceiptUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ConsultationTurnReceipt to update in case it exists.
+     */
+    where: ConsultationTurnReceiptWhereUniqueInput
+    /**
+     * In case the ConsultationTurnReceipt found by the `where` argument doesn't exist, create a new ConsultationTurnReceipt with this data.
+     */
+    create: XOR<ConsultationTurnReceiptCreateInput, ConsultationTurnReceiptUncheckedCreateInput>
+    /**
+     * In case the ConsultationTurnReceipt was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ConsultationTurnReceiptUpdateInput, ConsultationTurnReceiptUncheckedUpdateInput>
+  }
+
+  /**
+   * ConsultationTurnReceipt delete
+   */
+  export type ConsultationTurnReceiptDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+    /**
+     * Filter which ConsultationTurnReceipt to delete.
+     */
+    where: ConsultationTurnReceiptWhereUniqueInput
+  }
+
+  /**
+   * ConsultationTurnReceipt deleteMany
+   */
+  export type ConsultationTurnReceiptDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConsultationTurnReceipts to delete
+     */
+    where?: ConsultationTurnReceiptWhereInput
+    /**
+     * Limit how many ConsultationTurnReceipts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConsultationTurnReceipt without action
+   */
+  export type ConsultationTurnReceiptDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConsultationTurnReceipt
+     */
+    select?: ConsultationTurnReceiptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConsultationTurnReceipt
+     */
+    omit?: ConsultationTurnReceiptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConsultationTurnReceiptInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserContextScope
+   */
+
+  export type AggregateUserContextScope = {
+    _count: UserContextScopeCountAggregateOutputType | null
+    _avg: UserContextScopeAvgAggregateOutputType | null
+    _sum: UserContextScopeSumAggregateOutputType | null
+    _min: UserContextScopeMinAggregateOutputType | null
+    _max: UserContextScopeMaxAggregateOutputType | null
+  }
+
+  export type UserContextScopeAvgAggregateOutputType = {
+    revision: number | null
+  }
+
+  export type UserContextScopeSumAggregateOutputType = {
+    revision: number | null
+  }
+
+  export type UserContextScopeMinAggregateOutputType = {
+    id: string | null
+    storeKey: string | null
+    subjectKey: string | null
+    revision: number | null
+  }
+
+  export type UserContextScopeMaxAggregateOutputType = {
+    id: string | null
+    storeKey: string | null
+    subjectKey: string | null
+    revision: number | null
+  }
+
+  export type UserContextScopeCountAggregateOutputType = {
+    id: number
+    storeKey: number
+    subjectKey: number
+    revision: number
+    _all: number
+  }
+
+
+  export type UserContextScopeAvgAggregateInputType = {
+    revision?: true
+  }
+
+  export type UserContextScopeSumAggregateInputType = {
+    revision?: true
+  }
+
+  export type UserContextScopeMinAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    revision?: true
+  }
+
+  export type UserContextScopeMaxAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    revision?: true
+  }
+
+  export type UserContextScopeCountAggregateInputType = {
+    id?: true
+    storeKey?: true
+    subjectKey?: true
+    revision?: true
+    _all?: true
+  }
+
+  export type UserContextScopeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserContextScope to aggregate.
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserContextScopes to fetch.
+     */
+    orderBy?: UserContextScopeOrderByWithRelationInput | UserContextScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserContextScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserContextScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserContextScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserContextScopes
+    **/
+    _count?: true | UserContextScopeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UserContextScopeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UserContextScopeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserContextScopeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserContextScopeMaxAggregateInputType
+  }
+
+  export type GetUserContextScopeAggregateType<T extends UserContextScopeAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserContextScope]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserContextScope[P]>
+      : GetScalarType<T[P], AggregateUserContextScope[P]>
+  }
+
+
+
+
+  export type UserContextScopeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserContextScopeWhereInput
+    orderBy?: UserContextScopeOrderByWithAggregationInput | UserContextScopeOrderByWithAggregationInput[]
+    by: UserContextScopeScalarFieldEnum[] | UserContextScopeScalarFieldEnum
+    having?: UserContextScopeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserContextScopeCountAggregateInputType | true
+    _avg?: UserContextScopeAvgAggregateInputType
+    _sum?: UserContextScopeSumAggregateInputType
+    _min?: UserContextScopeMinAggregateInputType
+    _max?: UserContextScopeMaxAggregateInputType
+  }
+
+  export type UserContextScopeGroupByOutputType = {
+    id: string
+    storeKey: string
+    subjectKey: string
+    revision: number
+    _count: UserContextScopeCountAggregateOutputType | null
+    _avg: UserContextScopeAvgAggregateOutputType | null
+    _sum: UserContextScopeSumAggregateOutputType | null
+    _min: UserContextScopeMinAggregateOutputType | null
+    _max: UserContextScopeMaxAggregateOutputType | null
+  }
+
+  type GetUserContextScopeGroupByPayload<T extends UserContextScopeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserContextScopeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserContextScopeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserContextScopeGroupByOutputType[P]>
+            : GetScalarType<T[P], UserContextScopeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserContextScopeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    revision?: boolean
+    facts?: boolean | UserContextScope$factsArgs<ExtArgs>
+    _count?: boolean | UserContextScopeCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userContextScope"]>
+
+  export type UserContextScopeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    revision?: boolean
+  }, ExtArgs["result"]["userContextScope"]>
+
+  export type UserContextScopeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    revision?: boolean
+  }, ExtArgs["result"]["userContextScope"]>
+
+  export type UserContextScopeSelectScalar = {
+    id?: boolean
+    storeKey?: boolean
+    subjectKey?: boolean
+    revision?: boolean
+  }
+
+  export type UserContextScopeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "storeKey" | "subjectKey" | "revision", ExtArgs["result"]["userContextScope"]>
+  export type UserContextScopeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    facts?: boolean | UserContextScope$factsArgs<ExtArgs>
+    _count?: boolean | UserContextScopeCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type UserContextScopeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type UserContextScopeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $UserContextScopePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserContextScope"
+    objects: {
+      facts: Prisma.$UserContextFactPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      storeKey: string
+      subjectKey: string
+      revision: number
+    }, ExtArgs["result"]["userContextScope"]>
+    composites: {}
+  }
+
+  type UserContextScopeGetPayload<S extends boolean | null | undefined | UserContextScopeDefaultArgs> = $Result.GetResult<Prisma.$UserContextScopePayload, S>
+
+  type UserContextScopeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserContextScopeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserContextScopeCountAggregateInputType | true
+    }
+
+  export interface UserContextScopeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserContextScope'], meta: { name: 'UserContextScope' } }
+    /**
+     * Find zero or one UserContextScope that matches the filter.
+     * @param {UserContextScopeFindUniqueArgs} args - Arguments to find a UserContextScope
+     * @example
+     * // Get one UserContextScope
+     * const userContextScope = await prisma.userContextScope.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserContextScopeFindUniqueArgs>(args: SelectSubset<T, UserContextScopeFindUniqueArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one UserContextScope that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserContextScopeFindUniqueOrThrowArgs} args - Arguments to find a UserContextScope
+     * @example
+     * // Get one UserContextScope
+     * const userContextScope = await prisma.userContextScope.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserContextScopeFindUniqueOrThrowArgs>(args: SelectSubset<T, UserContextScopeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first UserContextScope that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeFindFirstArgs} args - Arguments to find a UserContextScope
+     * @example
+     * // Get one UserContextScope
+     * const userContextScope = await prisma.userContextScope.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserContextScopeFindFirstArgs>(args?: SelectSubset<T, UserContextScopeFindFirstArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first UserContextScope that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeFindFirstOrThrowArgs} args - Arguments to find a UserContextScope
+     * @example
+     * // Get one UserContextScope
+     * const userContextScope = await prisma.userContextScope.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserContextScopeFindFirstOrThrowArgs>(args?: SelectSubset<T, UserContextScopeFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more UserContextScopes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserContextScopes
+     * const userContextScopes = await prisma.userContextScope.findMany()
+     * 
+     * // Get first 10 UserContextScopes
+     * const userContextScopes = await prisma.userContextScope.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userContextScopeWithIdOnly = await prisma.userContextScope.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserContextScopeFindManyArgs>(args?: SelectSubset<T, UserContextScopeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a UserContextScope.
+     * @param {UserContextScopeCreateArgs} args - Arguments to create a UserContextScope.
+     * @example
+     * // Create one UserContextScope
+     * const UserContextScope = await prisma.userContextScope.create({
+     *   data: {
+     *     // ... data to create a UserContextScope
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserContextScopeCreateArgs>(args: SelectSubset<T, UserContextScopeCreateArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many UserContextScopes.
+     * @param {UserContextScopeCreateManyArgs} args - Arguments to create many UserContextScopes.
+     * @example
+     * // Create many UserContextScopes
+     * const userContextScope = await prisma.userContextScope.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserContextScopeCreateManyArgs>(args?: SelectSubset<T, UserContextScopeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserContextScopes and returns the data saved in the database.
+     * @param {UserContextScopeCreateManyAndReturnArgs} args - Arguments to create many UserContextScopes.
+     * @example
+     * // Create many UserContextScopes
+     * const userContextScope = await prisma.userContextScope.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserContextScopes and only return the `id`
+     * const userContextScopeWithIdOnly = await prisma.userContextScope.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserContextScopeCreateManyAndReturnArgs>(args?: SelectSubset<T, UserContextScopeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a UserContextScope.
+     * @param {UserContextScopeDeleteArgs} args - Arguments to delete one UserContextScope.
+     * @example
+     * // Delete one UserContextScope
+     * const UserContextScope = await prisma.userContextScope.delete({
+     *   where: {
+     *     // ... filter to delete one UserContextScope
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserContextScopeDeleteArgs>(args: SelectSubset<T, UserContextScopeDeleteArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one UserContextScope.
+     * @param {UserContextScopeUpdateArgs} args - Arguments to update one UserContextScope.
+     * @example
+     * // Update one UserContextScope
+     * const userContextScope = await prisma.userContextScope.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserContextScopeUpdateArgs>(args: SelectSubset<T, UserContextScopeUpdateArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more UserContextScopes.
+     * @param {UserContextScopeDeleteManyArgs} args - Arguments to filter UserContextScopes to delete.
+     * @example
+     * // Delete a few UserContextScopes
+     * const { count } = await prisma.userContextScope.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserContextScopeDeleteManyArgs>(args?: SelectSubset<T, UserContextScopeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserContextScopes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserContextScopes
+     * const userContextScope = await prisma.userContextScope.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserContextScopeUpdateManyArgs>(args: SelectSubset<T, UserContextScopeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserContextScopes and returns the data updated in the database.
+     * @param {UserContextScopeUpdateManyAndReturnArgs} args - Arguments to update many UserContextScopes.
+     * @example
+     * // Update many UserContextScopes
+     * const userContextScope = await prisma.userContextScope.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserContextScopes and only return the `id`
+     * const userContextScopeWithIdOnly = await prisma.userContextScope.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserContextScopeUpdateManyAndReturnArgs>(args: SelectSubset<T, UserContextScopeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one UserContextScope.
+     * @param {UserContextScopeUpsertArgs} args - Arguments to update or create a UserContextScope.
+     * @example
+     * // Update or create a UserContextScope
+     * const userContextScope = await prisma.userContextScope.upsert({
+     *   create: {
+     *     // ... data to create a UserContextScope
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserContextScope we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserContextScopeUpsertArgs>(args: SelectSubset<T, UserContextScopeUpsertArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of UserContextScopes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeCountArgs} args - Arguments to filter UserContextScopes to count.
+     * @example
+     * // Count the number of UserContextScopes
+     * const count = await prisma.userContextScope.count({
+     *   where: {
+     *     // ... the filter for the UserContextScopes we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserContextScopeCountArgs>(
+      args?: Subset<T, UserContextScopeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserContextScopeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserContextScope.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserContextScopeAggregateArgs>(args: Subset<T, UserContextScopeAggregateArgs>): Prisma.PrismaPromise<GetUserContextScopeAggregateType<T>>
+
+    /**
+     * Group by UserContextScope.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextScopeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserContextScopeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserContextScopeGroupByArgs['orderBy'] }
+        : { orderBy?: UserContextScopeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserContextScopeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserContextScopeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserContextScope model
+   */
+  readonly fields: UserContextScopeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserContextScope.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserContextScopeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    facts<T extends UserContextScope$factsArgs<ExtArgs> = {}>(args?: Subset<T, UserContextScope$factsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findMany", ClientOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserContextScope model
+   */ 
+  interface UserContextScopeFieldRefs {
+    readonly id: FieldRef<"UserContextScope", 'String'>
+    readonly storeKey: FieldRef<"UserContextScope", 'String'>
+    readonly subjectKey: FieldRef<"UserContextScope", 'String'>
+    readonly revision: FieldRef<"UserContextScope", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserContextScope findUnique
+   */
+  export type UserContextScopeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScope to fetch.
+     */
+    where: UserContextScopeWhereUniqueInput
+  }
+
+  /**
+   * UserContextScope findUniqueOrThrow
+   */
+  export type UserContextScopeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScope to fetch.
+     */
+    where: UserContextScopeWhereUniqueInput
+  }
+
+  /**
+   * UserContextScope findFirst
+   */
+  export type UserContextScopeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScope to fetch.
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserContextScopes to fetch.
+     */
+    orderBy?: UserContextScopeOrderByWithRelationInput | UserContextScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserContextScopes.
+     */
+    cursor?: UserContextScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserContextScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserContextScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserContextScopes.
+     */
+    distinct?: UserContextScopeScalarFieldEnum | UserContextScopeScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextScope findFirstOrThrow
+   */
+  export type UserContextScopeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScope to fetch.
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserContextScopes to fetch.
+     */
+    orderBy?: UserContextScopeOrderByWithRelationInput | UserContextScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserContextScopes.
+     */
+    cursor?: UserContextScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserContextScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserContextScopes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserContextScopes.
+     */
+    distinct?: UserContextScopeScalarFieldEnum | UserContextScopeScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextScope findMany
+   */
+  export type UserContextScopeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextScopes to fetch.
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserContextScopes to fetch.
+     */
+    orderBy?: UserContextScopeOrderByWithRelationInput | UserContextScopeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserContextScopes.
+     */
+    cursor?: UserContextScopeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserContextScopes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserContextScopes.
+     */
+    skip?: number
+    distinct?: UserContextScopeScalarFieldEnum | UserContextScopeScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextScope create
+   */
+  export type UserContextScopeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserContextScope.
+     */
+    data: XOR<UserContextScopeCreateInput, UserContextScopeUncheckedCreateInput>
+  }
+
+  /**
+   * UserContextScope createMany
+   */
+  export type UserContextScopeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserContextScopes.
+     */
+    data: UserContextScopeCreateManyInput | UserContextScopeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserContextScope createManyAndReturn
+   */
+  export type UserContextScopeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserContextScopes.
+     */
+    data: UserContextScopeCreateManyInput | UserContextScopeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserContextScope update
+   */
+  export type UserContextScopeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserContextScope.
+     */
+    data: XOR<UserContextScopeUpdateInput, UserContextScopeUncheckedUpdateInput>
+    /**
+     * Choose, which UserContextScope to update.
+     */
+    where: UserContextScopeWhereUniqueInput
+  }
+
+  /**
+   * UserContextScope updateMany
+   */
+  export type UserContextScopeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserContextScopes.
+     */
+    data: XOR<UserContextScopeUpdateManyMutationInput, UserContextScopeUncheckedUpdateManyInput>
+    /**
+     * Filter which UserContextScopes to update
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * Limit how many UserContextScopes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextScope updateManyAndReturn
+   */
+  export type UserContextScopeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * The data used to update UserContextScopes.
+     */
+    data: XOR<UserContextScopeUpdateManyMutationInput, UserContextScopeUncheckedUpdateManyInput>
+    /**
+     * Filter which UserContextScopes to update
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * Limit how many UserContextScopes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextScope upsert
+   */
+  export type UserContextScopeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserContextScope to update in case it exists.
+     */
+    where: UserContextScopeWhereUniqueInput
+    /**
+     * In case the UserContextScope found by the `where` argument doesn't exist, create a new UserContextScope with this data.
+     */
+    create: XOR<UserContextScopeCreateInput, UserContextScopeUncheckedCreateInput>
+    /**
+     * In case the UserContextScope was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserContextScopeUpdateInput, UserContextScopeUncheckedUpdateInput>
+  }
+
+  /**
+   * UserContextScope delete
+   */
+  export type UserContextScopeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+    /**
+     * Filter which UserContextScope to delete.
+     */
+    where: UserContextScopeWhereUniqueInput
+  }
+
+  /**
+   * UserContextScope deleteMany
+   */
+  export type UserContextScopeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserContextScopes to delete
+     */
+    where?: UserContextScopeWhereInput
+    /**
+     * Limit how many UserContextScopes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextScope.facts
+   */
+  export type UserContextScope$factsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    where?: UserContextFactWhereInput
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    cursor?: UserContextFactWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserContextFactScalarFieldEnum | UserContextFactScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextScope without action
+   */
+  export type UserContextScopeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextScope
+     */
+    select?: UserContextScopeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextScope
+     */
+    omit?: UserContextScopeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextScopeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserContextFact
+   */
+
+  export type AggregateUserContextFact = {
+    _count: UserContextFactCountAggregateOutputType | null
+    _avg: UserContextFactAvgAggregateOutputType | null
+    _sum: UserContextFactSumAggregateOutputType | null
+    _min: UserContextFactMinAggregateOutputType | null
+    _max: UserContextFactMaxAggregateOutputType | null
+  }
+
+  export type UserContextFactAvgAggregateOutputType = {
+    sourceEpisodeRevision: number | null
+  }
+
+  export type UserContextFactSumAggregateOutputType = {
+    sourceEpisodeRevision: number | null
+  }
+
+  export type UserContextFactMinAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    domainKey: string | null
+    preferenceKey: string | null
+    confirmation: string | null
+    commandId: string | null
+    sourceKind: string | null
+    sourceKey: string | null
+    sourceEpisodeId: string | null
+    sourceEpisodeRevision: number | null
+    sourceAttributeId: string | null
+    sourceOperator: string | null
+    observedAt: Date | null
+    confirmedAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserContextFactMaxAggregateOutputType = {
+    id: string | null
+    scopeId: string | null
+    domainKey: string | null
+    preferenceKey: string | null
+    confirmation: string | null
+    commandId: string | null
+    sourceKind: string | null
+    sourceKey: string | null
+    sourceEpisodeId: string | null
+    sourceEpisodeRevision: number | null
+    sourceAttributeId: string | null
+    sourceOperator: string | null
+    observedAt: Date | null
+    confirmedAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserContextFactCountAggregateOutputType = {
+    id: number
+    scopeId: number
+    domainKey: number
+    preferenceKey: number
+    value: number
+    confirmation: number
+    commandId: number
+    sourceKind: number
+    sourceKey: number
+    sourceEpisodeId: number
+    sourceEpisodeRevision: number
+    sourceAttributeId: number
+    sourceOperator: number
+    observedAt: number
+    confirmedAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type UserContextFactAvgAggregateInputType = {
+    sourceEpisodeRevision?: true
+  }
+
+  export type UserContextFactSumAggregateInputType = {
+    sourceEpisodeRevision?: true
+  }
+
+  export type UserContextFactMinAggregateInputType = {
+    id?: true
+    scopeId?: true
+    domainKey?: true
+    preferenceKey?: true
+    confirmation?: true
+    commandId?: true
+    sourceKind?: true
+    sourceKey?: true
+    sourceEpisodeId?: true
+    sourceEpisodeRevision?: true
+    sourceAttributeId?: true
+    sourceOperator?: true
+    observedAt?: true
+    confirmedAt?: true
+    updatedAt?: true
+  }
+
+  export type UserContextFactMaxAggregateInputType = {
+    id?: true
+    scopeId?: true
+    domainKey?: true
+    preferenceKey?: true
+    confirmation?: true
+    commandId?: true
+    sourceKind?: true
+    sourceKey?: true
+    sourceEpisodeId?: true
+    sourceEpisodeRevision?: true
+    sourceAttributeId?: true
+    sourceOperator?: true
+    observedAt?: true
+    confirmedAt?: true
+    updatedAt?: true
+  }
+
+  export type UserContextFactCountAggregateInputType = {
+    id?: true
+    scopeId?: true
+    domainKey?: true
+    preferenceKey?: true
+    value?: true
+    confirmation?: true
+    commandId?: true
+    sourceKind?: true
+    sourceKey?: true
+    sourceEpisodeId?: true
+    sourceEpisodeRevision?: true
+    sourceAttributeId?: true
+    sourceOperator?: true
+    observedAt?: true
+    confirmedAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type UserContextFactAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserContextFact to aggregate.
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserContextFacts to fetch.
+     */
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserContextFactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserContextFacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserContextFacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserContextFacts
+    **/
+    _count?: true | UserContextFactCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UserContextFactAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UserContextFactSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserContextFactMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserContextFactMaxAggregateInputType
+  }
+
+  export type GetUserContextFactAggregateType<T extends UserContextFactAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserContextFact]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserContextFact[P]>
+      : GetScalarType<T[P], AggregateUserContextFact[P]>
+  }
+
+
+
+
+  export type UserContextFactGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserContextFactWhereInput
+    orderBy?: UserContextFactOrderByWithAggregationInput | UserContextFactOrderByWithAggregationInput[]
+    by: UserContextFactScalarFieldEnum[] | UserContextFactScalarFieldEnum
+    having?: UserContextFactScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserContextFactCountAggregateInputType | true
+    _avg?: UserContextFactAvgAggregateInputType
+    _sum?: UserContextFactSumAggregateInputType
+    _min?: UserContextFactMinAggregateInputType
+    _max?: UserContextFactMaxAggregateInputType
+  }
+
+  export type UserContextFactGroupByOutputType = {
+    id: string
+    scopeId: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonValue
+    confirmation: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date
+    confirmedAt: Date
+    updatedAt: Date
+    _count: UserContextFactCountAggregateOutputType | null
+    _avg: UserContextFactAvgAggregateOutputType | null
+    _sum: UserContextFactSumAggregateOutputType | null
+    _min: UserContextFactMinAggregateOutputType | null
+    _max: UserContextFactMaxAggregateOutputType | null
+  }
+
+  type GetUserContextFactGroupByPayload<T extends UserContextFactGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserContextFactGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserContextFactGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserContextFactGroupByOutputType[P]>
+            : GetScalarType<T[P], UserContextFactGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserContextFactSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    domainKey?: boolean
+    preferenceKey?: boolean
+    value?: boolean
+    confirmation?: boolean
+    commandId?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    sourceEpisodeId?: boolean
+    sourceEpisodeRevision?: boolean
+    sourceAttributeId?: boolean
+    sourceOperator?: boolean
+    observedAt?: boolean
+    confirmedAt?: boolean
+    updatedAt?: boolean
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userContextFact"]>
+
+  export type UserContextFactSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    domainKey?: boolean
+    preferenceKey?: boolean
+    value?: boolean
+    confirmation?: boolean
+    commandId?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    sourceEpisodeId?: boolean
+    sourceEpisodeRevision?: boolean
+    sourceAttributeId?: boolean
+    sourceOperator?: boolean
+    observedAt?: boolean
+    confirmedAt?: boolean
+    updatedAt?: boolean
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userContextFact"]>
+
+  export type UserContextFactSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    scopeId?: boolean
+    domainKey?: boolean
+    preferenceKey?: boolean
+    value?: boolean
+    confirmation?: boolean
+    commandId?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    sourceEpisodeId?: boolean
+    sourceEpisodeRevision?: boolean
+    sourceAttributeId?: boolean
+    sourceOperator?: boolean
+    observedAt?: boolean
+    confirmedAt?: boolean
+    updatedAt?: boolean
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userContextFact"]>
+
+  export type UserContextFactSelectScalar = {
+    id?: boolean
+    scopeId?: boolean
+    domainKey?: boolean
+    preferenceKey?: boolean
+    value?: boolean
+    confirmation?: boolean
+    commandId?: boolean
+    sourceKind?: boolean
+    sourceKey?: boolean
+    sourceEpisodeId?: boolean
+    sourceEpisodeRevision?: boolean
+    sourceAttributeId?: boolean
+    sourceOperator?: boolean
+    observedAt?: boolean
+    confirmedAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type UserContextFactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "scopeId" | "domainKey" | "preferenceKey" | "value" | "confirmation" | "commandId" | "sourceKind" | "sourceKey" | "sourceEpisodeId" | "sourceEpisodeRevision" | "sourceAttributeId" | "sourceOperator" | "observedAt" | "confirmedAt" | "updatedAt", ExtArgs["result"]["userContextFact"]>
+  export type UserContextFactInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }
+  export type UserContextFactIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }
+  export type UserContextFactIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    scope?: boolean | UserContextScopeDefaultArgs<ExtArgs>
+  }
+
+  export type $UserContextFactPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserContextFact"
+    objects: {
+      scope: Prisma.$UserContextScopePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      scopeId: string
+      domainKey: string
+      preferenceKey: string
+      value: Prisma.JsonValue
+      confirmation: string
+      commandId: string
+      sourceKind: string
+      sourceKey: string
+      sourceEpisodeId: string
+      sourceEpisodeRevision: number
+      sourceAttributeId: string
+      sourceOperator: string
+      observedAt: Date
+      confirmedAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["userContextFact"]>
+    composites: {}
+  }
+
+  type UserContextFactGetPayload<S extends boolean | null | undefined | UserContextFactDefaultArgs> = $Result.GetResult<Prisma.$UserContextFactPayload, S>
+
+  type UserContextFactCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserContextFactFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserContextFactCountAggregateInputType | true
+    }
+
+  export interface UserContextFactDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserContextFact'], meta: { name: 'UserContextFact' } }
+    /**
+     * Find zero or one UserContextFact that matches the filter.
+     * @param {UserContextFactFindUniqueArgs} args - Arguments to find a UserContextFact
+     * @example
+     * // Get one UserContextFact
+     * const userContextFact = await prisma.userContextFact.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserContextFactFindUniqueArgs>(args: SelectSubset<T, UserContextFactFindUniqueArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find one UserContextFact that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserContextFactFindUniqueOrThrowArgs} args - Arguments to find a UserContextFact
+     * @example
+     * // Get one UserContextFact
+     * const userContextFact = await prisma.userContextFact.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserContextFactFindUniqueOrThrowArgs>(args: SelectSubset<T, UserContextFactFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first UserContextFact that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactFindFirstArgs} args - Arguments to find a UserContextFact
+     * @example
+     * // Get one UserContextFact
+     * const userContextFact = await prisma.userContextFact.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserContextFactFindFirstArgs>(args?: SelectSubset<T, UserContextFactFindFirstArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
+
+    /**
+     * Find the first UserContextFact that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactFindFirstOrThrowArgs} args - Arguments to find a UserContextFact
+     * @example
+     * // Get one UserContextFact
+     * const userContextFact = await prisma.userContextFact.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserContextFactFindFirstOrThrowArgs>(args?: SelectSubset<T, UserContextFactFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Find zero or more UserContextFacts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserContextFacts
+     * const userContextFacts = await prisma.userContextFact.findMany()
+     * 
+     * // Get first 10 UserContextFacts
+     * const userContextFacts = await prisma.userContextFact.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userContextFactWithIdOnly = await prisma.userContextFact.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserContextFactFindManyArgs>(args?: SelectSubset<T, UserContextFactFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "findMany", ClientOptions>>
+
+    /**
+     * Create a UserContextFact.
+     * @param {UserContextFactCreateArgs} args - Arguments to create a UserContextFact.
+     * @example
+     * // Create one UserContextFact
+     * const UserContextFact = await prisma.userContextFact.create({
+     *   data: {
+     *     // ... data to create a UserContextFact
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserContextFactCreateArgs>(args: SelectSubset<T, UserContextFactCreateArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Create many UserContextFacts.
+     * @param {UserContextFactCreateManyArgs} args - Arguments to create many UserContextFacts.
+     * @example
+     * // Create many UserContextFacts
+     * const userContextFact = await prisma.userContextFact.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserContextFactCreateManyArgs>(args?: SelectSubset<T, UserContextFactCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserContextFacts and returns the data saved in the database.
+     * @param {UserContextFactCreateManyAndReturnArgs} args - Arguments to create many UserContextFacts.
+     * @example
+     * // Create many UserContextFacts
+     * const userContextFact = await prisma.userContextFact.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserContextFacts and only return the `id`
+     * const userContextFactWithIdOnly = await prisma.userContextFact.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserContextFactCreateManyAndReturnArgs>(args?: SelectSubset<T, UserContextFactCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
+
+    /**
+     * Delete a UserContextFact.
+     * @param {UserContextFactDeleteArgs} args - Arguments to delete one UserContextFact.
+     * @example
+     * // Delete one UserContextFact
+     * const UserContextFact = await prisma.userContextFact.delete({
+     *   where: {
+     *     // ... filter to delete one UserContextFact
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserContextFactDeleteArgs>(args: SelectSubset<T, UserContextFactDeleteArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Update one UserContextFact.
+     * @param {UserContextFactUpdateArgs} args - Arguments to update one UserContextFact.
+     * @example
+     * // Update one UserContextFact
+     * const userContextFact = await prisma.userContextFact.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserContextFactUpdateArgs>(args: SelectSubset<T, UserContextFactUpdateArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
+
+    /**
+     * Delete zero or more UserContextFacts.
+     * @param {UserContextFactDeleteManyArgs} args - Arguments to filter UserContextFacts to delete.
+     * @example
+     * // Delete a few UserContextFacts
+     * const { count } = await prisma.userContextFact.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserContextFactDeleteManyArgs>(args?: SelectSubset<T, UserContextFactDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserContextFacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserContextFacts
+     * const userContextFact = await prisma.userContextFact.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserContextFactUpdateManyArgs>(args: SelectSubset<T, UserContextFactUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserContextFacts and returns the data updated in the database.
+     * @param {UserContextFactUpdateManyAndReturnArgs} args - Arguments to update many UserContextFacts.
+     * @example
+     * // Update many UserContextFacts
+     * const userContextFact = await prisma.userContextFact.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserContextFacts and only return the `id`
+     * const userContextFactWithIdOnly = await prisma.userContextFact.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserContextFactUpdateManyAndReturnArgs>(args: SelectSubset<T, UserContextFactUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
+
+    /**
+     * Create or update one UserContextFact.
+     * @param {UserContextFactUpsertArgs} args - Arguments to update or create a UserContextFact.
+     * @example
+     * // Update or create a UserContextFact
+     * const userContextFact = await prisma.userContextFact.upsert({
+     *   create: {
+     *     // ... data to create a UserContextFact
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserContextFact we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserContextFactUpsertArgs>(args: SelectSubset<T, UserContextFactUpsertArgs<ExtArgs>>): Prisma__UserContextFactClient<$Result.GetResult<Prisma.$UserContextFactPayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
+
+
+    /**
+     * Count the number of UserContextFacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactCountArgs} args - Arguments to filter UserContextFacts to count.
+     * @example
+     * // Count the number of UserContextFacts
+     * const count = await prisma.userContextFact.count({
+     *   where: {
+     *     // ... the filter for the UserContextFacts we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserContextFactCountArgs>(
+      args?: Subset<T, UserContextFactCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserContextFactCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserContextFact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserContextFactAggregateArgs>(args: Subset<T, UserContextFactAggregateArgs>): Prisma.PrismaPromise<GetUserContextFactAggregateType<T>>
+
+    /**
+     * Group by UserContextFact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserContextFactGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserContextFactGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserContextFactGroupByArgs['orderBy'] }
+        : { orderBy?: UserContextFactGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserContextFactGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserContextFactGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserContextFact model
+   */
+  readonly fields: UserContextFactFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserContextFact.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserContextFactClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    scope<T extends UserContextScopeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserContextScopeDefaultArgs<ExtArgs>>): Prisma__UserContextScopeClient<$Result.GetResult<Prisma.$UserContextScopePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions> | Null, Null, ExtArgs, ClientOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserContextFact model
+   */ 
+  interface UserContextFactFieldRefs {
+    readonly id: FieldRef<"UserContextFact", 'String'>
+    readonly scopeId: FieldRef<"UserContextFact", 'String'>
+    readonly domainKey: FieldRef<"UserContextFact", 'String'>
+    readonly preferenceKey: FieldRef<"UserContextFact", 'String'>
+    readonly value: FieldRef<"UserContextFact", 'Json'>
+    readonly confirmation: FieldRef<"UserContextFact", 'String'>
+    readonly commandId: FieldRef<"UserContextFact", 'String'>
+    readonly sourceKind: FieldRef<"UserContextFact", 'String'>
+    readonly sourceKey: FieldRef<"UserContextFact", 'String'>
+    readonly sourceEpisodeId: FieldRef<"UserContextFact", 'String'>
+    readonly sourceEpisodeRevision: FieldRef<"UserContextFact", 'Int'>
+    readonly sourceAttributeId: FieldRef<"UserContextFact", 'String'>
+    readonly sourceOperator: FieldRef<"UserContextFact", 'String'>
+    readonly observedAt: FieldRef<"UserContextFact", 'DateTime'>
+    readonly confirmedAt: FieldRef<"UserContextFact", 'DateTime'>
+    readonly updatedAt: FieldRef<"UserContextFact", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserContextFact findUnique
+   */
+  export type UserContextFactFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFact to fetch.
+     */
+    where: UserContextFactWhereUniqueInput
+  }
+
+  /**
+   * UserContextFact findUniqueOrThrow
+   */
+  export type UserContextFactFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFact to fetch.
+     */
+    where: UserContextFactWhereUniqueInput
+  }
+
+  /**
+   * UserContextFact findFirst
+   */
+  export type UserContextFactFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFact to fetch.
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserContextFacts to fetch.
+     */
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserContextFacts.
+     */
+    cursor?: UserContextFactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserContextFacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserContextFacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserContextFacts.
+     */
+    distinct?: UserContextFactScalarFieldEnum | UserContextFactScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextFact findFirstOrThrow
+   */
+  export type UserContextFactFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFact to fetch.
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserContextFacts to fetch.
+     */
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserContextFacts.
+     */
+    cursor?: UserContextFactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserContextFacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserContextFacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserContextFacts.
+     */
+    distinct?: UserContextFactScalarFieldEnum | UserContextFactScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextFact findMany
+   */
+  export type UserContextFactFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter, which UserContextFacts to fetch.
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserContextFacts to fetch.
+     */
+    orderBy?: UserContextFactOrderByWithRelationInput | UserContextFactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserContextFacts.
+     */
+    cursor?: UserContextFactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserContextFacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserContextFacts.
+     */
+    skip?: number
+    distinct?: UserContextFactScalarFieldEnum | UserContextFactScalarFieldEnum[]
+  }
+
+  /**
+   * UserContextFact create
+   */
+  export type UserContextFactCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserContextFact.
+     */
+    data: XOR<UserContextFactCreateInput, UserContextFactUncheckedCreateInput>
+  }
+
+  /**
+   * UserContextFact createMany
+   */
+  export type UserContextFactCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserContextFacts.
+     */
+    data: UserContextFactCreateManyInput | UserContextFactCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserContextFact createManyAndReturn
+   */
+  export type UserContextFactCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserContextFacts.
+     */
+    data: UserContextFactCreateManyInput | UserContextFactCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserContextFact update
+   */
+  export type UserContextFactUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserContextFact.
+     */
+    data: XOR<UserContextFactUpdateInput, UserContextFactUncheckedUpdateInput>
+    /**
+     * Choose, which UserContextFact to update.
+     */
+    where: UserContextFactWhereUniqueInput
+  }
+
+  /**
+   * UserContextFact updateMany
+   */
+  export type UserContextFactUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserContextFacts.
+     */
+    data: XOR<UserContextFactUpdateManyMutationInput, UserContextFactUncheckedUpdateManyInput>
+    /**
+     * Filter which UserContextFacts to update
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * Limit how many UserContextFacts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextFact updateManyAndReturn
+   */
+  export type UserContextFactUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * The data used to update UserContextFacts.
+     */
+    data: XOR<UserContextFactUpdateManyMutationInput, UserContextFactUncheckedUpdateManyInput>
+    /**
+     * Filter which UserContextFacts to update
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * Limit how many UserContextFacts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserContextFact upsert
+   */
+  export type UserContextFactUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserContextFact to update in case it exists.
+     */
+    where: UserContextFactWhereUniqueInput
+    /**
+     * In case the UserContextFact found by the `where` argument doesn't exist, create a new UserContextFact with this data.
+     */
+    create: XOR<UserContextFactCreateInput, UserContextFactUncheckedCreateInput>
+    /**
+     * In case the UserContextFact was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserContextFactUpdateInput, UserContextFactUncheckedUpdateInput>
+  }
+
+  /**
+   * UserContextFact delete
+   */
+  export type UserContextFactDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+    /**
+     * Filter which UserContextFact to delete.
+     */
+    where: UserContextFactWhereUniqueInput
+  }
+
+  /**
+   * UserContextFact deleteMany
+   */
+  export type UserContextFactDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserContextFacts to delete
+     */
+    where?: UserContextFactWhereInput
+    /**
+     * Limit how many UserContextFacts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserContextFact without action
+   */
+  export type UserContextFactDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserContextFact
+     */
+    select?: UserContextFactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserContextFact
+     */
+    omit?: UserContextFactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserContextFactInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -32920,6 +40942,11 @@ export namespace Prisma {
 
 
   export const ChatScalarFieldEnum: {
+    consultationInputSeq: 'consultationInputSeq',
+    consultationNextInputSeq: 'consultationNextInputSeq',
+    consultationNextHandoffVersion: 'consultationNextHandoffVersion',
+    consultationAttemptId: 'consultationAttemptId',
+    consultationSourceMessageId: 'consultationSourceMessageId',
     id: 'id',
     userId: 'userId',
     operatorId: 'operatorId',
@@ -32934,6 +40961,10 @@ export namespace Prisma {
 
 
   export const MessageScalarFieldEnum: {
+    consultationInputSeq: 'consultationInputSeq',
+    clientMessageId: 'clientMessageId',
+    assistantSourceMessageId: 'assistantSourceMessageId',
+    expectsEpisodeProjection: 'expectsEpisodeProjection',
     id: 'id',
     chatId: 'chatId',
     authorId: 'authorId',
@@ -33270,6 +41301,104 @@ export namespace Prisma {
   export type StoreKnowledgeScalarFieldEnum = (typeof StoreKnowledgeScalarFieldEnum)[keyof typeof StoreKnowledgeScalarFieldEnum]
 
 
+  export const ConsultationMemoryScopeScalarFieldEnum: {
+    id: 'id',
+    storeKey: 'storeKey',
+    subjectKey: 'subjectKey',
+    sourceKind: 'sourceKind',
+    sourceKey: 'sourceKey',
+    chatId: 'chatId',
+    memoryEpoch: 'memoryEpoch',
+    purgedThroughSeq: 'purgedThroughSeq',
+    offerSuppressedUntil: 'offerSuppressedUntil'
+  };
+
+  export type ConsultationMemoryScopeScalarFieldEnum = (typeof ConsultationMemoryScopeScalarFieldEnum)[keyof typeof ConsultationMemoryScopeScalarFieldEnum]
+
+
+  export const ConsultationEpisodeScalarFieldEnum: {
+    id: 'id',
+    scopeId: 'scopeId',
+    taskKey: 'taskKey',
+    type: 'type',
+    status: 'status',
+    outcome: 'outcome',
+    schemaVersion: 'schemaVersion',
+    revision: 'revision',
+    contentRevision: 'contentRevision',
+    snapshot: 'snapshot',
+    lastMeaningfulAt: 'lastMeaningfulAt',
+    expiresAt: 'expiresAt',
+    closedAt: 'closedAt'
+  };
+
+  export type ConsultationEpisodeScalarFieldEnum = (typeof ConsultationEpisodeScalarFieldEnum)[keyof typeof ConsultationEpisodeScalarFieldEnum]
+
+
+  export const ConsultationResumeOfferScalarFieldEnum: {
+    id: 'id',
+    scopeId: 'scopeId',
+    episodeId: 'episodeId',
+    episodeRevision: 'episodeRevision',
+    contentRevision: 'contentRevision',
+    memoryEpoch: 'memoryEpoch',
+    inputSeq: 'inputSeq',
+    handoffVersion: 'handoffVersion',
+    expiresAt: 'expiresAt',
+    decision: 'decision',
+    decidedAt: 'decidedAt',
+    consumedAt: 'consumedAt'
+  };
+
+  export type ConsultationResumeOfferScalarFieldEnum = (typeof ConsultationResumeOfferScalarFieldEnum)[keyof typeof ConsultationResumeOfferScalarFieldEnum]
+
+
+  export const ConsultationTurnReceiptScalarFieldEnum: {
+    id: 'id',
+    scopeId: 'scopeId',
+    sourceMessageId: 'sourceMessageId',
+    assistantMessageId: 'assistantMessageId',
+    inputSeq: 'inputSeq',
+    payloadHash: 'payloadHash',
+    appliedRevisions: 'appliedRevisions',
+    expiresAt: 'expiresAt'
+  };
+
+  export type ConsultationTurnReceiptScalarFieldEnum = (typeof ConsultationTurnReceiptScalarFieldEnum)[keyof typeof ConsultationTurnReceiptScalarFieldEnum]
+
+
+  export const UserContextScopeScalarFieldEnum: {
+    id: 'id',
+    storeKey: 'storeKey',
+    subjectKey: 'subjectKey',
+    revision: 'revision'
+  };
+
+  export type UserContextScopeScalarFieldEnum = (typeof UserContextScopeScalarFieldEnum)[keyof typeof UserContextScopeScalarFieldEnum]
+
+
+  export const UserContextFactScalarFieldEnum: {
+    id: 'id',
+    scopeId: 'scopeId',
+    domainKey: 'domainKey',
+    preferenceKey: 'preferenceKey',
+    value: 'value',
+    confirmation: 'confirmation',
+    commandId: 'commandId',
+    sourceKind: 'sourceKind',
+    sourceKey: 'sourceKey',
+    sourceEpisodeId: 'sourceEpisodeId',
+    sourceEpisodeRevision: 'sourceEpisodeRevision',
+    sourceAttributeId: 'sourceAttributeId',
+    sourceOperator: 'sourceOperator',
+    observedAt: 'observedAt',
+    confirmedAt: 'confirmedAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type UserContextFactScalarFieldEnum = (typeof UserContextFactScalarFieldEnum)[keyof typeof UserContextFactScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -33436,20 +41565,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'ChatMode'
-   */
-  export type EnumChatModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChatMode'>
-    
-
-
-  /**
-   * Reference to a field of type 'ChatMode[]'
-   */
-  export type ListEnumChatModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChatMode[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -33460,6 +41575,20 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ChatMode'
+   */
+  export type EnumChatModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChatMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'ChatMode[]'
+   */
+  export type ListEnumChatModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChatMode[]'>
     
 
 
@@ -33523,28 +41652,28 @@ export namespace Prisma {
    * Reference to a field of type 'ReviewModerationStatus'
    */
   export type EnumReviewModerationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewModerationStatus'>
-
+    
 
 
   /**
    * Reference to a field of type 'ReviewModerationStatus[]'
    */
   export type ListEnumReviewModerationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewModerationStatus[]'>
-
+    
 
 
   /**
    * Reference to a field of type 'ReviewVoteValue'
    */
   export type EnumReviewVoteValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewVoteValue'>
-
+    
 
 
   /**
    * Reference to a field of type 'ReviewVoteValue[]'
    */
   export type ListEnumReviewVoteValueFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReviewVoteValue[]'>
-
+    
 
 
   /**
@@ -33642,6 +41771,34 @@ export namespace Prisma {
    * Reference to a field of type 'ShipmentStatus[]'
    */
   export type ListEnumShipmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShipmentStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ConsultationEpisodeStatus'
+   */
+  export type EnumConsultationEpisodeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConsultationEpisodeStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ConsultationEpisodeStatus[]'
+   */
+  export type ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConsultationEpisodeStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ConsultationEpisodeOutcome'
+   */
+  export type EnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConsultationEpisodeOutcome'>
+    
+
+
+  /**
+   * Reference to a field of type 'ConsultationEpisodeOutcome[]'
+   */
+  export type ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConsultationEpisodeOutcome[]'>
     
 
 
@@ -33970,6 +42127,11 @@ export namespace Prisma {
     AND?: ChatWhereInput | ChatWhereInput[]
     OR?: ChatWhereInput[]
     NOT?: ChatWhereInput | ChatWhereInput[]
+    consultationInputSeq?: IntFilter<"Chat"> | number
+    consultationNextInputSeq?: IntNullableFilter<"Chat"> | number | null
+    consultationNextHandoffVersion?: IntNullableFilter<"Chat"> | number | null
+    consultationAttemptId?: StringNullableFilter<"Chat"> | string | null
+    consultationSourceMessageId?: StringNullableFilter<"Chat"> | string | null
     id?: StringFilter<"Chat"> | string
     userId?: StringFilter<"Chat"> | string
     operatorId?: StringNullableFilter<"Chat"> | string | null
@@ -33978,6 +42140,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Chat"> | Date | string
     updatedAt?: DateTimeFilter<"Chat"> | Date | string
     handoffVersion?: IntFilter<"Chat"> | number
+    consultationMemoryScopes?: ConsultationMemoryScopeListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     operator?: XOR<OperatorProfileNullableScalarRelationFilter, OperatorProfileWhereInput> | null
     messages?: MessageListRelationFilter
@@ -33985,6 +42148,11 @@ export namespace Prisma {
   }
 
   export type ChatOrderByWithRelationInput = {
+    consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrderInput | SortOrder
+    consultationNextHandoffVersion?: SortOrderInput | SortOrder
+    consultationAttemptId?: SortOrderInput | SortOrder
+    consultationSourceMessageId?: SortOrderInput | SortOrder
     id?: SortOrder
     userId?: SortOrder
     operatorId?: SortOrderInput | SortOrder
@@ -33993,6 +42161,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     handoffVersion?: SortOrder
+    consultationMemoryScopes?: ConsultationMemoryScopeOrderByRelationAggregateInput
     user?: UserOrderByWithRelationInput
     operator?: OperatorProfileOrderByWithRelationInput
     messages?: MessageOrderByRelationAggregateInput
@@ -34005,12 +42174,18 @@ export namespace Prisma {
     AND?: ChatWhereInput | ChatWhereInput[]
     OR?: ChatWhereInput[]
     NOT?: ChatWhereInput | ChatWhereInput[]
+    consultationInputSeq?: IntFilter<"Chat"> | number
+    consultationNextInputSeq?: IntNullableFilter<"Chat"> | number | null
+    consultationNextHandoffVersion?: IntNullableFilter<"Chat"> | number | null
+    consultationAttemptId?: StringNullableFilter<"Chat"> | string | null
+    consultationSourceMessageId?: StringNullableFilter<"Chat"> | string | null
     operatorId?: StringNullableFilter<"Chat"> | string | null
     mode?: EnumChatModeFilter<"Chat"> | $Enums.ChatMode
     lastMessageAt?: DateTimeFilter<"Chat"> | Date | string
     createdAt?: DateTimeFilter<"Chat"> | Date | string
     updatedAt?: DateTimeFilter<"Chat"> | Date | string
     handoffVersion?: IntFilter<"Chat"> | number
+    consultationMemoryScopes?: ConsultationMemoryScopeListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     operator?: XOR<OperatorProfileNullableScalarRelationFilter, OperatorProfileWhereInput> | null
     messages?: MessageListRelationFilter
@@ -34018,6 +42193,11 @@ export namespace Prisma {
   }, "id" | "userId">
 
   export type ChatOrderByWithAggregationInput = {
+    consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrderInput | SortOrder
+    consultationNextHandoffVersion?: SortOrderInput | SortOrder
+    consultationAttemptId?: SortOrderInput | SortOrder
+    consultationSourceMessageId?: SortOrderInput | SortOrder
     id?: SortOrder
     userId?: SortOrder
     operatorId?: SortOrderInput | SortOrder
@@ -34037,6 +42217,11 @@ export namespace Prisma {
     AND?: ChatScalarWhereWithAggregatesInput | ChatScalarWhereWithAggregatesInput[]
     OR?: ChatScalarWhereWithAggregatesInput[]
     NOT?: ChatScalarWhereWithAggregatesInput | ChatScalarWhereWithAggregatesInput[]
+    consultationInputSeq?: IntWithAggregatesFilter<"Chat"> | number
+    consultationNextInputSeq?: IntNullableWithAggregatesFilter<"Chat"> | number | null
+    consultationNextHandoffVersion?: IntNullableWithAggregatesFilter<"Chat"> | number | null
+    consultationAttemptId?: StringNullableWithAggregatesFilter<"Chat"> | string | null
+    consultationSourceMessageId?: StringNullableWithAggregatesFilter<"Chat"> | string | null
     id?: StringWithAggregatesFilter<"Chat"> | string
     userId?: StringWithAggregatesFilter<"Chat"> | string
     operatorId?: StringNullableWithAggregatesFilter<"Chat"> | string | null
@@ -34051,6 +42236,10 @@ export namespace Prisma {
     AND?: MessageWhereInput | MessageWhereInput[]
     OR?: MessageWhereInput[]
     NOT?: MessageWhereInput | MessageWhereInput[]
+    consultationInputSeq?: IntNullableFilter<"Message"> | number | null
+    clientMessageId?: StringNullableFilter<"Message"> | string | null
+    assistantSourceMessageId?: StringNullableFilter<"Message"> | string | null
+    expectsEpisodeProjection?: BoolFilter<"Message"> | boolean
     id?: StringFilter<"Message"> | string
     chatId?: StringFilter<"Message"> | string
     authorId?: StringNullableFilter<"Message"> | string | null
@@ -34063,6 +42252,10 @@ export namespace Prisma {
   }
 
   export type MessageOrderByWithRelationInput = {
+    consultationInputSeq?: SortOrderInput | SortOrder
+    clientMessageId?: SortOrderInput | SortOrder
+    assistantSourceMessageId?: SortOrderInput | SortOrder
+    expectsEpisodeProjection?: SortOrder
     id?: SortOrder
     chatId?: SortOrder
     authorId?: SortOrderInput | SortOrder
@@ -34076,9 +42269,15 @@ export namespace Prisma {
 
   export type MessageWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    chatId_clientMessageId?: MessageChatIdClientMessageIdCompoundUniqueInput
+    chatId_assistantSourceMessageId?: MessageChatIdAssistantSourceMessageIdCompoundUniqueInput
     AND?: MessageWhereInput | MessageWhereInput[]
     OR?: MessageWhereInput[]
     NOT?: MessageWhereInput | MessageWhereInput[]
+    consultationInputSeq?: IntNullableFilter<"Message"> | number | null
+    clientMessageId?: StringNullableFilter<"Message"> | string | null
+    assistantSourceMessageId?: StringNullableFilter<"Message"> | string | null
+    expectsEpisodeProjection?: BoolFilter<"Message"> | boolean
     chatId?: StringFilter<"Message"> | string
     authorId?: StringNullableFilter<"Message"> | string | null
     role?: EnumConversationMessageRoleFilter<"Message"> | $Enums.ConversationMessageRole
@@ -34087,9 +42286,13 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Message"> | Date | string
     chat?: XOR<ChatScalarRelationFilter, ChatWhereInput>
     author?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
-  }, "id">
+  }, "id" | "chatId_clientMessageId" | "chatId_assistantSourceMessageId">
 
   export type MessageOrderByWithAggregationInput = {
+    consultationInputSeq?: SortOrderInput | SortOrder
+    clientMessageId?: SortOrderInput | SortOrder
+    assistantSourceMessageId?: SortOrderInput | SortOrder
+    expectsEpisodeProjection?: SortOrder
     id?: SortOrder
     chatId?: SortOrder
     authorId?: SortOrderInput | SortOrder
@@ -34098,14 +42301,20 @@ export namespace Prisma {
     payload?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: MessageCountOrderByAggregateInput
+    _avg?: MessageAvgOrderByAggregateInput
     _max?: MessageMaxOrderByAggregateInput
     _min?: MessageMinOrderByAggregateInput
+    _sum?: MessageSumOrderByAggregateInput
   }
 
   export type MessageScalarWhereWithAggregatesInput = {
     AND?: MessageScalarWhereWithAggregatesInput | MessageScalarWhereWithAggregatesInput[]
     OR?: MessageScalarWhereWithAggregatesInput[]
     NOT?: MessageScalarWhereWithAggregatesInput | MessageScalarWhereWithAggregatesInput[]
+    consultationInputSeq?: IntNullableWithAggregatesFilter<"Message"> | number | null
+    clientMessageId?: StringNullableWithAggregatesFilter<"Message"> | string | null
+    assistantSourceMessageId?: StringNullableWithAggregatesFilter<"Message"> | string | null
+    expectsEpisodeProjection?: BoolWithAggregatesFilter<"Message"> | boolean
     id?: StringWithAggregatesFilter<"Message"> | string
     chatId?: StringWithAggregatesFilter<"Message"> | string
     authorId?: StringNullableWithAggregatesFilter<"Message"> | string | null
@@ -35806,6 +44015,530 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"StoreKnowledge"> | Date | string
   }
 
+  export type ConsultationMemoryScopeWhereInput = {
+    AND?: ConsultationMemoryScopeWhereInput | ConsultationMemoryScopeWhereInput[]
+    OR?: ConsultationMemoryScopeWhereInput[]
+    NOT?: ConsultationMemoryScopeWhereInput | ConsultationMemoryScopeWhereInput[]
+    id?: StringFilter<"ConsultationMemoryScope"> | string
+    storeKey?: StringFilter<"ConsultationMemoryScope"> | string
+    subjectKey?: StringFilter<"ConsultationMemoryScope"> | string
+    sourceKind?: StringFilter<"ConsultationMemoryScope"> | string
+    sourceKey?: StringFilter<"ConsultationMemoryScope"> | string
+    chatId?: StringNullableFilter<"ConsultationMemoryScope"> | string | null
+    memoryEpoch?: IntFilter<"ConsultationMemoryScope"> | number
+    purgedThroughSeq?: IntFilter<"ConsultationMemoryScope"> | number
+    offerSuppressedUntil?: DateTimeNullableFilter<"ConsultationMemoryScope"> | Date | string | null
+    chat?: XOR<ChatNullableScalarRelationFilter, ChatWhereInput> | null
+    episodes?: ConsultationEpisodeListRelationFilter
+    offers?: ConsultationResumeOfferListRelationFilter
+    receipts?: ConsultationTurnReceiptListRelationFilter
+  }
+
+  export type ConsultationMemoryScopeOrderByWithRelationInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    chatId?: SortOrderInput | SortOrder
+    memoryEpoch?: SortOrder
+    purgedThroughSeq?: SortOrder
+    offerSuppressedUntil?: SortOrderInput | SortOrder
+    chat?: ChatOrderByWithRelationInput
+    episodes?: ConsultationEpisodeOrderByRelationAggregateInput
+    offers?: ConsultationResumeOfferOrderByRelationAggregateInput
+    receipts?: ConsultationTurnReceiptOrderByRelationAggregateInput
+  }
+
+  export type ConsultationMemoryScopeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    storeKey_subjectKey_sourceKind_sourceKey?: ConsultationMemoryScopeStoreKeySubjectKeySourceKindSourceKeyCompoundUniqueInput
+    storeKey_chatId?: ConsultationMemoryScopeStoreKeyChatIdCompoundUniqueInput
+    AND?: ConsultationMemoryScopeWhereInput | ConsultationMemoryScopeWhereInput[]
+    OR?: ConsultationMemoryScopeWhereInput[]
+    NOT?: ConsultationMemoryScopeWhereInput | ConsultationMemoryScopeWhereInput[]
+    storeKey?: StringFilter<"ConsultationMemoryScope"> | string
+    subjectKey?: StringFilter<"ConsultationMemoryScope"> | string
+    sourceKind?: StringFilter<"ConsultationMemoryScope"> | string
+    sourceKey?: StringFilter<"ConsultationMemoryScope"> | string
+    chatId?: StringNullableFilter<"ConsultationMemoryScope"> | string | null
+    memoryEpoch?: IntFilter<"ConsultationMemoryScope"> | number
+    purgedThroughSeq?: IntFilter<"ConsultationMemoryScope"> | number
+    offerSuppressedUntil?: DateTimeNullableFilter<"ConsultationMemoryScope"> | Date | string | null
+    chat?: XOR<ChatNullableScalarRelationFilter, ChatWhereInput> | null
+    episodes?: ConsultationEpisodeListRelationFilter
+    offers?: ConsultationResumeOfferListRelationFilter
+    receipts?: ConsultationTurnReceiptListRelationFilter
+  }, "id" | "storeKey_subjectKey_sourceKind_sourceKey" | "storeKey_chatId">
+
+  export type ConsultationMemoryScopeOrderByWithAggregationInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    chatId?: SortOrderInput | SortOrder
+    memoryEpoch?: SortOrder
+    purgedThroughSeq?: SortOrder
+    offerSuppressedUntil?: SortOrderInput | SortOrder
+    _count?: ConsultationMemoryScopeCountOrderByAggregateInput
+    _avg?: ConsultationMemoryScopeAvgOrderByAggregateInput
+    _max?: ConsultationMemoryScopeMaxOrderByAggregateInput
+    _min?: ConsultationMemoryScopeMinOrderByAggregateInput
+    _sum?: ConsultationMemoryScopeSumOrderByAggregateInput
+  }
+
+  export type ConsultationMemoryScopeScalarWhereWithAggregatesInput = {
+    AND?: ConsultationMemoryScopeScalarWhereWithAggregatesInput | ConsultationMemoryScopeScalarWhereWithAggregatesInput[]
+    OR?: ConsultationMemoryScopeScalarWhereWithAggregatesInput[]
+    NOT?: ConsultationMemoryScopeScalarWhereWithAggregatesInput | ConsultationMemoryScopeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ConsultationMemoryScope"> | string
+    storeKey?: StringWithAggregatesFilter<"ConsultationMemoryScope"> | string
+    subjectKey?: StringWithAggregatesFilter<"ConsultationMemoryScope"> | string
+    sourceKind?: StringWithAggregatesFilter<"ConsultationMemoryScope"> | string
+    sourceKey?: StringWithAggregatesFilter<"ConsultationMemoryScope"> | string
+    chatId?: StringNullableWithAggregatesFilter<"ConsultationMemoryScope"> | string | null
+    memoryEpoch?: IntWithAggregatesFilter<"ConsultationMemoryScope"> | number
+    purgedThroughSeq?: IntWithAggregatesFilter<"ConsultationMemoryScope"> | number
+    offerSuppressedUntil?: DateTimeNullableWithAggregatesFilter<"ConsultationMemoryScope"> | Date | string | null
+  }
+
+  export type ConsultationEpisodeWhereInput = {
+    AND?: ConsultationEpisodeWhereInput | ConsultationEpisodeWhereInput[]
+    OR?: ConsultationEpisodeWhereInput[]
+    NOT?: ConsultationEpisodeWhereInput | ConsultationEpisodeWhereInput[]
+    id?: StringFilter<"ConsultationEpisode"> | string
+    scopeId?: StringFilter<"ConsultationEpisode"> | string
+    taskKey?: StringFilter<"ConsultationEpisode"> | string
+    type?: StringFilter<"ConsultationEpisode"> | string
+    status?: EnumConsultationEpisodeStatusFilter<"ConsultationEpisode"> | $Enums.ConsultationEpisodeStatus
+    outcome?: EnumConsultationEpisodeOutcomeNullableFilter<"ConsultationEpisode"> | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFilter<"ConsultationEpisode"> | number
+    revision?: IntFilter<"ConsultationEpisode"> | number
+    contentRevision?: IntFilter<"ConsultationEpisode"> | number
+    snapshot?: JsonFilter<"ConsultationEpisode">
+    lastMeaningfulAt?: DateTimeFilter<"ConsultationEpisode"> | Date | string
+    expiresAt?: DateTimeFilter<"ConsultationEpisode"> | Date | string
+    closedAt?: DateTimeNullableFilter<"ConsultationEpisode"> | Date | string | null
+    scope?: XOR<ConsultationMemoryScopeScalarRelationFilter, ConsultationMemoryScopeWhereInput>
+    offers?: ConsultationResumeOfferListRelationFilter
+  }
+
+  export type ConsultationEpisodeOrderByWithRelationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    taskKey?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    outcome?: SortOrderInput | SortOrder
+    schemaVersion?: SortOrder
+    revision?: SortOrder
+    contentRevision?: SortOrder
+    snapshot?: SortOrder
+    lastMeaningfulAt?: SortOrder
+    expiresAt?: SortOrder
+    closedAt?: SortOrderInput | SortOrder
+    scope?: ConsultationMemoryScopeOrderByWithRelationInput
+    offers?: ConsultationResumeOfferOrderByRelationAggregateInput
+  }
+
+  export type ConsultationEpisodeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    scopeId_taskKey?: ConsultationEpisodeScopeIdTaskKeyCompoundUniqueInput
+    AND?: ConsultationEpisodeWhereInput | ConsultationEpisodeWhereInput[]
+    OR?: ConsultationEpisodeWhereInput[]
+    NOT?: ConsultationEpisodeWhereInput | ConsultationEpisodeWhereInput[]
+    scopeId?: StringFilter<"ConsultationEpisode"> | string
+    taskKey?: StringFilter<"ConsultationEpisode"> | string
+    type?: StringFilter<"ConsultationEpisode"> | string
+    status?: EnumConsultationEpisodeStatusFilter<"ConsultationEpisode"> | $Enums.ConsultationEpisodeStatus
+    outcome?: EnumConsultationEpisodeOutcomeNullableFilter<"ConsultationEpisode"> | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFilter<"ConsultationEpisode"> | number
+    revision?: IntFilter<"ConsultationEpisode"> | number
+    contentRevision?: IntFilter<"ConsultationEpisode"> | number
+    snapshot?: JsonFilter<"ConsultationEpisode">
+    lastMeaningfulAt?: DateTimeFilter<"ConsultationEpisode"> | Date | string
+    expiresAt?: DateTimeFilter<"ConsultationEpisode"> | Date | string
+    closedAt?: DateTimeNullableFilter<"ConsultationEpisode"> | Date | string | null
+    scope?: XOR<ConsultationMemoryScopeScalarRelationFilter, ConsultationMemoryScopeWhereInput>
+    offers?: ConsultationResumeOfferListRelationFilter
+  }, "id" | "scopeId_taskKey">
+
+  export type ConsultationEpisodeOrderByWithAggregationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    taskKey?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    outcome?: SortOrderInput | SortOrder
+    schemaVersion?: SortOrder
+    revision?: SortOrder
+    contentRevision?: SortOrder
+    snapshot?: SortOrder
+    lastMeaningfulAt?: SortOrder
+    expiresAt?: SortOrder
+    closedAt?: SortOrderInput | SortOrder
+    _count?: ConsultationEpisodeCountOrderByAggregateInput
+    _avg?: ConsultationEpisodeAvgOrderByAggregateInput
+    _max?: ConsultationEpisodeMaxOrderByAggregateInput
+    _min?: ConsultationEpisodeMinOrderByAggregateInput
+    _sum?: ConsultationEpisodeSumOrderByAggregateInput
+  }
+
+  export type ConsultationEpisodeScalarWhereWithAggregatesInput = {
+    AND?: ConsultationEpisodeScalarWhereWithAggregatesInput | ConsultationEpisodeScalarWhereWithAggregatesInput[]
+    OR?: ConsultationEpisodeScalarWhereWithAggregatesInput[]
+    NOT?: ConsultationEpisodeScalarWhereWithAggregatesInput | ConsultationEpisodeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ConsultationEpisode"> | string
+    scopeId?: StringWithAggregatesFilter<"ConsultationEpisode"> | string
+    taskKey?: StringWithAggregatesFilter<"ConsultationEpisode"> | string
+    type?: StringWithAggregatesFilter<"ConsultationEpisode"> | string
+    status?: EnumConsultationEpisodeStatusWithAggregatesFilter<"ConsultationEpisode"> | $Enums.ConsultationEpisodeStatus
+    outcome?: EnumConsultationEpisodeOutcomeNullableWithAggregatesFilter<"ConsultationEpisode"> | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntWithAggregatesFilter<"ConsultationEpisode"> | number
+    revision?: IntWithAggregatesFilter<"ConsultationEpisode"> | number
+    contentRevision?: IntWithAggregatesFilter<"ConsultationEpisode"> | number
+    snapshot?: JsonWithAggregatesFilter<"ConsultationEpisode">
+    lastMeaningfulAt?: DateTimeWithAggregatesFilter<"ConsultationEpisode"> | Date | string
+    expiresAt?: DateTimeWithAggregatesFilter<"ConsultationEpisode"> | Date | string
+    closedAt?: DateTimeNullableWithAggregatesFilter<"ConsultationEpisode"> | Date | string | null
+  }
+
+  export type ConsultationResumeOfferWhereInput = {
+    AND?: ConsultationResumeOfferWhereInput | ConsultationResumeOfferWhereInput[]
+    OR?: ConsultationResumeOfferWhereInput[]
+    NOT?: ConsultationResumeOfferWhereInput | ConsultationResumeOfferWhereInput[]
+    id?: StringFilter<"ConsultationResumeOffer"> | string
+    scopeId?: StringFilter<"ConsultationResumeOffer"> | string
+    episodeId?: StringFilter<"ConsultationResumeOffer"> | string
+    episodeRevision?: IntFilter<"ConsultationResumeOffer"> | number
+    contentRevision?: IntFilter<"ConsultationResumeOffer"> | number
+    memoryEpoch?: IntFilter<"ConsultationResumeOffer"> | number
+    inputSeq?: IntFilter<"ConsultationResumeOffer"> | number
+    handoffVersion?: IntFilter<"ConsultationResumeOffer"> | number
+    expiresAt?: DateTimeFilter<"ConsultationResumeOffer"> | Date | string
+    decision?: StringNullableFilter<"ConsultationResumeOffer"> | string | null
+    decidedAt?: DateTimeNullableFilter<"ConsultationResumeOffer"> | Date | string | null
+    consumedAt?: DateTimeNullableFilter<"ConsultationResumeOffer"> | Date | string | null
+    scope?: XOR<ConsultationMemoryScopeScalarRelationFilter, ConsultationMemoryScopeWhereInput>
+    episode?: XOR<ConsultationEpisodeScalarRelationFilter, ConsultationEpisodeWhereInput>
+  }
+
+  export type ConsultationResumeOfferOrderByWithRelationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    episodeId?: SortOrder
+    episodeRevision?: SortOrder
+    contentRevision?: SortOrder
+    memoryEpoch?: SortOrder
+    inputSeq?: SortOrder
+    handoffVersion?: SortOrder
+    expiresAt?: SortOrder
+    decision?: SortOrderInput | SortOrder
+    decidedAt?: SortOrderInput | SortOrder
+    consumedAt?: SortOrderInput | SortOrder
+    scope?: ConsultationMemoryScopeOrderByWithRelationInput
+    episode?: ConsultationEpisodeOrderByWithRelationInput
+  }
+
+  export type ConsultationResumeOfferWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    episodeId_contentRevision?: ConsultationResumeOfferEpisodeIdContentRevisionCompoundUniqueInput
+    AND?: ConsultationResumeOfferWhereInput | ConsultationResumeOfferWhereInput[]
+    OR?: ConsultationResumeOfferWhereInput[]
+    NOT?: ConsultationResumeOfferWhereInput | ConsultationResumeOfferWhereInput[]
+    scopeId?: StringFilter<"ConsultationResumeOffer"> | string
+    episodeId?: StringFilter<"ConsultationResumeOffer"> | string
+    episodeRevision?: IntFilter<"ConsultationResumeOffer"> | number
+    contentRevision?: IntFilter<"ConsultationResumeOffer"> | number
+    memoryEpoch?: IntFilter<"ConsultationResumeOffer"> | number
+    inputSeq?: IntFilter<"ConsultationResumeOffer"> | number
+    handoffVersion?: IntFilter<"ConsultationResumeOffer"> | number
+    expiresAt?: DateTimeFilter<"ConsultationResumeOffer"> | Date | string
+    decision?: StringNullableFilter<"ConsultationResumeOffer"> | string | null
+    decidedAt?: DateTimeNullableFilter<"ConsultationResumeOffer"> | Date | string | null
+    consumedAt?: DateTimeNullableFilter<"ConsultationResumeOffer"> | Date | string | null
+    scope?: XOR<ConsultationMemoryScopeScalarRelationFilter, ConsultationMemoryScopeWhereInput>
+    episode?: XOR<ConsultationEpisodeScalarRelationFilter, ConsultationEpisodeWhereInput>
+  }, "id" | "episodeId_contentRevision">
+
+  export type ConsultationResumeOfferOrderByWithAggregationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    episodeId?: SortOrder
+    episodeRevision?: SortOrder
+    contentRevision?: SortOrder
+    memoryEpoch?: SortOrder
+    inputSeq?: SortOrder
+    handoffVersion?: SortOrder
+    expiresAt?: SortOrder
+    decision?: SortOrderInput | SortOrder
+    decidedAt?: SortOrderInput | SortOrder
+    consumedAt?: SortOrderInput | SortOrder
+    _count?: ConsultationResumeOfferCountOrderByAggregateInput
+    _avg?: ConsultationResumeOfferAvgOrderByAggregateInput
+    _max?: ConsultationResumeOfferMaxOrderByAggregateInput
+    _min?: ConsultationResumeOfferMinOrderByAggregateInput
+    _sum?: ConsultationResumeOfferSumOrderByAggregateInput
+  }
+
+  export type ConsultationResumeOfferScalarWhereWithAggregatesInput = {
+    AND?: ConsultationResumeOfferScalarWhereWithAggregatesInput | ConsultationResumeOfferScalarWhereWithAggregatesInput[]
+    OR?: ConsultationResumeOfferScalarWhereWithAggregatesInput[]
+    NOT?: ConsultationResumeOfferScalarWhereWithAggregatesInput | ConsultationResumeOfferScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ConsultationResumeOffer"> | string
+    scopeId?: StringWithAggregatesFilter<"ConsultationResumeOffer"> | string
+    episodeId?: StringWithAggregatesFilter<"ConsultationResumeOffer"> | string
+    episodeRevision?: IntWithAggregatesFilter<"ConsultationResumeOffer"> | number
+    contentRevision?: IntWithAggregatesFilter<"ConsultationResumeOffer"> | number
+    memoryEpoch?: IntWithAggregatesFilter<"ConsultationResumeOffer"> | number
+    inputSeq?: IntWithAggregatesFilter<"ConsultationResumeOffer"> | number
+    handoffVersion?: IntWithAggregatesFilter<"ConsultationResumeOffer"> | number
+    expiresAt?: DateTimeWithAggregatesFilter<"ConsultationResumeOffer"> | Date | string
+    decision?: StringNullableWithAggregatesFilter<"ConsultationResumeOffer"> | string | null
+    decidedAt?: DateTimeNullableWithAggregatesFilter<"ConsultationResumeOffer"> | Date | string | null
+    consumedAt?: DateTimeNullableWithAggregatesFilter<"ConsultationResumeOffer"> | Date | string | null
+  }
+
+  export type ConsultationTurnReceiptWhereInput = {
+    AND?: ConsultationTurnReceiptWhereInput | ConsultationTurnReceiptWhereInput[]
+    OR?: ConsultationTurnReceiptWhereInput[]
+    NOT?: ConsultationTurnReceiptWhereInput | ConsultationTurnReceiptWhereInput[]
+    id?: StringFilter<"ConsultationTurnReceipt"> | string
+    scopeId?: StringFilter<"ConsultationTurnReceipt"> | string
+    sourceMessageId?: StringFilter<"ConsultationTurnReceipt"> | string
+    assistantMessageId?: StringFilter<"ConsultationTurnReceipt"> | string
+    inputSeq?: IntFilter<"ConsultationTurnReceipt"> | number
+    payloadHash?: StringFilter<"ConsultationTurnReceipt"> | string
+    appliedRevisions?: JsonFilter<"ConsultationTurnReceipt">
+    expiresAt?: DateTimeFilter<"ConsultationTurnReceipt"> | Date | string
+    scope?: XOR<ConsultationMemoryScopeScalarRelationFilter, ConsultationMemoryScopeWhereInput>
+  }
+
+  export type ConsultationTurnReceiptOrderByWithRelationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    sourceMessageId?: SortOrder
+    assistantMessageId?: SortOrder
+    inputSeq?: SortOrder
+    payloadHash?: SortOrder
+    appliedRevisions?: SortOrder
+    expiresAt?: SortOrder
+    scope?: ConsultationMemoryScopeOrderByWithRelationInput
+  }
+
+  export type ConsultationTurnReceiptWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    scopeId_sourceMessageId?: ConsultationTurnReceiptScopeIdSourceMessageIdCompoundUniqueInput
+    AND?: ConsultationTurnReceiptWhereInput | ConsultationTurnReceiptWhereInput[]
+    OR?: ConsultationTurnReceiptWhereInput[]
+    NOT?: ConsultationTurnReceiptWhereInput | ConsultationTurnReceiptWhereInput[]
+    scopeId?: StringFilter<"ConsultationTurnReceipt"> | string
+    sourceMessageId?: StringFilter<"ConsultationTurnReceipt"> | string
+    assistantMessageId?: StringFilter<"ConsultationTurnReceipt"> | string
+    inputSeq?: IntFilter<"ConsultationTurnReceipt"> | number
+    payloadHash?: StringFilter<"ConsultationTurnReceipt"> | string
+    appliedRevisions?: JsonFilter<"ConsultationTurnReceipt">
+    expiresAt?: DateTimeFilter<"ConsultationTurnReceipt"> | Date | string
+    scope?: XOR<ConsultationMemoryScopeScalarRelationFilter, ConsultationMemoryScopeWhereInput>
+  }, "id" | "scopeId_sourceMessageId">
+
+  export type ConsultationTurnReceiptOrderByWithAggregationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    sourceMessageId?: SortOrder
+    assistantMessageId?: SortOrder
+    inputSeq?: SortOrder
+    payloadHash?: SortOrder
+    appliedRevisions?: SortOrder
+    expiresAt?: SortOrder
+    _count?: ConsultationTurnReceiptCountOrderByAggregateInput
+    _avg?: ConsultationTurnReceiptAvgOrderByAggregateInput
+    _max?: ConsultationTurnReceiptMaxOrderByAggregateInput
+    _min?: ConsultationTurnReceiptMinOrderByAggregateInput
+    _sum?: ConsultationTurnReceiptSumOrderByAggregateInput
+  }
+
+  export type ConsultationTurnReceiptScalarWhereWithAggregatesInput = {
+    AND?: ConsultationTurnReceiptScalarWhereWithAggregatesInput | ConsultationTurnReceiptScalarWhereWithAggregatesInput[]
+    OR?: ConsultationTurnReceiptScalarWhereWithAggregatesInput[]
+    NOT?: ConsultationTurnReceiptScalarWhereWithAggregatesInput | ConsultationTurnReceiptScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ConsultationTurnReceipt"> | string
+    scopeId?: StringWithAggregatesFilter<"ConsultationTurnReceipt"> | string
+    sourceMessageId?: StringWithAggregatesFilter<"ConsultationTurnReceipt"> | string
+    assistantMessageId?: StringWithAggregatesFilter<"ConsultationTurnReceipt"> | string
+    inputSeq?: IntWithAggregatesFilter<"ConsultationTurnReceipt"> | number
+    payloadHash?: StringWithAggregatesFilter<"ConsultationTurnReceipt"> | string
+    appliedRevisions?: JsonWithAggregatesFilter<"ConsultationTurnReceipt">
+    expiresAt?: DateTimeWithAggregatesFilter<"ConsultationTurnReceipt"> | Date | string
+  }
+
+  export type UserContextScopeWhereInput = {
+    AND?: UserContextScopeWhereInput | UserContextScopeWhereInput[]
+    OR?: UserContextScopeWhereInput[]
+    NOT?: UserContextScopeWhereInput | UserContextScopeWhereInput[]
+    id?: StringFilter<"UserContextScope"> | string
+    storeKey?: StringFilter<"UserContextScope"> | string
+    subjectKey?: StringFilter<"UserContextScope"> | string
+    revision?: IntFilter<"UserContextScope"> | number
+    facts?: UserContextFactListRelationFilter
+  }
+
+  export type UserContextScopeOrderByWithRelationInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+    facts?: UserContextFactOrderByRelationAggregateInput
+  }
+
+  export type UserContextScopeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    storeKey_subjectKey?: UserContextScopeStoreKeySubjectKeyCompoundUniqueInput
+    AND?: UserContextScopeWhereInput | UserContextScopeWhereInput[]
+    OR?: UserContextScopeWhereInput[]
+    NOT?: UserContextScopeWhereInput | UserContextScopeWhereInput[]
+    storeKey?: StringFilter<"UserContextScope"> | string
+    subjectKey?: StringFilter<"UserContextScope"> | string
+    revision?: IntFilter<"UserContextScope"> | number
+    facts?: UserContextFactListRelationFilter
+  }, "id" | "storeKey_subjectKey">
+
+  export type UserContextScopeOrderByWithAggregationInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+    _count?: UserContextScopeCountOrderByAggregateInput
+    _avg?: UserContextScopeAvgOrderByAggregateInput
+    _max?: UserContextScopeMaxOrderByAggregateInput
+    _min?: UserContextScopeMinOrderByAggregateInput
+    _sum?: UserContextScopeSumOrderByAggregateInput
+  }
+
+  export type UserContextScopeScalarWhereWithAggregatesInput = {
+    AND?: UserContextScopeScalarWhereWithAggregatesInput | UserContextScopeScalarWhereWithAggregatesInput[]
+    OR?: UserContextScopeScalarWhereWithAggregatesInput[]
+    NOT?: UserContextScopeScalarWhereWithAggregatesInput | UserContextScopeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserContextScope"> | string
+    storeKey?: StringWithAggregatesFilter<"UserContextScope"> | string
+    subjectKey?: StringWithAggregatesFilter<"UserContextScope"> | string
+    revision?: IntWithAggregatesFilter<"UserContextScope"> | number
+  }
+
+  export type UserContextFactWhereInput = {
+    AND?: UserContextFactWhereInput | UserContextFactWhereInput[]
+    OR?: UserContextFactWhereInput[]
+    NOT?: UserContextFactWhereInput | UserContextFactWhereInput[]
+    id?: StringFilter<"UserContextFact"> | string
+    scopeId?: StringFilter<"UserContextFact"> | string
+    domainKey?: StringFilter<"UserContextFact"> | string
+    preferenceKey?: StringFilter<"UserContextFact"> | string
+    value?: JsonFilter<"UserContextFact">
+    confirmation?: StringFilter<"UserContextFact"> | string
+    commandId?: StringFilter<"UserContextFact"> | string
+    sourceKind?: StringFilter<"UserContextFact"> | string
+    sourceKey?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeId?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeRevision?: IntFilter<"UserContextFact"> | number
+    sourceAttributeId?: StringFilter<"UserContextFact"> | string
+    sourceOperator?: StringFilter<"UserContextFact"> | string
+    observedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    confirmedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    updatedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    scope?: XOR<UserContextScopeScalarRelationFilter, UserContextScopeWhereInput>
+  }
+
+  export type UserContextFactOrderByWithRelationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    value?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+    scope?: UserContextScopeOrderByWithRelationInput
+  }
+
+  export type UserContextFactWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    scopeId_domainKey_preferenceKey?: UserContextFactScopeIdDomainKeyPreferenceKeyCompoundUniqueInput
+    AND?: UserContextFactWhereInput | UserContextFactWhereInput[]
+    OR?: UserContextFactWhereInput[]
+    NOT?: UserContextFactWhereInput | UserContextFactWhereInput[]
+    scopeId?: StringFilter<"UserContextFact"> | string
+    domainKey?: StringFilter<"UserContextFact"> | string
+    preferenceKey?: StringFilter<"UserContextFact"> | string
+    value?: JsonFilter<"UserContextFact">
+    confirmation?: StringFilter<"UserContextFact"> | string
+    commandId?: StringFilter<"UserContextFact"> | string
+    sourceKind?: StringFilter<"UserContextFact"> | string
+    sourceKey?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeId?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeRevision?: IntFilter<"UserContextFact"> | number
+    sourceAttributeId?: StringFilter<"UserContextFact"> | string
+    sourceOperator?: StringFilter<"UserContextFact"> | string
+    observedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    confirmedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    updatedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    scope?: XOR<UserContextScopeScalarRelationFilter, UserContextScopeWhereInput>
+  }, "id" | "scopeId_domainKey_preferenceKey">
+
+  export type UserContextFactOrderByWithAggregationInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    value?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: UserContextFactCountOrderByAggregateInput
+    _avg?: UserContextFactAvgOrderByAggregateInput
+    _max?: UserContextFactMaxOrderByAggregateInput
+    _min?: UserContextFactMinOrderByAggregateInput
+    _sum?: UserContextFactSumOrderByAggregateInput
+  }
+
+  export type UserContextFactScalarWhereWithAggregatesInput = {
+    AND?: UserContextFactScalarWhereWithAggregatesInput | UserContextFactScalarWhereWithAggregatesInput[]
+    OR?: UserContextFactScalarWhereWithAggregatesInput[]
+    NOT?: UserContextFactScalarWhereWithAggregatesInput | UserContextFactScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserContextFact"> | string
+    scopeId?: StringWithAggregatesFilter<"UserContextFact"> | string
+    domainKey?: StringWithAggregatesFilter<"UserContextFact"> | string
+    preferenceKey?: StringWithAggregatesFilter<"UserContextFact"> | string
+    value?: JsonWithAggregatesFilter<"UserContextFact">
+    confirmation?: StringWithAggregatesFilter<"UserContextFact"> | string
+    commandId?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceKind?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceKey?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceEpisodeId?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceEpisodeRevision?: IntWithAggregatesFilter<"UserContextFact"> | number
+    sourceAttributeId?: StringWithAggregatesFilter<"UserContextFact"> | string
+    sourceOperator?: StringWithAggregatesFilter<"UserContextFact"> | string
+    observedAt?: DateTimeWithAggregatesFilter<"UserContextFact"> | Date | string
+    confirmedAt?: DateTimeWithAggregatesFilter<"UserContextFact"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"UserContextFact"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -36159,12 +44892,18 @@ export namespace Prisma {
   }
 
   export type ChatCreateInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     mode?: $Enums.ChatMode
     lastMessageAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeCreateNestedManyWithoutChatInput
     user: UserCreateNestedOneWithoutChatInput
     operator?: OperatorProfileCreateNestedOneWithoutChatsInput
     messages?: MessageCreateNestedManyWithoutChatInput
@@ -36172,6 +44911,11 @@ export namespace Prisma {
   }
 
   export type ChatUncheckedCreateInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     userId: string
     operatorId?: string | null
@@ -36180,17 +44924,24 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedCreateNestedManyWithoutChatInput
     messages?: MessageUncheckedCreateNestedManyWithoutChatInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutChatInput
   }
 
   export type ChatUpdateInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUpdateManyWithoutChatNestedInput
     user?: UserUpdateOneRequiredWithoutChatNestedInput
     operator?: OperatorProfileUpdateOneWithoutChatsNestedInput
     messages?: MessageUpdateManyWithoutChatNestedInput
@@ -36198,6 +44949,11 @@ export namespace Prisma {
   }
 
   export type ChatUncheckedUpdateInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     operatorId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -36206,11 +44962,17 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedUpdateManyWithoutChatNestedInput
     messages?: MessageUncheckedUpdateManyWithoutChatNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutChatNestedInput
   }
 
   export type ChatCreateManyInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     userId: string
     operatorId?: string | null
@@ -36222,6 +44984,11 @@ export namespace Prisma {
   }
 
   export type ChatUpdateManyMutationInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36231,6 +44998,11 @@ export namespace Prisma {
   }
 
   export type ChatUncheckedUpdateManyInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     operatorId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -36242,6 +45014,10 @@ export namespace Prisma {
   }
 
   export type MessageCreateInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     role: $Enums.ConversationMessageRole
     content: string
@@ -36252,6 +45028,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedCreateInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     chatId: string
     authorId?: string | null
@@ -36262,6 +45042,10 @@ export namespace Prisma {
   }
 
   export type MessageUpdateInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     role?: EnumConversationMessageRoleFieldUpdateOperationsInput | $Enums.ConversationMessageRole
     content?: StringFieldUpdateOperationsInput | string
@@ -36272,6 +45056,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedUpdateInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     chatId?: StringFieldUpdateOperationsInput | string
     authorId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -36282,6 +45070,10 @@ export namespace Prisma {
   }
 
   export type MessageCreateManyInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     chatId: string
     authorId?: string | null
@@ -36292,6 +45084,10 @@ export namespace Prisma {
   }
 
   export type MessageUpdateManyMutationInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     role?: EnumConversationMessageRoleFieldUpdateOperationsInput | $Enums.ConversationMessageRole
     content?: StringFieldUpdateOperationsInput | string
@@ -36300,6 +45096,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedUpdateManyInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     chatId?: StringFieldUpdateOperationsInput | string
     authorId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -38177,6 +46977,580 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ConsultationMemoryScopeCreateInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    chat?: ChatCreateNestedOneWithoutConsultationMemoryScopesInput
+    episodes?: ConsultationEpisodeCreateNestedManyWithoutScopeInput
+    offers?: ConsultationResumeOfferCreateNestedManyWithoutScopeInput
+    receipts?: ConsultationTurnReceiptCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedCreateInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    chatId?: string | null
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    episodes?: ConsultationEpisodeUncheckedCreateNestedManyWithoutScopeInput
+    offers?: ConsultationResumeOfferUncheckedCreateNestedManyWithoutScopeInput
+    receipts?: ConsultationTurnReceiptUncheckedCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chat?: ChatUpdateOneWithoutConsultationMemoryScopesNestedInput
+    episodes?: ConsultationEpisodeUpdateManyWithoutScopeNestedInput
+    offers?: ConsultationResumeOfferUpdateManyWithoutScopeNestedInput
+    receipts?: ConsultationTurnReceiptUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    chatId?: NullableStringFieldUpdateOperationsInput | string | null
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    episodes?: ConsultationEpisodeUncheckedUpdateManyWithoutScopeNestedInput
+    offers?: ConsultationResumeOfferUncheckedUpdateManyWithoutScopeNestedInput
+    receipts?: ConsultationTurnReceiptUncheckedUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationMemoryScopeCreateManyInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    chatId?: string | null
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+  }
+
+  export type ConsultationMemoryScopeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationMemoryScopeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    chatId?: NullableStringFieldUpdateOperationsInput | string | null
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationEpisodeCreateInput = {
+    id?: string
+    taskKey: string
+    type?: string
+    status?: $Enums.ConsultationEpisodeStatus
+    outcome?: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: number
+    revision?: number
+    contentRevision?: number
+    snapshot: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt: Date | string
+    expiresAt: Date | string
+    closedAt?: Date | string | null
+    scope: ConsultationMemoryScopeCreateNestedOneWithoutEpisodesInput
+    offers?: ConsultationResumeOfferCreateNestedManyWithoutEpisodeInput
+  }
+
+  export type ConsultationEpisodeUncheckedCreateInput = {
+    id?: string
+    scopeId: string
+    taskKey: string
+    type?: string
+    status?: $Enums.ConsultationEpisodeStatus
+    outcome?: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: number
+    revision?: number
+    contentRevision?: number
+    snapshot: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt: Date | string
+    expiresAt: Date | string
+    closedAt?: Date | string | null
+    offers?: ConsultationResumeOfferUncheckedCreateNestedManyWithoutEpisodeInput
+  }
+
+  export type ConsultationEpisodeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scope?: ConsultationMemoryScopeUpdateOneRequiredWithoutEpisodesNestedInput
+    offers?: ConsultationResumeOfferUpdateManyWithoutEpisodeNestedInput
+  }
+
+  export type ConsultationEpisodeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offers?: ConsultationResumeOfferUncheckedUpdateManyWithoutEpisodeNestedInput
+  }
+
+  export type ConsultationEpisodeCreateManyInput = {
+    id?: string
+    scopeId: string
+    taskKey: string
+    type?: string
+    status?: $Enums.ConsultationEpisodeStatus
+    outcome?: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: number
+    revision?: number
+    contentRevision?: number
+    snapshot: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt: Date | string
+    expiresAt: Date | string
+    closedAt?: Date | string | null
+  }
+
+  export type ConsultationEpisodeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationEpisodeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationResumeOfferCreateInput = {
+    id?: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+    scope: ConsultationMemoryScopeCreateNestedOneWithoutOffersInput
+    episode: ConsultationEpisodeCreateNestedOneWithoutOffersInput
+  }
+
+  export type ConsultationResumeOfferUncheckedCreateInput = {
+    id?: string
+    scopeId: string
+    episodeId: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+  }
+
+  export type ConsultationResumeOfferUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scope?: ConsultationMemoryScopeUpdateOneRequiredWithoutOffersNestedInput
+    episode?: ConsultationEpisodeUpdateOneRequiredWithoutOffersNestedInput
+  }
+
+  export type ConsultationResumeOfferUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    episodeId?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationResumeOfferCreateManyInput = {
+    id?: string
+    scopeId: string
+    episodeId: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+  }
+
+  export type ConsultationResumeOfferUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationResumeOfferUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    episodeId?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationTurnReceiptCreateInput = {
+    id?: string
+    sourceMessageId: string
+    assistantMessageId: string
+    inputSeq: number
+    payloadHash: string
+    appliedRevisions: JsonNullValueInput | InputJsonValue
+    expiresAt: Date | string
+    scope: ConsultationMemoryScopeCreateNestedOneWithoutReceiptsInput
+  }
+
+  export type ConsultationTurnReceiptUncheckedCreateInput = {
+    id?: string
+    scopeId: string
+    sourceMessageId: string
+    assistantMessageId: string
+    inputSeq: number
+    payloadHash: string
+    appliedRevisions: JsonNullValueInput | InputJsonValue
+    expiresAt: Date | string
+  }
+
+  export type ConsultationTurnReceiptUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceMessageId?: StringFieldUpdateOperationsInput | string
+    assistantMessageId?: StringFieldUpdateOperationsInput | string
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    payloadHash?: StringFieldUpdateOperationsInput | string
+    appliedRevisions?: JsonNullValueInput | InputJsonValue
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    scope?: ConsultationMemoryScopeUpdateOneRequiredWithoutReceiptsNestedInput
+  }
+
+  export type ConsultationTurnReceiptUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    sourceMessageId?: StringFieldUpdateOperationsInput | string
+    assistantMessageId?: StringFieldUpdateOperationsInput | string
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    payloadHash?: StringFieldUpdateOperationsInput | string
+    appliedRevisions?: JsonNullValueInput | InputJsonValue
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConsultationTurnReceiptCreateManyInput = {
+    id?: string
+    scopeId: string
+    sourceMessageId: string
+    assistantMessageId: string
+    inputSeq: number
+    payloadHash: string
+    appliedRevisions: JsonNullValueInput | InputJsonValue
+    expiresAt: Date | string
+  }
+
+  export type ConsultationTurnReceiptUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceMessageId?: StringFieldUpdateOperationsInput | string
+    assistantMessageId?: StringFieldUpdateOperationsInput | string
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    payloadHash?: StringFieldUpdateOperationsInput | string
+    appliedRevisions?: JsonNullValueInput | InputJsonValue
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConsultationTurnReceiptUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    sourceMessageId?: StringFieldUpdateOperationsInput | string
+    assistantMessageId?: StringFieldUpdateOperationsInput | string
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    payloadHash?: StringFieldUpdateOperationsInput | string
+    appliedRevisions?: JsonNullValueInput | InputJsonValue
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextScopeCreateInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+    facts?: UserContextFactCreateNestedManyWithoutScopeInput
+  }
+
+  export type UserContextScopeUncheckedCreateInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+    facts?: UserContextFactUncheckedCreateNestedManyWithoutScopeInput
+  }
+
+  export type UserContextScopeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    facts?: UserContextFactUpdateManyWithoutScopeNestedInput
+  }
+
+  export type UserContextScopeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+    facts?: UserContextFactUncheckedUpdateManyWithoutScopeNestedInput
+  }
+
+  export type UserContextScopeCreateManyInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+  }
+
+  export type UserContextScopeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserContextScopeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserContextFactCreateInput = {
+    id?: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+    scope: UserContextScopeCreateNestedOneWithoutFactsInput
+  }
+
+  export type UserContextFactUncheckedCreateInput = {
+    id?: string
+    scopeId: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    scope?: UserContextScopeUpdateOneRequiredWithoutFactsNestedInput
+  }
+
+  export type UserContextFactUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextFactCreateManyInput = {
+    id?: string
+    scopeId: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextFactUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -38676,13 +48050,6 @@ export namespace Prisma {
     _max?: NestedEnumSupportCaseStatusFilter<$PrismaModel>
   }
 
-  export type EnumChatModeFilter<$PrismaModel = never> = {
-    equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
-    in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
-    not?: NestedEnumChatModeFilter<$PrismaModel> | $Enums.ChatMode
-  }
-
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -38694,7 +48061,40 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type EnumChatModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
+    in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumChatModeFilter<$PrismaModel> | $Enums.ChatMode
+  }
+
+  export type ConsultationMemoryScopeListRelationFilter = {
+    every?: ConsultationMemoryScopeWhereInput
+    some?: ConsultationMemoryScopeWhereInput
+    none?: ConsultationMemoryScopeWhereInput
+  }
+
+  export type ConsultationMemoryScopeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type ChatCountOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
+    consultationAttemptId?: SortOrder
+    consultationSourceMessageId?: SortOrder
     id?: SortOrder
     userId?: SortOrder
     operatorId?: SortOrder
@@ -38706,10 +48106,18 @@ export namespace Prisma {
   }
 
   export type ChatAvgOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
     handoffVersion?: SortOrder
   }
 
   export type ChatMaxOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
+    consultationAttemptId?: SortOrder
+    consultationSourceMessageId?: SortOrder
     id?: SortOrder
     userId?: SortOrder
     operatorId?: SortOrder
@@ -38721,6 +48129,11 @@ export namespace Prisma {
   }
 
   export type ChatMinOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
+    consultationAttemptId?: SortOrder
+    consultationSourceMessageId?: SortOrder
     id?: SortOrder
     userId?: SortOrder
     operatorId?: SortOrder
@@ -38732,17 +48145,10 @@ export namespace Prisma {
   }
 
   export type ChatSumOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+    consultationNextInputSeq?: SortOrder
+    consultationNextHandoffVersion?: SortOrder
     handoffVersion?: SortOrder
-  }
-
-  export type EnumChatModeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
-    in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
-    not?: NestedEnumChatModeWithAggregatesFilter<$PrismaModel> | $Enums.ChatMode
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumChatModeFilter<$PrismaModel>
-    _max?: NestedEnumChatModeFilter<$PrismaModel>
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -38761,6 +48167,32 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type EnumChatModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
+    in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumChatModeWithAggregatesFilter<$PrismaModel> | $Enums.ChatMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumChatModeFilter<$PrismaModel>
+    _max?: NestedEnumChatModeFilter<$PrismaModel>
+  }
+
   export type EnumConversationMessageRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.ConversationMessageRole | EnumConversationMessageRoleFieldRefInput<$PrismaModel>
     in?: $Enums.ConversationMessageRole[] | ListEnumConversationMessageRoleFieldRefInput<$PrismaModel>
@@ -38773,7 +48205,21 @@ export namespace Prisma {
     isNot?: UserWhereInput | null
   }
 
+  export type MessageChatIdClientMessageIdCompoundUniqueInput = {
+    chatId: string
+    clientMessageId: string
+  }
+
+  export type MessageChatIdAssistantSourceMessageIdCompoundUniqueInput = {
+    chatId: string
+    assistantSourceMessageId: string
+  }
+
   export type MessageCountOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+    clientMessageId?: SortOrder
+    assistantSourceMessageId?: SortOrder
+    expectsEpisodeProjection?: SortOrder
     id?: SortOrder
     chatId?: SortOrder
     authorId?: SortOrder
@@ -38783,7 +48229,15 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type MessageAvgOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+  }
+
   export type MessageMaxOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+    clientMessageId?: SortOrder
+    assistantSourceMessageId?: SortOrder
+    expectsEpisodeProjection?: SortOrder
     id?: SortOrder
     chatId?: SortOrder
     authorId?: SortOrder
@@ -38793,12 +48247,20 @@ export namespace Prisma {
   }
 
   export type MessageMinOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
+    clientMessageId?: SortOrder
+    assistantSourceMessageId?: SortOrder
+    expectsEpisodeProjection?: SortOrder
     id?: SortOrder
     chatId?: SortOrder
     authorId?: SortOrder
     role?: SortOrder
     content?: SortOrder
     createdAt?: SortOrder
+  }
+
+  export type MessageSumOrderByAggregateInput = {
+    consultationInputSeq?: SortOrder
   }
 
   export type EnumConversationMessageRoleWithAggregatesFilter<$PrismaModel = never> = {
@@ -38850,17 +48312,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTokenTypeFilter<$PrismaModel>
     _max?: NestedEnumTokenTypeFilter<$PrismaModel>
-  }
-
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type AccountProviderProviderAccountIdCompoundUniqueInput = {
@@ -38919,22 +48370,6 @@ export namespace Prisma {
 
   export type AccountSumOrderByAggregateInput = {
     expires_at?: SortOrder
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type VerificationTokenIdentifierTokenCompoundUniqueInput = {
@@ -40148,6 +49583,429 @@ export namespace Prisma {
     sortOrder?: SortOrder
   }
 
+  export type ConsultationEpisodeListRelationFilter = {
+    every?: ConsultationEpisodeWhereInput
+    some?: ConsultationEpisodeWhereInput
+    none?: ConsultationEpisodeWhereInput
+  }
+
+  export type ConsultationResumeOfferListRelationFilter = {
+    every?: ConsultationResumeOfferWhereInput
+    some?: ConsultationResumeOfferWhereInput
+    none?: ConsultationResumeOfferWhereInput
+  }
+
+  export type ConsultationTurnReceiptListRelationFilter = {
+    every?: ConsultationTurnReceiptWhereInput
+    some?: ConsultationTurnReceiptWhereInput
+    none?: ConsultationTurnReceiptWhereInput
+  }
+
+  export type ConsultationEpisodeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ConsultationResumeOfferOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ConsultationTurnReceiptOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ConsultationMemoryScopeStoreKeySubjectKeySourceKindSourceKeyCompoundUniqueInput = {
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+  }
+
+  export type ConsultationMemoryScopeStoreKeyChatIdCompoundUniqueInput = {
+    storeKey: string
+    chatId: string
+  }
+
+  export type ConsultationMemoryScopeCountOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    chatId?: SortOrder
+    memoryEpoch?: SortOrder
+    purgedThroughSeq?: SortOrder
+    offerSuppressedUntil?: SortOrder
+  }
+
+  export type ConsultationMemoryScopeAvgOrderByAggregateInput = {
+    memoryEpoch?: SortOrder
+    purgedThroughSeq?: SortOrder
+  }
+
+  export type ConsultationMemoryScopeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    chatId?: SortOrder
+    memoryEpoch?: SortOrder
+    purgedThroughSeq?: SortOrder
+    offerSuppressedUntil?: SortOrder
+  }
+
+  export type ConsultationMemoryScopeMinOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    chatId?: SortOrder
+    memoryEpoch?: SortOrder
+    purgedThroughSeq?: SortOrder
+    offerSuppressedUntil?: SortOrder
+  }
+
+  export type ConsultationMemoryScopeSumOrderByAggregateInput = {
+    memoryEpoch?: SortOrder
+    purgedThroughSeq?: SortOrder
+  }
+
+  export type EnumConsultationEpisodeStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConsultationEpisodeStatus | EnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ConsultationEpisodeStatus[] | ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConsultationEpisodeStatus[] | ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumConsultationEpisodeStatusFilter<$PrismaModel> | $Enums.ConsultationEpisodeStatus
+  }
+
+  export type EnumConsultationEpisodeOutcomeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConsultationEpisodeOutcome | EnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ConsultationEpisodeOutcome[] | ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ConsultationEpisodeOutcome[] | ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumConsultationEpisodeOutcomeNullableFilter<$PrismaModel> | $Enums.ConsultationEpisodeOutcome | null
+  }
+
+  export type ConsultationMemoryScopeScalarRelationFilter = {
+    is?: ConsultationMemoryScopeWhereInput
+    isNot?: ConsultationMemoryScopeWhereInput
+  }
+
+  export type ConsultationEpisodeScopeIdTaskKeyCompoundUniqueInput = {
+    scopeId: string
+    taskKey: string
+  }
+
+  export type ConsultationEpisodeCountOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    taskKey?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    outcome?: SortOrder
+    schemaVersion?: SortOrder
+    revision?: SortOrder
+    contentRevision?: SortOrder
+    snapshot?: SortOrder
+    lastMeaningfulAt?: SortOrder
+    expiresAt?: SortOrder
+    closedAt?: SortOrder
+  }
+
+  export type ConsultationEpisodeAvgOrderByAggregateInput = {
+    schemaVersion?: SortOrder
+    revision?: SortOrder
+    contentRevision?: SortOrder
+  }
+
+  export type ConsultationEpisodeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    taskKey?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    outcome?: SortOrder
+    schemaVersion?: SortOrder
+    revision?: SortOrder
+    contentRevision?: SortOrder
+    lastMeaningfulAt?: SortOrder
+    expiresAt?: SortOrder
+    closedAt?: SortOrder
+  }
+
+  export type ConsultationEpisodeMinOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    taskKey?: SortOrder
+    type?: SortOrder
+    status?: SortOrder
+    outcome?: SortOrder
+    schemaVersion?: SortOrder
+    revision?: SortOrder
+    contentRevision?: SortOrder
+    lastMeaningfulAt?: SortOrder
+    expiresAt?: SortOrder
+    closedAt?: SortOrder
+  }
+
+  export type ConsultationEpisodeSumOrderByAggregateInput = {
+    schemaVersion?: SortOrder
+    revision?: SortOrder
+    contentRevision?: SortOrder
+  }
+
+  export type EnumConsultationEpisodeStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConsultationEpisodeStatus | EnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ConsultationEpisodeStatus[] | ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConsultationEpisodeStatus[] | ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumConsultationEpisodeStatusWithAggregatesFilter<$PrismaModel> | $Enums.ConsultationEpisodeStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumConsultationEpisodeStatusFilter<$PrismaModel>
+    _max?: NestedEnumConsultationEpisodeStatusFilter<$PrismaModel>
+  }
+
+  export type EnumConsultationEpisodeOutcomeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConsultationEpisodeOutcome | EnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ConsultationEpisodeOutcome[] | ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ConsultationEpisodeOutcome[] | ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumConsultationEpisodeOutcomeNullableWithAggregatesFilter<$PrismaModel> | $Enums.ConsultationEpisodeOutcome | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumConsultationEpisodeOutcomeNullableFilter<$PrismaModel>
+    _max?: NestedEnumConsultationEpisodeOutcomeNullableFilter<$PrismaModel>
+  }
+
+  export type ConsultationEpisodeScalarRelationFilter = {
+    is?: ConsultationEpisodeWhereInput
+    isNot?: ConsultationEpisodeWhereInput
+  }
+
+  export type ConsultationResumeOfferEpisodeIdContentRevisionCompoundUniqueInput = {
+    episodeId: string
+    contentRevision: number
+  }
+
+  export type ConsultationResumeOfferCountOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    episodeId?: SortOrder
+    episodeRevision?: SortOrder
+    contentRevision?: SortOrder
+    memoryEpoch?: SortOrder
+    inputSeq?: SortOrder
+    handoffVersion?: SortOrder
+    expiresAt?: SortOrder
+    decision?: SortOrder
+    decidedAt?: SortOrder
+    consumedAt?: SortOrder
+  }
+
+  export type ConsultationResumeOfferAvgOrderByAggregateInput = {
+    episodeRevision?: SortOrder
+    contentRevision?: SortOrder
+    memoryEpoch?: SortOrder
+    inputSeq?: SortOrder
+    handoffVersion?: SortOrder
+  }
+
+  export type ConsultationResumeOfferMaxOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    episodeId?: SortOrder
+    episodeRevision?: SortOrder
+    contentRevision?: SortOrder
+    memoryEpoch?: SortOrder
+    inputSeq?: SortOrder
+    handoffVersion?: SortOrder
+    expiresAt?: SortOrder
+    decision?: SortOrder
+    decidedAt?: SortOrder
+    consumedAt?: SortOrder
+  }
+
+  export type ConsultationResumeOfferMinOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    episodeId?: SortOrder
+    episodeRevision?: SortOrder
+    contentRevision?: SortOrder
+    memoryEpoch?: SortOrder
+    inputSeq?: SortOrder
+    handoffVersion?: SortOrder
+    expiresAt?: SortOrder
+    decision?: SortOrder
+    decidedAt?: SortOrder
+    consumedAt?: SortOrder
+  }
+
+  export type ConsultationResumeOfferSumOrderByAggregateInput = {
+    episodeRevision?: SortOrder
+    contentRevision?: SortOrder
+    memoryEpoch?: SortOrder
+    inputSeq?: SortOrder
+    handoffVersion?: SortOrder
+  }
+
+  export type ConsultationTurnReceiptScopeIdSourceMessageIdCompoundUniqueInput = {
+    scopeId: string
+    sourceMessageId: string
+  }
+
+  export type ConsultationTurnReceiptCountOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    sourceMessageId?: SortOrder
+    assistantMessageId?: SortOrder
+    inputSeq?: SortOrder
+    payloadHash?: SortOrder
+    appliedRevisions?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type ConsultationTurnReceiptAvgOrderByAggregateInput = {
+    inputSeq?: SortOrder
+  }
+
+  export type ConsultationTurnReceiptMaxOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    sourceMessageId?: SortOrder
+    assistantMessageId?: SortOrder
+    inputSeq?: SortOrder
+    payloadHash?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type ConsultationTurnReceiptMinOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    sourceMessageId?: SortOrder
+    assistantMessageId?: SortOrder
+    inputSeq?: SortOrder
+    payloadHash?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type ConsultationTurnReceiptSumOrderByAggregateInput = {
+    inputSeq?: SortOrder
+  }
+
+  export type UserContextFactListRelationFilter = {
+    every?: UserContextFactWhereInput
+    some?: UserContextFactWhereInput
+    none?: UserContextFactWhereInput
+  }
+
+  export type UserContextFactOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserContextScopeStoreKeySubjectKeyCompoundUniqueInput = {
+    storeKey: string
+    subjectKey: string
+  }
+
+  export type UserContextScopeCountOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeAvgOrderByAggregateInput = {
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeMinOrderByAggregateInput = {
+    id?: SortOrder
+    storeKey?: SortOrder
+    subjectKey?: SortOrder
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeSumOrderByAggregateInput = {
+    revision?: SortOrder
+  }
+
+  export type UserContextScopeScalarRelationFilter = {
+    is?: UserContextScopeWhereInput
+    isNot?: UserContextScopeWhereInput
+  }
+
+  export type UserContextFactScopeIdDomainKeyPreferenceKeyCompoundUniqueInput = {
+    scopeId: string
+    domainKey: string
+    preferenceKey: string
+  }
+
+  export type UserContextFactCountOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    value?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserContextFactAvgOrderByAggregateInput = {
+    sourceEpisodeRevision?: SortOrder
+  }
+
+  export type UserContextFactMaxOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserContextFactMinOrderByAggregateInput = {
+    id?: SortOrder
+    scopeId?: SortOrder
+    domainKey?: SortOrder
+    preferenceKey?: SortOrder
+    confirmation?: SortOrder
+    commandId?: SortOrder
+    sourceKind?: SortOrder
+    sourceKey?: SortOrder
+    sourceEpisodeId?: SortOrder
+    sourceEpisodeRevision?: SortOrder
+    sourceAttributeId?: SortOrder
+    sourceOperator?: SortOrder
+    observedAt?: SortOrder
+    confirmedAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserContextFactSumOrderByAggregateInput = {
+    sourceEpisodeRevision?: SortOrder
+  }
+
   export type ChatCreateNestedOneWithoutUserInput = {
     create?: XOR<ChatCreateWithoutUserInput, ChatUncheckedCreateWithoutUserInput>
     connectOrCreate?: ChatCreateOrConnectWithoutUserInput
@@ -40720,6 +50578,13 @@ export namespace Prisma {
     update?: XOR<XOR<OperatorProfileUpdateToOneWithWhereWithoutSupportCasesInput, OperatorProfileUpdateWithoutSupportCasesInput>, OperatorProfileUncheckedUpdateWithoutSupportCasesInput>
   }
 
+  export type ConsultationMemoryScopeCreateNestedManyWithoutChatInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutChatInput, ConsultationMemoryScopeUncheckedCreateWithoutChatInput> | ConsultationMemoryScopeCreateWithoutChatInput[] | ConsultationMemoryScopeUncheckedCreateWithoutChatInput[]
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutChatInput | ConsultationMemoryScopeCreateOrConnectWithoutChatInput[]
+    createMany?: ConsultationMemoryScopeCreateManyChatInputEnvelope
+    connect?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutChatInput = {
     create?: XOR<UserCreateWithoutChatInput, UserUncheckedCreateWithoutChatInput>
     connectOrCreate?: UserCreateOrConnectWithoutChatInput
@@ -40746,6 +50611,13 @@ export namespace Prisma {
     connect?: SupportCaseWhereUniqueInput | SupportCaseWhereUniqueInput[]
   }
 
+  export type ConsultationMemoryScopeUncheckedCreateNestedManyWithoutChatInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutChatInput, ConsultationMemoryScopeUncheckedCreateWithoutChatInput> | ConsultationMemoryScopeCreateWithoutChatInput[] | ConsultationMemoryScopeUncheckedCreateWithoutChatInput[]
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutChatInput | ConsultationMemoryScopeCreateOrConnectWithoutChatInput[]
+    createMany?: ConsultationMemoryScopeCreateManyChatInputEnvelope
+    connect?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+  }
+
   export type MessageUncheckedCreateNestedManyWithoutChatInput = {
     create?: XOR<MessageCreateWithoutChatInput, MessageUncheckedCreateWithoutChatInput> | MessageCreateWithoutChatInput[] | MessageUncheckedCreateWithoutChatInput[]
     connectOrCreate?: MessageCreateOrConnectWithoutChatInput | MessageCreateOrConnectWithoutChatInput[]
@@ -40760,16 +50632,38 @@ export namespace Prisma {
     connect?: SupportCaseWhereUniqueInput | SupportCaseWhereUniqueInput[]
   }
 
-  export type EnumChatModeFieldUpdateOperationsInput = {
-    set?: $Enums.ChatMode
-  }
-
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type EnumChatModeFieldUpdateOperationsInput = {
+    set?: $Enums.ChatMode
+  }
+
+  export type ConsultationMemoryScopeUpdateManyWithoutChatNestedInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutChatInput, ConsultationMemoryScopeUncheckedCreateWithoutChatInput> | ConsultationMemoryScopeCreateWithoutChatInput[] | ConsultationMemoryScopeUncheckedCreateWithoutChatInput[]
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutChatInput | ConsultationMemoryScopeCreateOrConnectWithoutChatInput[]
+    upsert?: ConsultationMemoryScopeUpsertWithWhereUniqueWithoutChatInput | ConsultationMemoryScopeUpsertWithWhereUniqueWithoutChatInput[]
+    createMany?: ConsultationMemoryScopeCreateManyChatInputEnvelope
+    set?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+    disconnect?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+    delete?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+    connect?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+    update?: ConsultationMemoryScopeUpdateWithWhereUniqueWithoutChatInput | ConsultationMemoryScopeUpdateWithWhereUniqueWithoutChatInput[]
+    updateMany?: ConsultationMemoryScopeUpdateManyWithWhereWithoutChatInput | ConsultationMemoryScopeUpdateManyWithWhereWithoutChatInput[]
+    deleteMany?: ConsultationMemoryScopeScalarWhereInput | ConsultationMemoryScopeScalarWhereInput[]
   }
 
   export type UserUpdateOneRequiredWithoutChatNestedInput = {
@@ -40816,6 +50710,20 @@ export namespace Prisma {
     update?: SupportCaseUpdateWithWhereUniqueWithoutChatInput | SupportCaseUpdateWithWhereUniqueWithoutChatInput[]
     updateMany?: SupportCaseUpdateManyWithWhereWithoutChatInput | SupportCaseUpdateManyWithWhereWithoutChatInput[]
     deleteMany?: SupportCaseScalarWhereInput | SupportCaseScalarWhereInput[]
+  }
+
+  export type ConsultationMemoryScopeUncheckedUpdateManyWithoutChatNestedInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutChatInput, ConsultationMemoryScopeUncheckedCreateWithoutChatInput> | ConsultationMemoryScopeCreateWithoutChatInput[] | ConsultationMemoryScopeUncheckedCreateWithoutChatInput[]
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutChatInput | ConsultationMemoryScopeCreateOrConnectWithoutChatInput[]
+    upsert?: ConsultationMemoryScopeUpsertWithWhereUniqueWithoutChatInput | ConsultationMemoryScopeUpsertWithWhereUniqueWithoutChatInput[]
+    createMany?: ConsultationMemoryScopeCreateManyChatInputEnvelope
+    set?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+    disconnect?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+    delete?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+    connect?: ConsultationMemoryScopeWhereUniqueInput | ConsultationMemoryScopeWhereUniqueInput[]
+    update?: ConsultationMemoryScopeUpdateWithWhereUniqueWithoutChatInput | ConsultationMemoryScopeUpdateWithWhereUniqueWithoutChatInput[]
+    updateMany?: ConsultationMemoryScopeUpdateManyWithWhereWithoutChatInput | ConsultationMemoryScopeUpdateManyWithWhereWithoutChatInput[]
+    deleteMany?: ConsultationMemoryScopeScalarWhereInput | ConsultationMemoryScopeScalarWhereInput[]
   }
 
   export type MessageUncheckedUpdateManyWithoutChatNestedInput = {
@@ -40888,14 +50796,6 @@ export namespace Prisma {
     create?: XOR<UserCreateWithoutAccountsInput, UserUncheckedCreateWithoutAccountsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAccountsInput
     connect?: UserWhereUniqueInput
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type UserUpdateOneRequiredWithoutAccountsNestedInput = {
@@ -41827,6 +51727,310 @@ export namespace Prisma {
     push?: string | string[]
   }
 
+  export type ChatCreateNestedOneWithoutConsultationMemoryScopesInput = {
+    create?: XOR<ChatCreateWithoutConsultationMemoryScopesInput, ChatUncheckedCreateWithoutConsultationMemoryScopesInput>
+    connectOrCreate?: ChatCreateOrConnectWithoutConsultationMemoryScopesInput
+    connect?: ChatWhereUniqueInput
+  }
+
+  export type ConsultationEpisodeCreateNestedManyWithoutScopeInput = {
+    create?: XOR<ConsultationEpisodeCreateWithoutScopeInput, ConsultationEpisodeUncheckedCreateWithoutScopeInput> | ConsultationEpisodeCreateWithoutScopeInput[] | ConsultationEpisodeUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationEpisodeCreateOrConnectWithoutScopeInput | ConsultationEpisodeCreateOrConnectWithoutScopeInput[]
+    createMany?: ConsultationEpisodeCreateManyScopeInputEnvelope
+    connect?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+  }
+
+  export type ConsultationResumeOfferCreateNestedManyWithoutScopeInput = {
+    create?: XOR<ConsultationResumeOfferCreateWithoutScopeInput, ConsultationResumeOfferUncheckedCreateWithoutScopeInput> | ConsultationResumeOfferCreateWithoutScopeInput[] | ConsultationResumeOfferUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationResumeOfferCreateOrConnectWithoutScopeInput | ConsultationResumeOfferCreateOrConnectWithoutScopeInput[]
+    createMany?: ConsultationResumeOfferCreateManyScopeInputEnvelope
+    connect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+  }
+
+  export type ConsultationTurnReceiptCreateNestedManyWithoutScopeInput = {
+    create?: XOR<ConsultationTurnReceiptCreateWithoutScopeInput, ConsultationTurnReceiptUncheckedCreateWithoutScopeInput> | ConsultationTurnReceiptCreateWithoutScopeInput[] | ConsultationTurnReceiptUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationTurnReceiptCreateOrConnectWithoutScopeInput | ConsultationTurnReceiptCreateOrConnectWithoutScopeInput[]
+    createMany?: ConsultationTurnReceiptCreateManyScopeInputEnvelope
+    connect?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+  }
+
+  export type ConsultationEpisodeUncheckedCreateNestedManyWithoutScopeInput = {
+    create?: XOR<ConsultationEpisodeCreateWithoutScopeInput, ConsultationEpisodeUncheckedCreateWithoutScopeInput> | ConsultationEpisodeCreateWithoutScopeInput[] | ConsultationEpisodeUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationEpisodeCreateOrConnectWithoutScopeInput | ConsultationEpisodeCreateOrConnectWithoutScopeInput[]
+    createMany?: ConsultationEpisodeCreateManyScopeInputEnvelope
+    connect?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+  }
+
+  export type ConsultationResumeOfferUncheckedCreateNestedManyWithoutScopeInput = {
+    create?: XOR<ConsultationResumeOfferCreateWithoutScopeInput, ConsultationResumeOfferUncheckedCreateWithoutScopeInput> | ConsultationResumeOfferCreateWithoutScopeInput[] | ConsultationResumeOfferUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationResumeOfferCreateOrConnectWithoutScopeInput | ConsultationResumeOfferCreateOrConnectWithoutScopeInput[]
+    createMany?: ConsultationResumeOfferCreateManyScopeInputEnvelope
+    connect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+  }
+
+  export type ConsultationTurnReceiptUncheckedCreateNestedManyWithoutScopeInput = {
+    create?: XOR<ConsultationTurnReceiptCreateWithoutScopeInput, ConsultationTurnReceiptUncheckedCreateWithoutScopeInput> | ConsultationTurnReceiptCreateWithoutScopeInput[] | ConsultationTurnReceiptUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationTurnReceiptCreateOrConnectWithoutScopeInput | ConsultationTurnReceiptCreateOrConnectWithoutScopeInput[]
+    createMany?: ConsultationTurnReceiptCreateManyScopeInputEnvelope
+    connect?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+  }
+
+  export type ChatUpdateOneWithoutConsultationMemoryScopesNestedInput = {
+    create?: XOR<ChatCreateWithoutConsultationMemoryScopesInput, ChatUncheckedCreateWithoutConsultationMemoryScopesInput>
+    connectOrCreate?: ChatCreateOrConnectWithoutConsultationMemoryScopesInput
+    upsert?: ChatUpsertWithoutConsultationMemoryScopesInput
+    disconnect?: ChatWhereInput | boolean
+    delete?: ChatWhereInput | boolean
+    connect?: ChatWhereUniqueInput
+    update?: XOR<XOR<ChatUpdateToOneWithWhereWithoutConsultationMemoryScopesInput, ChatUpdateWithoutConsultationMemoryScopesInput>, ChatUncheckedUpdateWithoutConsultationMemoryScopesInput>
+  }
+
+  export type ConsultationEpisodeUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<ConsultationEpisodeCreateWithoutScopeInput, ConsultationEpisodeUncheckedCreateWithoutScopeInput> | ConsultationEpisodeCreateWithoutScopeInput[] | ConsultationEpisodeUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationEpisodeCreateOrConnectWithoutScopeInput | ConsultationEpisodeCreateOrConnectWithoutScopeInput[]
+    upsert?: ConsultationEpisodeUpsertWithWhereUniqueWithoutScopeInput | ConsultationEpisodeUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: ConsultationEpisodeCreateManyScopeInputEnvelope
+    set?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+    disconnect?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+    delete?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+    connect?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+    update?: ConsultationEpisodeUpdateWithWhereUniqueWithoutScopeInput | ConsultationEpisodeUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: ConsultationEpisodeUpdateManyWithWhereWithoutScopeInput | ConsultationEpisodeUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: ConsultationEpisodeScalarWhereInput | ConsultationEpisodeScalarWhereInput[]
+  }
+
+  export type ConsultationResumeOfferUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<ConsultationResumeOfferCreateWithoutScopeInput, ConsultationResumeOfferUncheckedCreateWithoutScopeInput> | ConsultationResumeOfferCreateWithoutScopeInput[] | ConsultationResumeOfferUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationResumeOfferCreateOrConnectWithoutScopeInput | ConsultationResumeOfferCreateOrConnectWithoutScopeInput[]
+    upsert?: ConsultationResumeOfferUpsertWithWhereUniqueWithoutScopeInput | ConsultationResumeOfferUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: ConsultationResumeOfferCreateManyScopeInputEnvelope
+    set?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    disconnect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    delete?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    connect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    update?: ConsultationResumeOfferUpdateWithWhereUniqueWithoutScopeInput | ConsultationResumeOfferUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: ConsultationResumeOfferUpdateManyWithWhereWithoutScopeInput | ConsultationResumeOfferUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: ConsultationResumeOfferScalarWhereInput | ConsultationResumeOfferScalarWhereInput[]
+  }
+
+  export type ConsultationTurnReceiptUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<ConsultationTurnReceiptCreateWithoutScopeInput, ConsultationTurnReceiptUncheckedCreateWithoutScopeInput> | ConsultationTurnReceiptCreateWithoutScopeInput[] | ConsultationTurnReceiptUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationTurnReceiptCreateOrConnectWithoutScopeInput | ConsultationTurnReceiptCreateOrConnectWithoutScopeInput[]
+    upsert?: ConsultationTurnReceiptUpsertWithWhereUniqueWithoutScopeInput | ConsultationTurnReceiptUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: ConsultationTurnReceiptCreateManyScopeInputEnvelope
+    set?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+    disconnect?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+    delete?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+    connect?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+    update?: ConsultationTurnReceiptUpdateWithWhereUniqueWithoutScopeInput | ConsultationTurnReceiptUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: ConsultationTurnReceiptUpdateManyWithWhereWithoutScopeInput | ConsultationTurnReceiptUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: ConsultationTurnReceiptScalarWhereInput | ConsultationTurnReceiptScalarWhereInput[]
+  }
+
+  export type ConsultationEpisodeUncheckedUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<ConsultationEpisodeCreateWithoutScopeInput, ConsultationEpisodeUncheckedCreateWithoutScopeInput> | ConsultationEpisodeCreateWithoutScopeInput[] | ConsultationEpisodeUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationEpisodeCreateOrConnectWithoutScopeInput | ConsultationEpisodeCreateOrConnectWithoutScopeInput[]
+    upsert?: ConsultationEpisodeUpsertWithWhereUniqueWithoutScopeInput | ConsultationEpisodeUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: ConsultationEpisodeCreateManyScopeInputEnvelope
+    set?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+    disconnect?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+    delete?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+    connect?: ConsultationEpisodeWhereUniqueInput | ConsultationEpisodeWhereUniqueInput[]
+    update?: ConsultationEpisodeUpdateWithWhereUniqueWithoutScopeInput | ConsultationEpisodeUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: ConsultationEpisodeUpdateManyWithWhereWithoutScopeInput | ConsultationEpisodeUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: ConsultationEpisodeScalarWhereInput | ConsultationEpisodeScalarWhereInput[]
+  }
+
+  export type ConsultationResumeOfferUncheckedUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<ConsultationResumeOfferCreateWithoutScopeInput, ConsultationResumeOfferUncheckedCreateWithoutScopeInput> | ConsultationResumeOfferCreateWithoutScopeInput[] | ConsultationResumeOfferUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationResumeOfferCreateOrConnectWithoutScopeInput | ConsultationResumeOfferCreateOrConnectWithoutScopeInput[]
+    upsert?: ConsultationResumeOfferUpsertWithWhereUniqueWithoutScopeInput | ConsultationResumeOfferUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: ConsultationResumeOfferCreateManyScopeInputEnvelope
+    set?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    disconnect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    delete?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    connect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    update?: ConsultationResumeOfferUpdateWithWhereUniqueWithoutScopeInput | ConsultationResumeOfferUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: ConsultationResumeOfferUpdateManyWithWhereWithoutScopeInput | ConsultationResumeOfferUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: ConsultationResumeOfferScalarWhereInput | ConsultationResumeOfferScalarWhereInput[]
+  }
+
+  export type ConsultationTurnReceiptUncheckedUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<ConsultationTurnReceiptCreateWithoutScopeInput, ConsultationTurnReceiptUncheckedCreateWithoutScopeInput> | ConsultationTurnReceiptCreateWithoutScopeInput[] | ConsultationTurnReceiptUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: ConsultationTurnReceiptCreateOrConnectWithoutScopeInput | ConsultationTurnReceiptCreateOrConnectWithoutScopeInput[]
+    upsert?: ConsultationTurnReceiptUpsertWithWhereUniqueWithoutScopeInput | ConsultationTurnReceiptUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: ConsultationTurnReceiptCreateManyScopeInputEnvelope
+    set?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+    disconnect?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+    delete?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+    connect?: ConsultationTurnReceiptWhereUniqueInput | ConsultationTurnReceiptWhereUniqueInput[]
+    update?: ConsultationTurnReceiptUpdateWithWhereUniqueWithoutScopeInput | ConsultationTurnReceiptUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: ConsultationTurnReceiptUpdateManyWithWhereWithoutScopeInput | ConsultationTurnReceiptUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: ConsultationTurnReceiptScalarWhereInput | ConsultationTurnReceiptScalarWhereInput[]
+  }
+
+  export type ConsultationMemoryScopeCreateNestedOneWithoutEpisodesInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutEpisodesInput, ConsultationMemoryScopeUncheckedCreateWithoutEpisodesInput>
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutEpisodesInput
+    connect?: ConsultationMemoryScopeWhereUniqueInput
+  }
+
+  export type ConsultationResumeOfferCreateNestedManyWithoutEpisodeInput = {
+    create?: XOR<ConsultationResumeOfferCreateWithoutEpisodeInput, ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput> | ConsultationResumeOfferCreateWithoutEpisodeInput[] | ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput[]
+    connectOrCreate?: ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput | ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput[]
+    createMany?: ConsultationResumeOfferCreateManyEpisodeInputEnvelope
+    connect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+  }
+
+  export type ConsultationResumeOfferUncheckedCreateNestedManyWithoutEpisodeInput = {
+    create?: XOR<ConsultationResumeOfferCreateWithoutEpisodeInput, ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput> | ConsultationResumeOfferCreateWithoutEpisodeInput[] | ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput[]
+    connectOrCreate?: ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput | ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput[]
+    createMany?: ConsultationResumeOfferCreateManyEpisodeInputEnvelope
+    connect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+  }
+
+  export type EnumConsultationEpisodeStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ConsultationEpisodeStatus
+  }
+
+  export type NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput = {
+    set?: $Enums.ConsultationEpisodeOutcome | null
+  }
+
+  export type ConsultationMemoryScopeUpdateOneRequiredWithoutEpisodesNestedInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutEpisodesInput, ConsultationMemoryScopeUncheckedCreateWithoutEpisodesInput>
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutEpisodesInput
+    upsert?: ConsultationMemoryScopeUpsertWithoutEpisodesInput
+    connect?: ConsultationMemoryScopeWhereUniqueInput
+    update?: XOR<XOR<ConsultationMemoryScopeUpdateToOneWithWhereWithoutEpisodesInput, ConsultationMemoryScopeUpdateWithoutEpisodesInput>, ConsultationMemoryScopeUncheckedUpdateWithoutEpisodesInput>
+  }
+
+  export type ConsultationResumeOfferUpdateManyWithoutEpisodeNestedInput = {
+    create?: XOR<ConsultationResumeOfferCreateWithoutEpisodeInput, ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput> | ConsultationResumeOfferCreateWithoutEpisodeInput[] | ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput[]
+    connectOrCreate?: ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput | ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput[]
+    upsert?: ConsultationResumeOfferUpsertWithWhereUniqueWithoutEpisodeInput | ConsultationResumeOfferUpsertWithWhereUniqueWithoutEpisodeInput[]
+    createMany?: ConsultationResumeOfferCreateManyEpisodeInputEnvelope
+    set?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    disconnect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    delete?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    connect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    update?: ConsultationResumeOfferUpdateWithWhereUniqueWithoutEpisodeInput | ConsultationResumeOfferUpdateWithWhereUniqueWithoutEpisodeInput[]
+    updateMany?: ConsultationResumeOfferUpdateManyWithWhereWithoutEpisodeInput | ConsultationResumeOfferUpdateManyWithWhereWithoutEpisodeInput[]
+    deleteMany?: ConsultationResumeOfferScalarWhereInput | ConsultationResumeOfferScalarWhereInput[]
+  }
+
+  export type ConsultationResumeOfferUncheckedUpdateManyWithoutEpisodeNestedInput = {
+    create?: XOR<ConsultationResumeOfferCreateWithoutEpisodeInput, ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput> | ConsultationResumeOfferCreateWithoutEpisodeInput[] | ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput[]
+    connectOrCreate?: ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput | ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput[]
+    upsert?: ConsultationResumeOfferUpsertWithWhereUniqueWithoutEpisodeInput | ConsultationResumeOfferUpsertWithWhereUniqueWithoutEpisodeInput[]
+    createMany?: ConsultationResumeOfferCreateManyEpisodeInputEnvelope
+    set?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    disconnect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    delete?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    connect?: ConsultationResumeOfferWhereUniqueInput | ConsultationResumeOfferWhereUniqueInput[]
+    update?: ConsultationResumeOfferUpdateWithWhereUniqueWithoutEpisodeInput | ConsultationResumeOfferUpdateWithWhereUniqueWithoutEpisodeInput[]
+    updateMany?: ConsultationResumeOfferUpdateManyWithWhereWithoutEpisodeInput | ConsultationResumeOfferUpdateManyWithWhereWithoutEpisodeInput[]
+    deleteMany?: ConsultationResumeOfferScalarWhereInput | ConsultationResumeOfferScalarWhereInput[]
+  }
+
+  export type ConsultationMemoryScopeCreateNestedOneWithoutOffersInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutOffersInput, ConsultationMemoryScopeUncheckedCreateWithoutOffersInput>
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutOffersInput
+    connect?: ConsultationMemoryScopeWhereUniqueInput
+  }
+
+  export type ConsultationEpisodeCreateNestedOneWithoutOffersInput = {
+    create?: XOR<ConsultationEpisodeCreateWithoutOffersInput, ConsultationEpisodeUncheckedCreateWithoutOffersInput>
+    connectOrCreate?: ConsultationEpisodeCreateOrConnectWithoutOffersInput
+    connect?: ConsultationEpisodeWhereUniqueInput
+  }
+
+  export type ConsultationMemoryScopeUpdateOneRequiredWithoutOffersNestedInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutOffersInput, ConsultationMemoryScopeUncheckedCreateWithoutOffersInput>
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutOffersInput
+    upsert?: ConsultationMemoryScopeUpsertWithoutOffersInput
+    connect?: ConsultationMemoryScopeWhereUniqueInput
+    update?: XOR<XOR<ConsultationMemoryScopeUpdateToOneWithWhereWithoutOffersInput, ConsultationMemoryScopeUpdateWithoutOffersInput>, ConsultationMemoryScopeUncheckedUpdateWithoutOffersInput>
+  }
+
+  export type ConsultationEpisodeUpdateOneRequiredWithoutOffersNestedInput = {
+    create?: XOR<ConsultationEpisodeCreateWithoutOffersInput, ConsultationEpisodeUncheckedCreateWithoutOffersInput>
+    connectOrCreate?: ConsultationEpisodeCreateOrConnectWithoutOffersInput
+    upsert?: ConsultationEpisodeUpsertWithoutOffersInput
+    connect?: ConsultationEpisodeWhereUniqueInput
+    update?: XOR<XOR<ConsultationEpisodeUpdateToOneWithWhereWithoutOffersInput, ConsultationEpisodeUpdateWithoutOffersInput>, ConsultationEpisodeUncheckedUpdateWithoutOffersInput>
+  }
+
+  export type ConsultationMemoryScopeCreateNestedOneWithoutReceiptsInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutReceiptsInput, ConsultationMemoryScopeUncheckedCreateWithoutReceiptsInput>
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutReceiptsInput
+    connect?: ConsultationMemoryScopeWhereUniqueInput
+  }
+
+  export type ConsultationMemoryScopeUpdateOneRequiredWithoutReceiptsNestedInput = {
+    create?: XOR<ConsultationMemoryScopeCreateWithoutReceiptsInput, ConsultationMemoryScopeUncheckedCreateWithoutReceiptsInput>
+    connectOrCreate?: ConsultationMemoryScopeCreateOrConnectWithoutReceiptsInput
+    upsert?: ConsultationMemoryScopeUpsertWithoutReceiptsInput
+    connect?: ConsultationMemoryScopeWhereUniqueInput
+    update?: XOR<XOR<ConsultationMemoryScopeUpdateToOneWithWhereWithoutReceiptsInput, ConsultationMemoryScopeUpdateWithoutReceiptsInput>, ConsultationMemoryScopeUncheckedUpdateWithoutReceiptsInput>
+  }
+
+  export type UserContextFactCreateNestedManyWithoutScopeInput = {
+    create?: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput> | UserContextFactCreateWithoutScopeInput[] | UserContextFactUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: UserContextFactCreateOrConnectWithoutScopeInput | UserContextFactCreateOrConnectWithoutScopeInput[]
+    createMany?: UserContextFactCreateManyScopeInputEnvelope
+    connect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+  }
+
+  export type UserContextFactUncheckedCreateNestedManyWithoutScopeInput = {
+    create?: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput> | UserContextFactCreateWithoutScopeInput[] | UserContextFactUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: UserContextFactCreateOrConnectWithoutScopeInput | UserContextFactCreateOrConnectWithoutScopeInput[]
+    createMany?: UserContextFactCreateManyScopeInputEnvelope
+    connect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+  }
+
+  export type UserContextFactUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput> | UserContextFactCreateWithoutScopeInput[] | UserContextFactUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: UserContextFactCreateOrConnectWithoutScopeInput | UserContextFactCreateOrConnectWithoutScopeInput[]
+    upsert?: UserContextFactUpsertWithWhereUniqueWithoutScopeInput | UserContextFactUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: UserContextFactCreateManyScopeInputEnvelope
+    set?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    disconnect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    delete?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    connect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    update?: UserContextFactUpdateWithWhereUniqueWithoutScopeInput | UserContextFactUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: UserContextFactUpdateManyWithWhereWithoutScopeInput | UserContextFactUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: UserContextFactScalarWhereInput | UserContextFactScalarWhereInput[]
+  }
+
+  export type UserContextFactUncheckedUpdateManyWithoutScopeNestedInput = {
+    create?: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput> | UserContextFactCreateWithoutScopeInput[] | UserContextFactUncheckedCreateWithoutScopeInput[]
+    connectOrCreate?: UserContextFactCreateOrConnectWithoutScopeInput | UserContextFactCreateOrConnectWithoutScopeInput[]
+    upsert?: UserContextFactUpsertWithWhereUniqueWithoutScopeInput | UserContextFactUpsertWithWhereUniqueWithoutScopeInput[]
+    createMany?: UserContextFactCreateManyScopeInputEnvelope
+    set?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    disconnect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    delete?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    connect?: UserContextFactWhereUniqueInput | UserContextFactWhereUniqueInput[]
+    update?: UserContextFactUpdateWithWhereUniqueWithoutScopeInput | UserContextFactUpdateWithWhereUniqueWithoutScopeInput[]
+    updateMany?: UserContextFactUpdateManyWithWhereWithoutScopeInput | UserContextFactUpdateManyWithWhereWithoutScopeInput[]
+    deleteMany?: UserContextFactScalarWhereInput | UserContextFactScalarWhereInput[]
+  }
+
+  export type UserContextScopeCreateNestedOneWithoutFactsInput = {
+    create?: XOR<UserContextScopeCreateWithoutFactsInput, UserContextScopeUncheckedCreateWithoutFactsInput>
+    connectOrCreate?: UserContextScopeCreateOrConnectWithoutFactsInput
+    connect?: UserContextScopeWhereUniqueInput
+  }
+
+  export type UserContextScopeUpdateOneRequiredWithoutFactsNestedInput = {
+    create?: XOR<UserContextScopeCreateWithoutFactsInput, UserContextScopeUncheckedCreateWithoutFactsInput>
+    connectOrCreate?: UserContextScopeCreateOrConnectWithoutFactsInput
+    upsert?: UserContextScopeUpsertWithoutFactsInput
+    connect?: UserContextScopeWhereUniqueInput
+    update?: XOR<XOR<UserContextScopeUpdateToOneWithWhereWithoutFactsInput, UserContextScopeUpdateWithoutFactsInput>, UserContextScopeUncheckedUpdateWithoutFactsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -42088,16 +52292,6 @@ export namespace Prisma {
     not?: NestedEnumChatModeFilter<$PrismaModel> | $Enums.ChatMode
   }
 
-  export type NestedEnumChatModeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
-    in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
-    not?: NestedEnumChatModeWithAggregatesFilter<$PrismaModel> | $Enums.ChatMode
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumChatModeFilter<$PrismaModel>
-    _max?: NestedEnumChatModeFilter<$PrismaModel>
-  }
-
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -42123,6 +52317,43 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedEnumChatModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChatMode | EnumChatModeFieldRefInput<$PrismaModel>
+    in?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChatMode[] | ListEnumChatModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumChatModeWithAggregatesFilter<$PrismaModel> | $Enums.ChatMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumChatModeFilter<$PrismaModel>
+    _max?: NestedEnumChatModeFilter<$PrismaModel>
   }
 
   export type NestedEnumConversationMessageRoleFilter<$PrismaModel = never> = {
@@ -42157,33 +52388,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTokenTypeFilter<$PrismaModel>
     _max?: NestedEnumTokenTypeFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumUserGenderFilter<$PrismaModel = never> = {
@@ -42408,19 +52612,64 @@ export namespace Prisma {
     _max?: NestedEnumShipmentStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumConsultationEpisodeStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConsultationEpisodeStatus | EnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ConsultationEpisodeStatus[] | ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConsultationEpisodeStatus[] | ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumConsultationEpisodeStatusFilter<$PrismaModel> | $Enums.ConsultationEpisodeStatus
+  }
+
+  export type NestedEnumConsultationEpisodeOutcomeNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConsultationEpisodeOutcome | EnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ConsultationEpisodeOutcome[] | ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ConsultationEpisodeOutcome[] | ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumConsultationEpisodeOutcomeNullableFilter<$PrismaModel> | $Enums.ConsultationEpisodeOutcome | null
+  }
+
+  export type NestedEnumConsultationEpisodeStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConsultationEpisodeStatus | EnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ConsultationEpisodeStatus[] | ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConsultationEpisodeStatus[] | ListEnumConsultationEpisodeStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumConsultationEpisodeStatusWithAggregatesFilter<$PrismaModel> | $Enums.ConsultationEpisodeStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumConsultationEpisodeStatusFilter<$PrismaModel>
+    _max?: NestedEnumConsultationEpisodeStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumConsultationEpisodeOutcomeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConsultationEpisodeOutcome | EnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ConsultationEpisodeOutcome[] | ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ConsultationEpisodeOutcome[] | ListEnumConsultationEpisodeOutcomeFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumConsultationEpisodeOutcomeNullableWithAggregatesFilter<$PrismaModel> | $Enums.ConsultationEpisodeOutcome | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumConsultationEpisodeOutcomeNullableFilter<$PrismaModel>
+    _max?: NestedEnumConsultationEpisodeOutcomeNullableFilter<$PrismaModel>
+  }
+
   export type ChatCreateWithoutUserInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     mode?: $Enums.ChatMode
     lastMessageAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeCreateNestedManyWithoutChatInput
     operator?: OperatorProfileCreateNestedOneWithoutChatsInput
     messages?: MessageCreateNestedManyWithoutChatInput
     supportCases?: SupportCaseCreateNestedManyWithoutChatInput
   }
 
   export type ChatUncheckedCreateWithoutUserInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     operatorId?: string | null
     mode?: $Enums.ChatMode
@@ -42428,6 +52677,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedCreateNestedManyWithoutChatInput
     messages?: MessageUncheckedCreateNestedManyWithoutChatInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutChatInput
   }
@@ -42438,6 +52688,10 @@ export namespace Prisma {
   }
 
   export type MessageCreateWithoutAuthorInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     role: $Enums.ConversationMessageRole
     content: string
@@ -42447,6 +52701,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedCreateWithoutAuthorInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     chatId: string
     role: $Enums.ConversationMessageRole
@@ -42835,18 +53093,29 @@ export namespace Prisma {
   }
 
   export type ChatUpdateWithoutUserInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUpdateManyWithoutChatNestedInput
     operator?: OperatorProfileUpdateOneWithoutChatsNestedInput
     messages?: MessageUpdateManyWithoutChatNestedInput
     supportCases?: SupportCaseUpdateManyWithoutChatNestedInput
   }
 
   export type ChatUncheckedUpdateWithoutUserInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     operatorId?: NullableStringFieldUpdateOperationsInput | string | null
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
@@ -42854,6 +53123,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedUpdateManyWithoutChatNestedInput
     messages?: MessageUncheckedUpdateManyWithoutChatNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutChatNestedInput
   }
@@ -42878,6 +53148,10 @@ export namespace Prisma {
     AND?: MessageScalarWhereInput | MessageScalarWhereInput[]
     OR?: MessageScalarWhereInput[]
     NOT?: MessageScalarWhereInput | MessageScalarWhereInput[]
+    consultationInputSeq?: IntNullableFilter<"Message"> | number | null
+    clientMessageId?: StringNullableFilter<"Message"> | string | null
+    assistantSourceMessageId?: StringNullableFilter<"Message"> | string | null
+    expectsEpisodeProjection?: BoolFilter<"Message"> | boolean
     id?: StringFilter<"Message"> | string
     chatId?: StringFilter<"Message"> | string
     authorId?: StringNullableFilter<"Message"> | string | null
@@ -43238,18 +53512,29 @@ export namespace Prisma {
   }
 
   export type ChatCreateWithoutOperatorInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     mode?: $Enums.ChatMode
     lastMessageAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeCreateNestedManyWithoutChatInput
     user: UserCreateNestedOneWithoutChatInput
     messages?: MessageCreateNestedManyWithoutChatInput
     supportCases?: SupportCaseCreateNestedManyWithoutChatInput
   }
 
   export type ChatUncheckedCreateWithoutOperatorInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     userId: string
     mode?: $Enums.ChatMode
@@ -43257,6 +53542,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedCreateNestedManyWithoutChatInput
     messages?: MessageUncheckedCreateNestedManyWithoutChatInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutChatInput
   }
@@ -43392,6 +53678,11 @@ export namespace Prisma {
     AND?: ChatScalarWhereInput | ChatScalarWhereInput[]
     OR?: ChatScalarWhereInput[]
     NOT?: ChatScalarWhereInput | ChatScalarWhereInput[]
+    consultationInputSeq?: IntFilter<"Chat"> | number
+    consultationNextInputSeq?: IntNullableFilter<"Chat"> | number | null
+    consultationNextHandoffVersion?: IntNullableFilter<"Chat"> | number | null
+    consultationAttemptId?: StringNullableFilter<"Chat"> | string | null
+    consultationSourceMessageId?: StringNullableFilter<"Chat"> | string | null
     id?: StringFilter<"Chat"> | string
     userId?: StringFilter<"Chat"> | string
     operatorId?: StringNullableFilter<"Chat"> | string | null
@@ -43470,18 +53761,29 @@ export namespace Prisma {
   }
 
   export type ChatCreateWithoutSupportCasesInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     mode?: $Enums.ChatMode
     lastMessageAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeCreateNestedManyWithoutChatInput
     user: UserCreateNestedOneWithoutChatInput
     operator?: OperatorProfileCreateNestedOneWithoutChatsInput
     messages?: MessageCreateNestedManyWithoutChatInput
   }
 
   export type ChatUncheckedCreateWithoutSupportCasesInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     userId: string
     operatorId?: string | null
@@ -43490,6 +53792,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedCreateNestedManyWithoutChatInput
     messages?: MessageUncheckedCreateNestedManyWithoutChatInput
   }
 
@@ -43598,18 +53901,29 @@ export namespace Prisma {
   }
 
   export type ChatUpdateWithoutSupportCasesInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUpdateManyWithoutChatNestedInput
     user?: UserUpdateOneRequiredWithoutChatNestedInput
     operator?: OperatorProfileUpdateOneWithoutChatsNestedInput
     messages?: MessageUpdateManyWithoutChatNestedInput
   }
 
   export type ChatUncheckedUpdateWithoutSupportCasesInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     operatorId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -43618,6 +53932,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedUpdateManyWithoutChatNestedInput
     messages?: MessageUncheckedUpdateManyWithoutChatNestedInput
   }
 
@@ -43656,6 +53971,44 @@ export namespace Prisma {
     inviteToken?: NullableStringFieldUpdateOperationsInput | string | null
     availableUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatUncheckedUpdateManyWithoutOperatorNestedInput
+  }
+
+  export type ConsultationMemoryScopeCreateWithoutChatInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    episodes?: ConsultationEpisodeCreateNestedManyWithoutScopeInput
+    offers?: ConsultationResumeOfferCreateNestedManyWithoutScopeInput
+    receipts?: ConsultationTurnReceiptCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedCreateWithoutChatInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    episodes?: ConsultationEpisodeUncheckedCreateNestedManyWithoutScopeInput
+    offers?: ConsultationResumeOfferUncheckedCreateNestedManyWithoutScopeInput
+    receipts?: ConsultationTurnReceiptUncheckedCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeCreateOrConnectWithoutChatInput = {
+    where: ConsultationMemoryScopeWhereUniqueInput
+    create: XOR<ConsultationMemoryScopeCreateWithoutChatInput, ConsultationMemoryScopeUncheckedCreateWithoutChatInput>
+  }
+
+  export type ConsultationMemoryScopeCreateManyChatInputEnvelope = {
+    data: ConsultationMemoryScopeCreateManyChatInput | ConsultationMemoryScopeCreateManyChatInput[]
+    skipDuplicates?: boolean
   }
 
   export type UserCreateWithoutChatInput = {
@@ -43741,6 +54094,10 @@ export namespace Prisma {
   }
 
   export type MessageCreateWithoutChatInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     role: $Enums.ConversationMessageRole
     content: string
@@ -43750,6 +54107,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedCreateWithoutChatInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     authorId?: string | null
     role: $Enums.ConversationMessageRole
@@ -43810,6 +54171,37 @@ export namespace Prisma {
   export type SupportCaseCreateManyChatInputEnvelope = {
     data: SupportCaseCreateManyChatInput | SupportCaseCreateManyChatInput[]
     skipDuplicates?: boolean
+  }
+
+  export type ConsultationMemoryScopeUpsertWithWhereUniqueWithoutChatInput = {
+    where: ConsultationMemoryScopeWhereUniqueInput
+    update: XOR<ConsultationMemoryScopeUpdateWithoutChatInput, ConsultationMemoryScopeUncheckedUpdateWithoutChatInput>
+    create: XOR<ConsultationMemoryScopeCreateWithoutChatInput, ConsultationMemoryScopeUncheckedCreateWithoutChatInput>
+  }
+
+  export type ConsultationMemoryScopeUpdateWithWhereUniqueWithoutChatInput = {
+    where: ConsultationMemoryScopeWhereUniqueInput
+    data: XOR<ConsultationMemoryScopeUpdateWithoutChatInput, ConsultationMemoryScopeUncheckedUpdateWithoutChatInput>
+  }
+
+  export type ConsultationMemoryScopeUpdateManyWithWhereWithoutChatInput = {
+    where: ConsultationMemoryScopeScalarWhereInput
+    data: XOR<ConsultationMemoryScopeUpdateManyMutationInput, ConsultationMemoryScopeUncheckedUpdateManyWithoutChatInput>
+  }
+
+  export type ConsultationMemoryScopeScalarWhereInput = {
+    AND?: ConsultationMemoryScopeScalarWhereInput | ConsultationMemoryScopeScalarWhereInput[]
+    OR?: ConsultationMemoryScopeScalarWhereInput[]
+    NOT?: ConsultationMemoryScopeScalarWhereInput | ConsultationMemoryScopeScalarWhereInput[]
+    id?: StringFilter<"ConsultationMemoryScope"> | string
+    storeKey?: StringFilter<"ConsultationMemoryScope"> | string
+    subjectKey?: StringFilter<"ConsultationMemoryScope"> | string
+    sourceKind?: StringFilter<"ConsultationMemoryScope"> | string
+    sourceKey?: StringFilter<"ConsultationMemoryScope"> | string
+    chatId?: StringNullableFilter<"ConsultationMemoryScope"> | string | null
+    memoryEpoch?: IntFilter<"ConsultationMemoryScope"> | number
+    purgedThroughSeq?: IntFilter<"ConsultationMemoryScope"> | number
+    offerSuppressedUntil?: DateTimeNullableFilter<"ConsultationMemoryScope"> | Date | string | null
   }
 
   export type UserUpsertWithoutChatInput = {
@@ -43939,18 +54331,29 @@ export namespace Prisma {
   }
 
   export type ChatCreateWithoutMessagesInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     mode?: $Enums.ChatMode
     lastMessageAt?: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeCreateNestedManyWithoutChatInput
     user: UserCreateNestedOneWithoutChatInput
     operator?: OperatorProfileCreateNestedOneWithoutChatsInput
     supportCases?: SupportCaseCreateNestedManyWithoutChatInput
   }
 
   export type ChatUncheckedCreateWithoutMessagesInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     userId: string
     operatorId?: string | null
@@ -43959,6 +54362,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     handoffVersion?: number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedCreateNestedManyWithoutChatInput
     supportCases?: SupportCaseUncheckedCreateNestedManyWithoutChatInput
   }
 
@@ -44030,18 +54434,29 @@ export namespace Prisma {
   }
 
   export type ChatUpdateWithoutMessagesInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUpdateManyWithoutChatNestedInput
     user?: UserUpdateOneRequiredWithoutChatNestedInput
     operator?: OperatorProfileUpdateOneWithoutChatsNestedInput
     supportCases?: SupportCaseUpdateManyWithoutChatNestedInput
   }
 
   export type ChatUncheckedUpdateWithoutMessagesInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     operatorId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -44050,6 +54465,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedUpdateManyWithoutChatNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutChatNestedInput
   }
 
@@ -47033,7 +57449,786 @@ export namespace Prisma {
     data: XOR<CartItemUpdateManyMutationInput, CartItemUncheckedUpdateManyWithoutCartInput>
   }
 
+  export type ChatCreateWithoutConsultationMemoryScopesInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
+    id?: string
+    mode?: $Enums.ChatMode
+    lastMessageAt?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    handoffVersion?: number
+    user: UserCreateNestedOneWithoutChatInput
+    operator?: OperatorProfileCreateNestedOneWithoutChatsInput
+    messages?: MessageCreateNestedManyWithoutChatInput
+    supportCases?: SupportCaseCreateNestedManyWithoutChatInput
+  }
+
+  export type ChatUncheckedCreateWithoutConsultationMemoryScopesInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
+    id?: string
+    userId: string
+    operatorId?: string | null
+    mode?: $Enums.ChatMode
+    lastMessageAt?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    handoffVersion?: number
+    messages?: MessageUncheckedCreateNestedManyWithoutChatInput
+    supportCases?: SupportCaseUncheckedCreateNestedManyWithoutChatInput
+  }
+
+  export type ChatCreateOrConnectWithoutConsultationMemoryScopesInput = {
+    where: ChatWhereUniqueInput
+    create: XOR<ChatCreateWithoutConsultationMemoryScopesInput, ChatUncheckedCreateWithoutConsultationMemoryScopesInput>
+  }
+
+  export type ConsultationEpisodeCreateWithoutScopeInput = {
+    id?: string
+    taskKey: string
+    type?: string
+    status?: $Enums.ConsultationEpisodeStatus
+    outcome?: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: number
+    revision?: number
+    contentRevision?: number
+    snapshot: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt: Date | string
+    expiresAt: Date | string
+    closedAt?: Date | string | null
+    offers?: ConsultationResumeOfferCreateNestedManyWithoutEpisodeInput
+  }
+
+  export type ConsultationEpisodeUncheckedCreateWithoutScopeInput = {
+    id?: string
+    taskKey: string
+    type?: string
+    status?: $Enums.ConsultationEpisodeStatus
+    outcome?: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: number
+    revision?: number
+    contentRevision?: number
+    snapshot: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt: Date | string
+    expiresAt: Date | string
+    closedAt?: Date | string | null
+    offers?: ConsultationResumeOfferUncheckedCreateNestedManyWithoutEpisodeInput
+  }
+
+  export type ConsultationEpisodeCreateOrConnectWithoutScopeInput = {
+    where: ConsultationEpisodeWhereUniqueInput
+    create: XOR<ConsultationEpisodeCreateWithoutScopeInput, ConsultationEpisodeUncheckedCreateWithoutScopeInput>
+  }
+
+  export type ConsultationEpisodeCreateManyScopeInputEnvelope = {
+    data: ConsultationEpisodeCreateManyScopeInput | ConsultationEpisodeCreateManyScopeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ConsultationResumeOfferCreateWithoutScopeInput = {
+    id?: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+    episode: ConsultationEpisodeCreateNestedOneWithoutOffersInput
+  }
+
+  export type ConsultationResumeOfferUncheckedCreateWithoutScopeInput = {
+    id?: string
+    episodeId: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+  }
+
+  export type ConsultationResumeOfferCreateOrConnectWithoutScopeInput = {
+    where: ConsultationResumeOfferWhereUniqueInput
+    create: XOR<ConsultationResumeOfferCreateWithoutScopeInput, ConsultationResumeOfferUncheckedCreateWithoutScopeInput>
+  }
+
+  export type ConsultationResumeOfferCreateManyScopeInputEnvelope = {
+    data: ConsultationResumeOfferCreateManyScopeInput | ConsultationResumeOfferCreateManyScopeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ConsultationTurnReceiptCreateWithoutScopeInput = {
+    id?: string
+    sourceMessageId: string
+    assistantMessageId: string
+    inputSeq: number
+    payloadHash: string
+    appliedRevisions: JsonNullValueInput | InputJsonValue
+    expiresAt: Date | string
+  }
+
+  export type ConsultationTurnReceiptUncheckedCreateWithoutScopeInput = {
+    id?: string
+    sourceMessageId: string
+    assistantMessageId: string
+    inputSeq: number
+    payloadHash: string
+    appliedRevisions: JsonNullValueInput | InputJsonValue
+    expiresAt: Date | string
+  }
+
+  export type ConsultationTurnReceiptCreateOrConnectWithoutScopeInput = {
+    where: ConsultationTurnReceiptWhereUniqueInput
+    create: XOR<ConsultationTurnReceiptCreateWithoutScopeInput, ConsultationTurnReceiptUncheckedCreateWithoutScopeInput>
+  }
+
+  export type ConsultationTurnReceiptCreateManyScopeInputEnvelope = {
+    data: ConsultationTurnReceiptCreateManyScopeInput | ConsultationTurnReceiptCreateManyScopeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ChatUpsertWithoutConsultationMemoryScopesInput = {
+    update: XOR<ChatUpdateWithoutConsultationMemoryScopesInput, ChatUncheckedUpdateWithoutConsultationMemoryScopesInput>
+    create: XOR<ChatCreateWithoutConsultationMemoryScopesInput, ChatUncheckedCreateWithoutConsultationMemoryScopesInput>
+    where?: ChatWhereInput
+  }
+
+  export type ChatUpdateToOneWithWhereWithoutConsultationMemoryScopesInput = {
+    where?: ChatWhereInput
+    data: XOR<ChatUpdateWithoutConsultationMemoryScopesInput, ChatUncheckedUpdateWithoutConsultationMemoryScopesInput>
+  }
+
+  export type ChatUpdateWithoutConsultationMemoryScopesInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    id?: StringFieldUpdateOperationsInput | string
+    mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
+    lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    user?: UserUpdateOneRequiredWithoutChatNestedInput
+    operator?: OperatorProfileUpdateOneWithoutChatsNestedInput
+    messages?: MessageUpdateManyWithoutChatNestedInput
+    supportCases?: SupportCaseUpdateManyWithoutChatNestedInput
+  }
+
+  export type ChatUncheckedUpdateWithoutConsultationMemoryScopesInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    operatorId?: NullableStringFieldUpdateOperationsInput | string | null
+    mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
+    lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    messages?: MessageUncheckedUpdateManyWithoutChatNestedInput
+    supportCases?: SupportCaseUncheckedUpdateManyWithoutChatNestedInput
+  }
+
+  export type ConsultationEpisodeUpsertWithWhereUniqueWithoutScopeInput = {
+    where: ConsultationEpisodeWhereUniqueInput
+    update: XOR<ConsultationEpisodeUpdateWithoutScopeInput, ConsultationEpisodeUncheckedUpdateWithoutScopeInput>
+    create: XOR<ConsultationEpisodeCreateWithoutScopeInput, ConsultationEpisodeUncheckedCreateWithoutScopeInput>
+  }
+
+  export type ConsultationEpisodeUpdateWithWhereUniqueWithoutScopeInput = {
+    where: ConsultationEpisodeWhereUniqueInput
+    data: XOR<ConsultationEpisodeUpdateWithoutScopeInput, ConsultationEpisodeUncheckedUpdateWithoutScopeInput>
+  }
+
+  export type ConsultationEpisodeUpdateManyWithWhereWithoutScopeInput = {
+    where: ConsultationEpisodeScalarWhereInput
+    data: XOR<ConsultationEpisodeUpdateManyMutationInput, ConsultationEpisodeUncheckedUpdateManyWithoutScopeInput>
+  }
+
+  export type ConsultationEpisodeScalarWhereInput = {
+    AND?: ConsultationEpisodeScalarWhereInput | ConsultationEpisodeScalarWhereInput[]
+    OR?: ConsultationEpisodeScalarWhereInput[]
+    NOT?: ConsultationEpisodeScalarWhereInput | ConsultationEpisodeScalarWhereInput[]
+    id?: StringFilter<"ConsultationEpisode"> | string
+    scopeId?: StringFilter<"ConsultationEpisode"> | string
+    taskKey?: StringFilter<"ConsultationEpisode"> | string
+    type?: StringFilter<"ConsultationEpisode"> | string
+    status?: EnumConsultationEpisodeStatusFilter<"ConsultationEpisode"> | $Enums.ConsultationEpisodeStatus
+    outcome?: EnumConsultationEpisodeOutcomeNullableFilter<"ConsultationEpisode"> | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFilter<"ConsultationEpisode"> | number
+    revision?: IntFilter<"ConsultationEpisode"> | number
+    contentRevision?: IntFilter<"ConsultationEpisode"> | number
+    snapshot?: JsonFilter<"ConsultationEpisode">
+    lastMeaningfulAt?: DateTimeFilter<"ConsultationEpisode"> | Date | string
+    expiresAt?: DateTimeFilter<"ConsultationEpisode"> | Date | string
+    closedAt?: DateTimeNullableFilter<"ConsultationEpisode"> | Date | string | null
+  }
+
+  export type ConsultationResumeOfferUpsertWithWhereUniqueWithoutScopeInput = {
+    where: ConsultationResumeOfferWhereUniqueInput
+    update: XOR<ConsultationResumeOfferUpdateWithoutScopeInput, ConsultationResumeOfferUncheckedUpdateWithoutScopeInput>
+    create: XOR<ConsultationResumeOfferCreateWithoutScopeInput, ConsultationResumeOfferUncheckedCreateWithoutScopeInput>
+  }
+
+  export type ConsultationResumeOfferUpdateWithWhereUniqueWithoutScopeInput = {
+    where: ConsultationResumeOfferWhereUniqueInput
+    data: XOR<ConsultationResumeOfferUpdateWithoutScopeInput, ConsultationResumeOfferUncheckedUpdateWithoutScopeInput>
+  }
+
+  export type ConsultationResumeOfferUpdateManyWithWhereWithoutScopeInput = {
+    where: ConsultationResumeOfferScalarWhereInput
+    data: XOR<ConsultationResumeOfferUpdateManyMutationInput, ConsultationResumeOfferUncheckedUpdateManyWithoutScopeInput>
+  }
+
+  export type ConsultationResumeOfferScalarWhereInput = {
+    AND?: ConsultationResumeOfferScalarWhereInput | ConsultationResumeOfferScalarWhereInput[]
+    OR?: ConsultationResumeOfferScalarWhereInput[]
+    NOT?: ConsultationResumeOfferScalarWhereInput | ConsultationResumeOfferScalarWhereInput[]
+    id?: StringFilter<"ConsultationResumeOffer"> | string
+    scopeId?: StringFilter<"ConsultationResumeOffer"> | string
+    episodeId?: StringFilter<"ConsultationResumeOffer"> | string
+    episodeRevision?: IntFilter<"ConsultationResumeOffer"> | number
+    contentRevision?: IntFilter<"ConsultationResumeOffer"> | number
+    memoryEpoch?: IntFilter<"ConsultationResumeOffer"> | number
+    inputSeq?: IntFilter<"ConsultationResumeOffer"> | number
+    handoffVersion?: IntFilter<"ConsultationResumeOffer"> | number
+    expiresAt?: DateTimeFilter<"ConsultationResumeOffer"> | Date | string
+    decision?: StringNullableFilter<"ConsultationResumeOffer"> | string | null
+    decidedAt?: DateTimeNullableFilter<"ConsultationResumeOffer"> | Date | string | null
+    consumedAt?: DateTimeNullableFilter<"ConsultationResumeOffer"> | Date | string | null
+  }
+
+  export type ConsultationTurnReceiptUpsertWithWhereUniqueWithoutScopeInput = {
+    where: ConsultationTurnReceiptWhereUniqueInput
+    update: XOR<ConsultationTurnReceiptUpdateWithoutScopeInput, ConsultationTurnReceiptUncheckedUpdateWithoutScopeInput>
+    create: XOR<ConsultationTurnReceiptCreateWithoutScopeInput, ConsultationTurnReceiptUncheckedCreateWithoutScopeInput>
+  }
+
+  export type ConsultationTurnReceiptUpdateWithWhereUniqueWithoutScopeInput = {
+    where: ConsultationTurnReceiptWhereUniqueInput
+    data: XOR<ConsultationTurnReceiptUpdateWithoutScopeInput, ConsultationTurnReceiptUncheckedUpdateWithoutScopeInput>
+  }
+
+  export type ConsultationTurnReceiptUpdateManyWithWhereWithoutScopeInput = {
+    where: ConsultationTurnReceiptScalarWhereInput
+    data: XOR<ConsultationTurnReceiptUpdateManyMutationInput, ConsultationTurnReceiptUncheckedUpdateManyWithoutScopeInput>
+  }
+
+  export type ConsultationTurnReceiptScalarWhereInput = {
+    AND?: ConsultationTurnReceiptScalarWhereInput | ConsultationTurnReceiptScalarWhereInput[]
+    OR?: ConsultationTurnReceiptScalarWhereInput[]
+    NOT?: ConsultationTurnReceiptScalarWhereInput | ConsultationTurnReceiptScalarWhereInput[]
+    id?: StringFilter<"ConsultationTurnReceipt"> | string
+    scopeId?: StringFilter<"ConsultationTurnReceipt"> | string
+    sourceMessageId?: StringFilter<"ConsultationTurnReceipt"> | string
+    assistantMessageId?: StringFilter<"ConsultationTurnReceipt"> | string
+    inputSeq?: IntFilter<"ConsultationTurnReceipt"> | number
+    payloadHash?: StringFilter<"ConsultationTurnReceipt"> | string
+    appliedRevisions?: JsonFilter<"ConsultationTurnReceipt">
+    expiresAt?: DateTimeFilter<"ConsultationTurnReceipt"> | Date | string
+  }
+
+  export type ConsultationMemoryScopeCreateWithoutEpisodesInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    chat?: ChatCreateNestedOneWithoutConsultationMemoryScopesInput
+    offers?: ConsultationResumeOfferCreateNestedManyWithoutScopeInput
+    receipts?: ConsultationTurnReceiptCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedCreateWithoutEpisodesInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    chatId?: string | null
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    offers?: ConsultationResumeOfferUncheckedCreateNestedManyWithoutScopeInput
+    receipts?: ConsultationTurnReceiptUncheckedCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeCreateOrConnectWithoutEpisodesInput = {
+    where: ConsultationMemoryScopeWhereUniqueInput
+    create: XOR<ConsultationMemoryScopeCreateWithoutEpisodesInput, ConsultationMemoryScopeUncheckedCreateWithoutEpisodesInput>
+  }
+
+  export type ConsultationResumeOfferCreateWithoutEpisodeInput = {
+    id?: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+    scope: ConsultationMemoryScopeCreateNestedOneWithoutOffersInput
+  }
+
+  export type ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput = {
+    id?: string
+    scopeId: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+  }
+
+  export type ConsultationResumeOfferCreateOrConnectWithoutEpisodeInput = {
+    where: ConsultationResumeOfferWhereUniqueInput
+    create: XOR<ConsultationResumeOfferCreateWithoutEpisodeInput, ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput>
+  }
+
+  export type ConsultationResumeOfferCreateManyEpisodeInputEnvelope = {
+    data: ConsultationResumeOfferCreateManyEpisodeInput | ConsultationResumeOfferCreateManyEpisodeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ConsultationMemoryScopeUpsertWithoutEpisodesInput = {
+    update: XOR<ConsultationMemoryScopeUpdateWithoutEpisodesInput, ConsultationMemoryScopeUncheckedUpdateWithoutEpisodesInput>
+    create: XOR<ConsultationMemoryScopeCreateWithoutEpisodesInput, ConsultationMemoryScopeUncheckedCreateWithoutEpisodesInput>
+    where?: ConsultationMemoryScopeWhereInput
+  }
+
+  export type ConsultationMemoryScopeUpdateToOneWithWhereWithoutEpisodesInput = {
+    where?: ConsultationMemoryScopeWhereInput
+    data: XOR<ConsultationMemoryScopeUpdateWithoutEpisodesInput, ConsultationMemoryScopeUncheckedUpdateWithoutEpisodesInput>
+  }
+
+  export type ConsultationMemoryScopeUpdateWithoutEpisodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chat?: ChatUpdateOneWithoutConsultationMemoryScopesNestedInput
+    offers?: ConsultationResumeOfferUpdateManyWithoutScopeNestedInput
+    receipts?: ConsultationTurnReceiptUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedUpdateWithoutEpisodesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    chatId?: NullableStringFieldUpdateOperationsInput | string | null
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offers?: ConsultationResumeOfferUncheckedUpdateManyWithoutScopeNestedInput
+    receipts?: ConsultationTurnReceiptUncheckedUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationResumeOfferUpsertWithWhereUniqueWithoutEpisodeInput = {
+    where: ConsultationResumeOfferWhereUniqueInput
+    update: XOR<ConsultationResumeOfferUpdateWithoutEpisodeInput, ConsultationResumeOfferUncheckedUpdateWithoutEpisodeInput>
+    create: XOR<ConsultationResumeOfferCreateWithoutEpisodeInput, ConsultationResumeOfferUncheckedCreateWithoutEpisodeInput>
+  }
+
+  export type ConsultationResumeOfferUpdateWithWhereUniqueWithoutEpisodeInput = {
+    where: ConsultationResumeOfferWhereUniqueInput
+    data: XOR<ConsultationResumeOfferUpdateWithoutEpisodeInput, ConsultationResumeOfferUncheckedUpdateWithoutEpisodeInput>
+  }
+
+  export type ConsultationResumeOfferUpdateManyWithWhereWithoutEpisodeInput = {
+    where: ConsultationResumeOfferScalarWhereInput
+    data: XOR<ConsultationResumeOfferUpdateManyMutationInput, ConsultationResumeOfferUncheckedUpdateManyWithoutEpisodeInput>
+  }
+
+  export type ConsultationMemoryScopeCreateWithoutOffersInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    chat?: ChatCreateNestedOneWithoutConsultationMemoryScopesInput
+    episodes?: ConsultationEpisodeCreateNestedManyWithoutScopeInput
+    receipts?: ConsultationTurnReceiptCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedCreateWithoutOffersInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    chatId?: string | null
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    episodes?: ConsultationEpisodeUncheckedCreateNestedManyWithoutScopeInput
+    receipts?: ConsultationTurnReceiptUncheckedCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeCreateOrConnectWithoutOffersInput = {
+    where: ConsultationMemoryScopeWhereUniqueInput
+    create: XOR<ConsultationMemoryScopeCreateWithoutOffersInput, ConsultationMemoryScopeUncheckedCreateWithoutOffersInput>
+  }
+
+  export type ConsultationEpisodeCreateWithoutOffersInput = {
+    id?: string
+    taskKey: string
+    type?: string
+    status?: $Enums.ConsultationEpisodeStatus
+    outcome?: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: number
+    revision?: number
+    contentRevision?: number
+    snapshot: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt: Date | string
+    expiresAt: Date | string
+    closedAt?: Date | string | null
+    scope: ConsultationMemoryScopeCreateNestedOneWithoutEpisodesInput
+  }
+
+  export type ConsultationEpisodeUncheckedCreateWithoutOffersInput = {
+    id?: string
+    scopeId: string
+    taskKey: string
+    type?: string
+    status?: $Enums.ConsultationEpisodeStatus
+    outcome?: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: number
+    revision?: number
+    contentRevision?: number
+    snapshot: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt: Date | string
+    expiresAt: Date | string
+    closedAt?: Date | string | null
+  }
+
+  export type ConsultationEpisodeCreateOrConnectWithoutOffersInput = {
+    where: ConsultationEpisodeWhereUniqueInput
+    create: XOR<ConsultationEpisodeCreateWithoutOffersInput, ConsultationEpisodeUncheckedCreateWithoutOffersInput>
+  }
+
+  export type ConsultationMemoryScopeUpsertWithoutOffersInput = {
+    update: XOR<ConsultationMemoryScopeUpdateWithoutOffersInput, ConsultationMemoryScopeUncheckedUpdateWithoutOffersInput>
+    create: XOR<ConsultationMemoryScopeCreateWithoutOffersInput, ConsultationMemoryScopeUncheckedCreateWithoutOffersInput>
+    where?: ConsultationMemoryScopeWhereInput
+  }
+
+  export type ConsultationMemoryScopeUpdateToOneWithWhereWithoutOffersInput = {
+    where?: ConsultationMemoryScopeWhereInput
+    data: XOR<ConsultationMemoryScopeUpdateWithoutOffersInput, ConsultationMemoryScopeUncheckedUpdateWithoutOffersInput>
+  }
+
+  export type ConsultationMemoryScopeUpdateWithoutOffersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chat?: ChatUpdateOneWithoutConsultationMemoryScopesNestedInput
+    episodes?: ConsultationEpisodeUpdateManyWithoutScopeNestedInput
+    receipts?: ConsultationTurnReceiptUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedUpdateWithoutOffersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    chatId?: NullableStringFieldUpdateOperationsInput | string | null
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    episodes?: ConsultationEpisodeUncheckedUpdateManyWithoutScopeNestedInput
+    receipts?: ConsultationTurnReceiptUncheckedUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationEpisodeUpsertWithoutOffersInput = {
+    update: XOR<ConsultationEpisodeUpdateWithoutOffersInput, ConsultationEpisodeUncheckedUpdateWithoutOffersInput>
+    create: XOR<ConsultationEpisodeCreateWithoutOffersInput, ConsultationEpisodeUncheckedCreateWithoutOffersInput>
+    where?: ConsultationEpisodeWhereInput
+  }
+
+  export type ConsultationEpisodeUpdateToOneWithWhereWithoutOffersInput = {
+    where?: ConsultationEpisodeWhereInput
+    data: XOR<ConsultationEpisodeUpdateWithoutOffersInput, ConsultationEpisodeUncheckedUpdateWithoutOffersInput>
+  }
+
+  export type ConsultationEpisodeUpdateWithoutOffersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scope?: ConsultationMemoryScopeUpdateOneRequiredWithoutEpisodesNestedInput
+  }
+
+  export type ConsultationEpisodeUncheckedUpdateWithoutOffersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationMemoryScopeCreateWithoutReceiptsInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    chat?: ChatCreateNestedOneWithoutConsultationMemoryScopesInput
+    episodes?: ConsultationEpisodeCreateNestedManyWithoutScopeInput
+    offers?: ConsultationResumeOfferCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedCreateWithoutReceiptsInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    chatId?: string | null
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+    episodes?: ConsultationEpisodeUncheckedCreateNestedManyWithoutScopeInput
+    offers?: ConsultationResumeOfferUncheckedCreateNestedManyWithoutScopeInput
+  }
+
+  export type ConsultationMemoryScopeCreateOrConnectWithoutReceiptsInput = {
+    where: ConsultationMemoryScopeWhereUniqueInput
+    create: XOR<ConsultationMemoryScopeCreateWithoutReceiptsInput, ConsultationMemoryScopeUncheckedCreateWithoutReceiptsInput>
+  }
+
+  export type ConsultationMemoryScopeUpsertWithoutReceiptsInput = {
+    update: XOR<ConsultationMemoryScopeUpdateWithoutReceiptsInput, ConsultationMemoryScopeUncheckedUpdateWithoutReceiptsInput>
+    create: XOR<ConsultationMemoryScopeCreateWithoutReceiptsInput, ConsultationMemoryScopeUncheckedCreateWithoutReceiptsInput>
+    where?: ConsultationMemoryScopeWhereInput
+  }
+
+  export type ConsultationMemoryScopeUpdateToOneWithWhereWithoutReceiptsInput = {
+    where?: ConsultationMemoryScopeWhereInput
+    data: XOR<ConsultationMemoryScopeUpdateWithoutReceiptsInput, ConsultationMemoryScopeUncheckedUpdateWithoutReceiptsInput>
+  }
+
+  export type ConsultationMemoryScopeUpdateWithoutReceiptsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chat?: ChatUpdateOneWithoutConsultationMemoryScopesNestedInput
+    episodes?: ConsultationEpisodeUpdateManyWithoutScopeNestedInput
+    offers?: ConsultationResumeOfferUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedUpdateWithoutReceiptsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    chatId?: NullableStringFieldUpdateOperationsInput | string | null
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    episodes?: ConsultationEpisodeUncheckedUpdateManyWithoutScopeNestedInput
+    offers?: ConsultationResumeOfferUncheckedUpdateManyWithoutScopeNestedInput
+  }
+
+  export type UserContextFactCreateWithoutScopeInput = {
+    id?: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactUncheckedCreateWithoutScopeInput = {
+    id?: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactCreateOrConnectWithoutScopeInput = {
+    where: UserContextFactWhereUniqueInput
+    create: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput>
+  }
+
+  export type UserContextFactCreateManyScopeInputEnvelope = {
+    data: UserContextFactCreateManyScopeInput | UserContextFactCreateManyScopeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserContextFactUpsertWithWhereUniqueWithoutScopeInput = {
+    where: UserContextFactWhereUniqueInput
+    update: XOR<UserContextFactUpdateWithoutScopeInput, UserContextFactUncheckedUpdateWithoutScopeInput>
+    create: XOR<UserContextFactCreateWithoutScopeInput, UserContextFactUncheckedCreateWithoutScopeInput>
+  }
+
+  export type UserContextFactUpdateWithWhereUniqueWithoutScopeInput = {
+    where: UserContextFactWhereUniqueInput
+    data: XOR<UserContextFactUpdateWithoutScopeInput, UserContextFactUncheckedUpdateWithoutScopeInput>
+  }
+
+  export type UserContextFactUpdateManyWithWhereWithoutScopeInput = {
+    where: UserContextFactScalarWhereInput
+    data: XOR<UserContextFactUpdateManyMutationInput, UserContextFactUncheckedUpdateManyWithoutScopeInput>
+  }
+
+  export type UserContextFactScalarWhereInput = {
+    AND?: UserContextFactScalarWhereInput | UserContextFactScalarWhereInput[]
+    OR?: UserContextFactScalarWhereInput[]
+    NOT?: UserContextFactScalarWhereInput | UserContextFactScalarWhereInput[]
+    id?: StringFilter<"UserContextFact"> | string
+    scopeId?: StringFilter<"UserContextFact"> | string
+    domainKey?: StringFilter<"UserContextFact"> | string
+    preferenceKey?: StringFilter<"UserContextFact"> | string
+    value?: JsonFilter<"UserContextFact">
+    confirmation?: StringFilter<"UserContextFact"> | string
+    commandId?: StringFilter<"UserContextFact"> | string
+    sourceKind?: StringFilter<"UserContextFact"> | string
+    sourceKey?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeId?: StringFilter<"UserContextFact"> | string
+    sourceEpisodeRevision?: IntFilter<"UserContextFact"> | number
+    sourceAttributeId?: StringFilter<"UserContextFact"> | string
+    sourceOperator?: StringFilter<"UserContextFact"> | string
+    observedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    confirmedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+    updatedAt?: DateTimeFilter<"UserContextFact"> | Date | string
+  }
+
+  export type UserContextScopeCreateWithoutFactsInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+  }
+
+  export type UserContextScopeUncheckedCreateWithoutFactsInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    revision?: number
+  }
+
+  export type UserContextScopeCreateOrConnectWithoutFactsInput = {
+    where: UserContextScopeWhereUniqueInput
+    create: XOR<UserContextScopeCreateWithoutFactsInput, UserContextScopeUncheckedCreateWithoutFactsInput>
+  }
+
+  export type UserContextScopeUpsertWithoutFactsInput = {
+    update: XOR<UserContextScopeUpdateWithoutFactsInput, UserContextScopeUncheckedUpdateWithoutFactsInput>
+    create: XOR<UserContextScopeCreateWithoutFactsInput, UserContextScopeUncheckedCreateWithoutFactsInput>
+    where?: UserContextScopeWhereInput
+  }
+
+  export type UserContextScopeUpdateToOneWithWhereWithoutFactsInput = {
+    where?: UserContextScopeWhereInput
+    data: XOR<UserContextScopeUpdateWithoutFactsInput, UserContextScopeUncheckedUpdateWithoutFactsInput>
+  }
+
+  export type UserContextScopeUpdateWithoutFactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserContextScopeUncheckedUpdateWithoutFactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    revision?: IntFieldUpdateOperationsInput | number
+  }
+
   export type MessageCreateManyAuthorInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     chatId: string
     role: $Enums.ConversationMessageRole
@@ -47156,6 +58351,10 @@ export namespace Prisma {
   }
 
   export type MessageUpdateWithoutAuthorInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     role?: EnumConversationMessageRoleFieldUpdateOperationsInput | $Enums.ConversationMessageRole
     content?: StringFieldUpdateOperationsInput | string
@@ -47165,6 +58364,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedUpdateWithoutAuthorInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     chatId?: StringFieldUpdateOperationsInput | string
     role?: EnumConversationMessageRoleFieldUpdateOperationsInput | $Enums.ConversationMessageRole
@@ -47174,6 +58377,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedUpdateManyWithoutAuthorInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     chatId?: StringFieldUpdateOperationsInput | string
     role?: EnumConversationMessageRoleFieldUpdateOperationsInput | $Enums.ConversationMessageRole
@@ -47539,6 +58746,11 @@ export namespace Prisma {
   }
 
   export type ChatCreateManyOperatorInput = {
+    consultationInputSeq?: number
+    consultationNextInputSeq?: number | null
+    consultationNextHandoffVersion?: number | null
+    consultationAttemptId?: string | null
+    consultationSourceMessageId?: string | null
     id?: string
     userId: string
     mode?: $Enums.ChatMode
@@ -47566,18 +58778,29 @@ export namespace Prisma {
   }
 
   export type ChatUpdateWithoutOperatorInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
     lastMessageAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUpdateManyWithoutChatNestedInput
     user?: UserUpdateOneRequiredWithoutChatNestedInput
     messages?: MessageUpdateManyWithoutChatNestedInput
     supportCases?: SupportCaseUpdateManyWithoutChatNestedInput
   }
 
   export type ChatUncheckedUpdateWithoutOperatorInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
@@ -47585,11 +58808,17 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     handoffVersion?: IntFieldUpdateOperationsInput | number
+    consultationMemoryScopes?: ConsultationMemoryScopeUncheckedUpdateManyWithoutChatNestedInput
     messages?: MessageUncheckedUpdateManyWithoutChatNestedInput
     supportCases?: SupportCaseUncheckedUpdateManyWithoutChatNestedInput
   }
 
   export type ChatUncheckedUpdateManyWithoutOperatorInput = {
+    consultationInputSeq?: IntFieldUpdateOperationsInput | number
+    consultationNextInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationNextHandoffVersion?: NullableIntFieldUpdateOperationsInput | number | null
+    consultationAttemptId?: NullableStringFieldUpdateOperationsInput | string | null
+    consultationSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     mode?: EnumChatModeFieldUpdateOperationsInput | $Enums.ChatMode
@@ -47650,7 +58879,22 @@ export namespace Prisma {
     closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type ConsultationMemoryScopeCreateManyChatInput = {
+    id?: string
+    storeKey: string
+    subjectKey: string
+    sourceKind: string
+    sourceKey: string
+    memoryEpoch?: number
+    purgedThroughSeq?: number
+    offerSuppressedUntil?: Date | string | null
+  }
+
   export type MessageCreateManyChatInput = {
+    consultationInputSeq?: number | null
+    clientMessageId?: string | null
+    assistantSourceMessageId?: string | null
+    expectsEpisodeProjection?: boolean
     id?: string
     authorId?: string | null
     role: $Enums.ConversationMessageRole
@@ -47676,7 +58920,50 @@ export namespace Prisma {
     closedAt?: Date | string | null
   }
 
+  export type ConsultationMemoryScopeUpdateWithoutChatInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    episodes?: ConsultationEpisodeUpdateManyWithoutScopeNestedInput
+    offers?: ConsultationResumeOfferUpdateManyWithoutScopeNestedInput
+    receipts?: ConsultationTurnReceiptUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedUpdateWithoutChatInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    episodes?: ConsultationEpisodeUncheckedUpdateManyWithoutScopeNestedInput
+    offers?: ConsultationResumeOfferUncheckedUpdateManyWithoutScopeNestedInput
+    receipts?: ConsultationTurnReceiptUncheckedUpdateManyWithoutScopeNestedInput
+  }
+
+  export type ConsultationMemoryScopeUncheckedUpdateManyWithoutChatInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storeKey?: StringFieldUpdateOperationsInput | string
+    subjectKey?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    purgedThroughSeq?: IntFieldUpdateOperationsInput | number
+    offerSuppressedUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type MessageUpdateWithoutChatInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     role?: EnumConversationMessageRoleFieldUpdateOperationsInput | $Enums.ConversationMessageRole
     content?: StringFieldUpdateOperationsInput | string
@@ -47686,6 +58973,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedUpdateWithoutChatInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     authorId?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumConversationMessageRoleFieldUpdateOperationsInput | $Enums.ConversationMessageRole
@@ -47695,6 +58986,10 @@ export namespace Prisma {
   }
 
   export type MessageUncheckedUpdateManyWithoutChatInput = {
+    consultationInputSeq?: NullableIntFieldUpdateOperationsInput | number | null
+    clientMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    assistantSourceMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    expectsEpisodeProjection?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
     authorId?: NullableStringFieldUpdateOperationsInput | string | null
     role?: EnumConversationMessageRoleFieldUpdateOperationsInput | $Enums.ConversationMessageRole
@@ -48358,6 +59653,292 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     size?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConsultationEpisodeCreateManyScopeInput = {
+    id?: string
+    taskKey: string
+    type?: string
+    status?: $Enums.ConsultationEpisodeStatus
+    outcome?: $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: number
+    revision?: number
+    contentRevision?: number
+    snapshot: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt: Date | string
+    expiresAt: Date | string
+    closedAt?: Date | string | null
+  }
+
+  export type ConsultationResumeOfferCreateManyScopeInput = {
+    id?: string
+    episodeId: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+  }
+
+  export type ConsultationTurnReceiptCreateManyScopeInput = {
+    id?: string
+    sourceMessageId: string
+    assistantMessageId: string
+    inputSeq: number
+    payloadHash: string
+    appliedRevisions: JsonNullValueInput | InputJsonValue
+    expiresAt: Date | string
+  }
+
+  export type ConsultationEpisodeUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offers?: ConsultationResumeOfferUpdateManyWithoutEpisodeNestedInput
+  }
+
+  export type ConsultationEpisodeUncheckedUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offers?: ConsultationResumeOfferUncheckedUpdateManyWithoutEpisodeNestedInput
+  }
+
+  export type ConsultationEpisodeUncheckedUpdateManyWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    taskKey?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: EnumConsultationEpisodeStatusFieldUpdateOperationsInput | $Enums.ConsultationEpisodeStatus
+    outcome?: NullableEnumConsultationEpisodeOutcomeFieldUpdateOperationsInput | $Enums.ConsultationEpisodeOutcome | null
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    revision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    snapshot?: JsonNullValueInput | InputJsonValue
+    lastMeaningfulAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    closedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationResumeOfferUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    episode?: ConsultationEpisodeUpdateOneRequiredWithoutOffersNestedInput
+  }
+
+  export type ConsultationResumeOfferUncheckedUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    episodeId?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationResumeOfferUncheckedUpdateManyWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    episodeId?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationTurnReceiptUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceMessageId?: StringFieldUpdateOperationsInput | string
+    assistantMessageId?: StringFieldUpdateOperationsInput | string
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    payloadHash?: StringFieldUpdateOperationsInput | string
+    appliedRevisions?: JsonNullValueInput | InputJsonValue
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConsultationTurnReceiptUncheckedUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceMessageId?: StringFieldUpdateOperationsInput | string
+    assistantMessageId?: StringFieldUpdateOperationsInput | string
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    payloadHash?: StringFieldUpdateOperationsInput | string
+    appliedRevisions?: JsonNullValueInput | InputJsonValue
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConsultationTurnReceiptUncheckedUpdateManyWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sourceMessageId?: StringFieldUpdateOperationsInput | string
+    assistantMessageId?: StringFieldUpdateOperationsInput | string
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    payloadHash?: StringFieldUpdateOperationsInput | string
+    appliedRevisions?: JsonNullValueInput | InputJsonValue
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConsultationResumeOfferCreateManyEpisodeInput = {
+    id?: string
+    scopeId: string
+    episodeRevision: number
+    contentRevision: number
+    memoryEpoch: number
+    inputSeq: number
+    handoffVersion: number
+    expiresAt: Date | string
+    decision?: string | null
+    decidedAt?: Date | string | null
+    consumedAt?: Date | string | null
+  }
+
+  export type ConsultationResumeOfferUpdateWithoutEpisodeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    scope?: ConsultationMemoryScopeUpdateOneRequiredWithoutOffersNestedInput
+  }
+
+  export type ConsultationResumeOfferUncheckedUpdateWithoutEpisodeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConsultationResumeOfferUncheckedUpdateManyWithoutEpisodeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scopeId?: StringFieldUpdateOperationsInput | string
+    episodeRevision?: IntFieldUpdateOperationsInput | number
+    contentRevision?: IntFieldUpdateOperationsInput | number
+    memoryEpoch?: IntFieldUpdateOperationsInput | number
+    inputSeq?: IntFieldUpdateOperationsInput | number
+    handoffVersion?: IntFieldUpdateOperationsInput | number
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    decision?: NullableStringFieldUpdateOperationsInput | string | null
+    decidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    consumedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type UserContextFactCreateManyScopeInput = {
+    id?: string
+    domainKey: string
+    preferenceKey: string
+    value: JsonNullValueInput | InputJsonValue
+    confirmation?: string
+    commandId: string
+    sourceKind: string
+    sourceKey: string
+    sourceEpisodeId: string
+    sourceEpisodeRevision: number
+    sourceAttributeId: string
+    sourceOperator: string
+    observedAt: Date | string
+    confirmedAt: Date | string
+    updatedAt: Date | string
+  }
+
+  export type UserContextFactUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextFactUncheckedUpdateWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserContextFactUncheckedUpdateManyWithoutScopeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainKey?: StringFieldUpdateOperationsInput | string
+    preferenceKey?: StringFieldUpdateOperationsInput | string
+    value?: JsonNullValueInput | InputJsonValue
+    confirmation?: StringFieldUpdateOperationsInput | string
+    commandId?: StringFieldUpdateOperationsInput | string
+    sourceKind?: StringFieldUpdateOperationsInput | string
+    sourceKey?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeId?: StringFieldUpdateOperationsInput | string
+    sourceEpisodeRevision?: IntFieldUpdateOperationsInput | number
+    sourceAttributeId?: StringFieldUpdateOperationsInput | string
+    sourceOperator?: StringFieldUpdateOperationsInput | string
+    observedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    confirmedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

@@ -2,6 +2,9 @@ import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import type { GraphNode, LangGraphRunnableConfig } from '@langchain/langgraph';
 
 import { SupportAgentState } from '../support-agent.state';
+import type { SupportAgentContext } from '../../context/support-agent-context.schema';
+import { filterMemoryContext, openMemoryWorkspace } from './memory-workspace';
+import { createProductWorkspace } from '@/src/product-consultation/application/workspace/product-workspace';
 
 export function normalizeQuery(query: string): string {
   return query
@@ -68,7 +71,15 @@ export const preIntentNode: GraphNode<typeof SupportAgentState> = async (
     config,
   );
 
+  const memory = config.context as Partial<SupportAgentContext> | undefined;
+  const fresh = memory?.consultationAction === 'start_new';
+  const filtered = filterMemoryContext(state.productWorkspace, state.messages,
+    fresh ? { ...memory, memoryUsed: undefined } : memory);
+  const workspace = fresh ? createProductWorkspace() : openMemoryWorkspace(filtered.workspace, state.query, memory);
   const resetRunState = {
+    ...(workspace !== state.productWorkspace ? { productWorkspace: workspace, productConsultationRecord: null } : {}),
+    ...(fresh ? { productContext: null, activeAgent: null } : {}),
+    ...(filtered.removals.length ? { messages: filtered.removals } : {}),
     requestRouter: null,
 
     clarification: null,
@@ -84,7 +95,11 @@ export const preIntentNode: GraphNode<typeof SupportAgentState> = async (
     answer: null,
   };
 
-  const stickyExecutionMode = state.activeAgent ? 'single' : null;
+  if (memory?.consultationAction === 'resume_unchanged') {
+    return { ...resetRunState, preIntentRoute: 'productAgent' as const, executionMode: 'single' as const, rejectCount: 0 };
+  }
+
+  const stickyExecutionMode = !fresh && state.activeAgent ? 'single' : null;
 
   if (DIRECT_CLARIFICATION_PATTERNS.some((pattern) => pattern.test(query))) {
     return {
