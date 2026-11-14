@@ -14,9 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   console.log('🔥 Nest стартует');
   const config = app.get(ConfigService);
-  // const redis = new IORedis(config.getOrThrow<string>('REDIS_URI'));
 
-  const redisClient = new IORedis(config.getOrThrow('REDIS_URI'));
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
