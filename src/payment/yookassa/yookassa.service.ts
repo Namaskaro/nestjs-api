@@ -2,6 +2,7 @@ import {
   BadGatewayException,
   BadRequestException,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 
 import { ConfigService } from '@nestjs/config';
@@ -28,9 +29,7 @@ interface CreateFullRefundParams {
 
 export interface YookassaPaymentResponse {
   id: string;
-
   status: YookassaPaymentStatus;
-
   paid: boolean;
 
   amount: {
@@ -52,15 +51,12 @@ export interface YookassaPaymentResponse {
   };
 
   created_at: string;
-
   test: boolean;
 }
 
 export interface YookassaRefundResponse {
   id: string;
-
   payment_id: string;
-
   status: YookassaRefundStatus;
 
   amount: {
@@ -78,11 +74,15 @@ export interface YookassaRefundResponse {
   metadata?: Record<string, string>;
 }
 
+const REQUEST_TIMEOUT_MS = 20_000;
+
 @Injectable()
 export class YookassaService {
+  private readonly logger = new Logger(YookassaService.name);
+
   private readonly apiUrl = 'https://api.yookassa.ru/v3';
 
-  public constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
   public async createPayment({
     orderId,
@@ -95,14 +95,12 @@ export class YookassaService {
 
     returnUrl.searchParams.set('orderId', orderId);
 
-    const response = await fetch(`${this.apiUrl}/payments`, {
+    return this.request<YookassaPaymentResponse>('/payments', {
       method: 'POST',
 
       headers: {
         Authorization: this.getAuthorizationHeader(),
-
         'Idempotence-Key': idempotenceKey,
-
         'Content-Type': 'application/json',
       },
 
@@ -130,45 +128,24 @@ export class YookassaService {
         },
       }),
     });
-
-    return this.parseResponse<YookassaPaymentResponse>(response);
   }
 
   public async getPayment(
     providerPaymentId: string,
   ): Promise<YookassaPaymentResponse> {
-    const response = await fetch(
-      `${this.apiUrl}/payments/${encodeURIComponent(providerPaymentId)}`,
+    return this.request<YookassaPaymentResponse>(
+      `/payments/${encodeURIComponent(providerPaymentId)}`,
       {
         method: 'GET',
 
         headers: {
           Authorization: this.getAuthorizationHeader(),
-
           'Content-Type': 'application/json',
         },
       },
     );
-
-    return this.parseResponse<YookassaPaymentResponse>(response);
   }
 
-  /**
-   * Создание ПОЛНОГО возврата.
-   *
-   * Метод вызывается только серверным
-   * сервисом возвратов после проверки заказа.
-   *
-   * amount — полная сумма исходного платежа
-   * в рублях, полученная из доверенной БД.
-   *
-   * idempotenceKey создаётся и сохраняется
-   * вызывающим сервисом ДО внешнего запроса.
-   *
-   * Метод не генерирует случайный ключ:
-   * повтор финансовой операции должен
-   * использовать тот же ключ.
-   */
   public async createFullRefund({
     providerPaymentId,
     amount,
@@ -186,14 +163,12 @@ export class YookassaService {
       throw new BadRequestException('Некорректный ключ идемпотентности.');
     }
 
-    const response = await fetch(`${this.apiUrl}/refunds`, {
+    return this.request<YookassaRefundResponse>('/refunds', {
       method: 'POST',
 
       headers: {
         Authorization: this.getAuthorizationHeader(),
-
         'Idempotence-Key': idempotenceKey,
-
         'Content-Type': 'application/json',
       },
 
@@ -206,18 +181,8 @@ export class YookassaService {
         },
       }),
     });
-
-    return this.parseResponse<YookassaRefundResponse>(response);
   }
 
-  /**
-   * Получение актуального состояния возврата.
-   *
-   * Используется для проверки операции,
-   * которая уже была отправлена в ЮKassa.
-   *
-   * GET не инициирует новый возврат.
-   */
   public async getRefund(
     providerRefundId: string,
   ): Promise<YookassaRefundResponse> {
@@ -225,20 +190,17 @@ export class YookassaService {
       throw new BadRequestException('Не указан идентификатор возврата.');
     }
 
-    const response = await fetch(
-      `${this.apiUrl}/refunds/${encodeURIComponent(providerRefundId)}`,
+    return this.request<YookassaRefundResponse>(
+      `/refunds/${encodeURIComponent(providerRefundId)}`,
       {
         method: 'GET',
 
         headers: {
           Authorization: this.getAuthorizationHeader(),
-
           'Content-Type': 'application/json',
         },
       },
     );
-
-    return this.parseResponse<YookassaRefundResponse>(response);
   }
 
   private getAuthorizationHeader(): string {
@@ -255,10 +217,56 @@ export class YookassaService {
     return `Basic ${authorization}`;
   }
 
+  private async request<T>(path: string, options: RequestInit): Promise<T> {
+    let response: Response;
+
+    try {
+      response = await fetch(`${this.apiUrl}${path}`, {
+        ...options,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    } catch (error: unknown) {
+      const cause =
+        error instanceof Error && 'cause' in error ? error.cause : undefined;
+
+      const networkError =
+        cause instanceof Error ? cause : error instanceof Error ? error : null;
+
+      const code =
+        networkError &&
+        'code' in networkError &&
+        typeof networkError.code === 'string'
+          ? networkError.code
+          : 'UNKNOWN';
+
+      this.logger.error(
+        `Ошибка соединения с YooKassa: ${path}; ` +
+          `code=${code}; ` +
+          `message=${networkError?.message ?? 'Unknown error'}`,
+      );
+
+      throw new BadGatewayException(
+        'Не удалось подключиться к ЮKassa. ' +
+          'Попытка оплаты сохранена. ' +
+          'Повторите операцию позже.',
+      );
+    }
+
+    return this.parseResponse<T>(response);
+  }
+
   private async parseResponse<T>(response: Response): Promise<T> {
-    const body: unknown = await response.json();
+    let body: unknown;
+
+    try {
+      body = await response.json();
+    } catch {
+      throw new BadGatewayException('ЮKassa вернула некорректный ответ.');
+    }
 
     if (!response.ok) {
+      this.logger.error(`YooKassa API error: HTTP ${response.status}`);
+
       throw new BadGatewayException({
         message: 'Ошибка запроса к ЮKassa',
         yookassa: body,
