@@ -14,6 +14,10 @@ replaceable adapters.
 
 NextShop is a reference integration, not a required dependency.
 
+Этот контракт обязателен для всех модулей Support Engine. Унаследованные
+отклонения фиксируются в аудите и исправляются постепенно в утверждённом
+scope, с сохранением проверенного поведения и совместимости NextShop.
+
 ## 2. Architectural layers
 
 ### Domain / Core
@@ -41,6 +45,14 @@ Contains reusable use cases and orchestration:
 
 Application services depend on port contracts, not concrete
 external implementations.
+
+CORE определяет правила и инварианты; APPLICATION собирает сценарии и
+выбирает разрешённые операции. PORT описывает потребности этих слоёв
+на языке Engine: входы, результаты, возможности, ошибки и гарантии.
+CORE/APPLICATION могут импортировать собственные модели и порты.
+Конкретные реализации подключаются в точке сборки (composition root).
+Название папки или наличие интерфейса не доказывают границу: проверяй
+транзитивные импорты и фактический путь выполнения.
 
 ### Inbound adapters
 
@@ -81,6 +93,12 @@ Examples:
 
 Infrastructure is not part of the pure domain core.
 
+ADAPTER переводит между контрактом и протоколом, схемой или SDK;
+INFRASTRUCTURE предоставляет среду исполнения, хранение и эксплуатационные
+механизмы. NestJS, LangGraph, Prisma, Qdrant SDK и Socket.IO могут оставаться
+частью поддерживаемого профиля. Их типы, состояния и ошибки не становятся
+моделями CORE, переносимыми сценариями APPLICATION или публичным wire-форматом.
+
 ## 3. Engine-owned capabilities
 
 The following capabilities must be portable:
@@ -110,11 +128,18 @@ External commerce systems remain authoritative for:
 - Payments and refunds.
 - Shipment and delivery records.
 - Customer commerce accounts.
+- Авторитетные правила совместимости, цены и изменения сборки
+  в конфигураторе магазина, если такая интеграция входит в scope.
 
 The Engine may maintain normalized projections, caches,
 search indexes and derived intelligence.
 
 Derived data must retain traceability to its source.
+
+STORE-OWNED описывает владельца данных и решений, даже когда адаптер
+встроен в тот же процесс. Engine владеет диалогами, принятыми решениями,
+своими проекциями и производным состоянием в пределах своего контракта.
+Совпадающие внешние ID разных магазинов должны оставаться различимыми.
 
 ## 5. Canonical models
 
@@ -171,6 +196,13 @@ Separate reads from operations that change external state.
 
 All external requests must carry trusted tenant context.
 
+Опиши для порта область доверия, формат и namespace внешних идентификаторов,
+авторитетность и свежесть, пагинацию, семантику ошибок и отсутствие
+возможностей. Обозначь обязательные и опциональные операции. Для записей
+определи права, подтверждение, ключ идемпотентности, конфликт версий
+и исход при неопределённом результате. Не предполагается общая транзакция
+Engine с внешним API; гарантии каждой стороны должны быть проверяемы.
+
 ## 7. Data ingestion and synchronization
 
 Support appropriate integration modes:
@@ -190,7 +222,7 @@ Support:
 - Incremental updates.
 - Source timestamps and revision tracking.
 - Deduplication and idempotency.
-- Retry and failure recovery.
+- Defined failure and recovery behavior; retries only where approved.
 - Deletion and publication-state changes.
 - Reindexing affected derived data.
 
@@ -264,6 +296,11 @@ Prevent cross-tenant memory access.
 Store-originated events are optional integrations and must
 not be assumed to exist for every commerce platform.
 
+Для User Context та же граница идентичности обязательна. Отделяй
+текущий диалог, эпизоды и подтверждённый устойчивый профиль. Не переноси
+вывод модели или сигнал магазина в подтверждённый профиль без утверждённых
+правил, явного основания и возможности отзыва.
+
 ## 11. Order Agent
 
 Order Agent owns conversational order-assistance logic.
@@ -320,6 +357,14 @@ contracts using their own UI implementations.
 Tailwind, shadcn/ui and Lucide are implementation details
 of the current NextShop frontend.
 
+Версионируй публичный wire-контракт (команды, ответы, события, ошибки и
+артефакты), отдельно от версии транспорта, DTO хоста и Swagger-метаданных.
+Задай политику совместимости: обязательные/опциональные поля, неизвестные
+типы событий, миграция при несовместимых изменениях. Документируй
+корреляцию, подтверждение приёма, повторную доставку и reconnect/replay
+там, где они обещаны. Поддерживаемый Socket.IO может остаться входным
+адаптером. Доказывай работу независимым клиентом без UI NextShop.
+
 ## 13. Storage and deployment
 
 The Engine may own its operational data.
@@ -343,6 +388,14 @@ Supporting external PostgreSQL/MySQL commerce databases
 does not require the Engine's own persistence to support
 every SQL dialect.
 
+В профиле поставки отдельно указывай обязательные Engine PostgreSQL,
+векторный индекс, очереди и другие зависимости с поддерживаемыми версиями.
+Приложение обращается к своему состоянию по контрактам Engine; конкретный
+драйвер и миграции принадлежат инфраструктуре. Второй магазин может
+передавать данные через API, feed или события независимо от своей СУБД.
+Для доказательства переносимости не требуется второй движок хранения
+внутреннего состояния.
+
 ## 14. Tenant isolation and security
 
 Every request must resolve a trusted tenant identity.
@@ -356,6 +409,7 @@ Apply tenant isolation to:
 - Cache entries.
 - Configuration and secrets.
 - External operations.
+- Keys of checkpoints, idempotency and reconnect/replay state.
 
 Authenticate inbound integrations.
 
@@ -388,18 +442,21 @@ requirement justifies them.
 Do not build integrations for every commerce platform
 without an approved business requirement.
 
-## 16. Definition of portability
+## 16. Доказательство переносимости и выпуска
 
-A capability is portable when:
+Один и тот же контрактный набор обязателен для рабочего адаптера и
+независимой реализации затронутого порта. Меняться могут маппинг,
+конфигурация и wiring; CORE и APPLICATION остаются теми же. Независимый
+источник имеет собственные raw-поля, ID, возможности и поведение ошибок.
+Проверяй сценарий до результата и эффекта, включая границу tenant,
+недоступность, повтор и обновление/удаление, когда они применимы.
+Мок, возвращающий готовые канонические записи, полезен для unit-тестов.
+Сам по себе он не проходит критерий независимого адаптера.
 
-- Its core does not import NextShop-specific implementations.
-- Its external dependencies are expressed as contracts.
-- It works with a test implementation of its external ports.
-- External data is mapped into canonical Engine models.
-- Its public output is not tied to a frontend framework.
-- Its tenant and security boundaries are enforced.
-- It does not require changes to its core when replacing
-  one compatible external adapter with another.
-
-The final product goal is to connect a second independent
-commerce platform without rewriting Engine business logic.
+Синтетический источник с собственной моделью может закрыть
+`PORTABILITY_GATE` в проверенных границах. Для поддержки реального
+поставщика проверяй его API в разрешённой среде, включая аутентификацию,
+права, форматы, сценарии отказов, ограничения и побочные эффекты.
+Состояние `production-ready` допустимо только для конкретного кандидата
+и профиля после `RELEASE_GATE: PASS`. Операционные критерии и разница
+с `MILESTONE_GATE` описаны в [чек-листе](portability-checklist.md).

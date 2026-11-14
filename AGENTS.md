@@ -184,38 +184,33 @@ platform or the boundary of the product.
 The Engine must support different commerce backends,
 data providers, AI providers and frontend applications.
 
-For work involving Support Agent, Product Consultant,
-Order Agent, Review Intelligence, Agentic Memory,
-Customer Help, product enrichment, embeddings,
-semantic search, or public chat contracts:
+Переносимость — обязательное архитектурное требование для всех
+существующих и будущих модулей Support Engine. При discovery, проектировании,
+реализации, рефакторинге, ревью, аудите или подготовке выпуска:
 
-1. Apply the project-local `support-engine-productization`
-   skill from `.agents/skills/support-engine-productization/`.
-
-2. Follow its `architecture-contract.md`.
-
-3. Include `portability-checklist.md` in feature review
-   and productization audit.
-
-4. Keep domain/application logic independent of
-   NextShop-specific infrastructure and UI technologies.
-
-5. Identify and document new platform coupling before
-   introducing it.
-
-6. Prefer incremental refactoring. Preserve existing
-   behavior and validated contracts.
-
-7. Do not automatically extract microservices or build
-   integrations for unsupported external platforms.
-
-8. For feature-workflow tasks, perform portability analysis
-   during discovery/planning and verify relevant boundaries
-   during review.
-
-9. Do not declare a capability product-ready without
-   evidence of independent contracts and replaceable
-   external adapters.
+1. Примени локальный skill `.agents/skills/support-engine-productization/SKILL.md`,
+   прочитай его `architecture-contract.md` и используй `portability-checklist.md`.
+   Правило охватывает Support Agent, маршрутизацию, Product Consultant,
+   Order Agent, Review Intelligence, Agentic Memory, User Context, Customer Help,
+   LLM, обогащение, embeddings, поиск, persistence, адаптеры, deployment,
+   клиентские API и события. Ориентируйся на затронутую границу, а не на имя папки.
+2. На discovery и в плане укажи границы, владельцев данных, зависимости и способ
+   проверки. В review проверь фактический путь выполнения. Сохраняй поведение
+   NextShop и совместимость подтверждённых контрактов. Фиксируй унаследованные
+   связи и план постепенного устранения. Новые связи согласовывай заранее.
+3. Для `REUSABLE_PRODUCT` фиксируй отдельно `MILESTONE_GATE`, `PORTABILITY_GATE`
+   и `RELEASE_GATE` в применимом `STATE.md` или отчёте. Design и integration gates
+   не заменяют эти проверки. Для затронутой внешней границы обязателен общий
+   контрактный прогон с рабочим и независимым адаптерами. Синтетический второй
+   источник подтверждает проверенную архитектурную переносимость в пределах
+   прогона. Поддержка реальной интеграции требует доказательств на её API.
+4. Называй capability или продукт `production-ready` только после
+   `RELEASE_GATE: PASS` для конкретной ревизии, профиля поставки и заявленных
+   интеграций. Отдельно указывай непроверенные сценарии и блокеры.
+5. Оставляй домен и прикладные сценарии независимыми от NextShop, транспорта
+   и конкретной инфраструктуры. Независимость внешних источников не требует
+   нескольких СУБД для внутреннего состояния Engine. Не выделяй микросервисы и
+   не реализуй интеграции вне согласованного объёма.
 
 Existing parallel feature worktrees must not be modified
 outside their approved task scope.

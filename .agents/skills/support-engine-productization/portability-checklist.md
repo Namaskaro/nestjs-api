@@ -1,25 +1,31 @@
 # Support Engine — Portability Checklist
 
-## Purpose
+## Как применять
 
-Evaluate whether a Support Engine capability is genuinely
-reusable outside NextShop.
+Укажи возможность, branch/SHA, состояние рабочей копии, профиль поставки,
+заявленные интеграции, затронутые порты, активный путь и владельцев данных.
+Для каждого критерия укажи `PASS`, `FAIL`, `NOT VERIFIED`, `BLOCKED`
+или `N/A` с причиной. Различай чтение кода, текущий прогон и исторический
+отчёт с его SHA и профилем. Для прогона запиши команду, версии сервисов,
+фикстуры и результат. Применимый обязательный критерий с `FAIL`,
+`NOT VERIFIED` или `BLOCKED` исключает PASS gate.
 
-Do not equate passing unit tests with product readiness.
+| Gate | Что подтверждает | Обязательное свидетельство |
+| --- | --- | --- |
+| `MILESTONE_GATE` | Работоспособность значимого этапа в его scope | Проверены wiring, критерии этапа и регрессии. Для работы с PostgreSQL/Qdrant выполнены релевантные функциональные сценарии G. |
+| `PORTABILITY_GATE` | Возможность заменить адаптер затронутой границы | Подтверждены применимые критерии A–F по переносимости. Общий набор G прошёл с действующим и независимым адаптерами без правок CORE/APPLICATION. Для клиентской границы проверен независимый клиент. |
+| `RELEASE_GATE` | Готовность конкретного кандидата в заявленном профиле | Пройдены все применимые обязательные milestone и portability gates, совместный прогон и эксплуатационные критерии H. |
 
-For every check record:
-
-- PASS
-- FAIL
-- NOT VERIFIED
-- NOT APPLICABLE
-
-Include evidence: files, interfaces, tests or runtime results.
+Статусы записываются раздельно. PASS узкого gate не распространяется
+на весь продукт. `production-ready` допустим только при `RELEASE_GATE: PASS`
+в явном scope. Статус не разрешает deployment, миграцию или платные вызовы.
 
 ## A. Core independence
 
 - [ ] Domain rules do not import NextShop services or models.
 - [ ] Application logic does not depend on concrete adapters.
+- [ ] Фактический wiring, включая транзитивные вызовы, соответствует
+      карте CORE / APPLICATION / PORT / ADAPTER / INFRASTRUCTURE / STORE-OWNED.
 - [ ] Core contracts do not expose Prisma-generated types.
 - [ ] Core does not depend on frontend frameworks.
 - [ ] Core does not depend on NestJS transport objects.
@@ -64,6 +70,8 @@ Include evidence: files, interfaces, tests or runtime results.
 - [ ] Background jobs support retries and recovery.
 - [ ] Data lifecycle and deletion requirements are defined.
 - [ ] The capability can run without the NextShop frontend.
+- [ ] Зависимости внутреннего профиля Engine перечислены отдельно от
+      требований к магазину; вторая внутренняя СУБД не требуется.
 
 ## E. AI processing
 
@@ -101,6 +109,13 @@ Include evidence: files, interfaces, tests or runtime results.
 - [ ] Memory is isolated by tenant and authorized user.
 - [ ] Store-originated events are optional, not mandatory.
 
+### User Context
+
+- [ ] Профиль отделён от диалога и эпизодов. Идентичность,
+      подтверждение, ревизии, отзыв и удаление проверяются отдельно.
+- [ ] Внешний сигнал имеет происхождение и версию; неподдерживаемые
+      события не требуются для работы профиля.
+
 ### Order Agent
 
 - [ ] Order business logic uses application ports.
@@ -109,46 +124,60 @@ Include evidence: files, interfaces, tests or runtime results.
 - [ ] Permissions and confirmation rules are enforced.
 - [ ] Unsupported operations fail safely.
 
-## G. Required verification
+### Routing / Customer Help
 
-Perform focused verification appropriate to the change.
+- [ ] Роутер учитывает доступные возможности; типы графа не образуют
+      публичный контракт. Пропуск недоступного worker проверен.
+- [ ] Знания и политики магазина входят через адаптер, а чтение и
+      индексирование сохраняют tenant, свежесть и происхождение.
 
-At minimum:
+## G. Контрактные и функциональные проверки
 
-1. Identify the current real adapter.
-2. Verify the capability against a fake adapter.
-3. Check that swapping adapters requires no core change.
-4. Verify the relevant public contract.
-5. Verify tenant isolation when applicable.
-6. Verify error handling and source-data edge cases.
+- [ ] Один параметризованный набор исполнен с действующим и независимым
+      адаптерами **того же порта**. Второй источник имеет собственную
+      исходную форму, ID и маппинг. Покажи замену на реальном пути
+      от use case до эффекта. Моки с готовыми каноническими записями
+      недостаточны. Переиспользуй существующую тестовую инфраструктуру.
+- [ ] Проверены успех, отсутствие или неполнота данных, чужой владелец,
+      совпадающий внешний ID другого tenant, отсутствующая возможность,
+      ошибка доступа и недоступность. Где применимо, проверь дубликат,
+      позднее событие, изменение и удаление, конфликт версий и запись
+      без повторного эффекта.
+- [ ] Публичный контракт проверен независимым клиентом без UI NextShop:
+      версия, артефакты, ошибки, повтор команд, reconnect, порядок и
+      повтор доставки в заявленном объёме.
+- [ ] Для PostgreSQL/Qdrant использованы инструкции
+      [Shared Integration Test Environment](../../../infra/integration/README.md).
+      Проверь прикладное поведение на настоящих изолированных сервисах.
+      Smoke инфраструктуры и моки не подтверждают прикладной сценарий.
+- [ ] Если второй источник синтетический, отмечены непроверенные реальные
+      API, права, лимиты и побочные эффекты. Результат не переносится на
+      другие возможности или внешние интеграции.
 
-For broader productization milestones, validate with a
-second independent integration implementation.
+## H. Допуск к production
 
-Do not create redundant test suites without justification.
+- [ ] Зафиксированы версия и поддерживаемые профили. Интегратор по инструкции
+      устанавливает Engine с нуля без NextShop, с миграциями, конфигурацией,
+      диагностикой и секретами вне кода. Проверены перезапуск и сохранность.
+- [ ] Для всех заявленных реальных интеграций пройдены сценарии на их API
+      (например, в sandbox): auth, права, лимиты, актуализация, операции и
+      ошибки в заявленном scope. Есть приёмка интегратором или потребителем.
+- [ ] Сквозным тестом подтверждены trusted tenant/identity, изоляция данных,
+      индексов, очередей и контекста LLM, права и жизненный цикл данных.
+      Конкурентные сценарии проверены на заявленной топологии.
+- [ ] На кандидате проверены ключевые сценарии, отказ и восстановление с
+      разрешёнными реальными зависимостями. Для AI проверены поддерживаемые
+      провайдеры, качество, доказательства, бюджеты, таймауты и лимиты.
+- [ ] Проверены обновление, rollback, резервное копирование и восстановление
+      схем и индексов. Есть наблюдаемость, пределы эксплуатации и инструкция
+      для ответственного за реакцию на сбои.
+- [ ] Релизные проверки выполнены на точном кандидате или их применимость
+      к нему обоснована. Незапущенный обязательный тест, несовместимый
+      контракт или непройденный обязательный gate блокируют production-ready.
 
-Reuse existing integration and contract-test infrastructure.
+## I. Отчёт
 
-## H. Final report
-
-Report:
-
-Capability:
-Current implementation:
-Examined files:
-Existing ports:
-Existing adapters:
-Missing boundaries:
-NextShop-specific dependencies:
-Breaking-change risks:
-Required migration work:
-Tests and evidence:
-Remaining limitations:
-
-Final verdict:
-PASS / PARTIAL / FAIL / NOT VERIFIED
-
-A capability is not fully productized merely because it
-has interfaces or runs successfully in NextShop.
-
-Productization requires verified architectural independence.
+В `STATE.md` или отчёте укажи карту, риски совместимости, проверенные
+сценарии и открытый долг. Для каждого из трёх gates укажи статус,
+критерий, артефакт или команду и следующий шаг. Если подтверждён только
+NextShop или синтетический источник, явно назови этот профиль.
